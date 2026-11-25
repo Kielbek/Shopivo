@@ -35,9 +35,12 @@ public class StoreProvisioning {
     private final AuditLog auditLog;
     private final TransactionTemplate tx;
     private final ShopivoProperties properties;
+    private final org.springframework.context.ApplicationEventPublisher events;
 
     StoreProvisioning(StoreRepository stores, StoreSettingsRepository settings, TenantMemberships memberships,
-            StoreDomains domains, AuditLog auditLog, TransactionTemplate tx, ShopivoProperties properties) {
+            StoreDomains domains, AuditLog auditLog, TransactionTemplate tx, ShopivoProperties properties,
+            org.springframework.context.ApplicationEventPublisher events) {
+        this.events = events;
         this.stores = stores;
         this.settings = settings;
         this.memberships = memberships;
@@ -88,6 +91,7 @@ public class StoreProvisioning {
                 stores.flush();
                 auditLog.record(AuditEntry.tenant("store.created", tenantId, "store", store.getId())
                         .with(Map.of("slug", slug)));
+                events.publishEvent(new StoreCreatedEvent(tenantId, store.getId(), user.id()));
                 return store.toView(domain.hostname());
             }));
         } catch (DataIntegrityViolationException e) {

@@ -9,10 +9,16 @@ public record ShopivoProperties(
         String platformDomain,
         String appUrl,
         String adminUrl,
+        /** Public base URL of the API (used in operator notification URLs); defaults to appUrl. */
+        String publicApiUrl,
         Mail mail,
         Security security,
         Tenancy tenancy,
         Bootstrap bootstrap) {
+
+    public String publicApiUrl() {
+        return publicApiUrl == null || publicApiUrl.isBlank() ? appUrl : publicApiUrl;
+    }
 
     public record Mail(String from) {
     }

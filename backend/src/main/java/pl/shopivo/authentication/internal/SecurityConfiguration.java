@@ -25,6 +25,7 @@ import pl.shopivo.shared.config.ShopivoProperties;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import pl.shopivo.tenants.TenantAccessFilter;
 import pl.shopivo.tenants.TenantMemberships;
+import pl.shopivo.tenants.TenantWriteAccessPolicy;
 import pl.shopivo.users.UserAccounts;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -58,7 +59,7 @@ class SecurityConfiguration {
     @Bean
     SecurityFilterChain apiSecurity(HttpSecurity http, SessionService sessions, SessionCookies cookies,
             UserAccounts users, TenantMemberships memberships, JsonMapper jsonMapper, ProblemResponseWriter problems,
-            ShopivoProperties properties, Environment environment,
+            ShopivoProperties properties, Environment environment, ObjectProvider<TenantWriteAccessPolicy> writePolicies,
             ObjectProvider<ClientRegistrationRepository> clientRegistrations,
             ObjectProvider<OAuthLoginSuccessHandler> oauthSuccessHandler) throws Exception {
 
@@ -83,7 +84,8 @@ class SecurityConfiguration {
                 .requestCache(c -> c.disable())
                 .addFilterBefore(new SessionAuthenticationFilter(sessions, cookies, users,
                         properties.security().requirePlatformStaffMfa()), AnonymousAuthenticationFilter.class)
-                .addFilterAfter(new TenantAccessFilter(memberships, jsonMapper), AuthorizationFilter.class)
+                .addFilterAfter(new TenantAccessFilter(memberships, jsonMapper, writePolicies.orderedStream().toList()),
+                        AuthorizationFilter.class)
                 .headers(h -> h
                         .contentSecurityPolicy(csp -> csp.policyDirectives(
                                 "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"))
@@ -108,6 +110,7 @@ class SecurityConfiguration {
                         .requestMatchers("/api/v1/auth/login/mfa").hasRole("MFA_PENDING")
                         .requestMatchers("/api/v1/auth/me", "/api/v1/auth/logout").authenticated()
                         .requestMatchers("/api/v1/storefront/**", "/api/v1/webhooks/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/plans").permitAll()
                         .requestMatchers("/api/docs/**", "/api/swagger-ui/**", "/api/swagger-ui.html").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("PLATFORM_ADMIN", "PLATFORM_SUPPORT")
                         .requestMatchers("/api/**").hasRole("USER")

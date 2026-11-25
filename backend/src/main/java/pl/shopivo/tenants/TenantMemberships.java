@@ -108,6 +108,20 @@ public class TenantMemberships {
                 .toList();
     }
 
+    /** User ids of active owners of the current tenant (billing notifications). */
+    @Transactional(readOnly = true)
+    public List<UUID> activeOwnerIds() {
+        return memberships.findByTenantIdOrderByCreatedAtAsc(TenantContext.requireTenantId()).stream()
+                .filter(m -> m.getRole() == StoreRole.OWNER && m.getStatus() == MembershipStatus.ACTIVE)
+                .map(MembershipEntity::getUserId).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public long activeMemberCount() {
+        return memberships.findByTenantIdOrderByCreatedAtAsc(TenantContext.requireTenantId()).stream()
+                .filter(m -> m.getStatus() == MembershipStatus.ACTIVE).count();
+    }
+
     /** Adds a user to the current tenant (invitation acceptance). */
     public MembershipView addMember(UUID userId, StoreRole role) {
         UUID tenantId = TenantContext.requireTenantId();

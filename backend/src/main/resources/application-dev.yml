@@ -19,6 +19,12 @@ shopivo:
     encryption:
       # 32 zero-bytes key, base64 — DEV ONLY
       keys: "1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  public-api-url: http://localhost:8080
+  payments:
+    # Simulated operator: payment page auto-confirms and posts a signed notification back (local only).
+    fake-gateway:
+      enabled: true
+      auto-confirm: true
   bootstrap:
     admin-email: admin@shopivo.local
     admin-password: "Platforma!Lokalna-2026"

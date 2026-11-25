@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{_layout :: layout(~{::title}, ~{::section})}" lang="pl">
+<head><title th:text="${subject}">Subskrypcja Shopivo</title></head>
+<body>
+<section>
+  <h1 style="font-size:20px;margin:0 0 12px;" th:text="${heading}">Subskrypcja</h1>
+  <p th:each="line : ${lines}" th:text="${line}">Treść</p>
+  <p style="margin:24px 0;"><a th:href="${link}" th:text="${ctaLabel}" style="display:inline-block;background:#3E6FD8;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600;">Przejdź do subskrypcji</a></p>
+  <p style="color:#52525b;font-size:13px;">Ceny planów są cenami netto — do płatności doliczany jest podatek VAT.</p>
+</section>
+</body>
+</html>

@@ -32,9 +32,12 @@ public class TenantInvitations {
     private final AuditLog auditLog;
     private final ApplicationEventPublisher events;
     private final TransactionTemplate tx;
+    private final java.util.List<TeamSizePolicy> teamSizePolicies;
 
     TenantInvitations(InvitationRepository invitations, TenantMemberships memberships, UserAccounts users,
-            AuditLog auditLog, ApplicationEventPublisher events, TransactionTemplate tx) {
+            AuditLog auditLog, ApplicationEventPublisher events, TransactionTemplate tx,
+            java.util.List<TeamSizePolicy> teamSizePolicies) {
+        this.teamSizePolicies = teamSizePolicies;
         this.invitations = invitations;
         this.memberships = memberships;
         this.users = users;
@@ -56,6 +59,8 @@ public class TenantInvitations {
                 }
             });
             Instant now = Instant.now();
+            long teamSize = memberships.team().size() + invitations.findPending(now).size();
+            teamSizePolicies.forEach(p -> p.checkCanAddMember(tenantId, teamSize));
             invitations.findOpenForEmail(normalized).ifPresent(existing -> {
                 if (existing.isPending(now)) {
                     throw new ConflictException("INVITATION_PENDING", "Zaproszenie dla tego adresu już oczekuje na akceptację.");

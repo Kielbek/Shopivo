@@ -140,3 +140,25 @@ shopivo:
   bootstrap:
     admin-email: ${SHOPIVO_BOOTSTRAP_ADMIN_EMAIL:}
     admin-password: ${SHOPIVO_BOOTSTRAP_ADMIN_PASSWORD:}
+  # Public base URL of this API as seen by payment operators (notification callbacks). Defaults to app-url.
+  public-api-url: ${SHOPIVO_PUBLIC_API_URL:}
+  billing:
+    trial-plan-code: ${SHOPIVO_TRIAL_PLAN:BUSINESS}
+    renewal-lead: 7d
+    grace-period: 7d
+    trial-ending-notice: 3d
+    reminder-interval: 3d
+    max-reminders: 3
+    vat-rate-bps: 2300
+    currency: PLN
+    # Estimated monthly infrastructure cost per store (grosze) — used only in the profitability report.
+    # Calibrate with real cloud invoices.
+    cost-model:
+      base-monthly-minor: ${SHOPIVO_COST_BASE_MINOR:300}
+      per-million-storefront-requests-minor: ${SHOPIVO_COST_PER_MILLION_REQUESTS_MINOR:200}
+      per-order-minor: ${SHOPIVO_COST_PER_ORDER_MINOR:2}
+      per-gb-storage-minor: ${SHOPIVO_COST_PER_GB_MINOR:10}
+  payments:
+    # Simulated operator for local development and tests only. Never enable in production.
+    fake-gateway:
+      enabled: false

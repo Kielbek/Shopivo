@@ -31,10 +31,13 @@ public class TenantAccessFilter extends OncePerRequestFilter {
 
     private final TenantMemberships memberships;
     private final JsonMapper jsonMapper;
+    private final java.util.List<TenantWriteAccessPolicy> writePolicies;
 
-    public TenantAccessFilter(TenantMemberships memberships, JsonMapper jsonMapper) {
+    public TenantAccessFilter(TenantMemberships memberships, JsonMapper jsonMapper,
+            java.util.List<TenantWriteAccessPolicy> writePolicies) {
         this.memberships = memberships;
         this.jsonMapper = jsonMapper;
+        this.writePolicies = writePolicies;
     }
 
     @Override
@@ -64,6 +67,11 @@ public class TenantAccessFilter extends OncePerRequestFilter {
             notFound(response);
             return;
         }
+        if (isWrite(request) && !isBillingPath(matcher.group(2)) && writePolicies.stream().anyMatch(p -> !p.canWrite(tenantId))) {
+            writeProblem(response, HttpStatus.PAYMENT_REQUIRED, "SUBSCRIPTION_INACTIVE",
+                    "Subskrypcja sklepu wygasła — sklep działa w trybie tylko do odczytu. Opłać subskrypcję, aby wprowadzać zmiany.");
+            return;
+        }
         request.setAttribute(TenantAccess.MEMBERSHIP_ATTRIBUTE, membership.get());
         TenantContext.bindTenant(tenantId);
         MDC.put("tenantId", tenantId.toString());
@@ -75,9 +83,23 @@ public class TenantAccessFilter extends OncePerRequestFilter {
         }
     }
 
+    private static boolean isWrite(HttpServletRequest request) {
+        String m = request.getMethod();
+        return !("GET".equals(m) || "HEAD".equals(m) || "OPTIONS".equals(m));
+    }
+
+    /** Billing must stay usable when the subscription is inactive — otherwise the merchant could never pay. */
+    private static boolean isBillingPath(String rest) {
+        return rest != null && rest.startsWith("/subscription");
+    }
+
     private void notFound(HttpServletResponse response) throws IOException {
-        ProblemDetail problem = ProblemDetails.of(HttpStatus.NOT_FOUND, "NOT_FOUND", "Nie znaleziono sklepu.");
-        response.setStatus(HttpStatus.NOT_FOUND.value());
+        writeProblem(response, HttpStatus.NOT_FOUND, "NOT_FOUND", "Nie znaleziono sklepu.");
+    }
+
+    private void writeProblem(HttpServletResponse response, HttpStatus status, String code, String detail) throws IOException {
+        ProblemDetail problem = ProblemDetails.of(status, code, detail);
+        response.setStatus(status.value());
         response.setContentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         jsonMapper.writeValue(response.getOutputStream(), problem);

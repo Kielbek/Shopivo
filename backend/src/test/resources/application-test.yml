@@ -11,6 +11,16 @@ shopivo:
     encryption:
       keys: "1:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
       active-key: 1
+  public-api-url: https://api.shopivo.test
+  payments:
+    fake-gateway:
+      enabled: true
+      auto-confirm: false
+  billing:
+    # Jobs are driven explicitly by the tests.
+    job-interval: PT24H
+    usage-flush-interval: PT24H
+    fair-use-cron: "-"
   bootstrap:
     admin-email: admin@shopivo.test
     admin-password: "Platforma!Testowa-2026"

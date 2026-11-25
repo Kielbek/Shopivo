@@ -31,7 +31,7 @@ class PlatformAdminBootstrapTest {
     };
 
     private PlatformAdminBootstrap bootstrap() {
-        var props = new ShopivoProperties(null, null, null, null, null, null,
+        var props = new ShopivoProperties(null, null, null, null, null, null, null,
                 new ShopivoProperties.Bootstrap("admin@firma.pl", "Platforma!Startowa-2026"));
         return new PlatformAdminBootstrap(users, mock(PasswordEncoder.class), new PasswordPolicy(), tx, props);
     }
