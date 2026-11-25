@@ -32,5 +32,15 @@ class ActuatorIT extends IntegrationTest {
         assertThat(get("/actuator/health/liveness").statusCode()).isEqualTo(200);
         assertThat(get("/actuator/health").body()).doesNotContain("db").doesNotContain("redis");
         assertThat(get("/actuator/env").statusCode()).isIn(401, 403, 404);
+        assertThat(get("/actuator/prometheus").statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    void actuatorIsNotServedOnTheApplicationPort() throws Exception {
+        for (String path : new String[] {"/actuator/health", "/actuator/prometheus"}) {
+            int status = mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(path))
+                    .andReturn().getResponse().getStatus();
+            assertThat(status).as(path).isIn(401, 403, 404);
+        }
     }
 }

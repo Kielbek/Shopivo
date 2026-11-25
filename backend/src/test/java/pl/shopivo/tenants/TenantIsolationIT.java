@@ -40,6 +40,26 @@ class TenantIsolationIT extends IntegrationTest {
     }
 
     @Test
+    void foreignResourceIdsCannotBeUsedThroughOwnTenantPath() {
+        ApiClient alice = registeredUser(uniqueEmail("idor-a"));
+        ApiClient bob = registeredUser(uniqueEmail("idor-b"));
+        String aliceTenant = createStore(alice, "IDOR A", uniqueSlug("ia"));
+        String bobTenant = createStore(bob, "IDOR B", uniqueSlug("ib"));
+        String invitationId = bob.post("/api/v1/tenants/" + bobTenant + "/invitations",
+                Map.of("email", uniqueEmail("guest"), "role", "MANAGER")).json().get("id").asString();
+        String bobMembership = bob.get("/api/v1/tenants/" + bobTenant + "/members").json().get(0).get("membershipId").asString();
+
+        // Alice addresses Bob's objects through her own (authorised) tenant path.
+        assertThat(alice.delete("/api/v1/tenants/" + aliceTenant + "/invitations/" + invitationId).status()).isEqualTo(404);
+        assertThat(alice.post("/api/v1/tenants/" + aliceTenant + "/invitations/" + invitationId + "/resend", null).status()).isEqualTo(404);
+        assertThat(alice.patch("/api/v1/tenants/" + aliceTenant + "/members/" + bobMembership, Map.of("role", "ADMIN")).status()).isEqualTo(404);
+        assertThat(alice.delete("/api/v1/tenants/" + aliceTenant + "/members/" + bobMembership).status()).isEqualTo(404);
+
+        assertThat(bob.get("/api/v1/tenants/" + bobTenant + "/invitations").json().size()).isEqualTo(1);
+        assertThat(bob.get("/api/v1/tenants/" + bobTenant + "/members").json().get(0).get("role").asString()).isEqualTo("OWNER");
+    }
+
+    @Test
     void malformedAndUnknownTenantIdsReturnNotFound() {
         ApiClient alice = registeredUser(uniqueEmail("alice2"));
         assertThat(alice.get("/api/v1/tenants/not-a-uuid/store").status()).isEqualTo(404);

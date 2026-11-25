@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import pl.shopivo.authentication.internal.AuthenticationService;
+import pl.shopivo.authentication.internal.CsrfTokenRotation;
 import pl.shopivo.authentication.internal.MfaService;
 import pl.shopivo.authentication.internal.SessionCookies;
 import pl.shopivo.authentication.internal.SessionService;
@@ -43,9 +44,11 @@ class AuthController {
     private final SessionCookies cookies;
     private final UserAccounts users;
     private final ObjectProvider<ClientRegistrationRepository> clientRegistrations;
+    private final CsrfTokenRotation csrf;
 
     AuthController(AuthenticationService auth, MfaService mfa, SessionCookies cookies, UserAccounts users,
-            ObjectProvider<ClientRegistrationRepository> clientRegistrations) {
+            ObjectProvider<ClientRegistrationRepository> clientRegistrations, CsrfTokenRotation csrf) {
+        this.csrf = csrf;
         this.auth = auth;
         this.mfa = mfa;
         this.cookies = cookies;
@@ -125,22 +128,25 @@ class AuthController {
         AuthenticationService.LoginResult result = auth.login(request.email(), request.password(), request.rememberMe(),
                 ClientInfo.from(http));
         cookies.write(response, result.session());
+        csrf.rotate(http, response);
         return new LoginResponse(result.mfaRequired());
     }
 
     @PostMapping("/login/mfa")
-    LoginResponse loginMfa(@Valid @RequestBody MfaRequest request, HttpServletResponse response) {
+    LoginResponse loginMfa(@Valid @RequestBody MfaRequest request, HttpServletRequest http, HttpServletResponse response) {
         CurrentUser user = SecurityUtils.requireUser();
         SessionService.IssuedSession session = mfa.completeLogin(user.id(), user.sessionId(), request.code());
         cookies.write(response, session);
+        csrf.rotate(http, response);
         return new LoginResponse(false);
     }
 
     @PostMapping("/logout")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    void logout(HttpServletResponse response) {
+    void logout(HttpServletRequest http, HttpServletResponse response) {
         auth.logout(SecurityUtils.requireUser().sessionId());
         cookies.clear(response);
+        csrf.rotate(http, response);
     }
 
     @PostMapping("/password/forgot")
@@ -160,6 +166,7 @@ class AuthController {
         CurrentUser current = SecurityUtils.requireUser();
         UserView user = users.getById(current.id());
         return new MeResponse(user.id(), user.email(), user.firstName(), user.lastName(), user.locale(),
-                user.platformRole(), user.mfaEnabled(), current.mfaPending());
+                current.platformRole() == null ? null : PlatformRole.valueOf(current.platformRole()),
+                user.mfaEnabled(), current.mfaPending());
     }
 }

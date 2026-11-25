@@ -5,9 +5,11 @@
 | Zagrożenie | Przykład | Kontrola |
 |---|---|---|
 | Dostęp do danych innego sklepu | podmiana `tenantId`/`productId` w URL | członkostwo weryfikowane serwerowo, `@TenantId`, RLS, 404 zamiast 403, testy izolacji |
-| Przejęcie konta | credential stuffing | limity Redis, blokada konta, MFA TOTP, powiadomienie o logowaniu (Faza 8) |
+| Przejęcie konta | credential stuffing, zgadywanie kodów MFA | limity Redis (IP, e-mail, sesja **i konto** dla MFA), trwała blokada konta, MFA TOTP, powiadomienie o logowaniu (Faza 8) |
+| Przejęcie roli admina | wcześniejsza rejestracja na e-mail bootstrapu | bootstrap nie podnosi uprawnień kontu z niezweryfikowanym e-mailem; uprawnienia platformowe tylko przy włączonym MFA |
+| DoS routingu domen | zalew losowymi nagłówkami `Host` | walidacja nazwy hosta, ograniczony cache (Caffeine 20k, 30 s), limit per IP (nie per host) |
 | Kradzież sesji | XSS → token | ciasteczko HttpOnly, CSP, brak tokenów w `localStorage` |
-| CSRF | formularz na obcej stronie | `SameSite=Lax` + token double-submit |
+| CSRF | formularz na obcej stronie lub witrynie sklepu (ten sam „site”) | `SameSite=Lax`, ciasteczko `__Host-XSRF-TOKEN` (odporne na cookie tossing), token tylko z nagłówka, brak CORS, ADR-012 |
 | Fałszywe webhooki | sfałszowane „opłacone” | weryfikacja podpisu, idempotencja, potwierdzenie statusu przez API operatora |
 | Wyciek sekretów | klucze operatorów w bazie | AES-256-GCM, klucz poza bazą, rotacja wersji klucza |
 | Złośliwe pliki | SVG z JS, polyglot | weryfikacja sygnatur, re-enkodowanie obrazów, zakaz SVG od sprzedawców (lub sanityzacja), osobna domena CDN |
@@ -50,10 +52,15 @@
 Implementacja: `StorePermission` + `StoreRole.permissions()`; sprawdzanie `@PreAuthorize("@tenantAccess.can('X')")`.
 Reguły dodatkowe: tylko OWNER nadaje/odbiera rolę OWNER; dzierżawa musi mieć ≥ 1 aktywnego OWNER-a.
 
-Role platformowe: `PLATFORM_ADMIN`, `PLATFORM_SUPPORT`. Panel admina na osobnej domenie; w Fazie 8 wymuszenie MFA
-dla ról platformowych i opcjonalna lista dozwolonych IP.
+Role platformowe: `PLATFORM_ADMIN`, `PLATFORM_SUPPORT`. Panel admina na osobnej domenie. **Uprawnienia
+platformowe są przyznawane tylko kontom z włączonym MFA** (`SHOPIVO_REQUIRE_STAFF_MFA=true`, domyślnie; wyłączone
+wyłącznie w profilu `dev`). Lista dozwolonych IP — Faza 8.
 
 ## 4. Ochrona aplikacji webowej
+- Panele SPA serwowane przez nginx (`docker/nginx/spa.conf`) z CSP `script-src 'self'` (bez skryptów inline —
+  inline'owanie krytycznego CSS wyłączone), HSTS, `frame-ancestors 'none'`, COOP. Zweryfikowane w przeglądarce:
+  0 naruszeń CSP w buildzie produkcyjnym.
+- Actuator dostępny wyłącznie na porcie zarządzania (reguła po porcie lokalnym); port nie może być publiczny.
 - Nagłówki: `Content-Security-Policy` (per aplikacja; storefront z nonce dla skryptów inline SSR),
   `Strict-Transport-Security` (preload po weryfikacji), `X-Content-Type-Options: nosniff`,
   `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`, `frame-ancestors 'none'` (panele).

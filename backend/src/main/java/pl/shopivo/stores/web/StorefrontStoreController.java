@@ -43,7 +43,8 @@ class StorefrontStoreController {
     @GetMapping("/api/v1/storefront/store")
     ResponseEntity<PublicStore> store(HttpServletRequest request) {
         String host = request.getServerName();
-        rateLimiter.consume("storefront:" + request.getRemoteAddr() + ":" + host, 600, Duration.ofMinutes(1));
+        // Keyed by client IP only: the host is attacker-controlled and would allow bypassing the limit.
+        rateLimiter.consume("storefront:" + request.getRemoteAddr(), 600, Duration.ofMinutes(1));
         UUID tenantId = domains.resolveTenant(host).filter(tenants::isTenantActive).orElseThrow(NotFoundException::new);
         StoreView store = TenantContext.callInTenant(tenantId, stores::current);
         if (store.status() == StoreStatus.SUSPENDED) {

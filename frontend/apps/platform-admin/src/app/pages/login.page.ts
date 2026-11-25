@@ -119,6 +119,10 @@ export class AdminMfaPage {
       <sv-logo suffix="Admin" />
       <h1 class="mt-8 text-[20px] font-semibold">Brak dostępu</h1>
       <p class="mt-2 text-[14px] text-zinc-600">To konto nie ma uprawnień administratora platformy.</p>
+      <p class="mt-2 text-[13px] text-zinc-600">
+        Konta administratorów muszą mieć włączoną weryfikację dwuetapową. Jeśli masz rolę administratora, włącz ją
+        w ustawieniach konta w panelu sklepu, a następnie zaloguj się ponownie.
+      </p>
       <button sv-button variant="secondary" class="mt-6" (click)="logout()">Wyloguj się</button>
     </div>
   `,

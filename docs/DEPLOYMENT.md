@@ -35,7 +35,10 @@ Baza lokalna: skrypt `docker/postgres/init/01-roles.sql` tworzy role `shopivo_ow
 | `SHOPIVO_COOKIE_SECURE` | tak | `true` w każdym środowisku z HTTPS |
 | `SHOPIVO_MAIL_HOST/PORT/USERNAME/PASSWORD` | tak | SMTP (np. Amazon SES, Postmark, Mailgun) |
 | `SHOPIVO_MAIL_FROM` | tak | `Shopivo <no-reply@shopivo.pl>` (SPF/DKIM/DMARC skonfigurowane!) |
-| `SHOPIVO_TRUSTED_PROXIES` | tak | regex adresów zaufanych proxy (dla `X-Forwarded-*`) |
+| `SHOPIVO_TRUSTED_PROXIES` | tak | regex adresów zaufanych proxy (load balancer, serwer SSR storefrontu) — tylko od nich honorowane są `X-Forwarded-For/Proto/Host`. **Uwaga:** LB/Cloudflare musi nadpisywać (nie przepuszczać) `X-Forwarded-Host` od klienta |
+| `SHOPIVO_FLYWAY_ENABLED` | tak | `false` w podach aplikacji, `true` tylko w jobie migracji (patrz §5) |
+| `SHOPIVO_REQUIRE_STAFF_MFA` | nie | domyślnie `true` — administratorzy platformy muszą mieć MFA |
+| `SHOPIVO_LOG_FORMAT` | nie | `ecs` / `logstash` — logi JSON z `traceId`, `userId`, `tenantId` (MDC) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | nie | włącza logowanie Google |
 | `SHOPIVO_S3_*` | Faza 4 | endpoint, bucket, klucze, URL CDN |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID` | Faza 6 | domeny własne (Cloudflare for SaaS) |
@@ -73,6 +76,16 @@ Memorystore, pliki w Cloudflare R2 (brak opłat za transfer).
 - `deploy.yml` (Faza 8): budowa obrazów → rejestr → migracje Flyway (osobny job z rolą właściciela) →
   wdrożenie backendu (rolling) → storefront → panele. Środowiska `staging` (auto z `main`) i `production`
   (ręczna akceptacja).
+
+**Migracje jako osobny job** (ten sam obraz backendu): `SHOPIVO_FLYWAY_ENABLED=true` + poświadczenia właściciela
+schematu, a pody aplikacji mają `SHOPIVO_FLYWAY_ENABLED=false` i **nie dostają** `SHOPIVO_DB_MIGRATION_*` —
+skompromitowana aplikacja nie może wtedy zmienić schematu ani wyłączyć RLS.
+
+Obrazy: `docker/backend.Dockerfile`, `docker/storefront.Dockerfile` (Node SSR, wymaga `SHOPIVO_API_URL`),
+`docker/spa.Dockerfile --build-arg APP=merchant-dashboard|platform-admin` (nginx + nagłówki bezpieczeństwa).
+
+Sondy: liveness `GET :8081/actuator/health/liveness`, readiness `GET :8081/actuator/health/readiness`
+(baza danych; Redis celowo poza readiness — limiter działa w trybie fail-open).
 
 Migracje muszą być wstecznie kompatybilne z poprzednią wersją aplikacji (expand → migrate → contract),
 ponieważ wdrożenie rolling uruchamia obie wersje jednocześnie.

@@ -124,9 +124,10 @@ public class TenantMemberships {
 
     public MembershipView updateMember(UUID membershipId, StoreRole newRole, MembershipStatus newStatus, MembershipView actor) {
         UUID tenantId = TenantContext.requireTenantId();
+        tenants.lockById(tenantId).orElseThrow(NotFoundException::new);
         MembershipEntity target = memberships.findByIdAndTenantId(membershipId, tenantId).orElseThrow(NotFoundException::new);
         guardChange(target, actor);
-        if (newRole == StoreRole.OWNER && actor.role() != StoreRole.OWNER) {
+        if (newRole == StoreRole.OWNER && !isOwner(actor)) {
             throw new BusinessRuleException("OWNER_ROLE_RESTRICTED", "Tylko właściciel może nadać rolę właściciela.");
         }
         StoreRole previousRole = target.getRole();
@@ -145,6 +146,7 @@ public class TenantMemberships {
 
     public void removeMember(UUID membershipId, MembershipView actor) {
         UUID tenantId = TenantContext.requireTenantId();
+        tenants.lockById(tenantId).orElseThrow(NotFoundException::new);
         MembershipEntity target = memberships.findByIdAndTenantId(membershipId, tenantId).orElseThrow(NotFoundException::new);
         guardChange(target, actor);
         memberships.delete(target);
@@ -154,13 +156,24 @@ public class TenantMemberships {
                 .with(Map.of("userId", target.getUserId().toString(), "role", target.getRole().name())));
     }
 
-    private static void guardChange(MembershipEntity target, MembershipView actor) {
+    private void guardChange(MembershipEntity target, MembershipView staleActor) {
+        MembershipView actor = memberships.findByIdAndTenantId(staleActor.id(), target.getTenantId())
+                .filter(m -> m.getStatus() == MembershipStatus.ACTIVE)
+                .map(MembershipEntity::toView)
+                .orElseThrow(pl.shopivo.shared.error.AccessDeniedApiException::new);
+        if (!actor.role().has(StorePermission.TEAM_MANAGE)) {
+            throw new pl.shopivo.shared.error.AccessDeniedApiException();
+        }
         if (target.getId().equals(actor.id())) {
             throw new BusinessRuleException("CANNOT_MODIFY_SELF", "Nie możesz zmienić własnej roli ani usunąć siebie z zespołu.");
         }
         if (target.getRole() == StoreRole.OWNER && actor.role() != StoreRole.OWNER) {
             throw new BusinessRuleException("OWNER_ROLE_RESTRICTED", "Tylko właściciel może zmieniać konto innego właściciela.");
         }
+    }
+
+    private boolean isOwner(MembershipView actor) {
+        return memberships.findById(actor.id()).map(m -> m.getRole() == StoreRole.OWNER).orElse(false);
     }
 
     private void ensureActiveOwnerRemains(UUID tenantId) {

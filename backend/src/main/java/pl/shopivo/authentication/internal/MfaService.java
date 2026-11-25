@@ -95,6 +95,7 @@ public class MfaService {
     }
 
     public void disable(UUID userId, String password, String code) {
+        rateLimiter.consume("mfa-disable:" + userId, 5, Duration.ofMinutes(15));
         UserCredentials user = users.credentialsById(userId);
         if (user.passwordHash() == null || !passwordEncoder.matches(password, user.passwordHash())) {
             throw new BusinessRuleException("INVALID_CURRENT_PASSWORD", "Obecne hasło jest nieprawidłowe.");
@@ -111,6 +112,8 @@ public class MfaService {
     /** Second login step. On success the session is elevated and its token rotated. */
     public SessionService.IssuedSession completeLogin(UUID userId, UUID sessionId, String code) {
         rateLimiter.consume("mfa-login:" + sessionId, 5, Duration.ofMinutes(5));
+        // Per account as well: someone who knows the password could otherwise open new sessions to keep guessing.
+        rateLimiter.consume("mfa-login-user:" + userId, 10, Duration.ofMinutes(15));
         if (!verifySecondFactor(userId, code)) {
             auditLog.record(AuditEntry.platform("auth.mfa.failed", "user", userId));
             throw new BusinessRuleException("MFA_CODE_INVALID", "Nieprawidłowy kod weryfikacyjny.");

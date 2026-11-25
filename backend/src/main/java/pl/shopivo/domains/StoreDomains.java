@@ -6,7 +6,8 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,18 +33,33 @@ public class StoreDomains {
             "dashboard", "panel", "ns1", "ns2", "mx", "webmail", "root", "system", "internal");
 
     private static final Pattern LABEL = Pattern.compile("^[a-z0-9](?:[a-z0-9-]{1,61}[a-z0-9])$");
-    private static final Duration CACHE_TTL = Duration.ofSeconds(30);
+    /** RFC 1123 hostname (lower-case, no port). Anything else is rejected before touching cache or database. */
+    private static final Pattern HOSTNAME = Pattern.compile(
+            "^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z][a-z0-9-]{0,62}$");
 
     private final StoreDomainRepository domains;
     private final ShopivoProperties properties;
-    private final ConcurrentHashMap<String, CachedResolution> resolutionCache = new ConcurrentHashMap<>();
+    /**
+     * Bounded (the key is attacker-controlled: any Host header) and short-lived, so status changes propagate to
+     * every replica within the TTL. Negative results are cached too, to absorb floods of unknown hosts.
+     */
+    private final Cache<String, Optional<UUID>> resolutionCache = Caffeine.newBuilder()
+            .maximumSize(20_000)
+            .expireAfterWrite(Duration.ofSeconds(30))
+            .build();
 
     StoreDomains(StoreDomainRepository domains, ShopivoProperties properties) {
         this.domains = domains;
         this.properties = properties;
     }
 
-    private record CachedResolution(Optional<UUID> tenantId, long expiresAtNanos) {
+    /** Normalizes a Host header value ("Shop.Example.com:443." → "shop.example.com"); empty if not a valid hostname. */
+    public static Optional<String> normalizeHost(String hostHeader) {
+        if (hostHeader == null || hostHeader.length() > 300) {
+            return Optional.empty();
+        }
+        String host = hostHeader.trim().toLowerCase(Locale.ROOT).replaceAll(":\\d{1,5}$", "").replaceAll("\\.$", "");
+        return HOSTNAME.matcher(host).matches() ? Optional.of(host) : Optional.empty();
     }
 
     public static boolean isValidSubdomainLabel(String label) {
@@ -86,23 +102,12 @@ public class StoreDomains {
      * is cross-tenant and therefore runs in system context.
      */
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
-    public Optional<UUID> resolveTenant(String hostname) {
-        if (hostname == null || hostname.isBlank()) {
-            return Optional.empty();
-        }
-        String host = hostname.toLowerCase(Locale.ROOT).replaceAll(":\\d+$", "").replaceAll("\\.$", "");
-        long now = System.nanoTime();
-        CachedResolution cached = resolutionCache.get(host);
-        if (cached != null && cached.expiresAtNanos() > now) {
-            return cached.tenantId();
-        }
-        Optional<UUID> tenantId = TenantContext.callAsSystem(() -> domains.findActiveByHostname(host)
-                .map(StoreDomainEntity::getTenantId));
-        resolutionCache.put(host, new CachedResolution(tenantId, now + CACHE_TTL.toNanos()));
-        return tenantId;
+    public Optional<UUID> resolveTenant(String hostHeader) {
+        return normalizeHost(hostHeader).flatMap(host -> resolutionCache.get(host, h -> TenantContext.callAsSystem(
+                () -> domains.findActiveByHostname(h).map(StoreDomainEntity::getTenantId))));
     }
 
     public void evictCache() {
-        resolutionCache.clear();
+        resolutionCache.invalidateAll();
     }
 }

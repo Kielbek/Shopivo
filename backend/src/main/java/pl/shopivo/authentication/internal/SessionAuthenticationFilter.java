@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -29,11 +30,14 @@ class SessionAuthenticationFilter extends OncePerRequestFilter {
     private final SessionService sessions;
     private final SessionCookies cookies;
     private final UserAccounts users;
+    private final boolean requirePlatformStaffMfa;
 
-    SessionAuthenticationFilter(SessionService sessions, SessionCookies cookies, UserAccounts users) {
+    SessionAuthenticationFilter(SessionService sessions, SessionCookies cookies, UserAccounts users,
+            boolean requirePlatformStaffMfa) {
         this.sessions = sessions;
         this.cookies = cookies;
         this.users = users;
+        this.requirePlatformStaffMfa = requirePlatformStaffMfa;
     }
 
     @Override
@@ -44,6 +48,7 @@ class SessionAuthenticationFilter extends OncePerRequestFilter {
             chain.doFilter(request, response);
         } finally {
             TenantContext.clear();
+            MDC.remove("userId");
         }
     }
 
@@ -58,8 +63,10 @@ class SessionAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
             boolean mfaPending = user.mfaEnabled() && !session.mfaVerified();
-            CurrentUser principal = new CurrentUser(user.id(), user.email(),
-                    user.platformRole() == null ? null : user.platformRole().name(), session.id(), mfaPending);
+            // Platform staff privileges are granted only to accounts protected by a second factor.
+            String platformRole = user.platformRole() == null || (requirePlatformStaffMfa && !user.mfaEnabled())
+                    ? null : user.platformRole().name();
+            CurrentUser principal = new CurrentUser(user.id(), user.email(), platformRole, session.id(), mfaPending);
             List<GrantedAuthority> authorities = new ArrayList<>();
             if (mfaPending) {
                 authorities.add(new SimpleGrantedAuthority("ROLE_MFA_PENDING"));
@@ -73,6 +80,7 @@ class SessionAuthenticationFilter extends OncePerRequestFilter {
             context.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(principal, null, authorities));
             SecurityContextHolder.setContext(context);
             TenantContext.bindUser(user.id());
+            MDC.put("userId", user.id().toString());
         });
     }
 }

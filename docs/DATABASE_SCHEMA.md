@@ -86,8 +86,9 @@ danych sklepu). Dane rozliczeniowe dzierżawy — Faza 2 (`tenant_billing_profil
 ### tenant_memberships
 `id`, `tenant_id`, `user_id`, `role`, `status` (`ACTIVE`, `DISABLED`), `created_at`, `updated_at`;
 unikalne `(tenant_id, user_id)`.
-RLS: `app_bypass_rls() OR tenant_id = app_current_tenant() OR user_id = app_current_user()` — użytkownik
-widzi swoje członkostwa we wszystkich sklepach (lista „moje sklepy”), a w kontekście dzierżawy cały zespół.
+RLS (V2): `SELECT` — `bypass OR tenant_id = bieżąca OR user_id = bieżący użytkownik` (lista „moje sklepy”);
+`INSERT/UPDATE/DELETE` — wyłącznie `bypass OR tenant_id = bieżąca`. Użytkownik nie może modyfikować własnego
+członkostwa w obcym sklepie nawet surowym SQL.
 
 ### tenant_invitations
 `id`, `tenant_id`, `email`, `role`, `token_hash`, `invited_by`, `expires_at`, `accepted_at`, `revoked_at`,

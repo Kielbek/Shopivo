@@ -114,6 +114,30 @@ class AuthenticationFlowIT extends IntegrationTest {
     }
 
     @Test
+    void csrfCookieCannotBeTossedOrBypassedWithFormParameter() {
+        ApiClient client = registeredUser(uniqueEmail("csrf"));
+        String setCookie = String.join(";", client().get("/api/v1/auth/csrf").raw().getHeaders("Set-Cookie"));
+        assertThat(setCookie).contains("__Host-XSRF-TOKEN=").contains("HttpOnly").contains("Secure").contains("Path=/");
+
+        // A same-site page (e.g. a storefront subdomain) can submit a form, but cannot set custom headers.
+        var form = client.postFormWithCsrfParameter("/api/v1/auth/logout");
+        assertThat(form.status()).isEqualTo(403);
+        assertThat(form.code()).isEqualTo("CSRF_INVALID");
+        assertThat(client.get("/api/v1/auth/me").status()).isEqualTo(200);
+    }
+
+    @Test
+    void csrfTokenStaysValidAcrossAuthenticatedRequests() {
+        ApiClient client = registeredUser(uniqueEmail("csrf-stable"));
+        for (int i = 0; i < 3; i++) {
+            var res = client.post("/api/v1/stores", Map.of("name", "Sklep " + i, "slug", uniqueSlug("stable")));
+            assertThat(res.status()).isEqualTo(201);
+            assertThat(String.join(";", res.raw().getHeaders("Set-Cookie"))).doesNotContain("XSRF-TOKEN=;");
+        }
+        assertThat(String.join(";", client.get("/api/v1/stores").raw().getHeaders("Set-Cookie"))).doesNotContain("XSRF-TOKEN");
+    }
+
+    @Test
     void passwordResetRevokesAllSessions() {
         String email = uniqueEmail("reset");
         ApiClient first = registeredUser(email);

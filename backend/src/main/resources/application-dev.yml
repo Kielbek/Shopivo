@@ -14,6 +14,8 @@ springdoc:
 shopivo:
   security:
     cookie-secure: false
+    # Convenience for local work only; production default is true.
+    require-platform-staff-mfa: false
     encryption:
       # 32 zero-bytes key, base64 — DEV ONLY
       keys: "1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="

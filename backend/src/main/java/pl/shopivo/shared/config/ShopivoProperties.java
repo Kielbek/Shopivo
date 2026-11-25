@@ -19,6 +19,7 @@ public record ShopivoProperties(
 
     public record Security(
             @DefaultValue("true") boolean cookieSecure,
+            @DefaultValue("true") boolean requirePlatformStaffMfa,
             Session session,
             Login login,
             Encryption encryption) {

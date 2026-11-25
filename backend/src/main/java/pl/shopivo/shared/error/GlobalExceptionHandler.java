@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -44,6 +45,14 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     ResponseEntity<ProblemDetail> handleOptimisticLock(OptimisticLockingFailureException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ProblemDetails.of(HttpStatus.CONFLICT,
                 "CONCURRENT_MODIFICATION", "Dane zostały w międzyczasie zmienione. Odśwież stronę i spróbuj ponownie."));
+    }
+
+    /** A unique/foreign-key constraint hit by concurrent requests. Constraint names are never exposed. */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    ResponseEntity<ProblemDetail> handleDataIntegrity(DataIntegrityViolationException ex) {
+        log.info("Data integrity violation: {}", ex.getMostSpecificCause().getClass().getSimpleName());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ProblemDetails.of(HttpStatus.CONFLICT, "CONFLICT",
+                "Operacja koliduje z inną, wykonaną w tym samym czasie. Odśwież stronę i spróbuj ponownie."));
     }
 
     @ExceptionHandler(ConstraintViolationException.class)

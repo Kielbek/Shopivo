@@ -65,8 +65,13 @@ Zamiast JWT w `localStorage`: losowy token 256-bit w ciasteczku `__Host-shopivo_
 (`HttpOnly; Secure; SameSite=Lax; Path=/`), w bazie przechowywany wyłącznie skrót SHA-256 (`user_sessions`).
 Zalety: natychmiastowe unieważnianie (wylogowanie, „wyloguj wszędzie”, blokada konta), lista aktywnych sesji,
 brak problemu odwoływania JWT. Wymaganie „refresh token” realizuje sesja przesuwna (idle timeout) z twardym
-limitem życia i rotacją tokenu przy podniesieniu uprawnień (po MFA). CSRF: `XSRF-TOKEN` (double-submit,
-obsługiwany natywnie przez Angular `HttpClient`).
+limitem życia i rotacją tokenu przy podniesieniu uprawnień (po MFA).
+
+CSRF (po przeglądzie bezpieczeństwa): double-submit z ciasteczkiem `__Host-XSRF-TOKEN` (HttpOnly; prefiks
+`__Host-` uniemożliwia nadpisanie z subdomeny) i tokenem przyjmowanym **wyłącznie z nagłówka** `X-XSRF-TOKEN`
+(nie z parametru formularza). SPA pobiera token z treści odpowiedzi `GET /api/v1/auth/csrf`; token jest rotowany
+przy logowaniu, kroku MFA i wylogowaniu, a przy `403 CSRF_INVALID` klient pobiera nowy i ponawia żądanie raz.
+Zarządzanie sesją Spring Security jest wyłączone (sesje to nasze tokeny, nie `HttpSession`).
 
 ### ADR-005: Rozdzielenie płatności SaaS i płatności sklepów
 `billing` (platforma pobiera opłaty od sprzedawców — konto operatora platformy) jest całkowicie oddzielony od
@@ -87,6 +92,14 @@ w `store_domains` (zero operacji DNS). Domeny własne: Cloudflare for SaaS „Cu
 Cloudflare wydaje certyfikat (walidacja HTTP/TXT), sprzedawca ustawia CNAME na `customers.shopivo.pl`.
 Zadanie w tle odpytuje status i aktywuje mapowanie. Bez poświadczeń Cloudflare funkcja jest wyłączona
 (nie udajemy, że działa).
+
+### ADR-012: Oddzielna domena rejestrowalna dla witryn sklepów (REKOMENDACJA — wymagana przed Fazą 7)
+Witryny sklepów na `*.shopivo.pl` są tym samym „site” (w rozumieniu SameSite) co panel `app.shopivo.pl`.
+`SameSite=Lax` nie chroni wtedy przed żądaniami z witryn, a od Fazy 7 sprzedawcy osadzają własne skrypty (GTM,
+Meta Pixel). Obecne zabezpieczenia (ciasteczka `__Host-`, token CSRF tylko z nagłówka, brak CORS) czynią to
+bezpiecznym, ale zalecana jest separacja na poziomie domen (jak `myshopify.com` vs `shopify.com`):
+panele i API na `shopivo.pl` (`app.`, `admin.`), witryny na osobnej domenie, np. `*.shopivo.shop`.
+Konfiguracja: `SHOPIVO_PLATFORM_DOMAIN` = domena witryn. Decyzja właściciela — pytanie Q-03.
 
 ### ADR-008: Identyfikatory i pieniądze
 - Klucze główne: UUID v7 (porządek czasowy → dobra lokalność indeksów), generowane w aplikacji.

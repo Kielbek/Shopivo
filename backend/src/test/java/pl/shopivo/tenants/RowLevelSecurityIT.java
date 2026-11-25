@@ -68,6 +68,31 @@ class RowLevelSecurityIT extends IntegrationTest {
     }
 
     @Test
+    void ownMembershipInForeignTenantIsReadableButNotWritable() {
+        ApiClient alice = registeredUser(uniqueEmail("rls-m"));
+        UUID a = UUID.fromString(createStore(alice, "M A", uniqueSlug("ma")));
+        UUID aliceId = UUID.fromString(alice.get("/api/v1/auth/me").json().get("id").asString());
+        ApiClient bob = registeredUser(uniqueEmail("rls-m2"));
+        UUID b = UUID.fromString(createStore(bob, "M B", uniqueSlug("mb")));
+
+        // Bound only as user (no tenant): may list own memberships, may not modify them.
+        TenantContext.bindUser(aliceId);
+        try {
+            assertThat(count("select count(*) from tenant_memberships where user_id = ?", aliceId)).isEqualTo(1);
+            assertThat(update("delete from tenant_memberships where user_id = ?", aliceId)).isZero();
+            assertThat(update("update tenant_memberships set role = 'OWNER' where user_id = ?", aliceId)).isZero();
+            // From another tenant's context, too.
+            TenantContext.runInTenant(b, () -> {
+                assertThat(update("delete from tenant_memberships where tenant_id = ?", a)).isZero();
+            });
+        } finally {
+            TenantContext.clear();
+        }
+        TenantContext.runAsSystem(() ->
+                assertThat(count("select count(*) from tenant_memberships where tenant_id = ?", a)).isEqualTo(1));
+    }
+
+    @Test
     void auditLogIsAppendOnlyForApplicationRole() {
         assertThatThrownBy(() -> TenantContext.runAsSystem(() -> update("delete from audit_logs")))
                 .hasMessageContaining("permission denied");

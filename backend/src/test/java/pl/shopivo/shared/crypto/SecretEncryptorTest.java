@@ -17,7 +17,7 @@ class SecretEncryptorTest {
 
     private static SecretEncryptor encryptor(String keys, int active) {
         var enc = new ShopivoProperties.Encryption(keys, active);
-        var security = new ShopivoProperties.Security(true, null, null, enc);
+        var security = new ShopivoProperties.Security(true, true, null, null, enc);
         return new SecretEncryptor(new ShopivoProperties(null, null, null, null, security, null, null));
     }
 

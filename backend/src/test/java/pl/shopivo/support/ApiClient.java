@@ -23,6 +23,7 @@ public class ApiClient {
     private final JsonMapper json;
     private final Map<String, String> cookies = new LinkedHashMap<>();
     private String remoteAddr = "203.0.113.10";
+    private String csrfToken;
 
     public ApiClient(MockMvc mvc, JsonMapper json) {
         this.mvc = mvc;
@@ -66,6 +67,28 @@ public class ApiClient {
         return send(HttpMethod.POST, path, body, false);
     }
 
+    /** Sends an HTML-form style POST carrying the CSRF token as a {@code _csrf} parameter instead of the header. */
+    public Response postFormWithCsrfParameter(String path) {
+        try {
+            if (csrfToken == null) {
+                csrfToken = send(HttpMethod.GET, "/api/v1/auth/csrf", null, false).json().get("token").asString();
+            }
+            var builder = org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(path)
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .param("_csrf", csrfToken)
+                    .with(r -> {
+                        r.setRemoteAddr(remoteAddr);
+                        return r;
+                    });
+            builder.cookie(cookies.entrySet().stream().map(e -> new Cookie(e.getKey(), e.getValue())).toArray(Cookie[]::new));
+            MockHttpServletResponse response = mvc.perform(builder).andReturn().getResponse();
+            String content = response.getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+            return new Response(response.getStatus(), content, content.isBlank() ? null : tryParse(content), response);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     public String cookie(String name) {
         return cookies.get(name);
     }
@@ -80,8 +103,9 @@ public class ApiClient {
 
     private Response exchange(HttpMethod method, String path, Object body) {
         boolean unsafe = method != HttpMethod.GET && method != HttpMethod.HEAD;
-        if (unsafe && !cookies.containsKey("XSRF-TOKEN")) {
-            send(HttpMethod.GET, "/api/v1/auth/csrf", null, false);
+        if (unsafe && csrfToken == null) {
+            // Same as the SPA: the token comes from the response body (the cookie itself is HttpOnly).
+            csrfToken = send(HttpMethod.GET, "/api/v1/auth/csrf", null, false).json().get("token").asString();
         }
         return send(method, path, body, unsafe);
     }
@@ -98,8 +122,8 @@ public class ApiClient {
                 builder.cookie(cookies.entrySet().stream().map(e -> new Cookie(e.getKey(), e.getValue()))
                         .toArray(Cookie[]::new));
             }
-            if (withCsrf && cookies.containsKey("XSRF-TOKEN")) {
-                builder.header("X-XSRF-TOKEN", cookies.get("XSRF-TOKEN"));
+            if (withCsrf && csrfToken != null) {
+                builder.header("X-XSRF-TOKEN", csrfToken);
             }
             if (body != null) {
                 builder.contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(body));
@@ -107,6 +131,9 @@ public class ApiClient {
             MockHttpServletResponse response = mvc.perform(builder).andReturn().getResponse();
             for (Cookie c : response.getCookies()) {
                 if (c.getMaxAge() == 0 || c.getValue() == null || c.getValue().isEmpty()) {
+                    if (c.getName().endsWith("XSRF-TOKEN")) {
+                        csrfToken = null;
+                    }
                     cookies.remove(c.getName());
                 } else {
                     cookies.put(c.getName(), c.getValue());

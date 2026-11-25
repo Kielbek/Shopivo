@@ -76,5 +76,16 @@ class MfaIT extends IntegrationTest {
             assertThat(attacker.post("/api/v1/auth/login/mfa", Map.of("code", String.format("%06d", i))).status()).isEqualTo(422);
         }
         assertThat(attacker.post("/api/v1/auth/login/mfa", Map.of("code", "123456")).status()).isEqualTo(429);
+
+        // A fresh session (password is known) does not reset the per-account budget.
+        for (int i = 0; i < 5; i++) {
+            ApiClient next = client();
+            next.post("/api/v1/auth/login", Map.of("email", email, "password", PASSWORD, "rememberMe", false));
+            int status = next.post("/api/v1/auth/login/mfa", Map.of("code", "00000" + i)).status();
+            assertThat(status).isIn(422, 429);
+        }
+        ApiClient last = client();
+        last.post("/api/v1/auth/login", Map.of("email", email, "password", PASSWORD, "rememberMe", false));
+        assertThat(last.post("/api/v1/auth/login/mfa", Map.of("code", code(secret, 0))).status()).isEqualTo(429);
     }
 }

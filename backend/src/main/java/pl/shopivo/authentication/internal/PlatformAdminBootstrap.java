@@ -47,8 +47,20 @@ class PlatformAdminBootstrap implements ApplicationRunner {
                 return;
             }
             passwordPolicy.validate(config.adminPassword(), config.adminEmail());
-            var user = users.findByEmail(config.adminEmail()).orElseGet(() -> users.register(config.adminEmail(),
-                    "Administrator", "Platformy", passwordEncoder.encode(config.adminPassword()), true, null));
+            var existing = users.findByEmail(config.adminEmail());
+            if (existing.isPresent()) {
+                // Never elevate an account whose mailbox ownership was not proven — it could have been registered by
+                // someone else in advance to capture the administrator role.
+                if (!existing.get().emailVerified()) {
+                    log.error("Bootstrap skipped: an unverified account already uses the bootstrap e-mail address");
+                    return;
+                }
+                users.grantPlatformRole(existing.get().id(), PlatformRole.PLATFORM_ADMIN);
+                log.info("Granted platform administrator role to existing verified account {}", existing.get().id());
+                return;
+            }
+            var user = users.register(config.adminEmail(), "Administrator", "Platformy",
+                    passwordEncoder.encode(config.adminPassword()), true, null);
             users.grantPlatformRole(user.id(), PlatformRole.PLATFORM_ADMIN);
             log.info("Bootstrapped platform administrator account {}", user.id());
         });

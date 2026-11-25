@@ -100,7 +100,7 @@ Ceny — do ustalenia przez właściciela platformy (pytanie otwarte Q-05).
 |---|---|---|---|
 | Q-01 | Dostawca chmury (GCP / AWS / Azure / DigitalOcean / OVH) i region | Deployment, koszty, RODO | Agnostycznie: kontenery + zarządzany PostgreSQL/Redis/S3 w UE; rekomendacja: GCP `europe-central2` (Warszawa) |
 | Q-02 | Operator rozliczeń subskrypcji SaaS (Stripe Billing vs. Przelewy24/PayU z płatnościami cyklicznymi) | Faza 2 | Adapter `BillingProvider`; pierwsza implementacja Stripe Billing (natywne subskrypcje, faktury, retry) |
-| Q-03 | Domena platformy (np. `shopivo.pl`) i subdomeny sklepów | Faza 6, cookies | Konfiguracja `SHOPIVO_PLATFORM_DOMAIN`, lokalnie `shopivo.localhost` |
+| Q-03 | Domena platformy (np. `shopivo.pl`) i **osobna** domena dla subdomen sklepów (np. `shopivo.shop`) — patrz ADR-012 | Faza 6, bezpieczeństwo ciasteczek | Konfiguracja `SHOPIVO_PLATFORM_DOMAIN`, lokalnie `shopivo.localhost` |
 | Q-04 | Plan Cloudflare — „Cloudflare for SaaS” (Custom Hostnames) jest wymagany dla domen własnych z automatycznym SSL | Faza 6 | Zakładamy Cloudflare for SaaS |
 | Q-05 | Cennik planów, okres próbny, waluty rozliczeń | Faza 2 | 14 dni triala, PLN, ceny jako dane |
 | Q-06 | Fakturowanie subskrypcji (KSeF!) — od 2026 obowiązkowy KSeF dla faktur B2B w PL | Faza 2 | Integracja przez Fakturownię lub natywnie — wymaga decyzji i konsultacji księgowej |

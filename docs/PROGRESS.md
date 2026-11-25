@@ -6,9 +6,9 @@ Ostatnia aktualizacja: 2026-11-25 · Ukończone: **Faza 0**, **Faza 1** (z ogran
 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
-| Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 15/15 ✔ |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 30/30 ✔ |
-| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 14/14 ✔ |
+| Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 19/19 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 36/36 ✔ |
+| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 19/19 ✔ |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
 | `npm audit --omit=dev --audit-level=high` | | 0 podatności |
 | Ręczny przepływ E2E w Chromium (Playwright, skrypt poza repo) na pełnym stosie lokalnym | rejestracja → e-mail (Mailpit) → weryfikacja → logowanie → sklep → dane firmy (walidacja NIP) → zaproszenie → MFA (QR) → panel admina → blokada sprzedawcy w panelu admina | ✔ |
@@ -42,6 +42,28 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 - Wyszukiwanie sklepów w panelu admina bez filtra → `500` (nietypowany `NULL` w JPQL) → poprawione + test regresyjny.
 - Kolejność tras w panelu (`/` nie przekierowywał do logowania) → poprawione.
 
+## Przegląd bezpieczeństwa i gotowości produkcyjnej (2026-11-25) — naprawione
+
+| # | Problem | Poprawka | Test |
+|---|---|---|---|
+| 1 | RLS `tenant_memberships` pozwalała usunąć własne członkostwo w obcym sklepie (wspólne `USING` dla DELETE) | `V2__security_hardening.sql` — osobne polityki SELECT/INSERT/UPDATE/DELETE | `RowLevelSecurityIT.ownMembershipInForeignTenant…` |
+| 2 | CSRF: witryny `*.platforma` to ten sam „site”; możliwe podrzucenie ciasteczka i token z parametru `_csrf` | `__Host-XSRF-TOKEN` HttpOnly, token tylko z nagłówka, kod `CSRF_INVALID`, ADR-012 | `AuthenticationFlowIT.csrfCookieCannotBeTossed…` |
+| 3 | Token CSRF czyszczony przy każdym uwierzytelnionym żądaniu (`SessionManagementFilter` + `CsrfAuthenticationStrategy`) — wcześniej maskowany przez klienta | zarządzanie sesją Spring Security wyłączone, jawna rotacja przy logowaniu/MFA/wylogowaniu | `csrfTokenStaysValidAcrossAuthenticatedRequests` + E2E w przeglądarce |
+| 4 | Nieograniczony cache hostów (klucz kontrolowany przez atakującego) | walidacja hosta + Caffeine (20k, 30 s) | `StoreDomainsTest.normalizesAndRejectsHostHeaders` |
+| 5 | Limit storefrontu omijalny zmianą `Host`; SSR nie przekazywał IP klienta (wspólny limit dla całego ruchu SSR) | klucz per IP; SSR przekazuje `X-Forwarded-For` przez `REQUEST_CONTEXT` | `api-origin.spec.ts` |
+| 6 | Zgadywanie MFA przez otwieranie nowych sesji | dodatkowy limit per konto (10/15 min) i na wyłączanie MFA | `MfaIT.mfaVerificationIsRateLimited` |
+| 7 | Administratorzy platformy bez wymaganego MFA | uprawnienia platformowe tylko przy włączonym MFA (konfigurowalne) | `PlatformStaffMfaIT` |
+| 8 | Bootstrap admina podnosił uprawnienia istniejącemu, niezweryfikowanemu kontu | odmowa + log błędu | `PlatformAdminBootstrapTest` |
+| 9 | `/actuator/prometheus` dostępny niezależnie od portu | reguła oparta na porcie zarządzania | `ActuatorIT` |
+| 10 | Redis w readiness (awaria = wszystkie pody poza ruchem); aplikacja z hasłem właściciela schematu | readiness = `db`; `SHOPIVO_FLYWAY_ENABLED` + job migracji | konfiguracja + dokumentacja |
+| 11 | Wyścig reguły „≥1 właściciel”; uprawnienia aktora odczytane przed zmianą | blokada pesymistyczna wiersza dzierżawy, ponowny odczyt aktora | istniejące testy zespołu |
+| 12 | Naruszenia ograniczeń unikalności → 500 | globalnie 409 `CONFLICT` bez szczegółów | — |
+| 13 | Outbox zdarzeń rósł bez końca | `completion-mode: delete` | — |
+| 14 | Frontend: brak obsługi wygaśnięcia sesji; zła kolejność interceptorów | przekierowanie na logowanie z powrotem; łańcuch testowany w całości | `csrf.spec.ts` |
+| 15 | Brak obrazów i nagłówków bezpieczeństwa dla SPA; inline'owany skrypt krytycznego CSS łamałby CSP | `docker/spa.Dockerfile` + nginx (CSP, HSTS, COOP), `inlineCritical: false` | build pod CSP w Chromium: 0 naruszeń |
+| 16 | Brak kontekstu w logach | MDC `userId`, `tenantId` | — |
+| 17 | IDOR: obiekty innego sklepu adresowane przez ścieżkę własnego sklepu | (było bezpieczne — potwierdzone testem) | `TenantIsolationIT.foreignResourceIds…` |
+
 ## Znane ograniczenia / dług do spłacenia
 - Sesja jest odczytywana z bazy przy każdym żądaniu (2 zapytania po kluczu głównym) — cache Redis zaplanowany na Fazę 8.
 - Walidacja Bean Validation wykonuje się przed `@PreAuthorize` (członkostwo jest już zweryfikowane filtrem, więc nie ujawnia danych innych sklepów).
@@ -50,6 +72,12 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 - `storefront` to szkielet SSR (bez motywów/katalogu) — Faza 4.
 - Dane dev: konto `admin@shopivo.local` / `Platforma!Lokalna-2026` tworzone **tylko** przy profilu `dev` lub zmiennych `SHOPIVO_BOOTSTRAP_*`.
 - Regulamin/polityka prywatności — tylko checkbox akceptacji z wersją; treści wymagają prawnika (Q-08).
+- Login CSRF: brak tokenu przed logowaniem jest akceptowalny (endpoint wymaga tokenu, który SPA pobiera); pełna
+  separacja domen witryn (ADR-012) czeka na decyzję Q-03.
+- `X-Forwarded-Host` od klienta musi być nadpisywany przez LB/Cloudflare (inaczej możliwe podanie dowolnego hosta
+  sklepu — ujawnia tylko publiczne dane witryn, ale należy to skonfigurować).
+- Publikacje zdarzeń, które stale się nie udają (np. błędny adres e-mail), są ponawiane bez limitu — limit prób
+  i dead-letter w Fazie 8.
 - Obrazy Docker Hub bywały limitowane (429) w środowisku deweloperskim — w CI nie jest to problem.
 
 ## Następny krok

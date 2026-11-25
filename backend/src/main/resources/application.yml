@@ -14,6 +14,9 @@ spring:
       connection-timeout: 5000
       max-lifetime: 1800000
   flyway:
+    # Production: run migrations as a separate deployment job (SHOPIVO_FLYWAY_ENABLED=true there only),
+    # so application pods never hold the schema owner's credentials.
+    enabled: ${SHOPIVO_FLYWAY_ENABLED:true}
     url: ${SHOPIVO_DB_URL:jdbc:postgresql://localhost:5432/shopivo}
     user: ${SHOPIVO_DB_MIGRATION_USER:shopivo_owner}
     password: ${SHOPIVO_DB_MIGRATION_PASSWORD:}
@@ -50,6 +53,8 @@ spring:
         schema-initialization:
           enabled: false
       republish-outstanding-events-on-restart: true
+      # Completed publications are removed so the outbox table does not grow without bound.
+      completion-mode: delete
   mvc:
     problemdetails:
       enabled: true
@@ -86,6 +91,10 @@ management:
       probes:
         enabled: true
       show-details: never
+      group:
+        # Redis is optional for serving traffic (rate limiting fails open) — it must not take every pod out of rotation.
+        readiness:
+          include: readinessState,db
   info:
     env:
       enabled: false
@@ -114,6 +123,7 @@ shopivo:
     from: ${SHOPIVO_MAIL_FROM:Shopivo <no-reply@shopivo.localhost>}
   security:
     cookie-secure: ${SHOPIVO_COOKIE_SECURE:true}
+    require-platform-staff-mfa: ${SHOPIVO_REQUIRE_STAFF_MFA:true}
     session:
       idle-timeout: 12h
       remember-me-idle-timeout: 7d

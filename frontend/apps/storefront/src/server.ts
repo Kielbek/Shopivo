@@ -1,6 +1,7 @@
 import { AngularNodeAppEngine, createNodeRequestHandler, isMainModule, writeResponseToNodeResponse } from '@angular/ssr/node';
 import express from 'express';
 import { join } from 'node:path';
+import type { StorefrontRequestContext } from './app/api-origin';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 const apiOrigin = process.env['SHOPIVO_API_URL'] ?? 'http://localhost:8080';
@@ -39,7 +40,7 @@ app.use(express.static(browserDistFolder, { maxAge: '1y', index: false, redirect
 
 app.use((req, res, next) => {
   angularApp
-    .handle(req)
+    .handle(req, { clientIp: req.ip } satisfies StorefrontRequestContext)
     .then((response) => (response ? writeResponseToNodeResponse(response, res) : next()))
     .catch(next);
 });

@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -65,10 +66,12 @@ public class TenantAccessFilter extends OncePerRequestFilter {
         }
         request.setAttribute(TenantAccess.MEMBERSHIP_ATTRIBUTE, membership.get());
         TenantContext.bindTenant(tenantId);
+        MDC.put("tenantId", tenantId.toString());
         try {
             chain.doFilter(request, response);
         } finally {
             TenantContext.bindTenant(null);
+            MDC.remove("tenantId");
         }
     }
 
