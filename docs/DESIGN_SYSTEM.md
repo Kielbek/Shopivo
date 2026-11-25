@@ -38,7 +38,8 @@ treści, 22 px tytuły stron, 15 px tytuły kart. Ikony: Lucide (`@lucide/angula
 | Wykres liniowy | `sv-line-chart` | SVG, interpolacja monotoniczna, gradient, podpowiedzi; pusty stan przez projekcję |
 | Wykres pierścieniowy | `sv-donut-chart` | legenda z procentami |
 | Menu | `sv-menu` + `sv-menu-item` | klawiatura, Esc, klik poza |
-| Okres | `sv-date-range` | natywny `select` (dostępność) |
+| Lista wyboru | `sv-select` | zamiast natywnego `select`: panel pod polem (desktop) / arkusz od dołu (< 640 px), opisy opcji, wyszukiwarka > 8 opcji, Reactive Forms/ngModel, klawiatura i ARIA combobox/listbox, Popover API (nie ucina go tabela ani dialog) |
+| Okres | `sv-date-range` | na `sv-select` z ikoną kalendarza |
 | Zakładki | `sv-tabs` | segmented control, wzorzec WAI-ARIA tabs (strzałki) |
 | Powiadomienia | `ToastService` + `sv-toast-outlet` | `aria-live` |
 | Pozostałe | `sv-button`, `sv-field`, `sv-alert`, `sv-badge`, `sv-avatar`, `sv-dialog`, `sv-empty-state`, `sv-loading`, `sv-skeleton`, `sv-section`, `sv-page-header` | |
@@ -52,6 +53,15 @@ Klasy pomocnicze: `.sv-input`, `.sv-label`, `.sv-checkbox`, `.sv-switch`, `.sv-c
   „Zapisz” aktywne dopiero po zmianie, „Odrzuć zmiany” przywraca stan z serwera.
 - Długie ustawienia dzielimy zakładkami `sv-tabs` (segmented control), a nie układem „opis po lewej / pola po prawej”.
 - Przełączniki opcji tak/nie: `.sv-switch` (natywny checkbox z `role="switch"`).
+
+## Ruch i gesty (mobile)
+- Arkusz wyboru: wjazd od dołu (280 ms), wyjazd (220 ms), wygaszanie tła; zamykanie przeciągnięciem w dół za uchwyt
+  lub listę przewiniętą do góry. Zamknięcie po przekroczeniu 30% wysokości albo szybkim „rzucie” (> 0,5 px/ms),
+  w przeciwnym razie sprężyste odbicie.
+- Menu boczne: wysuwanie/chowanie (300 ms), tło zanika proporcjonalnie do przesunięcia, zamykanie przesunięciem w lewo.
+- Wspólny mechanizm: `attachSwipeToDismiss` (`lib/gestures.ts`) — kierunek rozstrzygany po 6 px, ruch prostopadły zostaje
+  przewijaniem.
+- `prefers-reduced-motion: reduce` wyłącza animacje i przejścia.
 
 ## Czego unikamy (wzorce „szablonowe”)
 - Zdań-opisów pod każdym tytułem strony, powtarzalnych plakietek na każdej pozycji menu, ikon w kółkach przy każdym pustym

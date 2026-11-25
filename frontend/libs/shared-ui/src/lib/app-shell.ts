@@ -1,5 +1,6 @@
 import {
-  ChangeDetectionStrategy, Component, ElementRef, HostListener, computed, inject, input, signal, viewChild,
+  ChangeDetectionStrategy, Component, DestroyRef, ElementRef, HostListener, afterNextRender, computed, inject, input, signal,
+  viewChild,
 } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -7,6 +8,7 @@ import { LucideDynamicIcon } from '@lucide/angular';
 import { filter } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LogoComponent } from './brand';
+import { attachSwipeToDismiss } from './gestures';
 import { IconName, icons } from './icons';
 import { ToastOutletComponent } from './toast';
 
@@ -39,12 +41,14 @@ export interface NavSection {
     <div class="min-h-dvh bg-page 2xl:p-4">
       <div class="flex min-h-dvh bg-card 2xl:min-h-[calc(100dvh-2rem)] 2xl:overflow-clip 2xl:rounded-[20px] 2xl:shadow-[0_1px_3px_rgba(37,43,59,0.06)]">
 
-        @if (drawerOpen()) {
-          <div class="fixed inset-0 z-40 bg-[#252B3B]/30 lg:hidden" (click)="drawerOpen.set(false)" aria-hidden="true"></div>
-        }
+        <!-- Overlay fades with the drawer and follows the swipe. -->
+        <div class="fixed inset-0 z-40 bg-[#252B3B]/30 transition-opacity duration-300 motion-reduce:transition-none lg:hidden"
+          [class.pointer-events-none]="!drawerOpen()" [class.opacity-0]="!drawerOpen()" [class.!transition-none]="drawerDrag() !== null"
+          [style.opacity]="drawerDrag() !== null ? overlayOpacity() : null" (click)="drawerOpen.set(false)" aria-hidden="true"></div>
         <!-- One sidebar element: off-canvas drawer below lg, sticky column from lg. -->
-        <aside class="fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[85vw] shrink-0 flex-col bg-card shadow-[var(--shadow-pop)] transition-transform duration-200 lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:w-[264px] lg:max-w-none lg:translate-x-0 lg:shadow-none 2xl:top-4 2xl:h-[calc(100dvh-2rem)]"
-          [class.-translate-x-full]="!drawerOpen()" [attr.aria-label]="navLabel()"
+        <aside #drawer class="fixed inset-y-0 left-0 z-50 flex touch-pan-y w-[280px] max-w-[85vw] shrink-0 flex-col bg-card shadow-[var(--shadow-pop)] transition-transform duration-300 ease-[cubic-bezier(0.2,0.9,0.25,1)] motion-reduce:transition-none lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:w-[264px] lg:max-w-none lg:translate-x-0 lg:shadow-none 2xl:top-4 2xl:h-[calc(100dvh-2rem)]"
+          [class.-translate-x-full]="!drawerOpen()" [class.!transition-none]="drawerDrag() !== null"
+          [style.transform]="drawerDrag() !== null ? 'translateX(' + -drawerDrag()! + 'px)' : null" [attr.aria-label]="navLabel()"
           [attr.inert]="drawerHidden() ? '' : null">
           <ng-container *ngTemplateOutlet="sidebar" />
         </aside>
@@ -161,6 +165,13 @@ export class AppShellComponent {
   readonly navLabel = input('Nawigacja główna');
 
   protected readonly drawerOpen = signal(false);
+  /** Current swipe offset of the mobile drawer (null when not dragging). */
+  protected readonly drawerDrag = signal<number | null>(null);
+  protected readonly overlayOpacity = computed(() => {
+    const width = this.drawerEl()?.nativeElement.getBoundingClientRect().width || 280;
+    return Math.max(0, 1 - (this.drawerDrag() ?? 0) / width);
+  });
+  private readonly drawerEl = viewChild<ElementRef<HTMLElement>>('drawer');
   /** Below lg the closed drawer must not be reachable by keyboard / screen readers. */
   protected readonly isDesktop = signal(typeof window === 'undefined' || window.matchMedia('(min-width: 1024px)').matches);
   protected readonly drawerHidden = computed(() => !this.isDesktop() && !this.drawerOpen());
@@ -168,6 +179,7 @@ export class AppShellComponent {
   protected readonly activeResult = signal(0);
   protected readonly searchFocused = signal(false);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly searchInput = viewChild<ElementRef<HTMLInputElement>>('search');
 
   protected readonly results = computed(() => {
@@ -181,6 +193,21 @@ export class AppShellComponent {
   protected readonly showResults = computed(() => this.query().trim().length > 0);
 
   constructor() {
+    afterNextRender(() => {
+      const el = this.drawerEl()?.nativeElement;
+      if (!el) return;
+      const detach = attachSwipeToDismiss(el, {
+        direction: 'left',
+        size: () => el.getBoundingClientRect().width,
+        canStart: () => this.drawerOpen() && !this.isDesktop(),
+        onMove: (offset) => this.drawerDrag.set(Math.min(offset, el.getBoundingClientRect().width)),
+        onRelease: (dismiss) => {
+          this.drawerDrag.set(null);
+          if (dismiss) this.drawerOpen.set(false);
+        },
+      });
+      this.destroyRef.onDestroy(detach);
+    });
     if (typeof window !== 'undefined') {
       const mq = window.matchMedia('(min-width: 1024px)');
       mq.addEventListener('change', (e) => this.isDesktop.set(e.matches));

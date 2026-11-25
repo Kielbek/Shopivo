@@ -6,7 +6,8 @@ import { InvitableRole, STORE_ROLE_DESCRIPTIONS, STORE_ROLE_LABELS, StoreRole, T
 import { LucideDynamicIcon } from '@lucide/angular';
 import {
   AlertComponent, AvatarComponent, BadgeComponent, ButtonComponent, CardComponent, DatePipe, DialogComponent,
-  EmptyStateComponent, FieldComponent, LoadingComponent, PageHeaderComponent, ToastService, controlError, icons,
+  EmptyStateComponent, FieldComponent, LoadingComponent, PageHeaderComponent, SelectComponent, SelectOption, ToastService,
+  controlError, icons,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from './store-context';
@@ -16,7 +17,7 @@ const INVITABLE: InvitableRole[] = ['ADMIN', 'MANAGER', 'PRODUCT_MANAGER', 'ORDE
 @Component({
   selector: 'sv-team-page',
   imports: [ReactiveFormsModule, LucideDynamicIcon, PageHeaderComponent, ButtonComponent, AlertComponent, BadgeComponent,
-    DatePipe, DialogComponent, EmptyStateComponent, FieldComponent, LoadingComponent, CardComponent, AvatarComponent],
+    DatePipe, DialogComponent, EmptyStateComponent, FieldComponent, LoadingComponent, CardComponent, AvatarComponent, SelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <sv-page-header title="Zespół">
@@ -35,7 +36,7 @@ const INVITABLE: InvitableRole[] = ['ADMIN', 'MANAGER', 'PRODUCT_MANAGER', 'ORDE
           <table class="sv-table min-w-[560px]">
             <thead><tr><th scope="col">Osoba</th><th scope="col">Rola</th><th scope="col">Dołączył(a)</th>@if (canManage) {<th scope="col"><span class="sr-only">Akcje</span></th>}</tr></thead>
             <tbody>
-              @for (m of members.value(); track m.membershipId) {
+              @for (m of members.value(); track m.membershipId + ':' + m.role + ':' + roleRevision()) {
                 <tr>
                   <td>
                     <div class="flex items-center gap-3">
@@ -50,11 +51,8 @@ const INVITABLE: InvitableRole[] = ['ADMIN', 'MANAGER', 'PRODUCT_MANAGER', 'ORDE
                   </td>
                   <td>
                     @if (canChange(m)) {
-                      <label class="sr-only" [for]="'role-' + m.membershipId">Rola: {{ m.fullName }}</label>
-                      <select class="sv-input h-8 w-auto text-[13px]" [id]="'role-' + m.membershipId"
-                        (change)="changeRole(m, $any($event.target).value)">
-                        @for (r of assignableRoles(); track r) {<option [value]="r" [selected]="r === m.role">{{ labels[r] }}</option>}
-                      </select>
+                      <sv-select size="sm" class="w-[190px]" [options]="roleOptions()" [value]="m.role"
+                        [ariaLabel]="'Rola: ' + m.fullName" (valueChange)="changeRole(m, $any($event))" />
                     } @else {
                       <sv-badge [tone]="m.role === 'OWNER' ? 'violet' : 'info'">{{ labels[m.role] }}</sv-badge>
                     }
@@ -112,10 +110,8 @@ const INVITABLE: InvitableRole[] = ['ADMIN', 'MANAGER', 'PRODUCT_MANAGER', 'ORDE
         <sv-field label="Adres e-mail" for="invite-email" [error]="inviteEmailError()">
           <input id="invite-email" type="email" class="sv-input" formControlName="email" placeholder="jan@firma.pl" />
         </sv-field>
-        <sv-field label="Rola" for="invite-role" [hint]="descriptions[inviteForm.controls.role.value]">
-          <select id="invite-role" class="sv-input" formControlName="role">
-            @for (r of invitable; track r) {<option [value]="r">{{ labels[r] }}</option>}
-          </select>
+        <sv-field label="Rola" for="invite-role">
+          <sv-select inputId="invite-role" formControlName="role" [options]="invitableOptions" ariaLabel="Rola" />
         </sv-field>
       </form>
       <ng-container dialog-actions>
@@ -151,6 +147,12 @@ export class TeamPage {
     return n === 1 ? '1 osoba' : `${n} ${n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'osoby' : 'osób'}`;
   });
   protected readonly assignableRoles = computed<StoreRole[]>(() => (this.isOwner() ? ['OWNER', ...INVITABLE] : INVITABLE));
+  protected readonly roleOptions = computed<SelectOption[]>(() =>
+    this.assignableRoles().map((r) => ({ value: r, label: STORE_ROLE_LABELS[r], description: STORE_ROLE_DESCRIPTIONS[r] })));
+  protected readonly invitableOptions: SelectOption[] =
+    INVITABLE.map((r) => ({ value: r, label: STORE_ROLE_LABELS[r], description: STORE_ROLE_DESCRIPTIONS[r] }));
+  /** Bumped after every role change attempt so a rejected change re-renders the row with the server value. */
+  protected readonly roleRevision = signal(0);
 
   protected readonly inviteOpen = signal(false);
   protected readonly inviting = signal(false);
@@ -210,6 +212,7 @@ export class TeamPage {
   async changeRole(member: TeamMember, role: StoreRole): Promise<void> {
     await this.run(() => this.api.updateMember(this.ctx.tenantId(), member.membershipId, { role }),
       `Zmieniono rolę: ${member.fullName} — ${STORE_ROLE_LABELS[role]}.`);
+    this.roleRevision.update((v) => v + 1);
     this.members.reload();
   }
 

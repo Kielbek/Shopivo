@@ -14,3 +14,5 @@ export * from './lib/date-range';
 export * from './lib/toast';
 export * from './lib/app-shell';
 export * from './lib/tabs';
+export * from './lib/select';
+export * from './lib/gestures';

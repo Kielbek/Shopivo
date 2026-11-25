@@ -5,26 +5,22 @@ import { AdminApi, ApiError, SessionStore } from '@shopivo/api-client';
 import { AdminTenantRow, TenantStatus } from '@shopivo/shared-models';
 import {
   AlertComponent, BadgeComponent, ButtonComponent, DatePipe, DialogComponent, EmptyStateComponent, LoadingComponent,
-  PageHeaderComponent,
+  PageHeaderComponent, SelectComponent, SelectOption,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'sv-admin-tenants',
   imports: [FormsModule, PageHeaderComponent, LoadingComponent, AlertComponent, BadgeComponent, ButtonComponent, DatePipe,
-    DialogComponent, EmptyStateComponent],
+    DialogComponent, EmptyStateComponent, SelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <sv-page-header title="Sklepy" />
     <form class="mt-6 flex flex-wrap gap-2" (ngSubmit)="search()">
       <label for="q" class="sr-only">Szukaj</label>
       <input id="q" name="q" type="search" class="sv-input max-w-xs bg-card" placeholder="Nazwa sklepu" [(ngModel)]="queryDraft" />
-      <label for="status" class="sr-only">Status</label>
-      <select id="status" name="status" class="sv-input w-auto" [ngModel]="status() ?? ''" (ngModelChange)="status.set($event || null); page.set(0)">
-        <option value="">Wszystkie statusy</option>
-        <option value="ACTIVE">Aktywne</option>
-        <option value="SUSPENDED">Zawieszone</option>
-      </select>
+      <sv-select class="w-[200px]" ariaLabel="Status sklepu" [options]="statusOptions" [value]="status() ?? ''"
+        (valueChange)="status.set($any($event) || null); page.set(0)" />
       <button sv-button variant="secondary" type="submit">Szukaj</button>
     </form>
     @if (message(); as m) {<sv-alert [tone]="m.tone" class="mt-4">{{ m.text }}</sv-alert>}
@@ -92,6 +88,11 @@ import { firstValueFrom } from 'rxjs';
 export class TenantsPage {
   private readonly api = inject(AdminApi);
   protected readonly session = inject(SessionStore);
+  protected readonly statusOptions: SelectOption[] = [
+    { value: '', label: 'Wszystkie statusy' },
+    { value: 'ACTIVE', label: 'Aktywne' },
+    { value: 'SUSPENDED', label: 'Zawieszone' },
+  ];
   protected queryDraft = '';
   protected reason = '';
   protected readonly query = signal('');

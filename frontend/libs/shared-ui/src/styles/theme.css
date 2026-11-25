@@ -166,3 +166,100 @@
     @apply transition-colors hover:bg-[#FAFBFC];
   }
 }
+
+/* ---------------------------------------------------------------- sv-select panel (Popover API, top layer) */
+@layer components {
+  .sv-select-panel {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    padding: 0;
+    max-height: min(320px, 60dvh);
+    overflow: hidden;
+    color: var(--color-ink);
+    background: var(--color-card);
+    border: 1px solid var(--color-line);
+    border-radius: 12px;
+    box-shadow: var(--shadow-pop);
+  }
+
+  .sv-select-panel:popover-open {
+    animation: sv-pop-in 120ms ease-out;
+  }
+
+  .sv-select-panel::backdrop {
+    background: transparent;
+  }
+
+  /* Mobile: bottom sheet */
+  .sv-select-panel.is-sheet {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 75dvh;
+    border: 0;
+    border-radius: 18px 18px 0 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-shadow: 0 -12px 32px -8px rgba(37, 43, 59, 0.18);
+  }
+
+  .sv-select-panel.is-sheet {
+    /* Snap-back after a short drag; the finger itself is followed without delay (.is-dragging). */
+    transition: transform 260ms cubic-bezier(0.2, 0.9, 0.25, 1);
+    will-change: transform;
+  }
+
+  .sv-select-panel.is-sheet:popover-open {
+    animation: sv-sheet-in 280ms cubic-bezier(0.2, 0.9, 0.25, 1);
+  }
+
+  .sv-select-panel.is-sheet.is-dragging {
+    transition: none;
+  }
+
+  .sv-select-panel.is-sheet.is-closing {
+    transition: transform 220ms cubic-bezier(0.4, 0, 1, 1);
+  }
+
+  .sv-select-panel.is-sheet::backdrop {
+    background: rgba(37, 43, 59, 0.35);
+    animation: sv-fade-in 240ms ease-out;
+  }
+
+  .sv-select-panel.is-sheet.is-closing::backdrop {
+    animation: sv-fade-out 220ms ease-in forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sv-select-panel,
+    .sv-select-panel.is-sheet,
+    .sv-select-panel:popover-open,
+    .sv-select-panel.is-sheet:popover-open,
+    .sv-select-panel.is-sheet::backdrop {
+      animation: none;
+      transition: none;
+    }
+  }
+}
+
+@keyframes sv-pop-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes sv-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes sv-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes sv-sheet-in {
+  from { transform: translateY(100%); }
+  to { transform: none; }
+}

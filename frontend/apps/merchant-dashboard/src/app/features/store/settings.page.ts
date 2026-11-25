@@ -4,22 +4,42 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { ApiError, TenantApi } from '@shopivo/api-client';
 import { StoreSettings } from '@shopivo/shared-models';
 import {
-  AlertComponent, ButtonComponent, FieldComponent, LoadingComponent, TabsComponent, ToastService, controlError,
+  AlertComponent, ButtonComponent, FieldComponent, LoadingComponent, SelectComponent, SelectOption, TabsComponent, ToastService,
+  controlError,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from './store-context';
 
-const LOCALES = [
+const LOCALES: SelectOption[] = [
   { value: 'pl-PL', label: 'Polski' },
   { value: 'en-US', label: 'Angielski' },
   { value: 'de-DE', label: 'Niemiecki' },
 ];
-const CURRENCIES = ['PLN', 'EUR', 'USD', 'CZK', 'GBP'];
-const TIMEZONES = ['Europe/Warsaw', 'Europe/Berlin', 'Europe/London', 'Europe/Prague', 'UTC'];
+const CURRENCIES: SelectOption[] = [
+  { value: 'PLN', label: 'PLN — złoty polski' },
+  { value: 'EUR', label: 'EUR — euro' },
+  { value: 'USD', label: 'USD — dolar amerykański' },
+  { value: 'CZK', label: 'CZK — korona czeska' },
+  { value: 'GBP', label: 'GBP — funt brytyjski' },
+];
+/** Must be valid IANA zone ids (validated by the backend). */
+const TIMEZONES: SelectOption[] = [
+  { value: 'Europe/Warsaw', label: 'Warszawa (CET/CEST)' },
+  { value: 'Europe/Berlin', label: 'Berlin (CET/CEST)' },
+  { value: 'Europe/Prague', label: 'Praga (CET/CEST)' },
+  { value: 'Europe/Vienna', label: 'Wiedeń (CET/CEST)' },
+  { value: 'Europe/Paris', label: 'Paryż (CET/CEST)' },
+  { value: 'Europe/Amsterdam', label: 'Amsterdam (CET/CEST)' },
+  { value: 'Europe/Vilnius', label: 'Wilno (EET/EEST)' },
+  { value: 'Europe/Kyiv', label: 'Kijów (EET/EEST)' },
+  { value: 'Europe/London', label: 'Londyn (GMT/BST)' },
+  { value: 'Europe/Dublin', label: 'Dublin (GMT/IST)' },
+  { value: 'UTC', label: 'UTC' },
+];
 
 @Component({
   selector: 'sv-settings-page',
-  imports: [ReactiveFormsModule, TabsComponent, FieldComponent, ButtonComponent, AlertComponent, LoadingComponent],
+  imports: [ReactiveFormsModule, TabsComponent, FieldComponent, SelectComponent, ButtonComponent, AlertComponent, LoadingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -46,22 +66,14 @@ const TIMEZONES = ['Europe/Warsaw', 'Europe/Berlin', 'Europe/London', 'Europe/Pr
             <input id="contactEmail" type="email" class="sv-input" formControlName="contactEmail" placeholder="kontakt@twojsklep.pl" />
           </sv-field>
           <sv-field label="Język" for="defaultLocale">
-            <select id="defaultLocale" class="sv-input" formControlName="defaultLocale">
-              @for (l of locales; track l.value) {<option [value]="l.value">{{ l.label }}</option>}
-            </select>
+            <sv-select inputId="defaultLocale" formControlName="defaultLocale" [options]="locales" ariaLabel="Język sklepu" />
           </sv-field>
-          <div class="grid grid-cols-2 gap-4">
-            <sv-field label="Waluta" for="defaultCurrency">
-              <select id="defaultCurrency" class="sv-input" formControlName="defaultCurrency">
-                @for (c of currencies; track c) {<option [value]="c">{{ c }}</option>}
-              </select>
-            </sv-field>
-            <sv-field label="Strefa czasowa" for="timezone">
-              <select id="timezone" class="sv-input" formControlName="timezone">
-                @for (t of timezones; track t) {<option [value]="t">{{ t }}</option>}
-              </select>
-            </sv-field>
-          </div>
+          <sv-field label="Waluta" for="defaultCurrency">
+            <sv-select inputId="defaultCurrency" formControlName="defaultCurrency" [options]="currencies" ariaLabel="Waluta" />
+          </sv-field>
+          <sv-field label="Strefa czasowa" for="timezone" class="md:col-span-2 md:max-w-[calc(50%-10px)]">
+            <sv-select inputId="timezone" formControlName="timezone" [options]="timezones" ariaLabel="Strefa czasowa" />
+          </sv-field>
         </div>
         @if (canEdit) {
           <div class="sv-card-footer">
