@@ -8,7 +8,7 @@ Ostatnia aktualizacja: 2026-11-25 · Ukończone: **Faza 0**, **Faza 1** (z ogran
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 19/19 ✔ |
 | Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 36/36 ✔ |
-| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 19/19 ✔ |
+| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 24/24 ✔ |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
 | `npm audit --omit=dev --audit-level=high` | | 0 podatności |
 | Ręczny przepływ E2E w Chromium (Playwright, skrypt poza repo) na pełnym stosie lokalnym | rejestracja → e-mail (Mailpit) → weryfikacja → logowanie → sklep → dane firmy (walidacja NIP) → zaproszenie → MFA (QR) → panel admina → blokada sprzedawcy w panelu admina | ✔ |
