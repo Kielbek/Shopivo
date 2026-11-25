@@ -69,3 +69,17 @@ export function formatMoney(minor: number | null | undefined, currency = 'PLN'):
 export function formatNumber(value: number | null | undefined): string {
   return value === null || value === undefined ? '—' : NUMBER.format(value);
 }
+
+/** Parses a Polish money input ("79,90", "1 299", "12.5") into minor units; null for empty, undefined for invalid. */
+export function parseMoney(value: string | number | null | undefined): number | null | undefined {
+  if (value === null || value === undefined) return null;
+  const v = String(value).trim().replace(/[\s ]/g, '').replace(/zł$/i, '').replace(',', '.');
+  if (!v) return null;
+  if (!/^\d+(\.\d{1,2})?$/.test(v)) return undefined;
+  return Math.round(Number(v) * 100);
+}
+
+/** Minor units → editable text ("7990" → "79,90"). */
+export function moneyInput(minor: number | null | undefined): string {
+  return minor === null || minor === undefined ? '' : (minor / 100).toFixed(2).replace('.', ',');
+}

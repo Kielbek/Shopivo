@@ -10,7 +10,8 @@ import {
   LucideLayoutDashboard, LucideLifeBuoy, LucideLogOut, LucideMail, LucideMegaphone, LucideMenu, LucidePackage,
   LucidePalette, LucidePlus, LucideReceipt, LucideSearch, LucideSettings, LucideShield, LucideShieldCheck,
   LucideShoppingBag, LucideStore, LucideTrendingUp, LucideTruck, LucideUser, LucideUserPlus, LucideUsers, LucideWallet,
-  LucideX, LucideShoppingCart, LucideBox, LucideCircleDollarSign, LucideEllipsis, LucideImage,
+  LucideX, LucideShoppingCart, LucideBox, LucideCircleDollarSign, LucideEllipsis, LucideImage, LucideDownload, LucideCopy,
+  LucideArrowLeft, LucideFolderPlus, LucideTrash2, LucideHistory, LucidePencil,
 } from '@lucide/angular';
 
 export const icons = {
@@ -69,6 +70,13 @@ export const icons = {
   dollar: LucideCircleDollarSign,
   more: LucideEllipsis,
   image: LucideImage,
+  download: LucideDownload,
+  copy: LucideCopy,
+  arrowLeft: LucideArrowLeft,
+  folderPlus: LucideFolderPlus,
+  trash: LucideTrash2,
+  history: LucideHistory,
+  pencil: LucidePencil,
 } as const;
 
 export type IconName = keyof typeof icons;

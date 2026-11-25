@@ -303,3 +303,49 @@ export function formatEntitlement(kind: EntitlementKind, value: string | undefin
   if (key === 'fees.transaction_bps') return n === 0 ? 'Brak' : `${new Intl.NumberFormat('pl-PL').format(n / 100)}%`;
   return new Intl.NumberFormat('pl-PL').format(n);
 }
+
+// ---------------------------------------------------------------- catalogue (Phase 3)
+export type ProductStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+export type ProductType = 'PHYSICAL' | 'DIGITAL';
+export type MovementReason = 'INITIAL' | 'RECEIPT' | 'ADJUSTMENT' | 'DAMAGE' | 'RETURN' | 'SALE' | 'ORDER_CANCELED' | 'CORRECTION';
+
+export interface Category {
+  id: string; parentId: string | null; name: string; slug: string; description: string | null; position: number; depth: number;
+  visible: boolean; seoTitle: string | null; seoDescription: string | null; productCount: number; version: number;
+}
+export interface Brand { id: string; name: string; slug: string; productCount: number; }
+export interface ProductOption { name: string; values: string[]; }
+export interface ProductVariant {
+  id: string; optionValues: Record<string, string>; title: string; sku: string | null; ean: string | null; priceMinor: number;
+  compareAtMinor: number | null; costMinor: number | null; currency: string; lowestPrice30dMinor: number | null;
+  weightGrams: number | null; lengthMm: number | null; widthMm: number | null; heightMm: number | null;
+  trackInventory: boolean; allowBackorder: boolean; onHand: number | null; reserved: number | null; available: number | null;
+}
+export interface Product {
+  id: string; name: string; slug: string; description: string | null; status: ProductStatus; type: ProductType;
+  brand: Brand | null; vatRateBps: number; categories: { id: string; name: string }[]; seoTitle: string | null;
+  seoDescription: string | null; options: ProductOption[]; variants: ProductVariant[]; publishedAt: string | null;
+  createdAt: string; updatedAt: string; version: number;
+}
+export interface ProductRow {
+  id: string; name: string; slug: string; status: ProductStatus; type: ProductType; variantCount: number; sku: string | null;
+  minPriceMinor: number; maxPriceMinor: number; currency: string; stock: number | null; lowStock: boolean; categories: string[]; updatedAt: string;
+}
+export interface InventoryRow {
+  variantId: string; productId: string; productName: string; variantTitle: string; sku: string | null; productStatus: ProductStatus;
+  onHand: number; reserved: number; available: number; lowStockThreshold: number; low: boolean; updatedAt: string;
+}
+export interface StockMovement {
+  id: string; delta: number; onHandAfter: number; reason: MovementReason; note: string | null; reference: string | null;
+  actorName: string | null; createdAt: string;
+}
+export interface CatalogStats { products: number; activeProducts: number; draftProducts: number; lowStockVariants: number; outOfStockVariants: number; }
+
+export const PRODUCT_STATUS_LABELS: Record<ProductStatus, string> = { DRAFT: 'Szkic', ACTIVE: 'Aktywny', ARCHIVED: 'Zarchiwizowany' };
+export const MOVEMENT_REASON_LABELS: Record<MovementReason, string> = {
+  INITIAL: 'Stan początkowy', RECEIPT: 'Przyjęcie dostawy', ADJUSTMENT: 'Korekta', DAMAGE: 'Uszkodzenie / strata',
+  RETURN: 'Zwrot', SALE: 'Sprzedaż', ORDER_CANCELED: 'Anulowanie zamówienia', CORRECTION: 'Inwentaryzacja',
+};
+export const VAT_RATES: { bps: number; label: string }[] = [
+  { bps: 2300, label: '23%' }, { bps: 800, label: '8%' }, { bps: 500, label: '5%' }, { bps: 0, label: '0%' },
+];

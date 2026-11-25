@@ -24,8 +24,9 @@ const NAV: { title?: string; items: MerchantNavItem[] }[] = [
     title: 'Sprzedaż',
     items: [
       { label: 'Zamówienia', icon: 'orders', soon: true },
-      { label: 'Produkty', icon: 'products', soon: true },
-      { label: 'Kategorie', icon: 'categories', soon: true },
+      { label: 'Produkty', icon: 'products', path: 'produkty', permission: 'PRODUCTS_READ' },
+      { label: 'Kategorie i marki', icon: 'categories', path: 'kategorie', permission: 'PRODUCTS_READ' },
+      { label: 'Magazyn', icon: 'inventory', path: 'magazyn', permission: 'PRODUCTS_READ' },
       { label: 'Klienci', icon: 'users', soon: true },
     ],
   },
