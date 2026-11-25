@@ -98,6 +98,56 @@ public class Inventory {
         return after;
     }
 
+    // ---------------------------------------------------------------- order reservations
+
+    /**
+     * Reserves stock for an order line. Fails with INSUFFICIENT_STOCK unless the variant allows backorders. Untracked
+     * variants are not reserved (returns false).
+     */
+    @Transactional
+    public boolean reserve(UUID variantId, int quantity, boolean allowBackorder) {
+        UUID tenant = TenantContext.requireTenantId();
+        int updated = jdbc.update("""
+                update inventory_items set reserved = reserved + ?, updated_at = now()
+                where variant_id = ? and tenant_id = ? and (? or on_hand - reserved >= ?)
+                """, quantity, variantId, tenant, allowBackorder, quantity);
+        if (updated == 0) {
+            if (level(variantId).isEmpty()) return false;
+            throw new BusinessRuleException("INSUFFICIENT_STOCK", "Niewystarczający stan magazynowy.");
+        }
+        return true;
+    }
+
+    /** Releases a reservation (order canceled before shipment). */
+    @Transactional
+    public void release(UUID variantId, int quantity) {
+        jdbc.update("update inventory_items set reserved = greatest(reserved - ?, 0), updated_at = now() where variant_id = ? and tenant_id = ?",
+                quantity, variantId, TenantContext.requireTenantId());
+    }
+
+    /** Writes off reserved stock when the order ships (records a SALE movement). */
+    @Transactional
+    public void fulfil(UUID variantId, int quantity, String reference, UUID actor) {
+        var rows = jdbc.query("""
+                update inventory_items set on_hand = on_hand - ?, reserved = greatest(reserved - ?, 0), updated_at = now()
+                where variant_id = ? and tenant_id = ? returning on_hand
+                """, (rs, i) -> rs.getInt(1), quantity, quantity, variantId, TenantContext.requireTenantId());
+        if (!rows.isEmpty()) {
+            movement(variantId, -quantity, rows.getFirst(), MovementReason.SALE, null, reference, actor);
+        }
+    }
+
+    /** Puts stock back (order canceled after shipment / returned). */
+    @Transactional
+    public void restock(UUID variantId, int quantity, MovementReason reason, String reference, UUID actor) {
+        var rows = jdbc.query("""
+                update inventory_items set on_hand = on_hand + ?, updated_at = now() where variant_id = ? and tenant_id = ? returning on_hand
+                """, (rs, i) -> rs.getInt(1), quantity, variantId, TenantContext.requireTenantId());
+        if (!rows.isEmpty()) {
+            movement(variantId, quantity, rows.getFirst(), reason, null, reference, actor);
+        }
+    }
+
     @Transactional
     public void setThreshold(UUID variantId, int threshold) {
         if (threshold < 0 || threshold > MAX_QUANTITY) throw new BusinessRuleException("INVALID_QUANTITY", "Nieprawidłowy próg.");

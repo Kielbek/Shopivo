@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{_layout :: layout(~{::title}, ~{::section})}" lang="pl">
+<head><title th:text="${subject}">Zamówienie</title></head>
+<body>
+<section>
+  <h1 style="font-size:20px;margin:0 0 12px;" th:text="${heading}">Zamówienie</h1>
+  <p th:each="line : ${lines}" th:text="${line}">Treść</p>
+  <table th:if="${items != null}" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border-collapse:collapse;font-size:14px;">
+    <tr th:each="item : ${items}">
+      <td style="padding:8px 0;border-bottom:1px solid #EDF0F4;" th:text="${item.name}">Produkt</td>
+      <td style="padding:8px 8px;border-bottom:1px solid #EDF0F4;color:#5B6478;white-space:nowrap;" th:text="${item.quantity} + ' szt.'">1 szt.</td>
+      <td style="padding:8px 0;border-bottom:1px solid #EDF0F4;text-align:right;white-space:nowrap;" th:text="${item.total}">0,00 zł</td>
+    </tr>
+    <tr th:each="t, stat : ${totals}">
+      <td colspan="2" style="padding:6px 0;" th:style="${stat.last} ? 'padding:10px 0 0;font-weight:600;' : 'padding:6px 0;color:#5B6478;'" th:text="${t.label}">Suma</td>
+      <td style="padding:6px 0;text-align:right;white-space:nowrap;" th:style="${stat.last} ? 'padding:10px 0 0;text-align:right;font-weight:600;' : 'padding:6px 0;text-align:right;'" th:text="${t.value}">0,00 zł</td>
+    </tr>
+  </table>
+  <p style="color:#52525b;font-size:13px;">Wiadomość wysłana w imieniu sklepu <span th:text="${storeName}">Sklep</span>.</p>
+</section>
+</body>
+</html>

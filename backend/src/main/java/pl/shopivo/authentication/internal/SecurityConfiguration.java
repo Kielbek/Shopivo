@@ -71,7 +71,8 @@ class SecurityConfiguration {
                 .csrf(csrf -> csrf
                         .csrfTokenRepository(csrfTokenRepository(properties.security().cookieSecure()))
                         .csrfTokenRequestHandler(new HeaderOnlyCsrfTokenRequestHandler())
-                        .ignoringRequestMatchers("/api/v1/webhooks/**"))
+                        // Webhooks are signed by operators; the storefront API holds no ambient credentials (cart token in a header).
+                        .ignoringRequestMatchers("/api/v1/webhooks/**", "/api/v1/storefront/**"))
                 .cors(cors -> cors.disable())
                 .securityContext(c -> c.requireExplicitSave(true))
                 // Sessions are our own opaque tokens (SessionAuthenticationFilter), not HttpSession. Spring Security's
