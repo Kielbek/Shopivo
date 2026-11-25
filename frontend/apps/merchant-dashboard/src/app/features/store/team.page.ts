@@ -19,7 +19,7 @@ const INVITABLE: InvitableRole[] = ['ADMIN', 'MANAGER', 'PRODUCT_MANAGER', 'ORDE
     DatePipe, DialogComponent, EmptyStateComponent, FieldComponent, LoadingComponent, CardComponent, AvatarComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <sv-page-header title="Zespół" description="Osoby z dostępem do panelu sklepu i ich uprawnienia.">
+    <sv-page-header title="Zespół">
       @if (canManage) {
         <button sv-button (click)="inviteOpen.set(true)"><svg [lucideIcon]="icons.userPlus" />Zaproś osobę</button>
       }
@@ -81,7 +81,7 @@ const INVITABLE: InvitableRole[] = ['ADMIN', 'MANAGER', 'PRODUCT_MANAGER', 'ORDE
         @if (invitations.isLoading()) {
           <sv-loading />
         } @else if (!invitations.value()?.length) {
-          <sv-empty-state icon="mail" title="Brak oczekujących zaproszeń" description="Zaproszone osoby pojawią się tutaj do czasu akceptacji." />
+          <sv-empty-state icon="mail" title="Brak oczekujących zaproszeń" />
         } @else {
           <div class="overflow-x-auto px-5 pb-3">
             <table class="sv-table min-w-[560px]">

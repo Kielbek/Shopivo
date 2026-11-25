@@ -8,7 +8,7 @@ import { AlertComponent, ButtonComponent, DatePipe, EmptyStateComponent, Loading
   imports: [PageHeaderComponent, LoadingComponent, AlertComponent, EmptyStateComponent, ButtonComponent, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <sv-page-header title="Dziennik zdarzeń" description="Zdarzenia bezpieczeństwa i administracyjne z całej platformy." />
+    <sv-page-header title="Dziennik zdarzeń" />
     <div class="sv-card mt-6 overflow-hidden">
       @if (logs.isLoading() && !logs.value()) {
         <sv-loading />

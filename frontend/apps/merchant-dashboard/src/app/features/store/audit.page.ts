@@ -11,7 +11,7 @@ import { auditActionLabel } from '../../shared/audit-labels';
   imports: [LucideDynamicIcon, PageHeaderComponent, LoadingComponent, AlertComponent, EmptyStateComponent, ButtonComponent, DatePipe, CardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <sv-page-header title="Dziennik zdarzeń" description="Historia istotnych zmian w sklepie: kto, co i kiedy zrobił." />
+    <sv-page-header title="Dziennik zdarzeń" />
     <sv-card class="mt-6" heading="Ostatnie zdarzenia" [flush]="true">
       @if (logs.isLoading() && !logs.value()) {
         <sv-loading />

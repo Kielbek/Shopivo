@@ -57,7 +57,7 @@ const MONTHS = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', '
         <ul class="mt-4 grid gap-2 md:grid-cols-3">
           @for (item of checklist(); track item.label) {
             <li>
-              <a [routerLink]="item.link" class="flex h-full items-center gap-3 rounded-[10px] border border-line px-3.5 py-3 transition-colors hover:border-primary-ring hover:bg-primary-soft/40">
+              <a [routerLink]="item.link" class="flex h-full items-center gap-3 rounded-[10px] bg-[#F7F8FA] px-3.5 py-3 transition-colors hover:bg-primary-soft">
                 <span class="flex size-6 shrink-0 items-center justify-center rounded-full"
                   [class]="item.done ? 'bg-success text-white' : 'border-[1.5px] border-line-strong text-transparent'">
                   <svg [lucideIcon]="icons.check" [size]="14" [strokeWidth]="3" />
@@ -88,15 +88,12 @@ const MONTHS = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', '
           }
         </div>
         <sv-line-chart [labels]="months" [series]="sales" [height]="300" ariaLabel="Przychód i liczba zamówień w ostatnich 12 miesiącach">
-          <div class="max-w-[260px] rounded-[12px] bg-card/90 px-4 py-3 text-center">
-            <p class="text-[13px] font-medium text-ink">Brak danych sprzedażowych</p>
-            <p class="mt-1 text-[12px] text-ink-muted">Wykres wypełni się po pierwszych zamówieniach w sklepie.</p>
-          </div>
+          <p class="text-[12px] text-ink-muted">Brak sprzedaży w tym okresie</p>
         </sv-line-chart>
       </sv-card>
 
       <sv-card heading="Ostatnie zamówienia">
-        <sv-empty-state icon="orders" title="Brak zamówień" description="Nowe zamówienia klientów pojawią się tutaj na bieżąco." />
+        <sv-empty-state icon="orders" title="Brak zamówień" />
       </sv-card>
     </div>
 
@@ -107,13 +104,12 @@ const MONTHS = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', '
             <thead><tr><th scope="col">Produkt</th><th scope="col">Status</th><th scope="col">Sprzedaż</th><th scope="col">Przychód</th></tr></thead>
           </table>
         </div>
-        <sv-empty-state icon="products" title="Brak danych o sprzedaży produktów"
-          description="Ranking produktów pojawi się, gdy sklep zrealizuje pierwsze zamówienia." />
+        <sv-empty-state icon="products" title="Brak sprzedanych produktów" />
       </sv-card>
 
       <sv-card heading="Zyski miesięczne">
         <sv-donut-chart [segments]="profitSplit" centerLabel="Razem" ariaLabel="Struktura zysku w bieżącym miesiącu" />
-        <p class="mt-4 text-center text-[12px] text-ink-muted">Brak danych za bieżący miesiąc.</p>
+
       </sv-card>
     </div>
   `,

@@ -48,7 +48,7 @@ const MONTH_LABEL = new Intl.DateTimeFormat('pl-PL', { month: 'short', year: '2-
           <sv-loading />
         } @else {
           <sv-line-chart [labels]="labels()" [series]="series()" [height]="300" ariaLabel="Nowi użytkownicy i nowe sklepy w wybranym okresie">
-            <p class="text-[13px] text-ink-muted">Brak danych w wybranym okresie.</p>
+            <p class="text-[12px] text-ink-muted">Brak danych w wybranym okresie</p>
           </sv-line-chart>
         }
       </sv-card>
@@ -85,8 +85,7 @@ const MONTH_LABEL = new Intl.DateTimeFormat('pl-PL', { month: 'short', year: '2-
 
     <div class="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
       <sv-card heading="Przychody platformy" subheading="MRR, ARR i płatności subskrypcji">
-        <sv-empty-state icon="wallet" title="Dostępne po uruchomieniu modułu rozliczeń"
-          description="Moduł subskrypcji (faza 2) dostarczy dane o przychodach cyklicznych i płatnościach." />
+        <sv-empty-state icon="wallet" title="Dane pojawią się po uruchomieniu modułu rozliczeń" />
       </sv-card>
       <sv-card heading="Status sklepów">
         <sv-donut-chart [segments]="statusSplit()" centerLabel="Sklepy" [centerValue]="fmt(overview.value()?.stores) ?? ''"

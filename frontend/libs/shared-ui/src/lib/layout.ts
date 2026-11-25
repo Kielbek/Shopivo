@@ -69,13 +69,11 @@ export class SectionComponent {
   selector: 'sv-empty-state',
   imports: [LucideDynamicIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex flex-col items-center px-6 py-10 text-center' },
+  host: { class: 'flex flex-col items-center px-6 py-9 text-center' },
   template: `
-    <span class="flex size-11 items-center justify-center rounded-full bg-canvas text-ink-muted">
-      <svg [lucideIcon]="ICONS[icon()]" [size]="20" [strokeWidth]="1.75" />
-    </span>
-    <p class="mt-3 text-[14px] font-medium text-ink">{{ title() }}</p>
-    @if (description()) {<p class="mt-1 max-w-sm text-[13px] leading-5 text-ink-muted">{{ description() }}</p>}
+    <svg [lucideIcon]="ICONS[icon()]" [size]="22" [strokeWidth]="1.5" class="text-[#C2C8D3]" />
+    <p class="mt-2.5 text-[13px] font-medium text-ink-soft">{{ title() }}</p>
+    @if (description()) {<p class="mt-0.5 max-w-xs text-[12px] leading-5 text-ink-muted">{{ description() }}</p>}
     <div class="mt-4 flex gap-2 empty:mt-0"><ng-content /></div>
   `,
 })

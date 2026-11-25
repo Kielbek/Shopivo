@@ -14,7 +14,7 @@ import { firstValueFrom } from 'rxjs';
     EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <sv-page-header title="Użytkownicy" description="Konta sprzedawców i administratorów platformy." />
+    <sv-page-header title="Użytkownicy" />
     <form class="mt-6 flex gap-2" (ngSubmit)="page.set(0); query.set(queryDraft)">
       <label for="q" class="sr-only">Szukaj</label>
       <input id="q" name="q" type="search" class="sv-input max-w-xs bg-card" placeholder="E-mail lub nazwisko" [(ngModel)]="queryDraft" />

@@ -105,7 +105,7 @@ export interface NavSection {
         <div class="min-h-0 flex-1 overflow-y-auto px-4 pb-3 pt-1">
           @for (section of sections(); track $index) {
             @if (section.title) {
-              <p class="mb-1 mt-4 px-3 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-muted">{{ section.title }}</p>
+              <p class="mb-1 mt-5 px-3 text-[12px] font-medium text-ink-muted">{{ section.title }}</p>
             }
             <ul class="space-y-0.5">
               @for (item of section.items; track item.label) {
@@ -141,11 +141,10 @@ export interface NavSection {
             {{ it.label }}
           </a>
         } @else {
-          <span class="flex h-9 cursor-default items-center gap-3 rounded-[10px] px-3 text-[14px] text-ink-muted/80"
+          <span class="flex h-9 cursor-default items-center gap-3 rounded-[10px] px-3 text-[14px] text-[#B3BAC6]"
             aria-disabled="true" [attr.title]="it.label + ' — moduł w przygotowaniu'">
-            <svg [lucideIcon]="icons[it.icon]" [size]="18" [strokeWidth]="1.75" class="text-[#C2C8D3]" />
-            <span class="min-w-0 flex-1 truncate whitespace-nowrap">{{ it.label }}</span>
-            <span class="shrink-0 rounded-[5px] px-1 py-px text-[10px] font-medium text-[#A9B0BE] ring-1 ring-inset ring-line">Wkrótce</span>
+            <svg [lucideIcon]="icons[it.icon]" [size]="18" [strokeWidth]="1.75" class="text-[#CDD2DB]" />
+            <span class="min-w-0 flex-1 truncate whitespace-nowrap">{{ it.label }}<span class="sr-only"> (wkrótce)</span></span>
           </span>
         }
       }

@@ -76,33 +76,55 @@
 }
 
 @layer components {
+  /* Filled controls (reference language): grey fill, no visible border until hover/focus. */
   .sv-input {
-    @apply block h-10 w-full rounded-[var(--radius-control)] border border-line-strong bg-card px-3 text-[14px] text-ink
-      placeholder:text-ink-muted transition-[border-color,box-shadow] duration-150
-      hover:border-[#CDD3DD] focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary-soft
-      disabled:cursor-not-allowed disabled:bg-canvas disabled:text-ink-muted;
+    @apply block h-10 w-full rounded-[10px] border border-transparent bg-[#F3F5F8] px-3.5 text-[13.5px] text-ink
+      placeholder:text-[#A3AABA] transition-[background-color,border-color,box-shadow] duration-150
+      hover:bg-[#EEF1F5] focus:border-primary focus:bg-card focus:outline-none focus:ring-[3px] focus:ring-primary-soft
+      disabled:cursor-not-allowed disabled:bg-[#F7F8FA] disabled:text-ink-muted;
   }
 
   textarea.sv-input {
-    @apply h-auto py-2.5;
+    @apply h-auto py-2.5 leading-6;
   }
 
   select.sv-input {
-    @apply appearance-none bg-no-repeat pr-9;
+    @apply cursor-pointer appearance-none bg-no-repeat pr-9;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238992A5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    background-position: right 0.65rem center;
+    background-position: right 0.75rem center;
   }
 
   .sv-input[aria-invalid="true"] {
-    @apply border-danger focus:border-danger focus:ring-danger-soft;
+    @apply border-danger bg-card focus:border-danger focus:ring-danger-soft;
   }
 
   .sv-checkbox {
     @apply size-4 rounded-[4px] border-line-strong accent-primary-strong;
   }
 
+  /* Toggle switch on a native checkbox (keeps forms and accessibility semantics). */
+  .sv-switch {
+    @apply relative h-6 w-10 shrink-0 cursor-pointer appearance-none rounded-full bg-[#DCE0E7] transition-colors
+      checked:bg-primary-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary
+      disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .sv-switch::after {
+    @apply absolute left-[3px] top-[3px] size-[18px] rounded-full bg-white shadow-[0_1px_2px_rgba(37,43,59,0.2)] transition-transform;
+    content: "";
+  }
+
+  .sv-switch:checked::after {
+    @apply translate-x-4;
+  }
+
   .sv-label {
-    @apply block text-[13px] font-medium text-ink;
+    @apply block text-[12.5px] font-medium text-ink-soft;
+  }
+
+  /* Card footer with actions (forms). */
+  .sv-card-footer {
+    @apply flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-3.5;
   }
 
   .sv-card {

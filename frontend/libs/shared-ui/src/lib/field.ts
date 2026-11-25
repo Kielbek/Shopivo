@@ -7,9 +7,7 @@ import { AbstractControl } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
-    <label class="sv-label" [attr.for]="for()">{{ label() }}
-      @if (optional()) {<span class="font-normal text-ink-muted"> · opcjonalnie</span>}
-    </label>
+    <label class="sv-label" [attr.for]="for()">{{ label() }}</label>
     <div class="mt-1.5"><ng-content /></div>
     @if (error()) {
       <p class="mt-1.5 text-[12px] text-danger-ink" [id]="for() + '-error'">{{ error() }}</p>

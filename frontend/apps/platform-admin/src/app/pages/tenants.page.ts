@@ -15,7 +15,7 @@ import { firstValueFrom } from 'rxjs';
     DialogComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <sv-page-header title="Sklepy" description="Wszystkie sklepy na platformie." />
+    <sv-page-header title="Sklepy" />
     <form class="mt-6 flex flex-wrap gap-2" (ngSubmit)="search()">
       <label for="q" class="sr-only">Szukaj</label>
       <input id="q" name="q" type="search" class="sv-input max-w-xs bg-card" placeholder="Nazwa sklepu" [(ngModel)]="queryDraft" />

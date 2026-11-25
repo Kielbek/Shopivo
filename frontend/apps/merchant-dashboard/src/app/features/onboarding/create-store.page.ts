@@ -35,9 +35,9 @@ const REASONS: Record<string, string> = {
         </sv-field>
         <sv-field label="Adres sklepu" for="slug" [error]="slugError()" [hint]="slugHint()">
           <div class="flex rounded-[var(--radius-control)]">
-            <input id="slug" class="sv-input rounded-r-none" formControlName="slug" maxlength="40" spellcheck="false"
+            <input id="slug" class="sv-input rounded-r-none pr-1" formControlName="slug" maxlength="40" spellcheck="false"
               autocapitalize="off" [attr.aria-invalid]="!!slugError()" (input)="slugEdited = true" />
-            <span class="inline-flex items-center rounded-r-[var(--radius-ui)] border border-l-0 border-line-strong bg-canvas px-3 text-[13px] text-ink-soft">
+            <span class="inline-flex h-10 items-center whitespace-nowrap rounded-r-[10px] bg-[#ECEFF4] px-3 text-[13px] text-ink-muted">
               .{{ config()?.platformDomain ?? '…' }}
             </span>
           </div>

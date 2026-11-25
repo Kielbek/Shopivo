@@ -13,3 +13,4 @@ export * from './lib/menu';
 export * from './lib/date-range';
 export * from './lib/toast';
 export * from './lib/app-shell';
+export * from './lib/tabs';
