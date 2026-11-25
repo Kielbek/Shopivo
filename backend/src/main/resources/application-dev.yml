@@ -1,0 +1,26 @@
+# Local development only — never use these values in any shared environment.
+spring:
+  datasource:
+    password: shopivo_app_dev
+  flyway:
+    password: shopivo_owner_dev
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+shopivo:
+  security:
+    cookie-secure: false
+    encryption:
+      # 32 zero-bytes key, base64 — DEV ONLY
+      keys: "1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+  bootstrap:
+    admin-email: admin@shopivo.local
+    admin-password: "Platforma!Lokalna-2026"
+
+logging:
+  level:
+    pl.shopivo: DEBUG

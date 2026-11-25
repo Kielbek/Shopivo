@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{_layout :: layout(~{::title}, ~{::section})}" lang="pl">
+<head><title>Próba rejestracji na Twój adres e-mail</title></head>
+<body>
+<section>
+  <h1 style="font-size:20px;margin:0 0 12px;">Cześć <span th:text="${firstName}">Jan</span>,</h1>
+  <p>ktoś (być może Ty) próbował założyć konto w Shopivo na ten adres e-mail. Konto już istnieje.</p>
+  <p style="margin:24px 0;"><a th:href="${appUrl + '/logowanie'}" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:600;">Zaloguj się</a></p>
+  <p>Nie pamiętasz hasła? <a th:href="${appUrl + '/przypomnij-haslo'}">Ustaw nowe hasło</a>.</p>
+  <p style="color:#52525b;font-size:13px;">Jeśli to nie Ty, nie musisz nic robić — Twoje konto jest bezpieczne.</p>
+</section>
+</body>
+</html>

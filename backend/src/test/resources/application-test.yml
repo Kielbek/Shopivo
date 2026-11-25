@@ -1,0 +1,21 @@
+shopivo:
+  platform-domain: shopivo.test
+  app-url: https://app.shopivo.test
+  admin-url: https://admin.shopivo.test
+  mail:
+    from: "Shopivo <no-reply@shopivo.test>"
+  security:
+    cookie-secure: true
+    encryption:
+      keys: "1:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY="
+      active-key: 1
+  bootstrap:
+    admin-email: admin@shopivo.test
+    admin-password: "Platforma!Testowa-2026"
+
+management:
+  server:
+    port: 0
+logging:
+  level:
+    pl.shopivo: INFO

@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{_layout :: layout(~{::title}, ~{::section})}" lang="pl">
+<head><title>Potwierdź adres e-mail w Shopivo</title></head>
+<body>
+<section>
+  <h1 style="font-size:20px;margin:0 0 12px;">Cześć <span th:text="${firstName}">Jan</span>,</h1>
+  <p>dziękujemy za założenie konta w Shopivo. Potwierdź swój adres e-mail, aby zacząć tworzyć sklep.</p>
+  <p style="margin:24px 0;"><a th:href="${link}" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:600;">Potwierdź adres e-mail</a></p>
+  <p style="color:#52525b;font-size:13px;">Link jest ważny przez 24 godziny. Jeśli to nie Ty zakładałeś konto, zignoruj tę wiadomość.</p>
+</section>
+</body>
+</html>

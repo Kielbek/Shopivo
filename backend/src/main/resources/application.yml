@@ -1,0 +1,130 @@
+spring:
+  application:
+    name: shopivo
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${SHOPIVO_DB_URL:jdbc:postgresql://localhost:5432/shopivo}
+    username: ${SHOPIVO_DB_APP_USER:shopivo_app}
+    password: ${SHOPIVO_DB_APP_PASSWORD:}
+    hikari:
+      maximum-pool-size: ${SHOPIVO_DB_POOL_SIZE:20}
+      minimum-idle: 2
+      connection-timeout: 5000
+      max-lifetime: 1800000
+  flyway:
+    url: ${SHOPIVO_DB_URL:jdbc:postgresql://localhost:5432/shopivo}
+    user: ${SHOPIVO_DB_MIGRATION_USER:shopivo_owner}
+    password: ${SHOPIVO_DB_MIGRATION_PASSWORD:}
+    locations: classpath:db/migration
+    placeholders:
+      appRole: ${SHOPIVO_DB_APP_USER:shopivo_app}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
+  data:
+    redis:
+      url: ${SHOPIVO_REDIS_URL:redis://localhost:6379}
+      timeout: 2s
+  mail:
+    host: ${SHOPIVO_MAIL_HOST:localhost}
+    port: ${SHOPIVO_MAIL_PORT:1025}
+    username: ${SHOPIVO_MAIL_USERNAME:}
+    password: ${SHOPIVO_MAIL_PASSWORD:}
+    properties:
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
+  modulith:
+    events:
+      jdbc:
+        schema-initialization:
+          enabled: false
+      republish-outstanding-events-on-restart: true
+  mvc:
+    problemdetails:
+      enabled: true
+  web:
+    locale: pl
+  thymeleaf:
+    check-template-location: false
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+  forward-headers-strategy: native
+  error:
+    include-stacktrace: never
+    include-message: never
+  servlet:
+    encoding:
+      force: true
+  tomcat:
+    remoteip:
+      internal-proxies: ${SHOPIVO_TRUSTED_PROXIES:127\.0\.0\.1|0:0:0:0:0:0:0:1|::1}
+
+management:
+  server:
+    port: ${MANAGEMENT_PORT:8081}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  info:
+    env:
+      enabled: false
+
+springdoc:
+  api-docs:
+    path: /api/docs
+    enabled: ${SHOPIVO_API_DOCS_ENABLED:false}
+  swagger-ui:
+    path: /api/swagger-ui
+    enabled: ${SHOPIVO_API_DOCS_ENABLED:false}
+
+logging:
+  structured:
+    format:
+      console: ${SHOPIVO_LOG_FORMAT:}
+  level:
+    root: INFO
+    org.hibernate.SQL: WARN
+
+shopivo:
+  platform-domain: ${SHOPIVO_PLATFORM_DOMAIN:shopivo.localhost}
+  app-url: ${SHOPIVO_APP_URL:http://localhost:4200}
+  admin-url: ${SHOPIVO_ADMIN_URL:http://localhost:4300}
+  mail:
+    from: ${SHOPIVO_MAIL_FROM:Shopivo <no-reply@shopivo.localhost>}
+  security:
+    cookie-secure: ${SHOPIVO_COOKIE_SECURE:true}
+    session:
+      idle-timeout: 12h
+      remember-me-idle-timeout: 7d
+      absolute-timeout: 30d
+      touch-interval: 5m
+    login:
+      max-failed-attempts: 10
+      lock-duration: 15m
+    encryption:
+      keys: ${SHOPIVO_ENCRYPTION_KEYS:}
+      active-key: ${SHOPIVO_ENCRYPTION_ACTIVE_KEY:1}
+  tenancy:
+    max-stores-per-user: 10
+  bootstrap:
+    admin-email: ${SHOPIVO_BOOTSTRAP_ADMIN_EMAIL:}
+    admin-password: ${SHOPIVO_BOOTSTRAP_ADMIN_PASSWORD:}

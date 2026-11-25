@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{_layout :: layout(~{::title}, ~{::section})}" lang="pl">
+<head><title>Włączono weryfikację dwuetapową</title></head>
+<body>
+<section>
+  <h1 style="font-size:20px;margin:0 0 12px;">Cześć <span th:text="${firstName}">Jan</span>,</h1>
+  <p>na Twoim koncie Shopivo włączono weryfikację dwuetapową. Od teraz przy logowaniu poprosimy o kod z aplikacji uwierzytelniającej.</p>
+  <p style="color:#52525b;font-size:13px;">Jeśli to nie Ty, natychmiast zmień hasło i skontaktuj się z pomocą techniczną.</p>
+</section>
+</body>
+</html>
