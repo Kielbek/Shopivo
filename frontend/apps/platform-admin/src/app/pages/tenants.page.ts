@@ -18,7 +18,7 @@ import { firstValueFrom } from 'rxjs';
     <sv-page-header title="Sklepy" description="Wszystkie sklepy na platformie." />
     <form class="mt-6 flex flex-wrap gap-2" (ngSubmit)="search()">
       <label for="q" class="sr-only">Szukaj</label>
-      <input id="q" name="q" class="sv-input max-w-xs" placeholder="Nazwa sklepu" [(ngModel)]="queryDraft" />
+      <input id="q" name="q" type="search" class="sv-input max-w-xs bg-card" placeholder="Nazwa sklepu" [(ngModel)]="queryDraft" />
       <label for="status" class="sr-only">Status</label>
       <select id="status" name="status" class="sv-input w-auto" [ngModel]="status() ?? ''" (ngModelChange)="status.set($event || null); page.set(0)">
         <option value="">Wszystkie statusy</option>
@@ -28,7 +28,7 @@ import { firstValueFrom } from 'rxjs';
       <button sv-button variant="secondary" type="submit">Szukaj</button>
     </form>
     @if (message(); as m) {<sv-alert [tone]="m.tone" class="mt-4">{{ m.text }}</sv-alert>}
-    <div class="sv-card mt-4 overflow-x-auto">
+    <div class="sv-card mt-4 overflow-hidden">
       @if (rows.isLoading() && !rows.value()) {
         <sv-loading />
       } @else if (rows.error()) {
@@ -36,24 +36,24 @@ import { firstValueFrom } from 'rxjs';
       } @else if (!rows.value()?.items?.length) {
         <sv-empty-state title="Brak sklepów spełniających kryteria" />
       } @else {
-        <table class="sv-table">
+        <div class="overflow-x-auto px-3 pt-3 sm:px-5"><table class="sv-table min-w-[720px]">
           <thead><tr><th scope="col">Sklep</th><th scope="col">Właściciel</th><th scope="col">Status</th><th scope="col">Utworzono</th><th scope="col"><span class="sr-only">Akcje</span></th></tr></thead>
           <tbody>
             @for (row of rows.value()!.items; track row.tenant.id) {
               <tr>
                 <td>
                   <p class="font-medium">{{ row.tenant.name }}</p>
-                  <p class="text-zinc-500">{{ row.store?.primaryHostname ?? '—' }}</p>
+                  <p class="text-ink-muted">{{ row.store?.primaryHostname ?? '—' }}</p>
                 </td>
                 <td>{{ row.owner?.email ?? '—' }}</td>
                 <td>
                   @if (row.tenant.status === 'ACTIVE') {<sv-badge tone="success">Aktywny</sv-badge>}
                   @else if (row.tenant.status === 'SUSPENDED') {
                     <sv-badge tone="danger">Zawieszony</sv-badge>
-                    <p class="mt-1 max-w-[220px] truncate text-[12px] text-zinc-500" [title]="row.tenant.suspendedReason ?? ''">{{ row.tenant.suspendedReason }}</p>
+                    <p class="mt-1 max-w-[220px] truncate text-[12px] text-ink-muted" [title]="row.tenant.suspendedReason ?? ''">{{ row.tenant.suspendedReason }}</p>
                   } @else {<sv-badge>Zamknięty</sv-badge>}
                 </td>
-                <td class="whitespace-nowrap text-zinc-600">{{ row.tenant.createdAt | svDate: 'date' }}</td>
+                <td class="whitespace-nowrap text-ink-soft">{{ row.tenant.createdAt | svDate: 'date' }}</td>
                 <td class="text-right">
                   @if (session.isPlatformAdmin()) {
                     @if (row.tenant.status === 'ACTIVE') {
@@ -67,7 +67,8 @@ import { firstValueFrom } from 'rxjs';
             }
           </tbody>
         </table>
-        <div class="flex items-center justify-between border-t border-zinc-100 px-4 py-3 text-[13px] text-zinc-600">
+        </div>
+        <div class="flex items-center justify-between border-t border-line px-5 py-3 text-[13px] text-ink-muted">
           <span>{{ rows.value()!.totalItems }} sklepów</span>
           <div class="flex gap-2">
             <button sv-button variant="secondary" size="sm" [disabled]="page() === 0" (click)="page.set(page() - 1)">Poprzednia</button>

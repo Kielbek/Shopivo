@@ -16,13 +16,13 @@ import { PASSWORD_MIN_LENGTH, matchingPasswords } from '../../shared/validators'
       @case ('loading') {<sv-loading label="Potwierdzamy adres e-mail…" />}
       @case ('done') {
         <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Adres e-mail potwierdzony</h1>
-        <p class="mt-2 text-[14px] text-zinc-700">Twoje konto jest aktywne. Zaloguj się, aby utworzyć sklep.</p>
+        <p class="mt-2 text-[14px] text-ink-soft">Twoje konto jest aktywne. Zaloguj się, aby utworzyć sklep.</p>
         <a sv-button class="mt-6" size="lg" routerLink="/logowanie">Zaloguj się</a>
       }
       @case ('error') {
         <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Nie udało się potwierdzić adresu</h1>
         <sv-alert tone="error" class="mt-4">{{ message() }}</sv-alert>
-        <p class="mt-4 text-[13px] text-zinc-600">Zaloguj się — jeśli adres nie jest potwierdzony, wyślemy nowy link.</p>
+        <p class="mt-4 text-[13px] text-ink-soft">Zaloguj się — jeśli adres nie jest potwierdzony, wyślemy nowy link.</p>
         <a sv-button variant="secondary" class="mt-6" routerLink="/logowanie">Przejdź do logowania</a>
       }
     }
@@ -58,12 +58,12 @@ export class VerifyEmailPage implements OnInit {
   template: `
     <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Nie pamiętasz hasła?</h1>
     @if (sent()) {
-      <p class="mt-2 text-[14px] text-zinc-700">
+      <p class="mt-2 text-[14px] text-ink-soft">
         Jeśli konto z tym adresem istnieje, wysłaliśmy na nie link do ustawienia nowego hasła. Link jest ważny przez 1 godzinę.
       </p>
       <a sv-button variant="secondary" class="mt-6" routerLink="/logowanie">Wróć do logowania</a>
     } @else {
-      <p class="mt-1 text-[13px] text-zinc-600">Podaj adres e-mail konta — wyślemy link do ustawienia nowego hasła.</p>
+      <p class="mt-1 text-[13px] text-ink-soft">Podaj adres e-mail konta — wyślemy link do ustawienia nowego hasła.</p>
       @if (error(); as e) {<sv-alert tone="error" class="mt-6">{{ e.message }}</sv-alert>}
       <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 space-y-4" novalidate>
         <sv-field label="Adres e-mail" for="email" [error]="emailError()">
@@ -113,7 +113,7 @@ export class ForgotPasswordPage {
   template: `
     <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Ustaw nowe hasło</h1>
     @if (done()) {
-      <p class="mt-2 text-[14px] text-zinc-700">Hasło zostało zmienione, a wszystkie sesje wylogowane. Zaloguj się nowym hasłem.</p>
+      <p class="mt-2 text-[14px] text-ink-soft">Hasło zostało zmienione, a wszystkie sesje wylogowane. Zaloguj się nowym hasłem.</p>
       <a sv-button class="mt-6" size="lg" routerLink="/logowanie">Zaloguj się</a>
     } @else if (!token()) {
       <sv-alert tone="error" class="mt-4">Link jest niepełny. Otwórz go ponownie z wiadomości e-mail.</sv-alert>
@@ -189,7 +189,7 @@ export class ResetPasswordPage {
         <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Nie udało się przyjąć zaproszenia</h1>
         <sv-alert tone="error" class="mt-4">{{ e.message }}</sv-alert>
         @if (e.code === 'INVITATION_EMAIL_MISMATCH') {
-          <p class="mt-4 text-[13px] text-zinc-600">Jesteś zalogowany jako {{ session.user()?.email }}.</p>
+          <p class="mt-4 text-[13px] text-ink-soft">Jesteś zalogowany jako {{ session.user()?.email }}.</p>
           <button sv-button variant="secondary" class="mt-4" (click)="switchAccount()">Zaloguj się na inne konto</button>
         } @else {
           <a sv-button variant="secondary" class="mt-6" routerLink="/">Przejdź do panelu</a>

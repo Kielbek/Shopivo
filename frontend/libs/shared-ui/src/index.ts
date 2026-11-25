@@ -1,3 +1,4 @@
+export * from './lib/icons';
 export * from './lib/button';
 export * from './lib/spinner';
 export * from './lib/alert';
@@ -6,3 +7,9 @@ export * from './lib/layout';
 export * from './lib/dialog';
 export * from './lib/format';
 export * from './lib/brand';
+export * from './lib/stat-card';
+export * from './lib/charts';
+export * from './lib/menu';
+export * from './lib/date-range';
+export * from './lib/toast';
+export * from './lib/app-shell';

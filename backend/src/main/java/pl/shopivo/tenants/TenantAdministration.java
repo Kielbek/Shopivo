@@ -79,6 +79,18 @@ public class TenantAdministration {
                 tenants.countByStatus(TenantStatus.SUSPENDED), tenants.countByCreatedAtAfter(since));
     }
 
+    /** New stores per local day (Europe/Warsaw) since {@code since}. */
+    @Transactional(readOnly = true)
+    public java.util.Map<java.time.LocalDate, Long> creationsPerDay(Instant since) {
+        requireSystem();
+        java.util.Map<java.time.LocalDate, Long> result = new java.util.TreeMap<>();
+        for (Object[] row : tenants.countPerDaySince(since)) {
+            java.time.LocalDate day = row[0] instanceof java.sql.Date d ? d.toLocalDate() : (java.time.LocalDate) row[0];
+            result.put(day, ((Number) row[1]).longValue());
+        }
+        return result;
+    }
+
     public record TenantStats(long total, long active, long suspended, long createdSince) {
     }
 

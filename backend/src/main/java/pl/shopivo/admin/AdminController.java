@@ -5,6 +5,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.List;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
@@ -59,8 +62,8 @@ class AdminController {
         this.tx = tx;
     }
 
-    record Overview(long users, long usersLast30Days, long stores, long activeStores, long suspendedStores,
-            long storesLast30Days) {
+    record Overview(long users, long usersInPeriod, long stores, long activeStores, long suspendedStores,
+            long storesInPeriod) {
     }
 
     record TenantRow(TenantView tenant, StoreView store, UserView owner) {
@@ -69,13 +72,32 @@ class AdminController {
     record SuspendRequest(@NotBlank @Size(max = 500) String reason) {
     }
 
+    record Growth(List<LocalDate> days, List<Long> users, List<Long> stores) {
+    }
+
     @GetMapping("/overview")
-    Overview overview() {
-        Instant since = Instant.now().minus(30, ChronoUnit.DAYS);
+    Overview overview(@RequestParam(defaultValue = "30") int days) {
+        Instant since = Instant.now().minus(Math.clamp(days, 1, 365), ChronoUnit.DAYS);
         return TenantContext.callAsSystem(() -> {
             TenantAdministration.TenantStats stats = tenants.stats(since);
             return new Overview(users.count(), users.countCreatedSince(since), stats.total(), stats.active(),
                     stats.suspended(), stats.createdSince());
+        });
+    }
+
+    /** Daily registrations and new stores for the last {@code days} days (Europe/Warsaw calendar days, zero-filled). */
+    @GetMapping("/stats/growth")
+    Growth growth(@RequestParam(defaultValue = "30") int days) {
+        int range = Math.clamp(days, 1, 365);
+        ZoneId zone = ZoneId.of("Europe/Warsaw");
+        LocalDate first = LocalDate.now(zone).minusDays(range - 1L);
+        Instant since = first.atStartOfDay(zone).toInstant();
+        return TenantContext.callAsSystem(() -> {
+            Map<LocalDate, Long> users = this.users.registrationsPerDay(since);
+            Map<LocalDate, Long> stores = tenants.creationsPerDay(since);
+            List<LocalDate> labels = first.datesUntil(first.plusDays(range)).toList();
+            return new Growth(labels, labels.stream().map(d -> users.getOrDefault(d, 0L)).toList(),
+                    labels.stream().map(d -> stores.getOrDefault(d, 0L)).toList());
         });
     }
 

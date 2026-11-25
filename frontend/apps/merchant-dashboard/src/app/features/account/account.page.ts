@@ -5,9 +5,11 @@ import { Router, RouterLink } from '@angular/router';
 import { AccountApi, ApiError, SessionStore } from '@shopivo/api-client';
 import { TotpSetup } from '@shopivo/shared-models';
 import {
-  AlertComponent, BadgeComponent, ButtonComponent, DatePipe, FieldComponent, LoadingComponent, LogoComponent,
-  PageHeaderComponent, SectionComponent, controlError, describeUserAgent,
+  AlertComponent, BadgeComponent, ButtonComponent, DatePipe, FieldComponent, LoadingComponent,
+  PageHeaderComponent, SectionComponent, ToastService, controlError, describeUserAgent, icons,
 } from '@shopivo/shared-ui';
+import { LucideDynamicIcon } from '@lucide/angular';
+import { TopBar } from '../onboarding/top-bar';
 import { toDataURL } from 'qrcode';
 import { firstValueFrom } from 'rxjs';
 import { PASSWORD_MIN_LENGTH, matchingPasswords } from '../../shared/validators';
@@ -16,17 +18,13 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
 
 @Component({
   selector: 'sv-account-page',
-  imports: [ReactiveFormsModule, RouterLink, PageHeaderComponent, SectionComponent, FieldComponent, ButtonComponent,
-    AlertComponent, BadgeComponent, LoadingComponent, LogoComponent, DatePipe],
+  imports: [ReactiveFormsModule, RouterLink, LucideDynamicIcon, TopBar, PageHeaderComponent, SectionComponent, FieldComponent,
+    ButtonComponent, AlertComponent, BadgeComponent, LoadingComponent, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <header class="border-b border-zinc-200 bg-white">
-      <div class="mx-auto flex h-14 max-w-4xl items-center justify-between px-4 sm:px-6">
-        <a routerLink="/" aria-label="Powrót do panelu"><sv-logo /></a>
-        <a routerLink="/" class="text-[13px] text-zinc-700 hover:text-zinc-900">← Wróć do panelu</a>
-      </div>
-    </header>
-    <main class="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+    <sv-top-bar />
+    <main class="mx-auto max-w-[1120px] px-4 py-8 sm:px-6">
+      <a routerLink="/" class="mb-3 inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink"><svg [lucideIcon]="icons.chevronLeft" [size]="16" />Wróć do panelu</a>
       <sv-page-header title="Ustawienia konta" [description]="session.user()?.email ?? ''" />
 
       <sv-section title="Profil" description="Twoje imię i nazwisko widzą inni członkowie zespołu.">
@@ -67,7 +65,7 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
           <sv-alert tone="warning" heading="Zapisz kody zapasowe">
             Każdy kod działa jednorazowo, gdy nie masz dostępu do telefonu. Nie pokażemy ich ponownie.
           </sv-alert>
-          <ul class="mt-4 grid grid-cols-2 gap-2 rounded-[var(--radius-ui)] border border-zinc-200 bg-zinc-50 p-4 font-mono text-[13px]">
+          <ul class="mt-4 grid grid-cols-2 gap-2 rounded-[var(--radius-control)] border border-line bg-canvas p-4 font-mono text-[13px] text-ink">
             @for (c of codes; track c) {<li>{{ c }}</li>}
           </ul>
           <div class="mt-4 flex gap-2">
@@ -78,9 +76,9 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
           <sv-loading />
         } @else if (mfa.value()?.enabled) {
           <div class="flex items-center gap-2"><sv-badge tone="success">Włączona</sv-badge>
-            <span class="text-[13px] text-zinc-600">Pozostałe kody zapasowe: {{ mfa.value()?.remainingRecoveryCodes }}</span>
+            <span class="text-[13px] text-ink-soft">Pozostałe kody zapasowe: {{ mfa.value()?.remainingRecoveryCodes }}</span>
           </div>
-          <form [formGroup]="disableForm" (ngSubmit)="disableMfa()" class="mt-6 space-y-4 border-t border-zinc-100 pt-6" novalidate>
+          <form [formGroup]="disableForm" (ngSubmit)="disableMfa()" class="mt-6 space-y-4 border-t border-line pt-6" novalidate>
             <p class="text-[13px] font-medium">Wyłącz weryfikację dwuetapową</p>
             <div class="grid gap-4 sm:grid-cols-2">
               <sv-field label="Hasło" for="disable-password" [error]="err(disableForm.controls.password)">
@@ -96,9 +94,9 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
           <ol class="space-y-5 text-[13px]">
             <li>
               <p class="font-medium">1. Zeskanuj kod QR w aplikacji uwierzytelniającej</p>
-              @if (qr()) {<img [src]="qr()" alt="Kod QR do konfiguracji aplikacji uwierzytelniającej" class="mt-3 size-44 rounded border border-zinc-200" />}
-              <p class="mt-2 text-zinc-600">Nie możesz zeskanować? Wpisz klucz ręcznie:</p>
-              <code class="mt-1 inline-block break-all rounded bg-zinc-100 px-2 py-1 font-mono text-[12px]">{{ s.secret }}</code>
+              @if (qr()) {<img [src]="qr()" alt="Kod QR do konfiguracji aplikacji uwierzytelniającej" class="mt-3 size-44 rounded border border-line" />}
+              <p class="mt-2 text-ink-soft">Nie możesz zeskanować? Wpisz klucz ręcznie:</p>
+              <code class="mt-1 inline-block break-all rounded bg-canvas px-2 py-1 font-mono text-[12px]">{{ s.secret }}</code>
             </li>
             <li>
               <p class="font-medium">2. Wpisz kod wyświetlony w aplikacji</p>
@@ -122,14 +120,14 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
         @if (sessions.isLoading()) {
           <sv-loading />
         } @else {
-          <ul class="sv-card divide-y divide-zinc-100">
+          <ul class="divide-y divide-line rounded-[var(--radius-control)] border border-line">
             @for (s of sessions.value(); track s.id) {
               <li class="flex items-center justify-between gap-4 px-4 py-3">
                 <div class="min-w-0">
                   <p class="font-medium">{{ device(s.userAgent) }}
                     @if (s.current) {<sv-badge tone="success" class="ml-1">To urządzenie</sv-badge>}
                   </p>
-                  <p class="text-[12px] text-zinc-500">{{ s.ipAddress ?? 'IP nieznany' }} · ostatnio {{ s.lastSeenAt | svDate: 'relative' }}</p>
+                  <p class="text-[12px] text-ink-muted">{{ s.ipAddress ?? 'IP nieznany' }} · ostatnio {{ s.lastSeenAt | svDate: 'relative' }}</p>
                 </div>
                 @if (!s.current) {<button sv-button variant="ghost" size="sm" (click)="revoke(s.id)">Wyloguj</button>}
               </li>
@@ -153,6 +151,8 @@ export class AccountPage {
   private readonly router = inject(Router);
   private readonly fb = inject(NonNullableFormBuilder);
   protected readonly device = describeUserAgent;
+  protected readonly icons = icons;
+  private readonly toast = inject(ToastService);
 
   protected readonly profileMsg = signal<Msg>(null);
   protected readonly passwordMsg = signal<Msg>(null);
@@ -202,7 +202,7 @@ export class AccountPage {
     try {
       await firstValueFrom(this.api.updateProfile(firstName.trim(), lastName.trim(), this.session.user()?.locale ?? 'pl-PL'));
       await this.session.refresh();
-      this.profileMsg.set({ tone: 'success', text: 'Zapisano profil.' });
+      this.toast.success('Zapisano profil.');
     } catch (e) {
       this.profileMsg.set({ tone: 'error', text: ApiError.from(e).message });
     } finally {
@@ -218,7 +218,7 @@ export class AccountPage {
     try {
       await firstValueFrom(this.api.changePassword(v.currentPassword, v.password));
       this.password.reset();
-      this.passwordMsg.set({ tone: 'success', text: 'Hasło zostało zmienione. Inne sesje zostały wylogowane.' });
+      this.toast.success('Hasło zostało zmienione. Inne sesje zostały wylogowane.');
       this.sessions.reload();
     } catch (e) {
       this.passwordMsg.set({ tone: 'error', text: ApiError.from(e).message });

@@ -5,7 +5,7 @@ import { ApiError, AuthApi, SessionStore, safeReturnUrl } from '@shopivo/api-cli
 import { AlertComponent, ButtonComponent, FieldComponent, LogoComponent, controlError } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 
-const FRAME = 'flex min-h-dvh items-start justify-center bg-zinc-50 px-4 pt-24';
+const FRAME = 'flex min-h-dvh items-start justify-center bg-page px-4 pt-16 sm:pt-24';
 
 @Component({
   selector: 'sv-admin-login-page',
@@ -13,9 +13,9 @@ const FRAME = 'flex min-h-dvh items-start justify-center bg-zinc-50 px-4 pt-24';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: FRAME },
   template: `
-    <div class="w-full max-w-[380px]">
+    <div class="sv-card w-full max-w-[400px] p-6 sm:p-8">
       <sv-logo suffix="Admin" />
-      <h1 class="mt-8 text-[20px] font-semibold">Logowanie do administracji</h1>
+      <h1 class="mt-7 text-[20px] font-semibold text-ink">Logowanie do administracji</h1>
       @if (error(); as e) {<sv-alert tone="error" class="mt-4">{{ e.message }}</sv-alert>}
       <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 space-y-4" novalidate>
         <sv-field label="Adres e-mail" for="email" [error]="err('email')">
@@ -70,9 +70,9 @@ export class AdminLoginPage {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: FRAME },
   template: `
-    <div class="w-full max-w-[380px]">
+    <div class="sv-card w-full max-w-[400px] p-6 sm:p-8">
       <sv-logo suffix="Admin" />
-      <h1 class="mt-8 text-[20px] font-semibold">Weryfikacja dwuetapowa</h1>
+      <h1 class="mt-7 text-[20px] font-semibold text-ink">Weryfikacja dwuetapowa</h1>
       @if (error(); as e) {<sv-alert tone="error" class="mt-4">{{ e.message }}</sv-alert>}
       <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 space-y-4" novalidate>
         <sv-field label="Kod z aplikacji lub kod zapasowy" for="code">
@@ -115,11 +115,11 @@ export class AdminMfaPage {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: FRAME },
   template: `
-    <div class="w-full max-w-[420px]">
+    <div class="sv-card w-full max-w-[420px] p-6 sm:p-8">
       <sv-logo suffix="Admin" />
-      <h1 class="mt-8 text-[20px] font-semibold">Brak dostępu</h1>
-      <p class="mt-2 text-[14px] text-zinc-600">To konto nie ma uprawnień administratora platformy.</p>
-      <p class="mt-2 text-[13px] text-zinc-600">
+      <h1 class="mt-7 text-[20px] font-semibold text-ink">Brak dostępu</h1>
+      <p class="mt-2 text-[14px] text-ink-soft">To konto nie ma uprawnień administratora platformy.</p>
+      <p class="mt-2 text-[13px] text-ink-soft">
         Konta administratorów muszą mieć włączoną weryfikację dwuetapową. Jeśli masz rolę administratora, włącz ją
         w ustawieniach konta w panelu sklepu, a następnie zaloguj się ponownie.
       </p>

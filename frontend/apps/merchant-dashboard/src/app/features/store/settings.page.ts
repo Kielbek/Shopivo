@@ -4,7 +4,7 @@ import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angula
 import { ApiError, TenantApi } from '@shopivo/api-client';
 import { StoreSettings } from '@shopivo/shared-models';
 import {
-  AlertComponent, ButtonComponent, FieldComponent, LoadingComponent, PageHeaderComponent, SectionComponent, controlError,
+  AlertComponent, ButtonComponent, FieldComponent, LoadingComponent, PageHeaderComponent, SectionComponent, ToastService, controlError,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from './store-context';
@@ -25,7 +25,7 @@ const TIMEZONES = ['Europe/Warsaw', 'Europe/Berlin', 'Europe/London', 'Europe/Pr
   template: `
     <sv-page-header title="Ustawienia sklepu" description="Podstawowe informacje o sklepie i dane firmy sprzedającej." />
     @if (!canEdit) {
-      <sv-alert class="mt-6">Twoja rola pozwala tylko na podgląd ustawień.</sv-alert>
+      <sv-alert class="mt-5">Twoja rola pozwala tylko na podgląd ustawień.</sv-alert>
     }
 
     <sv-section title="Informacje ogólne" description="Nazwa i ustawienia regionalne widoczne dla klientów.">
@@ -82,7 +82,7 @@ const TIMEZONES = ['Europe/Warsaw', 'Europe/Berlin', 'Europe/London', 'Europe/Pr
           <sv-field label="Adres — cd." for="addressLine2" [optional]="true">
             <input id="addressLine2" class="sv-input" formControlName="addressLine2" maxlength="200" autocomplete="address-line2" />
           </sv-field>
-          <div class="grid gap-4 sm:grid-cols-[220px_minmax(0,1fr)]">
+          <div class="grid gap-4 sm:grid-cols-[180px_minmax(0,1fr)]">
             <sv-field label="Kod pocztowy" for="postalCode" [optional]="true" [error]="companyErrors()['postalCode']">
               <input id="postalCode" class="sv-input" formControlName="postalCode" maxlength="20" placeholder="00-000"
                 autocomplete="postal-code" [attr.aria-invalid]="!!companyErrors()['postalCode']" />
@@ -100,8 +100,8 @@ const TIMEZONES = ['Europe/Warsaw', 'Europe/Berlin', 'Europe/London', 'Europe/Pr
               <input id="orderEmail" type="email" class="sv-input" formControlName="orderEmail" />
             </sv-field>
           </div>
-          <label class="flex items-start gap-2 text-[13px] text-zinc-700">
-            <input type="checkbox" formControlName="pricesIncludeTax" class="mt-0.5 size-4 rounded border-zinc-300 accent-zinc-900" />
+          <label class="flex items-start gap-2 text-[13px] text-ink-soft">
+            <input type="checkbox" formControlName="pricesIncludeTax" class="mt-0.5 sv-checkbox" />
             <span>Ceny produktów zawierają VAT (ceny brutto)</span>
           </label>
           @if (canEdit) {
@@ -116,6 +116,7 @@ export class SettingsPage {
   private readonly ctx = inject(StoreContext);
   private readonly api = inject(TenantApi);
   private readonly fb = inject(NonNullableFormBuilder);
+  private readonly toast = inject(ToastService);
 
   protected readonly locales = LOCALES;
   protected readonly currencies = CURRENCIES;
@@ -211,7 +212,7 @@ export class SettingsPage {
         ...v, name: v.name.trim(), contactEmail: v.contactEmail.trim() || null, version: store.version,
       }));
       this.ctx.updateStore(updated);
-      this.generalMsg.set({ tone: 'success', text: 'Zapisano zmiany.' });
+      this.toast.success('Zapisano informacje o sklepie.');
     } catch (e) {
       this.generalMsg.set({ tone: 'error', text: ApiError.from(e).message });
     } finally {
@@ -237,7 +238,7 @@ export class SettingsPage {
         version: this.settingsVersion,
       }));
       this.applySettings(saved);
-      this.companyMsg.set({ tone: 'success', text: 'Zapisano dane firmy.' });
+      this.toast.success('Zapisano dane firmy.');
     } catch (e) {
       const error = ApiError.from(e);
       if (error.code === 'INVALID_TAX_ID') this.companyErrors.set({ taxId: error.message });

@@ -21,10 +21,10 @@ const REASONS: Record<string, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <sv-top-bar />
-    <main class="mx-auto max-w-xl px-4 py-12 sm:px-6">
-      <p class="text-[12px] font-medium uppercase tracking-wide text-brand-700">Nowy sklep</p>
-      <h1 class="mt-1 text-[24px] font-semibold tracking-[-0.01em]">Jak nazywa się Twój sklep?</h1>
-      <p class="mt-2 text-[14px] text-zinc-600">
+    <main class="mx-auto max-w-xl px-4 py-12 sm:px-6"><div class="sv-card p-6 sm:p-8">
+      <span class="inline-flex items-center gap-1.5 rounded-[6px] bg-primary-soft px-2 py-0.5 text-[12px] font-medium text-primary-strong">Nowy sklep</span>
+      <h1 class="mt-3 text-[22px] font-semibold tracking-[-0.01em]">Jak nazywa się Twój sklep?</h1>
+      <p class="mt-2 text-[14px] text-ink-soft">
         Nazwę możesz później zmienić. Adres w domenie Shopivo jest stały — własną domenę podłączysz w ustawieniach.
       </p>
       @if (error(); as e) {<sv-alert tone="error" class="mt-6">{{ e.message }}</sv-alert>}
@@ -34,20 +34,20 @@ const REASONS: Record<string, string> = {
             [attr.aria-invalid]="!!nameError()" />
         </sv-field>
         <sv-field label="Adres sklepu" for="slug" [error]="slugError()" [hint]="slugHint()">
-          <div class="flex rounded-[var(--radius-ui)]">
+          <div class="flex rounded-[var(--radius-control)]">
             <input id="slug" class="sv-input rounded-r-none" formControlName="slug" maxlength="40" spellcheck="false"
               autocapitalize="off" [attr.aria-invalid]="!!slugError()" (input)="slugEdited = true" />
-            <span class="inline-flex items-center rounded-r-[var(--radius-ui)] border border-l-0 border-zinc-300 bg-zinc-50 px-3 text-[13px] text-zinc-600">
+            <span class="inline-flex items-center rounded-r-[var(--radius-ui)] border border-l-0 border-line-strong bg-canvas px-3 text-[13px] text-ink-soft">
               .{{ config()?.platformDomain ?? '…' }}
             </span>
           </div>
         </sv-field>
         <div class="flex items-center gap-3 pt-2">
           <button sv-button type="submit" size="lg" [loading]="submitting()">Utwórz sklep</button>
-          <a routerLink="/sklepy" class="text-[13px] text-zinc-600 hover:text-zinc-900">Anuluj</a>
+          <a routerLink="/sklepy" class="text-[13px] text-ink-soft hover:text-ink">Anuluj</a>
         </div>
       </form>
-    </main>
+    </div></main>
   `,
 })
 export class CreateStorePage {

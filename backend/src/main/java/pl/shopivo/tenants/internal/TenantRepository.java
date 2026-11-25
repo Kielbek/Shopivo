@@ -22,6 +22,12 @@ public interface TenantRepository extends JpaRepository<TenantEntity, UUID> {
 
     long countByCreatedAtAfter(Instant since);
 
+    @Query(value = """
+            select cast(date_trunc('day', created_at at time zone 'Europe/Warsaw') as date) as day, count(*)
+            from tenants where created_at >= :since group by 1 order by 1
+            """, nativeQuery = true)
+    java.util.List<Object[]> countPerDaySince(@Param("since") Instant since);
+
     /** {@code query} must be lower-case; an empty string matches every tenant. */
     @Query("select t from TenantEntity t where lower(t.name) like concat('%', :q, '%') order by t.createdAt desc")
     Page<TenantEntity> searchByName(@Param("q") String query, Pageable pageable);

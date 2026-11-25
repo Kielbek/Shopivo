@@ -13,11 +13,11 @@ import { PASSWORD_MIN_LENGTH } from '../../shared/validators';
   template: `
     @if (registeredEmail(); as email) {
       <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Sprawdź skrzynkę</h1>
-      <p class="mt-2 text-[14px] text-zinc-700">
+      <p class="mt-2 text-[14px] text-ink-soft">
         Wysłaliśmy wiadomość na adres <strong>{{ email }}</strong>. Kliknij link w wiadomości, aby potwierdzić
         adres e-mail i dokończyć zakładanie konta.
       </p>
-      <p class="mt-4 text-[13px] text-zinc-600">
+      <p class="mt-4 text-[13px] text-ink-soft">
         Nie widzisz wiadomości? Sprawdź folder spam.
         <button type="button" class="sv-link" (click)="resend(email)" [disabled]="resent()">
           {{ resent() ? 'Wysłano ponownie.' : 'Wyślij ponownie' }}
@@ -26,7 +26,7 @@ import { PASSWORD_MIN_LENGTH } from '../../shared/validators';
       <a sv-button variant="secondary" class="mt-8" routerLink="/logowanie">Przejdź do logowania</a>
     } @else {
       <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Załóż konto</h1>
-      <p class="mt-1 text-[13px] text-zinc-600">
+      <p class="mt-1 text-[13px] text-ink-soft">
         Masz już konto? <a routerLink="/logowanie" class="sv-link">Zaloguj się</a>
       </p>
       @if (error(); as e) {<sv-alert tone="error" class="mt-6">{{ e.message }}</sv-alert>}
@@ -50,8 +50,8 @@ import { PASSWORD_MIN_LENGTH } from '../../shared/validators';
           <input id="password" type="password" class="sv-input" formControlName="password" autocomplete="new-password"
             [attr.aria-invalid]="!!err('password')" aria-describedby="password-hint" />
         </sv-field>
-        <label class="flex items-start gap-2 text-[13px] leading-5 text-zinc-700">
-          <input type="checkbox" formControlName="acceptTerms" class="mt-0.5 size-4 rounded border-zinc-300 accent-zinc-900"
+        <label class="flex items-start gap-2 text-[13px] leading-5 text-ink-soft">
+          <input type="checkbox" formControlName="acceptTerms" class="mt-0.5 sv-checkbox"
             [attr.aria-invalid]="!!err('acceptTerms')" />
           <span>Akceptuję regulamin platformy i zapoznałem się z polityką prywatności.</span>
         </label>

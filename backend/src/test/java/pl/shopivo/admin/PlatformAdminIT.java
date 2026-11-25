@@ -13,6 +13,10 @@ class PlatformAdminIT extends IntegrationTest {
         return login("admin@shopivo.test", "Platforma!Testowa-2026");
     }
 
+    private static boolean merchantDenied(ApiClient merchant) {
+        return merchant.get("/api/v1/admin/stats/growth").status() == 403;
+    }
+
     @Test
     void merchantsCannotUseAdminApi() {
         ApiClient merchant = registeredUser(uniqueEmail("merchant"));
@@ -40,6 +44,14 @@ class PlatformAdminIT extends IntegrationTest {
         assertThat(admin.get("/api/v1/admin/tenants?status=SUSPENDED&q=zawieszenia").json().get("items").size()).isZero();
         assertThat(admin.get("/api/v1/admin/users").status()).isEqualTo(200);
         assertThat(admin.get("/api/v1/admin/users?q=" + ownerEmail.substring(0, 8)).json().get("items").toString()).contains(ownerEmail);
+        // Growth statistics: zero-filled daily series that include today's registration and store
+        var growth = admin.get("/api/v1/admin/stats/growth?days=7").json();
+        assertThat(growth.get("days").size()).isEqualTo(7);
+        assertThat(growth.get("users").size()).isEqualTo(7);
+        assertThat(growth.get("stores").get(6).asLong()).isPositive();
+        assertThat(growth.get("users").get(6).asLong()).isPositive();
+        assertThat(admin.get("/api/v1/admin/overview?days=7").json().get("storesInPeriod").asLong()).isPositive();
+        assertThat(merchantDenied(owner)).isTrue();
         var list = admin.get("/api/v1/admin/tenants?q=" + "zawieszenia");
         assertThat(list.json().get("items").toString()).contains(slug, ownerEmail);
 

@@ -1,6 +1,11 @@
 /*
- * Shopivo design tokens (dashboards). Imported by every app after `@import "tailwindcss"`.
- * Neutral zinc palette, one restrained brand accent, 4px spacing grid, 6px radius.
+ * Shopivo design system — administration interfaces (merchant dashboard, platform admin).
+ * Public storefront themes are intentionally NOT based on these tokens.
+ *
+ * Palette from the brand brief. Two accessibility-driven derived tokens:
+ *  - ink-soft  (#5B6478) for small secondary text — #8992A5 on white is 3.2:1, below WCAG AA for body text,
+ *    so ink-muted is reserved for meta labels, placeholders and icons;
+ *  - primary-strong (#3E6FD8) for filled buttons — white on #5B8DEF is 3.3:1.
  */
 @import "@fontsource-variable/inter";
 
@@ -8,16 +13,45 @@
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --color-brand-50: #eef6f4;
-  --color-brand-100: #d5ebe6;
-  --color-brand-200: #acd6cd;
-  --color-brand-500: #2a8a78;
-  --color-brand-600: #1d7262;
-  --color-brand-700: #175b4f;
-  --color-brand-800: #134a41;
-  --color-brand-900: #0f3b34;
+  --color-page: #F3F5F9;
+  --color-canvas: #F5F6F8;
+  --color-card: #FFFFFF;
+  --color-hover: #F4F6FA;
 
-  --radius-ui: 6px;
+  --color-ink: #252B3B;
+  --color-ink-soft: #5B6478;
+  --color-ink-muted: #8992A5;
+
+  --color-line: #EDF0F4;
+  --color-line-strong: #DFE3EA;
+
+  --color-primary: #5B8DEF;
+  --color-primary-strong: #3E6FD8;
+  --color-primary-deep: #335FBF;
+  --color-primary-soft: #EEF3FE;
+  --color-primary-ring: #D6E3FC;
+
+  --color-violet: #A58AF7;
+  --color-violet-soft: #F3EFFE;
+  --color-violet-ink: #6B4FD8;
+
+  --color-success: #36CFA5;
+  --color-success-soft: #E8FAF4;
+  --color-success-ink: #13805F;
+
+  --color-warning: #FFB86B;
+  --color-warning-soft: #FFF5EA;
+  --color-warning-ink: #A75F0E;
+
+  --color-danger: #F47C87;
+  --color-danger-soft: #FEEFF1;
+  --color-danger-ink: #C23446;
+
+  --radius-card: 14px;
+  --radius-control: 9px;
+
+  --shadow-card: 0 1px 2px rgba(37, 43, 59, 0.04);
+  --shadow-pop: 0 12px 32px -8px rgba(37, 43, 59, 0.16), 0 2px 6px rgba(37, 43, 59, 0.06);
 }
 
 @layer base {
@@ -28,56 +62,85 @@
   }
 
   body {
-    @apply bg-zinc-50 text-zinc-900 font-sans text-[14px] leading-6;
+    @apply bg-page text-ink font-sans text-[14px] leading-[1.5];
     font-feature-settings: "cv11", "ss01";
   }
 
   :focus-visible {
-    @apply outline-2 outline-offset-2 outline-brand-600;
+    @apply outline-2 outline-offset-2 outline-primary;
   }
 
   ::selection {
-    @apply bg-brand-100;
+    @apply bg-primary-ring;
   }
 }
 
 @layer components {
   .sv-input {
-    @apply block w-full rounded-[var(--radius-ui)] border border-zinc-300 bg-white px-3 py-2 text-[14px] text-zinc-900
-      shadow-[0_1px_0_rgba(0,0,0,0.02)] placeholder:text-zinc-400 transition-colors
-      hover:border-zinc-400 focus:border-brand-600 focus:outline-none focus:ring-3 focus:ring-brand-100
-      disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500;
+    @apply block h-10 w-full rounded-[var(--radius-control)] border border-line-strong bg-card px-3 text-[14px] text-ink
+      placeholder:text-ink-muted transition-[border-color,box-shadow] duration-150
+      hover:border-[#CDD3DD] focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary-soft
+      disabled:cursor-not-allowed disabled:bg-canvas disabled:text-ink-muted;
+  }
+
+  textarea.sv-input {
+    @apply h-auto py-2.5;
+  }
+
+  select.sv-input {
+    @apply appearance-none bg-no-repeat pr-9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238992A5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 0.65rem center;
   }
 
   .sv-input[aria-invalid="true"] {
-    @apply border-red-500 focus:border-red-600 focus:ring-red-100;
+    @apply border-danger focus:border-danger focus:ring-danger-soft;
+  }
+
+  .sv-checkbox {
+    @apply size-4 rounded-[4px] border-line-strong accent-primary-strong;
   }
 
   .sv-label {
-    @apply block text-[13px] font-medium text-zinc-800;
+    @apply block text-[13px] font-medium text-ink;
   }
 
   .sv-card {
-    @apply rounded-[var(--radius-ui)] border border-zinc-200 bg-white;
+    @apply rounded-[var(--radius-card)] border border-line bg-card shadow-[var(--shadow-card)];
   }
 
   .sv-link {
-    @apply font-medium text-brand-700 underline-offset-2 hover:underline;
+    @apply font-medium text-primary-strong underline-offset-2 hover:underline;
+  }
+
+  .sv-eyebrow {
+    @apply text-[12px] font-medium text-ink-muted;
   }
 
   .sv-table {
     @apply w-full text-left text-[13px];
   }
 
+  /* Cells are positioned so absolutely positioned content (e.g. sr-only labels) stays inside scroll containers. */
+  .sv-table th,
+  .sv-table td {
+    @apply relative;
+  }
+
   .sv-table th {
-    @apply border-b border-zinc-200 px-4 py-2.5 text-[12px] font-medium uppercase tracking-wide text-zinc-500;
+    @apply bg-canvas px-5 py-3 text-[12px] font-medium text-ink-muted first:rounded-l-[var(--radius-control)]
+      last:rounded-r-[var(--radius-control)];
   }
 
   .sv-table td {
-    @apply border-b border-zinc-100 px-4 py-3 align-middle;
+    @apply border-b border-line px-5 py-3.5 align-middle text-ink;
   }
 
-  .sv-table tr:last-child td {
+  .sv-table tbody tr:last-child td {
     @apply border-b-0;
+  }
+
+  .sv-table tbody tr {
+    @apply transition-colors hover:bg-[#FAFBFC];
   }
 }

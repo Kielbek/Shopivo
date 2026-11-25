@@ -18,7 +18,7 @@ const OAUTH_ERRORS: Record<string, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Zaloguj się</h1>
-    <p class="mt-1 text-[13px] text-zinc-600">
+    <p class="mt-1 text-[13px] text-ink-soft">
       Nie masz konta? <a routerLink="/rejestracja" class="sv-link">Załóż sklep</a>
     </p>
 
@@ -46,8 +46,8 @@ const OAUTH_ERRORS: Record<string, string> = {
           [attr.aria-invalid]="!!err('password')" />
       </sv-field>
       <div class="flex items-center justify-between">
-        <label class="flex items-center gap-2 text-[13px] text-zinc-700">
-          <input type="checkbox" formControlName="rememberMe" class="size-4 rounded border-zinc-300 accent-zinc-900" />
+        <label class="flex items-center gap-2 text-[13px] text-ink-soft">
+          <input type="checkbox" formControlName="rememberMe" class="sv-checkbox" />
           Zapamiętaj mnie
         </label>
         <a routerLink="/przypomnij-haslo" class="sv-link text-[13px]">Nie pamiętasz hasła?</a>
@@ -56,8 +56,8 @@ const OAUTH_ERRORS: Record<string, string> = {
     </form>
 
     @if (providers().includes('google')) {
-      <div class="my-6 flex items-center gap-3 text-[12px] text-zinc-500">
-        <span class="h-px flex-1 bg-zinc-200"></span>lub<span class="h-px flex-1 bg-zinc-200"></span>
+      <div class="my-6 flex items-center gap-3 text-[12px] text-ink-muted">
+        <span class="h-px flex-1 bg-line"></span>lub<span class="h-px flex-1 bg-line"></span>
       </div>
       <a sv-button variant="secondary" [block]="true" size="lg" href="/api/v1/auth/oauth2/authorization/google">
         Kontynuuj z Google

@@ -20,6 +20,13 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
     long countByCreatedAtAfter(Instant since);
 
+    /** Rows of [local date (Europe/Warsaw), count] for accounts created since the given instant. */
+    @Query(value = """
+            select cast(date_trunc('day', created_at at time zone 'Europe/Warsaw') as date) as day, count(*)
+            from users where created_at >= :since group by 1 order by 1
+            """, nativeQuery = true)
+    java.util.List<Object[]> countPerDaySince(@Param("since") Instant since);
+
     Page<UserEntity> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     @Query("""

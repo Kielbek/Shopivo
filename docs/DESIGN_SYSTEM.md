@@ -1,0 +1,52 @@
+# Shopivo — system projektowy interfejsów administracyjnych
+
+Dotyczy panelu sprzedawcy i panelu administratora platformy. **Witryny sklepów (storefront) mają własne motywy**
+i nie korzystają z tych tokenów.
+
+Źródło: `frontend/libs/shared-ui` (`styles/theme.css` + komponenty). Inspiracja wizualna: referencja „E-COM dashboard”
+(jasne tło strony, biała zaokrąglona powierzchnia aplikacji, biały sidebar, karty KPI z kolorowymi kółkami).
+
+## Tokeny (Tailwind `@theme`)
+
+| Token | Wartość | Użycie |
+|---|---|---|
+| `page` | `#F3F5F9` | tło strony |
+| `canvas` | `#F5F6F8` | tło obszaru treści, nagłówki tabel |
+| `card` | `#FFFFFF` | karty, sidebar, nagłówek |
+| `ink` | `#252B3B` | tekst główny |
+| `ink-soft` | `#5B6478` | tekst drugorzędny (pochodny — kontrast AA) |
+| `ink-muted` | `#8992A5` | etykiety meta, placeholdery, ikony |
+| `line` / `line-strong` | `#EDF0F4` / `#DFE3EA` | obramowania kart / pól |
+| `primary` / `primary-strong` | `#5B8DEF` / `#3E6FD8` | akcent, wykresy / przyciski (biały tekst AA) |
+| `violet`, `success`, `warning`, `danger` | `#A58AF7`, `#36CFA5`, `#FFB86B`, `#F47C87` | + warianty `-soft` (tła) i `-ink` (tekst) |
+| `--radius-card` / `--radius-control` | 14 px / 9 px | karty / przyciski, pola |
+
+Kontrast: `#8992A5` na bieli ma 3,2:1, a biały na `#5B8DEF` 3,3:1 — poniżej WCAG AA dla tekstu 13–14 px, dlatego
+dodano tokeny pochodne `ink-soft` i `primary-strong` do tekstu i przycisków.
+
+Typografia: Inter (self-hosted, `@fontsource-variable/inter` — bez Google Fonts ze względu na RODO), 13–14 px w
+treści, 22 px tytuły stron, 15 px tytuły kart. Ikony: Lucide (`@lucide/angular`), rejestr w `lib/icons.ts`,
+18 px w nawigacji, obrys 1,75.
+
+## Komponenty
+
+| Komponent | Selektor | Uwagi |
+|---|---|---|
+| Powłoka aplikacji | `sv-app-shell` | sidebar z sekcjami + przypięta grupa dolna, nagłówek z wyszukiwarką nawigacji (`/`), sloty na przełączniki, szuflada < 1024 px |
+| Karta | `sv-card` | `heading`, `subheading`, `[card-actions]`, `flush` dla tabel |
+| Karta KPI | `sv-stat-card` | `value=null` → jawny stan „brak danych” |
+| Wykres liniowy | `sv-line-chart` | SVG, interpolacja monotoniczna, gradient, podpowiedzi; pusty stan przez projekcję |
+| Wykres pierścieniowy | `sv-donut-chart` | legenda z procentami |
+| Menu | `sv-menu` + `sv-menu-item` | klawiatura, Esc, klik poza |
+| Okres | `sv-date-range` | natywny `select` (dostępność) |
+| Powiadomienia | `ToastService` + `sv-toast-outlet` | `aria-live` |
+| Pozostałe | `sv-button`, `sv-field`, `sv-alert`, `sv-badge`, `sv-avatar`, `sv-dialog`, `sv-empty-state`, `sv-loading`, `sv-skeleton`, `sv-section`, `sv-page-header` | |
+
+Klasy pomocnicze: `.sv-input`, `.sv-label`, `.sv-checkbox`, `.sv-table`, `.sv-link`.
+
+## Zasady
+- Bez danych przykładowych: widżety bez źródła danych pokazują stan pusty; moduły planowane są w nawigacji
+  oznaczone „Wkrótce” i nie są linkami.
+- Nawigacja panelu sprzedawcy jest filtrowana uprawnieniami roli (backend i tak je egzekwuje).
+- Panele działają od 320 px; tabele przewijają się w obrębie karty, bez poziomego przewijania strony.
+- Brak skryptów inline (CSP `script-src 'self'`).

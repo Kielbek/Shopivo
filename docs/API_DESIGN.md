@@ -86,7 +86,8 @@ Kody: `400 VALIDATION_FAILED`, `401 UNAUTHENTICATED`, `403 ACCESS_DENIED`, `404 
 ### Administracja `/api/v1/admin` (role platformowe)
 | Metoda | Ścieżka | Opis |
 |---|---|---|
-| GET | `/overview` | Liczniki: użytkownicy, sklepy (aktywne/zawieszone), nowe w 30 dni |
+| GET | `/overview?days=30` | Liczniki: użytkownicy, sklepy (aktywne/zawieszone), nowe w okresie (`usersInPeriod`, `storesInPeriod`) |
+| GET | `/stats/growth?days=30` | Dzienne rejestracje i nowe sklepy (dni kalendarzowe Europe/Warsaw, uzupełnione zerami) |
 | GET | `/tenants` | Lista sklepów (wyszukiwanie, filtr statusu) |
 | GET | `/tenants/{id}` | Szczegóły |
 | POST | `/tenants/{id}/suspend` | `{reason}` — zawieszenie (tylko `PLATFORM_ADMIN`) |

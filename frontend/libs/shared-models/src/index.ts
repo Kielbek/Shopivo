@@ -164,13 +164,19 @@ export interface AdminTenantRow {
   owner: UserView | null;
 }
 
+export interface AdminGrowth {
+  days: string[];
+  users: number[];
+  stores: number[];
+}
+
 export interface AdminOverview {
   users: number;
-  usersLast30Days: number;
+  usersInPeriod: number;
   stores: number;
   activeStores: number;
   suspendedStores: number;
-  storesLast30Days: number;
+  storesInPeriod: number;
 }
 
 /** RFC 9457 problem details returned by the API. */

@@ -42,6 +42,15 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 - Wyszukiwanie sklepów w panelu admina bez filtra → `500` (nietypowany `NULL` w JPQL) → poprawione + test regresyjny.
 - Kolejność tras w panelu (`/` nie przekierowywał do logowania) → poprawione.
 
+## Redesign interfejsu (2026-11-25)
+
+Nowy system projektowy wg referencji „E-COM dashboard” (`docs/DESIGN_SYSTEM.md`), wspólna powłoka `sv-app-shell`
+dla panelu sprzedawcy i admina, ikony Lucide, własne wykresy SVG. Panel sprzedawcy: pełna nawigacja z briefu
+(moduły bez backendu oznaczone „Wkrótce”), przegląd z kartami KPI/wykresami w jawnym stanie „brak danych”.
+Panel admina: realne dane (nowy endpoint `GET /api/v1/admin/stats/growth`, parametr okresu w `/overview`).
+Zweryfikowano: build produkcyjny, CSP (0 naruszeń), 0 px poziomego przepełnienia na 390/900/1440 px, pełny przepływ
+E2E w przeglądarce.
+
 ## Przegląd bezpieczeństwa i gotowości produkcyjnej (2026-11-25) — naprawione
 
 | # | Problem | Poprawka | Test |

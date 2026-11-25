@@ -17,11 +17,11 @@ import { firstValueFrom } from 'rxjs';
     <sv-page-header title="Użytkownicy" description="Konta sprzedawców i administratorów platformy." />
     <form class="mt-6 flex gap-2" (ngSubmit)="page.set(0); query.set(queryDraft)">
       <label for="q" class="sr-only">Szukaj</label>
-      <input id="q" name="q" class="sv-input max-w-xs" placeholder="E-mail lub nazwisko" [(ngModel)]="queryDraft" />
+      <input id="q" name="q" type="search" class="sv-input max-w-xs bg-card" placeholder="E-mail lub nazwisko" [(ngModel)]="queryDraft" />
       <button sv-button variant="secondary" type="submit">Szukaj</button>
     </form>
     @if (message(); as m) {<sv-alert [tone]="m.tone" class="mt-4">{{ m.text }}</sv-alert>}
-    <div class="sv-card mt-4 overflow-x-auto">
+    <div class="sv-card mt-4 overflow-hidden">
       @if (users.isLoading() && !users.value()) {
         <sv-loading />
       } @else if (users.error()) {
@@ -29,7 +29,7 @@ import { firstValueFrom } from 'rxjs';
       } @else if (!users.value()?.items?.length) {
         <sv-empty-state title="Brak użytkowników spełniających kryteria" />
       } @else {
-        <table class="sv-table">
+        <div class="overflow-x-auto px-3 pt-3 sm:px-5"><table class="sv-table min-w-[720px]">
           <thead><tr><th scope="col">Użytkownik</th><th scope="col">Status</th><th scope="col">MFA</th><th scope="col">Ostatnie logowanie</th><th scope="col"><span class="sr-only">Akcje</span></th></tr></thead>
           <tbody>
             @for (u of users.value()!.items; track u.id) {
@@ -38,7 +38,7 @@ import { firstValueFrom } from 'rxjs';
                   <p class="font-medium">{{ u.firstName }} {{ u.lastName }}
                     @if (u.platformRole) {<sv-badge tone="brand" class="ml-1">{{ u.platformRole === 'PLATFORM_ADMIN' ? 'Administrator' : 'Wsparcie' }}</sv-badge>}
                   </p>
-                  <p class="text-zinc-500">{{ u.email }}</p>
+                  <p class="text-ink-muted">{{ u.email }}</p>
                 </td>
                 <td>
                   @switch (u.status) {
@@ -49,7 +49,7 @@ import { firstValueFrom } from 'rxjs';
                   }
                 </td>
                 <td>{{ u.mfaEnabled ? 'Tak' : 'Nie' }}</td>
-                <td class="whitespace-nowrap text-zinc-600">{{ u.lastLoginAt | svDate }}</td>
+                <td class="whitespace-nowrap text-ink-soft">{{ u.lastLoginAt | svDate }}</td>
                 <td class="text-right">
                   @if (session.isPlatformAdmin() && !u.platformRole) {
                     @if (u.status === 'SUSPENDED') {
@@ -63,7 +63,8 @@ import { firstValueFrom } from 'rxjs';
             }
           </tbody>
         </table>
-        <div class="flex items-center justify-between border-t border-zinc-100 px-4 py-3 text-[13px] text-zinc-600">
+        </div>
+        <div class="flex items-center justify-between border-t border-line px-5 py-3 text-[13px] text-ink-muted">
           <span>{{ users.value()!.totalItems }} użytkowników</span>
           <div class="flex gap-2">
             <button sv-button variant="secondary" size="sm" [disabled]="page() === 0" (click)="page.set(page() - 1)">Poprzednia</button>

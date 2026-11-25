@@ -1,20 +1,20 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { AbstractControl } from '@angular/forms';
 
-/** Label + control + hint/error, with accessible ids. The projected control should set `[attr.aria-describedby]`. */
+/** Label + control + hint/error, with accessible ids. */
 @Component({
   selector: 'sv-field',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <label class="sv-label" [attr.for]="for()">{{ label() }}
-      @if (optional()) {<span class="font-normal text-zinc-500"> (opcjonalnie)</span>}
+      @if (optional()) {<span class="font-normal text-ink-muted"> · opcjonalnie</span>}
     </label>
     <div class="mt-1.5"><ng-content /></div>
     @if (error()) {
-      <p class="mt-1.5 text-[12px] text-red-700" [id]="for() + '-error'">{{ error() }}</p>
+      <p class="mt-1.5 text-[12px] text-danger-ink" [id]="for() + '-error'">{{ error() }}</p>
     } @else if (hint()) {
-      <p class="mt-1.5 text-[12px] text-zinc-500" [id]="for() + '-hint'">{{ hint() }}</p>
+      <p class="mt-1.5 text-[12px] text-ink-muted" [id]="for() + '-hint'">{{ hint() }}</p>
     }
   `,
 })

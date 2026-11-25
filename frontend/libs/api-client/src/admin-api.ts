@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { AdminOverview, AdminTenantRow, AuditLogEntry, Page, TenantStatus, TenantView, UserView } from '@shopivo/shared-models';
+import { AdminGrowth, AdminOverview, AdminTenantRow, AuditLogEntry, Page, TenantStatus, TenantView, UserView } from '@shopivo/shared-models';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -8,8 +8,12 @@ export class AdminApi {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/v1/admin';
 
-  overview(): Observable<AdminOverview> {
-    return this.http.get<AdminOverview>(`${this.base}/overview`);
+  overview(days = 30): Observable<AdminOverview> {
+    return this.http.get<AdminOverview>(`${this.base}/overview`, { params: { days } });
+  }
+
+  growth(days = 30): Observable<AdminGrowth> {
+    return this.http.get<AdminGrowth>(`${this.base}/stats/growth`, { params: { days } });
   }
 
   tenants(query: string, status: TenantStatus | null, page: number, size = 25): Observable<Page<AdminTenantRow>> {

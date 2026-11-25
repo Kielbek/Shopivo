@@ -1,21 +1,28 @@
 import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, viewChild } from '@angular/core';
+import { LucideDynamicIcon } from '@lucide/angular';
+import { icons } from './icons';
 
 /**
- * Modal built on the native <dialog> element (focus trap, Esc, inert background handled by the browser).
- * Controlled through the `open` input; emits `closed` when dismissed.
+ * Modal on the native <dialog> element (focus trap, Esc and inert background handled by the browser).
+ * Controlled through `open`; emits `closed` when dismissed.
  */
 @Component({
   selector: 'sv-dialog',
+  imports: [LucideDynamicIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <dialog #dialog (close)="closed.emit()" (cancel)="closed.emit()"
-      class="m-auto w-[calc(100%-2rem)] max-w-md rounded-[var(--radius-ui)] border border-zinc-200 bg-white p-0 text-zinc-900 shadow-xl backdrop:bg-zinc-950/40"
+      class="m-auto w-[calc(100%-2rem)] max-w-[440px] rounded-[var(--radius-card)] border border-line bg-card p-0 text-ink shadow-[var(--shadow-pop)] backdrop:bg-[#252B3B]/30 backdrop:backdrop-blur-[1px]"
       [attr.aria-labelledby]="titleId">
-      <div class="px-6 pt-5">
+      <div class="flex items-start justify-between gap-4 px-6 pt-5">
         <h2 [id]="titleId" class="text-[16px] font-semibold">{{ heading() }}</h2>
-        <div class="mt-2 text-[13px] leading-5 text-zinc-600"><ng-content /></div>
+        <button type="button" class="-mr-2 -mt-1 rounded-[8px] p-1.5 text-ink-muted hover:bg-hover hover:text-ink"
+          (click)="dialog.close()" aria-label="Zamknij">
+          <svg [lucideIcon]="close" [size]="18" />
+        </button>
       </div>
-      <div class="mt-6 flex justify-end gap-2 border-t border-zinc-100 bg-zinc-50 px-6 py-3">
+      <div class="px-6 pt-2 text-[13px] leading-5 text-ink-soft"><ng-content /></div>
+      <div class="mt-6 flex justify-end gap-2 border-t border-line px-6 py-4">
         <ng-content select="[dialog-actions]" />
       </div>
     </dialog>
@@ -23,6 +30,7 @@ import { ChangeDetectionStrategy, Component, ElementRef, effect, input, output, 
 })
 export class DialogComponent {
   private static counter = 0;
+  protected readonly close = icons.close;
   readonly heading = input.required<string>();
   readonly open = input(false);
   readonly closed = output<void>();

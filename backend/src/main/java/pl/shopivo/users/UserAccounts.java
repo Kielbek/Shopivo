@@ -141,6 +141,21 @@ public class UserAccounts {
         return users.countByCreatedAtAfter(since);
     }
 
+    /** New accounts per local day (Europe/Warsaw) since {@code since}; days without registrations are absent. */
+    @Transactional(readOnly = true)
+    public java.util.Map<java.time.LocalDate, Long> registrationsPerDay(Instant since) {
+        return toDailyMap(users.countPerDaySince(since));
+    }
+
+    static java.util.Map<java.time.LocalDate, Long> toDailyMap(java.util.List<Object[]> rows) {
+        java.util.Map<java.time.LocalDate, Long> result = new java.util.TreeMap<>();
+        for (Object[] row : rows) {
+            java.time.LocalDate day = row[0] instanceof java.sql.Date d ? d.toLocalDate() : (java.time.LocalDate) row[0];
+            result.put(day, ((Number) row[1]).longValue());
+        }
+        return result;
+    }
+
     @Transactional(readOnly = true)
     public boolean anyPlatformAdminExists() {
         return users.existsByPlatformRole(PlatformRole.PLATFORM_ADMIN);
