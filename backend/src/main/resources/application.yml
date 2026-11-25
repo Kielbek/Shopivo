@@ -70,6 +70,8 @@ server:
       force: true
   tomcat:
     remoteip:
+      # X-Forwarded-* headers are honoured only from these addresses (load balancer, storefront SSR server).
+      host-header: X-Forwarded-Host
       internal-proxies: ${SHOPIVO_TRUSTED_PROXIES:127\.0\.0\.1|0:0:0:0:0:0:0:1|::1}
 
 management:

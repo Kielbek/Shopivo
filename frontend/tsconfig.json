@@ -1,0 +1,58 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "strict": true,
+    "paths": {
+      "@shopivo/shared-models": [
+        "./libs/shared-models/src/index.ts"
+      ],
+      "@shopivo/api-client": [
+        "./libs/api-client/src/index.ts"
+      ],
+      "@shopivo/shared-ui": [
+        "./libs/shared-ui/src/index.ts"
+      ]
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true,
+    "strictStandalone": true,
+    "extendedDiagnostics": {
+      "defaultCategory": "error"
+    }
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/merchant-dashboard/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/merchant-dashboard/tsconfig.spec.json"
+    },
+    {
+      "path": "./apps/platform-admin/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/platform-admin/tsconfig.spec.json"
+    },
+    {
+      "path": "./apps/storefront/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/storefront/tsconfig.spec.json"
+    }
+  ]
+}

@@ -127,7 +127,8 @@ public class UserAccounts {
         if (query == null || query.isBlank()) {
             return users.findAllByOrderByCreatedAtDesc(pageable).map(UserEntity::toView);
         }
-        return users.search(query.trim().toLowerCase(Locale.ROOT), pageable).map(UserEntity::toView);
+        String q = query.trim().toLowerCase(Locale.ROOT).replace("%", "").replace("_", "");
+        return users.search(q, pageable).map(UserEntity::toView);
     }
 
     @Transactional(readOnly = true)

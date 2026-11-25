@@ -60,6 +60,12 @@ public class TenantMemberships {
                 .toList();
     }
 
+    /** Tenants table has no RLS: safe to query for routing decisions (storefront). */
+    @Transactional(readOnly = true)
+    public boolean isTenantActive(UUID tenantId) {
+        return tenants.findById(tenantId).map(t -> t.getStatus() == TenantStatus.ACTIVE).orElse(false);
+    }
+
     @Transactional(readOnly = true)
     public long countOwnedTenants(UUID userId) {
         return memberships.countByUserIdAndRole(userId, StoreRole.OWNER);

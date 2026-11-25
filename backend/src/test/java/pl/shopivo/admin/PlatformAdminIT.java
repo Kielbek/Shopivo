@@ -34,6 +34,12 @@ class PlatformAdminIT extends IntegrationTest {
         assertThat(overview.json().get("stores").asLong()).isPositive();
         assertThat(overview.json().get("users").asLong()).isPositive();
 
+        // Listing without filters (regression: untyped NULL parameter) and with each filter
+        assertThat(admin.get("/api/v1/admin/tenants").status()).isEqualTo(200);
+        assertThat(admin.get("/api/v1/admin/tenants?status=ACTIVE").json().get("items").toString()).contains(slug);
+        assertThat(admin.get("/api/v1/admin/tenants?status=SUSPENDED&q=zawieszenia").json().get("items").size()).isZero();
+        assertThat(admin.get("/api/v1/admin/users").status()).isEqualTo(200);
+        assertThat(admin.get("/api/v1/admin/users?q=" + ownerEmail.substring(0, 8)).json().get("items").toString()).contains(ownerEmail);
         var list = admin.get("/api/v1/admin/tenants?q=" + "zawieszenia");
         assertThat(list.json().get("items").toString()).contains(slug, ownerEmail);
 

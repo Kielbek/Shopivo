@@ -72,6 +72,9 @@ class SecurityConfiguration {
                         .requestMatchers("/api/docs/**", "/api/swagger-ui/**", "/api/swagger-ui.html").permitAll()
                         .requestMatchers("/api/v1/admin/**").hasAnyRole("PLATFORM_ADMIN", "PLATFORM_SUPPORT")
                         .requestMatchers("/api/**").hasRole("USER")
+                        // Served on the separate management port, which must not be exposed publicly.
+                        .requestMatchers("/actuator/health", "/actuator/health/**", "/actuator/info",
+                                "/actuator/prometheus").permitAll()
                         .requestMatchers("/error").permitAll()
                         .anyRequest().denyAll());
 

@@ -1,0 +1,83 @@
+/*
+ * Shopivo design tokens (dashboards). Imported by every app after `@import "tailwindcss"`.
+ * Neutral zinc palette, one restrained brand accent, 4px spacing grid, 6px radius.
+ */
+@import "@fontsource-variable/inter";
+
+@theme {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --color-brand-50: #eef6f4;
+  --color-brand-100: #d5ebe6;
+  --color-brand-200: #acd6cd;
+  --color-brand-500: #2a8a78;
+  --color-brand-600: #1d7262;
+  --color-brand-700: #175b4f;
+  --color-brand-800: #134a41;
+  --color-brand-900: #0f3b34;
+
+  --radius-ui: 6px;
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-zinc-50 text-zinc-900 font-sans text-[14px] leading-6;
+    font-feature-settings: "cv11", "ss01";
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-600;
+  }
+
+  ::selection {
+    @apply bg-brand-100;
+  }
+}
+
+@layer components {
+  .sv-input {
+    @apply block w-full rounded-[var(--radius-ui)] border border-zinc-300 bg-white px-3 py-2 text-[14px] text-zinc-900
+      shadow-[0_1px_0_rgba(0,0,0,0.02)] placeholder:text-zinc-400 transition-colors
+      hover:border-zinc-400 focus:border-brand-600 focus:outline-none focus:ring-3 focus:ring-brand-100
+      disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500;
+  }
+
+  .sv-input[aria-invalid="true"] {
+    @apply border-red-500 focus:border-red-600 focus:ring-red-100;
+  }
+
+  .sv-label {
+    @apply block text-[13px] font-medium text-zinc-800;
+  }
+
+  .sv-card {
+    @apply rounded-[var(--radius-ui)] border border-zinc-200 bg-white;
+  }
+
+  .sv-link {
+    @apply font-medium text-brand-700 underline-offset-2 hover:underline;
+  }
+
+  .sv-table {
+    @apply w-full text-left text-[13px];
+  }
+
+  .sv-table th {
+    @apply border-b border-zinc-200 px-4 py-2.5 text-[12px] font-medium uppercase tracking-wide text-zinc-500;
+  }
+
+  .sv-table td {
+    @apply border-b border-zinc-100 px-4 py-3 align-middle;
+  }
+
+  .sv-table tr:last-child td {
+    @apply border-b-0;
+  }
+}

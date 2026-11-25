@@ -11,32 +11,32 @@ Bieżący stan szczegółowy i wyniki testów: `docs/PROGRESS.md`.
 
 ## Faza 1 — rdzeń platformy
 Backend
-- [ ] Szkielet Spring Boot, profile, Problem Details, OpenAPI, Actuator, logowanie
-- [ ] Flyway V1: role, funkcje RLS, users, sessions, tokens, MFA, tenants, memberships, invitations, stores,
+- [x] Szkielet Spring Boot, profile, Problem Details, OpenAPI, Actuator, logowanie
+- [x] Flyway V1: role, funkcje RLS, users, sessions, tokens, MFA, tenants, memberships, invitations, stores,
       store_settings, store_domains, audit_logs, event_publication, shedlock
-- [ ] `TenantContext`, `TenantAwareDataSource` (zmienne sesji RLS), Hibernate `@TenantId`, `SystemContext`
-- [ ] Rejestracja, weryfikacja e-mail, logowanie, wylogowanie, reset hasła, zmiana hasła
-- [ ] Sesje w ciasteczku HttpOnly, CSRF, lista/unieważnianie sesji
-- [ ] Ochrona przed brute force (Redis + blokada konta), limity zapytań
-- [ ] MFA TOTP + kody zapasowe
-- [ ] Google OAuth2 (warunkowo, gdy skonfigurowany)
-- [ ] Tworzenie sklepu (dzierżawa + sklep + subdomena + OWNER), lista sklepów
-- [ ] Członkostwa, role, macierz uprawnień, zaproszenia
-- [ ] Panel admina — API: przegląd, sklepy, użytkownicy, zawieszanie
-- [ ] Dziennik audytu
-- [ ] E-maile transakcyjne (szablony Thymeleaf, wysyłka asynchroniczna przez zdarzenia)
-- [ ] Testy: jednostkowe, integracyjne (Testcontainers), izolacja dzierżaw (API + RLS), modularność
+- [x] `TenantContext`, `TenantAwareDataSource` (zmienne sesji RLS), Hibernate `@TenantId`, `SystemContext`
+- [x] Rejestracja, weryfikacja e-mail, logowanie, wylogowanie, reset hasła, zmiana hasła
+- [x] Sesje w ciasteczku HttpOnly, CSRF, lista/unieważnianie sesji
+- [x] Ochrona przed brute force (Redis + blokada konta), limity zapytań
+- [x] MFA TOTP + kody zapasowe
+- [~] Google OAuth2 (zaimplementowane, aktywne profilem `google`; nieprzetestowane z prawdziwym Google)
+- [x] Tworzenie sklepu (dzierżawa + sklep + subdomena + OWNER), lista sklepów
+- [x] Członkostwa, role, macierz uprawnień, zaproszenia
+- [x] Panel admina — API: przegląd, sklepy, użytkownicy, zawieszanie
+- [x] Dziennik audytu
+- [x] E-maile transakcyjne (szablony Thymeleaf, wysyłka asynchroniczna przez zdarzenia)
+- [x] Testy: jednostkowe, integracyjne (Testcontainers), izolacja dzierżaw (API + RLS), modularność (E2E w repo — Faza 8)
 Frontend
-- [ ] Workspace Angular (3 aplikacje + biblioteki), Tailwind 4, strict TS
-- [ ] System projektowy `shared-ui` (przyciski, pola, alerty, karty, tabela, stany puste/ładowania/błędu)
-- [ ] `api-client`: HttpClient, CSRF, obsługa Problem Details
-- [ ] Panel sprzedawcy: logowanie, rejestracja, weryfikacja, reset hasła, MFA, onboarding sklepu,
+- [x] Workspace Angular (3 aplikacje + biblioteki), Tailwind 4, strict TS
+- [x] System projektowy `shared-ui` (przyciski, pola, alerty, karty, tabela, stany puste/ładowania/błędu)
+- [x] `api-client`: HttpClient, CSRF, obsługa Problem Details
+- [x] Panel sprzedawcy: logowanie, rejestracja, weryfikacja, reset hasła, MFA, onboarding sklepu,
       powłoka panelu, ustawienia sklepu, zespół, konto i sesje
-- [ ] Panel admina: logowanie, przegląd, sklepy, użytkownicy
-- [ ] Storefront: szkielet SSR (pełna implementacja — Faza 4)
+- [x] Panel admina: logowanie, przegląd, sklepy, użytkownicy
+- [~] Storefront: szkielet SSR z rozpoznawaniem sklepu po hoście (pełna implementacja — Faza 4)
 Infrastruktura
-- [ ] Docker Compose (Postgres, Redis, Mailpit, MinIO), Dockerfile backendu
-- [ ] GitHub Actions CI
+- [x] Docker Compose (Postgres, Redis, Mailpit, MinIO), Dockerfile backendu
+- [x] GitHub Actions CI
 
 ## Faza 2 — rozliczenia SaaS
 - [ ] Plany, ceny, uprawnienia (dane), panel admina planów

@@ -15,11 +15,15 @@ public interface TenantRepository extends JpaRepository<TenantEntity, UUID> {
 
     long countByCreatedAtAfter(Instant since);
 
+    /** {@code query} must be lower-case; an empty string matches every tenant. */
+    @Query("select t from TenantEntity t where lower(t.name) like concat('%', :q, '%') order by t.createdAt desc")
+    Page<TenantEntity> searchByName(@Param("q") String query, Pageable pageable);
+
     @Query("""
             select t from TenantEntity t
-            where (:status is null or t.status = :status)
-              and (:q is null or lower(t.name) like concat('%', :q, '%'))
+            where t.status = :status and lower(t.name) like concat('%', :q, '%')
             order by t.createdAt desc
             """)
-    Page<TenantEntity> search(@Param("q") String query, @Param("status") TenantStatus status, Pageable pageable);
+    Page<TenantEntity> searchByNameAndStatus(@Param("q") String query, @Param("status") TenantStatus status,
+            Pageable pageable);
 }

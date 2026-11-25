@@ -1,0 +1,36 @@
+import { Routes } from '@angular/router';
+import { authGuard, guestGuard, mfaPendingGuard } from '@shopivo/api-client';
+import { startRedirect } from './features/onboarding/start';
+
+export const routes: Routes = [
+  // "/" decides where the user starts (onboarding, single store or store picker) — must precede the auth layout.
+  { path: '', pathMatch: 'full', canActivate: [authGuard, startRedirect], children: [] },
+  {
+    path: '',
+    loadComponent: () => import('./features/auth/auth-layout').then((m) => m.AuthLayout),
+    children: [
+      { path: 'logowanie', title: 'Logowanie', canActivate: [guestGuard], loadComponent: () => import('./features/auth/login.page').then((m) => m.LoginPage) },
+      { path: 'logowanie/weryfikacja', title: 'Weryfikacja dwuetapowa', canActivate: [mfaPendingGuard], loadComponent: () => import('./features/auth/mfa.page').then((m) => m.MfaPage) },
+      { path: 'rejestracja', title: 'Załóż konto', canActivate: [guestGuard], loadComponent: () => import('./features/auth/register.page').then((m) => m.RegisterPage) },
+      { path: 'weryfikacja-email', title: 'Potwierdzenie adresu e-mail', loadComponent: () => import('./features/auth/token-pages').then((m) => m.VerifyEmailPage) },
+      { path: 'przypomnij-haslo', title: 'Przypomnienie hasła', loadComponent: () => import('./features/auth/token-pages').then((m) => m.ForgotPasswordPage) },
+      { path: 'nowe-haslo', title: 'Nowe hasło', loadComponent: () => import('./features/auth/token-pages').then((m) => m.ResetPasswordPage) },
+    ],
+  },
+  { path: 'zaproszenie', title: 'Zaproszenie do zespołu', canActivate: [authGuard], loadComponent: () => import('./features/auth/token-pages').then((m) => m.AcceptInvitationPage) },
+  { path: 'nowy-sklep', title: 'Nowy sklep', canActivate: [authGuard], loadComponent: () => import('./features/onboarding/create-store.page').then((m) => m.CreateStorePage) },
+  { path: 'sklepy', title: 'Moje sklepy', canActivate: [authGuard], loadComponent: () => import('./features/onboarding/store-picker.page').then((m) => m.StorePickerPage) },
+  { path: 'konto', title: 'Ustawienia konta', canActivate: [authGuard], loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage) },
+  {
+    path: 'sklep/:tenantId',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/store/store-shell').then((m) => m.StoreShell),
+    children: [
+      { path: '', title: 'Przegląd', loadComponent: () => import('./features/store/overview.page').then((m) => m.OverviewPage) },
+      { path: 'ustawienia', title: 'Ustawienia sklepu', loadComponent: () => import('./features/store/settings.page').then((m) => m.SettingsPage) },
+      { path: 'zespol', title: 'Zespół', loadComponent: () => import('./features/store/team.page').then((m) => m.TeamPage) },
+      { path: 'dziennik', title: 'Dziennik zdarzeń', loadComponent: () => import('./features/store/audit.page').then((m) => m.AuditPage) },
+    ],
+  },
+  { path: '**', redirectTo: '' },
+];

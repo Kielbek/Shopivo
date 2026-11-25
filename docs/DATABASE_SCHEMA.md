@@ -62,7 +62,7 @@ CREATE POLICY tenant_isolation ON x
 | last_login_at, created_at, updated_at, version | | |
 
 ### user_sessions
-`id`, `user_id` FK, `token_hash` (char(64), unikalny), `created_at`, `last_seen_at`, `idle_expires_at`,
+`id`, `user_id` FK, `token_hash` (varchar(64), unikalny), `created_at`, `last_seen_at`, `idle_expires_at`,
 `absolute_expires_at`, `revoked_at`, `revoke_reason`, `ip_address` (inet), `user_agent` (varchar 512),
 `mfa_verified` (boolean). Indeks: `(user_id) WHERE revoked_at IS NULL`.
 
@@ -99,7 +99,7 @@ widzi swoje członkostwa we wszystkich sklepach (lista „moje sklepy”), a w k
 `created_at`, `updated_at`, `version`. RLS dzierżawy (+ bypass dla routingu domen).
 
 ### store_settings
-`tenant_id` PK, `legal_company_name`, `tax_id` (NIP), `address_*`, `phone`, `order_email`,
+`id` PK, `tenant_id` (unikalny), `legal_company_name`, `tax_id` (NIP), `address_*`, `phone`, `order_email`,
 `prices_include_tax`, `updated_at`, `version`. RLS dzierżawy.
 
 ### store_domains

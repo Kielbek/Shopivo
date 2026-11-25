@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import pl.shopivo.shared.config.ShopivoProperties;
 import pl.shopivo.shared.ratelimit.RateLimiter;
 import pl.shopivo.shared.security.CurrentUser;
 import pl.shopivo.shared.security.SecurityUtils;
@@ -36,11 +37,13 @@ class StoreControllers {
     private final Stores stores;
     private final StoreProvisioning provisioning;
     private final RateLimiter rateLimiter;
+    private final ShopivoProperties properties;
 
-    StoreControllers(Stores stores, StoreProvisioning provisioning, RateLimiter rateLimiter) {
+    StoreControllers(Stores stores, StoreProvisioning provisioning, RateLimiter rateLimiter, ShopivoProperties properties) {
         this.stores = stores;
         this.provisioning = provisioning;
         this.rateLimiter = rateLimiter;
+        this.properties = properties;
     }
 
     record CreateStoreRequest(
@@ -69,6 +72,14 @@ class StoreControllers {
             @Email @Size(max = 320) String orderEmail,
             boolean pricesIncludeTax,
             long version) {
+    }
+
+    record PlatformConfig(String platformDomain) {
+    }
+
+    @GetMapping("/api/v1/stores/config")
+    PlatformConfig config() {
+        return new PlatformConfig(properties.platformDomain());
     }
 
     @GetMapping("/api/v1/stores")

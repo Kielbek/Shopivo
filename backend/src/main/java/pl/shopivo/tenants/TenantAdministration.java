@@ -35,8 +35,11 @@ public class TenantAdministration {
     @Transactional(readOnly = true)
     public Page<TenantView> search(String query, TenantStatus status, Pageable pageable) {
         requireSystem();
-        String q = query == null || query.isBlank() ? null : query.trim().toLowerCase(Locale.ROOT);
-        return tenants.search(q, status, pageable).map(TenantEntity::toView);
+        String q = query == null ? "" : query.trim().toLowerCase(Locale.ROOT).replace("%", "").replace("_", "");
+        Page<TenantEntity> page = status == null
+                ? tenants.searchByName(q, pageable)
+                : tenants.searchByNameAndStatus(q, status, pageable);
+        return page.map(TenantEntity::toView);
     }
 
     @Transactional(readOnly = true)

@@ -1,0 +1,225 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": {
+    "packageManager": "npm",
+    "analytics": false
+  },
+  "newProjectRoot": "projects",
+  "projects": {
+    "merchant-dashboard": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "apps/merchant-dashboard",
+      "sourceRoot": "apps/merchant-dashboard/src",
+      "prefix": "sv",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/merchant-dashboard/src/main.ts",
+            "tsConfig": "apps/merchant-dashboard/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "apps/merchant-dashboard/public"
+              }
+            ],
+            "styles": [
+              "apps/merchant-dashboard/src/styles.css"
+            ],
+            "allowedCommonJsDependencies": [
+              "qrcode"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kB",
+                  "maximumError": "12kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "merchant-dashboard:build:production"
+            },
+            "development": {
+              "buildTarget": "merchant-dashboard:build:development"
+            }
+          },
+          "defaultConfiguration": "development",
+          "options": {
+            "port": 4200,
+            "proxyConfig": "proxy.conf.json"
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test"
+        }
+      }
+    },
+    "platform-admin": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "apps/platform-admin",
+      "sourceRoot": "apps/platform-admin/src",
+      "prefix": "sv",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/platform-admin/src/main.ts",
+            "tsConfig": "apps/platform-admin/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "apps/platform-admin/public"
+              }
+            ],
+            "styles": [
+              "apps/platform-admin/src/styles.css"
+            ]
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kB",
+                  "maximumError": "12kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "platform-admin:build:production"
+            },
+            "development": {
+              "buildTarget": "platform-admin:build:development"
+            }
+          },
+          "defaultConfiguration": "development",
+          "options": {
+            "port": 4300,
+            "proxyConfig": "proxy.conf.json"
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test"
+        }
+      }
+    },
+    "storefront": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "apps/storefront",
+      "sourceRoot": "apps/storefront/src",
+      "prefix": "sf",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/storefront/src/main.ts",
+            "tsConfig": "apps/storefront/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "apps/storefront/public"
+              }
+            ],
+            "styles": [
+              "apps/storefront/src/styles.css"
+            ],
+            "server": "apps/storefront/src/main.server.ts",
+            "outputMode": "server",
+            "security": {
+              "allowedHosts": [
+                "*"
+              ]
+            },
+            "ssr": {
+              "entry": "apps/storefront/src/server.ts"
+            }
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "6kB",
+                  "maximumError": "12kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "storefront:build:production"
+            },
+            "development": {
+              "buildTarget": "storefront:build:development"
+            }
+          },
+          "defaultConfiguration": "development",
+          "options": {
+            "port": 4400,
+            "proxyConfig": "proxy.conf.json"
+          }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test"
+        }
+      }
+    }
+  }
+}
