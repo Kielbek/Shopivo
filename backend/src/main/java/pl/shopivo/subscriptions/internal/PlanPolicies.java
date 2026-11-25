@@ -2,6 +2,7 @@ package pl.shopivo.subscriptions.internal;
 
 import java.util.UUID;
 import org.springframework.stereotype.Component;
+import pl.shopivo.catalog.ProductLimitPolicy;
 import pl.shopivo.stores.StorefrontAvailabilityPolicy;
 import pl.shopivo.subscriptions.EntitlementKey;
 import pl.shopivo.subscriptions.Entitlements;
@@ -10,7 +11,7 @@ import pl.shopivo.tenants.TenantWriteAccessPolicy;
 
 /** Enforces the subscription in other modules through their extension points. */
 @Component
-class PlanPolicies implements TeamSizePolicy, TenantWriteAccessPolicy, StorefrontAvailabilityPolicy {
+class PlanPolicies implements TeamSizePolicy, TenantWriteAccessPolicy, StorefrontAvailabilityPolicy, ProductLimitPolicy {
 
     private final Entitlements entitlements;
 
@@ -21,6 +22,11 @@ class PlanPolicies implements TeamSizePolicy, TenantWriteAccessPolicy, Storefron
     @Override
     public void checkCanAddMember(UUID tenantId, long currentSize) {
         entitlements.checkLimit(tenantId, EntitlementKey.STAFF_MAX, currentSize);
+    }
+
+    @Override
+    public void checkCanAddProduct(UUID tenantId, long currentCount) {
+        entitlements.checkLimit(tenantId, EntitlementKey.PRODUCTS_MAX, currentCount);
     }
 
     @Override
