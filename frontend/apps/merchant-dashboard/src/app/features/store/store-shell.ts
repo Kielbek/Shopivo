@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { filter, map } from 'rxjs';
 import { LucideDynamicIcon } from '@lucide/angular';
 import { SessionStore } from '@shopivo/api-client';
 import { STORE_ROLE_LABELS, StorePermission } from '@shopivo/shared-models';
@@ -7,6 +9,7 @@ import {
   AlertComponent, AppShellComponent, AvatarComponent, BadgeComponent, ButtonComponent, LoadingComponent, LogoComponent,
   MenuComponent, MenuItemComponent, NavItem, NavSection, icons,
 } from '@shopivo/shared-ui';
+import { SubscriptionBanner } from './subscription-banner';
 import { StoreContext } from './store-context';
 
 type MerchantNavItem = NavItem & { path?: string; permission?: StorePermission };
@@ -48,7 +51,7 @@ const NAV: { title?: string; items: MerchantNavItem[] }[] = [
       { label: 'Płatności', icon: 'payments', soon: true },
       { label: 'Wysyłka', icon: 'shipping', soon: true },
       { label: 'Integracje', icon: 'integrations', soon: true },
-      { label: 'Subskrypcja', icon: 'wallet', soon: true },
+      { label: 'Subskrypcja', icon: 'wallet', path: 'subskrypcja', permission: 'STORE_READ' },
     ],
   },
 ];
@@ -68,7 +71,7 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
 @Component({
   selector: 'sv-store-shell',
   imports: [RouterOutlet, RouterLink, LucideDynamicIcon, AppShellComponent, LoadingComponent, AlertComponent, ButtonComponent,
-    MenuComponent, MenuItemComponent, AvatarComponent, BadgeComponent, LogoComponent],
+    MenuComponent, MenuItemComponent, AvatarComponent, BadgeComponent, LogoComponent, SubscriptionBanner],
   providers: [StoreContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -125,6 +128,9 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
           </sv-menu>
         </ng-container>
 
+        @if (!onSubscriptionPage()) {
+          <sv-subscription-banner [subscription]="ctx.subscription()" [link]="[...base(), 'subskrypcja']" />
+        }
         <router-outlet />
       </sv-app-shell>
     }
@@ -139,6 +145,9 @@ export class StoreShell {
   readonly tenantId = input.required<string>();
 
   protected readonly base = computed(() => ['/sklep', this.tenantId()]);
+  private readonly url = toSignal(this.router.events.pipe(filter((e) => e instanceof NavigationEnd), map(() => this.router.url)),
+    { initialValue: this.router.url });
+  protected readonly onSubscriptionPage = computed(() => this.url().split('?')[0].endsWith('/subskrypcja'));
   protected readonly sections = computed<NavSection[]>(() => this.buildNav(NAV));
   protected readonly bottomSections = computed<NavSection[]>(() => this.buildNav(NAV_BOTTOM));
 

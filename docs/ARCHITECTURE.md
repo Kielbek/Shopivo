@@ -76,8 +76,31 @@ Zarządzanie sesją Spring Security jest wyłączone (sesje to nasze tokeny, nie
 ### ADR-005: Rozdzielenie płatności SaaS i płatności sklepów
 `billing` (platforma pobiera opłaty od sprzedawców — konto operatora platformy) jest całkowicie oddzielony od
 `payments` (klienci sklepów płacą sprzedawcom — konta operatorów należące do sprzedawców, ich poświadczenia
-szyfrowane per dzierżawa). Oba używają adapterów (`BillingProvider`, `PaymentProvider`) i wspólnej infrastruktury
-webhooków (`integrations.webhook`: weryfikacja podpisu, idempotencja po `provider + event_id`, ponawianie).
+szyfrowane per dzierżawa). Oba używają tych samych adapterów operatorów z modułu `payments`
+(`PaymentGateway`: Przelewy24, PayU, Tpay) — różni się tylko właściciel poświadczeń. Webhooki: weryfikacja podpisu,
+idempotencja po `provider + event_id`, ponawianie (Faza 2: `billing`; Faza 5: płatności sklepów).
+
+### ADR-013: Subskrypcje zarządzane przez Shopivo, opłacane przez polskich operatorów (Faza 2)
+**Decyzja (Q-02 rozstrzygnięte przez właściciela: bez Stripe).** Cykl życia subskrypcji (okres próbny, okresy
+rozliczeniowe, odnowienia, zmiana planu z proracją, karencja, wygaśnięcie, kupony, VAT) prowadzi Shopivo
+(`subscriptions`). Operator (Przelewy24 / PayU / Tpay, wybierany i konfigurowany przez administratora platformy w
+panelu, dane szyfrowane AES-GCM) służy wyłącznie do pobrania pojedynczej płatności przez link płatności; wynik
+przychodzi podpisanym powiadomieniem. Sprzedawca płaci za każdy okres (przypomnienia e-mail na 7 i 3 dni przed
+końcem okresu) — bez kart zapisanych u operatora i bez płatności cyklicznych.
+**Uzasadnienie:** polscy sprzedawcy oczekują BLIK/przelewów; płatności cykliczne P24/PayU wymagają osobnych umów i
+dają niejednolite API; własny silnik daje jeden model niezależny od operatora i umożliwia zmianę operatora w panelu.
+**Konsekwencje:** brak automatycznego obciążania (ryzyko spóźnień → 7 dni karencji, potem tryb tylko do odczytu);
+fakturowanie VAT/KSeF (Q-06) nadal otwarte; adaptery napisane wg publicznej dokumentacji operatorów i przetestowane
+na atrapie HTTP — **przed uruchomieniem produkcyjnym wymagają testu na sandboxach operatorów**.
+
+### ADR-014: Limity planów i koszty („czy tani plan nie zje serwera?”)
+Limity są danymi (`plan_entitlements`, nadpisania per sklep). Dwa rodzaje: **twarde** (produkty, zespół, miejsce na
+pliki, kredyty AI) blokują dodawanie zasobu (HTTP 402 `ENTITLEMENT_LIMIT`), **uczciwe użytkowanie** (zamówienia i
+odsłony sklepu miesięcznie) **nigdy** nie blokuje sklepu ani zakupów klientów — po przekroczeniu sklep jest
+oznaczany, właściciel dostaje e-mail z propozycją wyższego planu, administrator widzi go w raporcie „Zużycie i
+rentowność” (przychód netto vs. szacowany koszt z konfigurowalnego modelu kosztów). Zużycie liczone tanio w Redisie
+(HINCRBY) i zrzucane do `tenant_usage` co 5 min. Ochrona techniczna przed nadmiernym ruchem (limity zapytań per IP,
+cache HTTP odpowiedzi storefrontu, w przyszłości CDN) działa niezależnie od planu.
 
 ### ADR-006: Storefront jako jedna aplikacja Angular SSR
 Jeden proces Node (Angular SSR) obsługuje wszystkie sklepy. Sklep rozpoznawany po nagłówku `Host`.
@@ -133,7 +156,9 @@ asynchronicznie. Serwowanie przez CDN. Kontrola własności: rekord `media_asset
 | `tenants` | Dzierżawy, członkostwa, zaproszenia, macierz uprawnień | users, audit |
 | `stores` | Konfiguracja sklepu, ustawienia, tworzenie sklepu (orkiestracja) | tenants, domains |
 | `domains` | Subdomeny, domeny własne, weryfikacja DNS, Cloudflare | — |
-| `subscriptions` / `billing` | Plany, uprawnienia, cykl subskrypcji / operator płatności SaaS, faktury | tenants |
+| `subscriptions` | Plany, ceny, limity, cykl subskrypcji, opłaty, kupony, pomiar zużycia, raport rentowności | billing, tenants, stores, users, email |
+| `billing` | Wybór/konfiguracja operatora dla subskrypcji, linki płatności, odbiór powiadomień (SPI `BillingEventHandler`) | payments |
+| `payments` (adaptery) | Przelewy24, PayU, Tpay (+ symulator dev/test): rejestracja płatności, weryfikacja podpisów | — |
 | `products`, `categories`, `inventory` | Katalog i stany magazynowe | media |
 | `customers`, `carts`, `checkout`, `orders` | Klienci sklepu, koszyk, finalizacja, zamówienia | products, inventory, payments, shipping, discounts |
 | `payments`, `shipping`, `integrations` | Adaptery operatorów, poświadczenia, webhooki | — |

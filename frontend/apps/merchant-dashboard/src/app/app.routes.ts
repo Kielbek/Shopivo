@@ -29,6 +29,7 @@ export const routes: Routes = [
       { path: '', title: 'Przegląd', loadComponent: () => import('./features/store/overview.page').then((m) => m.OverviewPage) },
       { path: 'ustawienia', title: 'Ustawienia sklepu', loadComponent: () => import('./features/store/settings.page').then((m) => m.SettingsPage) },
       { path: 'zespol', title: 'Zespół', loadComponent: () => import('./features/store/team.page').then((m) => m.TeamPage) },
+      { path: 'subskrypcja', title: 'Subskrypcja', loadComponent: () => import('./features/store/subscription.page').then((m) => m.SubscriptionPage) },
       { path: 'dziennik', title: 'Dziennik zdarzeń', loadComponent: () => import('./features/store/audit.page').then((m) => m.AuditPage) },
     ],
   },

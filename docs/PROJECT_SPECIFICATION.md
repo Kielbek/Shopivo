@@ -99,10 +99,10 @@ Ceny — do ustalenia przez właściciela platformy (pytanie otwarte Q-05).
 | ID | Pytanie | Wpływ | Domyślne założenie do czasu decyzji |
 |---|---|---|---|
 | Q-01 | Dostawca chmury (GCP / AWS / Azure / DigitalOcean / OVH) i region | Deployment, koszty, RODO | Agnostycznie: kontenery + zarządzany PostgreSQL/Redis/S3 w UE; rekomendacja: GCP `europe-central2` (Warszawa) |
-| Q-02 | Operator rozliczeń subskrypcji SaaS (Stripe Billing vs. Przelewy24/PayU z płatnościami cyklicznymi) | Faza 2 | Adapter `BillingProvider`; pierwsza implementacja Stripe Billing (natywne subskrypcje, faktury, retry) |
+| Q-02 | Operator rozliczeń subskrypcji SaaS (Stripe Billing vs. Przelewy24/PayU z płatnościami cyklicznymi) | Faza 2 | **Rozstrzygnięte:** bez Stripe — polscy operatorzy (Przelewy24, PayU, Tpay), subskrypcje prowadzone przez Shopivo (ADR-013) |
 | Q-03 | Domena platformy (np. `shopivo.pl`) i **osobna** domena dla subdomen sklepów (np. `shopivo.shop`) — patrz ADR-012 | Faza 6, bezpieczeństwo ciasteczek | Konfiguracja `SHOPIVO_PLATFORM_DOMAIN`, lokalnie `shopivo.localhost` |
 | Q-04 | Plan Cloudflare — „Cloudflare for SaaS” (Custom Hostnames) jest wymagany dla domen własnych z automatycznym SSL | Faza 6 | Zakładamy Cloudflare for SaaS |
-| Q-05 | Cennik planów, okres próbny, waluty rozliczeń | Faza 2 | 14 dni triala, PLN, ceny jako dane |
-| Q-06 | Fakturowanie subskrypcji (KSeF!) — od 2026 obowiązkowy KSeF dla faktur B2B w PL | Faza 2 | Integracja przez Fakturownię lub natywnie — wymaga decyzji i konsultacji księgowej |
+| Q-05 | Cennik planów, okres próbny, waluty rozliczeń | Faza 2 | Zaimplementowane jako dane edytowalne w panelu: 14 dni próby (plan Business), PLN netto + 23% VAT; kwoty w migracji V3 to przykłady do ustalenia |
+| Q-06 | Fakturowanie subskrypcji (KSeF!) — od 2026 obowiązkowy KSeF dla faktur B2B w PL | Faza 2 → otwarte | **Nie zaimplementowane.** Opłaty mają netto/VAT/brutto, ale faktur ani KSeF nie ma — wymaga decyzji (Fakturownia/inFakt API vs. natywnie) i konsultacji księgowej |
 | Q-07 | Dostawca AI (OpenAI / Anthropic / inny) i budżety | Faza 7 | Abstrakcja `AiProvider` |
 | Q-08 | Dane spółki, regulaminy, polityka prywatności, DPA | Prawne | Szablony oznaczone „WYMAGA PRZEGLĄDU PRAWNEGO” |

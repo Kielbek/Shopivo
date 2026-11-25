@@ -14,8 +14,16 @@ const NAV: NavSection[] = [
     items: [
       { label: 'Sklepy', icon: 'store', link: '/sklepy' },
       { label: 'Użytkownicy', icon: 'users', link: '/uzytkownicy' },
-      { label: 'Subskrypcje', icon: 'wallet', soon: true },
-      { label: 'Plany i limity', icon: 'receipt', soon: true },
+    ],
+  },
+  {
+    title: 'Rozliczenia',
+    items: [
+      { label: 'Subskrypcje', icon: 'wallet', link: '/subskrypcje' },
+      { label: 'Plany i limity', icon: 'receipt', link: '/plany' },
+      { label: 'Kupony', icon: 'discount', link: '/kupony' },
+      { label: 'Zużycie i rentowność', icon: 'chartPie', link: '/zuzycie' },
+      { label: 'Operatorzy płatności', icon: 'payments', link: '/operatorzy-platnosci' },
     ],
   },
   {
@@ -23,7 +31,6 @@ const NAV: NavSection[] = [
     items: [
       { label: 'Motywy', icon: 'appearance', soon: true },
       { label: 'Integracje', icon: 'integrations', soon: true },
-      { label: 'Kupony', icon: 'discount', soon: true },
     ],
   },
   {

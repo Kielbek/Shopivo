@@ -39,13 +39,16 @@ Infrastruktura
 - [x] GitHub Actions CI
 
 ## Faza 2 — rozliczenia SaaS
-- [ ] Plany, ceny, uprawnienia (dane), panel admina planów
-- [ ] `EntitlementService` + egzekwowanie limitów (402)
-- [ ] Adapter `BillingProvider` (Stripe — wg decyzji Q-02), checkout subskrypcji
-- [ ] Cykl życia: trial, aktywacja, odnowienie, upgrade/downgrade (proration), anulowanie, okres karencji,
-      nieudane płatności + retry, zawieszenie sklepu po karencji
-- [ ] Webhooki (podpis, idempotencja), historia, faktury, kupony, ceny promocyjne
-- [ ] Testy cyklu subskrypcji i webhooków
+- [x] Plany, ceny, uprawnienia (dane), panel admina planów (ceny „grandfathered”)
+- [x] `Entitlements` + egzekwowanie limitów (402) — na razie limit zespołu; produkty/pliki/AI podłączą się w swoich fazach
+- [x] Adaptery Przelewy24 / PayU / Tpay (bez Stripe — ADR-013), wybór operatora w panelu admina, checkout subskrypcji
+- [x] Cykl życia: trial, aktywacja, odnowienie, upgrade (proracja) / downgrade (od końca okresu), anulowanie, karencja,
+      nieudane płatności, przypomnienia, tryb tylko do odczytu po wygaśnięciu
+- [x] Webhooki (podpis, idempotencja, ponawianie), historia, kupony, VAT
+- [x] Pomiar zużycia, fair use, raport rentowności, MRR/ARR
+- [x] Testy cyklu subskrypcji i webhooków
+- [ ] Faktury VAT / KSeF (Q-06) — **otwarte**
+- [ ] Test adapterów na sandboxach operatorów (wymaga kont testowych)
 
 ## Faza 3 — silnik e-commerce
 - [ ] Produkty (draft/opublikowany, fizyczne/cyfrowe), warianty i opcje, zdjęcia, marki, SKU/EAN, wymiary, SEO

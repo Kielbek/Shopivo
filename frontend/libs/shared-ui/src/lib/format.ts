@@ -48,3 +48,24 @@ export function describeUserAgent(ua: string | null): string {
     : /Mac OS X/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : '';
   return os ? `${browser}, ${os}` : browser;
 }
+
+const MONEY = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN', minimumFractionDigits: 2 });
+const NUMBER = new Intl.NumberFormat('pl-PL');
+
+/** Formats minor units (grosze) as money, e.g. 9717 → "97,17 zł". */
+@Pipe({ name: 'svMoney' })
+export class MoneyPipe implements PipeTransform {
+  transform(minor: number | null | undefined, currency = 'PLN'): string {
+    return formatMoney(minor, currency);
+  }
+}
+
+export function formatMoney(minor: number | null | undefined, currency = 'PLN'): string {
+  if (minor === null || minor === undefined) return '—';
+  const f = currency === 'PLN' ? MONEY : new Intl.NumberFormat('pl-PL', { style: 'currency', currency });
+  return f.format(minor / 100);
+}
+
+export function formatNumber(value: number | null | undefined): string {
+  return value === null || value === undefined ? '—' : NUMBER.format(value);
+}

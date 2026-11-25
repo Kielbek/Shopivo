@@ -24,7 +24,7 @@
 ```
 Kody: `400 VALIDATION_FAILED`, `401 UNAUTHENTICATED`, `403 ACCESS_DENIED`, `404 NOT_FOUND`
 (także dla zasobów innej dzierżawy), `409 CONFLICT`, `422 BUSINESS_RULE_VIOLATION`,
-`402 ENTITLEMENT_REQUIRED` (limit planu), `429 RATE_LIMITED`, `500 INTERNAL_ERROR` (bez szczegółów).
+`402 ENTITLEMENT_LIMIT` / `402 FEATURE_NOT_IN_PLAN` (limit planu, pole `entitlement`), `402 SUBSCRIPTION_INACTIVE` (sklep tylko do odczytu), `429 RATE_LIMITED`, `500 INTERNAL_ERROR` (bez szczegółów).
 `code` jest stabilny i służy frontendowi do tłumaczeń.
 
 ## 3. Uwierzytelnianie
@@ -96,14 +96,48 @@ Kody: `400 VALIDATION_FAILED`, `401 UNAUTHENTICATED`, `403 ACCESS_DENIED`, `404 
 | POST | `/users/{id}/suspend`, `/reactivate` | Blokada konta (unieważnia sesje) |
 | GET | `/audit-logs` | Dziennik platformy |
 
-## 5. Kolejne fazy (zarys)
+## 5. Faza 2 — subskrypcje (zaimplementowane)
+
+`GET /api/v1/plans` (publiczne) → `{ plans, entitlements, vatRateBps, currency }` — ceny netto w groszach.
+
+### Subskrypcja sklepu `/api/v1/tenants/{tenantId}/subscription`
+Ścieżka pozostaje zapisywalna, gdy sklep jest tylko do odczytu (inaczej nie dałoby się zapłacić).
+| Metoda | Ścieżka | Uprawnienie | Opis |
+|---|---|---|---|
+| GET | `` | `STORE_READ` | Stan, plan, limity, zużycie w miesiącu, nieopłacone płatności, `access` (`FULL`/`READ_ONLY`) |
+| POST | `/checkout` | `BILLING_MANAGE` | `{planCode, interval, couponCode?}` → `{charge, paymentUrl}` (null, gdy rabat 100%) |
+| POST | `/change` | `BILLING_MANAGE` | `{planCode, interval}` → `{scheduled, payment}` (wyżej: dopłata z proracją; niżej: od końca okresu) |
+| POST | `/cancel`, `/resume` | `BILLING_MANAGE` | Rezygnacja z końcem okresu / cofnięcie |
+| GET | `/charges` | `BILLING_MANAGE` | Płatności (netto, VAT, brutto) |
+| POST | `/charges/{id}/pay` | `BILLING_MANAGE` | Nowy link płatności (limit 10 / 10 min na użytkownika) |
+| GET | `/history` | `BILLING_MANAGE` | Historia zdarzeń subskrypcji |
+
+### Powiadomienia operatorów
+`POST /api/v1/webhooks/billing/{provider}` (`przelewy24` | `payu` | `tpay` | `fake` — tylko dev/test). Bez sesji i
+CSRF; autentyczność = podpis operatora (P24: SHA-384 + obowiązkowe `transaction/verify`; PayU: `OpenPayu-Signature`;
+Tpay: `md5sum`). Zła sygnatura → 400; duplikat → 200 bez ponownego przetwarzania; kwota/waluta niezgodna z opłatą →
+płatność nie jest zaliczana (zdarzenie `PAYMENT_AMOUNT_MISMATCH`).
+
+### Administracja (odczyt: personel platformy; zmiany: `PLATFORM_ADMIN`)
+| Metoda | Ścieżka | Opis |
+|---|---|---|
+| GET/PUT | `/api/v1/admin/payment-providers[/{id}]` | Konfiguracja operatorów (sekrety nigdy nie są zwracane) |
+| POST | `/api/v1/admin/payment-providers/{id}/test`, `/activate` | Test połączenia, wybór operatora dla subskrypcji |
+| GET/POST/PUT | `/api/v1/admin/plans[/{id}]` | Plany, ceny (nowa cena = nowy wiersz), limity; `version` → 409 |
+| GET/POST | `/api/v1/admin/coupons`, `POST /coupons/{id}/active` | Kupony |
+| GET | `/api/v1/admin/billing/stats` | MRR/ARR (netto), liczniki statusów, wpływy 30 dni, zaległości |
+| GET | `/api/v1/admin/subscriptions[?status&q]`, `/subscriptions/{tenantId}` | Lista, szczegóły |
+| POST | `/api/v1/admin/subscriptions/{tenantId}/extend-trial` | `{days, reason}` |
+| PUT/DELETE | `/api/v1/admin/subscriptions/{tenantId}/overrides/{key}` | Wyjątki od limitów `{value, reason, expiresAt?}` |
+| GET | `/api/v1/admin/billing/usage?month=RRRR-MM` | Zużycie, przychód, szacowany koszt, marża, fair use |
+
+## 6. Kolejne fazy (zarys)
 - `/api/v1/tenants/{tenantId}/products|categories|inventory|orders|customers|discounts|…` (Faza 3)
 - `/api/v1/storefront/store|catalog|products/{slug}|cart|checkout|account|sitemap.xml` (Fazy 3–4)
-- `/api/v1/tenants/{tenantId}/subscription`, `/api/v1/admin/plans` (Faza 2)
-- `/api/v1/webhooks/billing/{provider}`, `/api/v1/webhooks/payments/{provider}/{tenantId}`,
+- `/api/v1/webhooks/payments/{provider}/{tenantId}`,
   `/api/v1/webhooks/shipping/{provider}/{tenantId}` (Fazy 2, 5)
 
-## 6. Limity zapytań
+## 7. Limity zapytań
 Redis, okno stałe per klucz:
 | Zakres | Klucz | Limit |
 |---|---|---|

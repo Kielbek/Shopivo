@@ -3,5 +3,6 @@ export * from './provide-api';
 export * from './auth-api';
 export * from './stores-api';
 export * from './admin-api';
+export * from './billing-api';
 export * from './session-store';
 export * from './guards';

@@ -1,16 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
-import { AdminApi } from '@shopivo/api-client';
+import { AdminApi, AdminBillingApi } from '@shopivo/api-client';
 import {
   AlertComponent, BadgeComponent, CardComponent, ChartSeries, DateRangeComponent, DateRangeOption, DatePipe,
-  DonutChartComponent, DonutSegment, EmptyStateComponent, LineChartComponent, LoadingComponent, StatCardComponent,
+  DonutChartComponent, DonutSegment, EmptyStateComponent, LineChartComponent, LoadingComponent, StatCardComponent, formatMoney,
 } from '@shopivo/shared-ui';
 
 const DAY_LABEL = new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'short' });
 const MONTH_LABEL = new Intl.DateTimeFormat('pl-PL', { month: 'short', year: '2-digit' });
 
-/** Platform overview — all figures come from the admin API. Revenue (MRR/ARR) arrives with the billing module. */
+/** Platform overview — all figures come from the admin API (revenue: subscriptions billing). */
 @Component({
   selector: 'sv-admin-overview',
   imports: [RouterLink, StatCardComponent, CardComponent, LineChartComponent, DonutChartComponent, DateRangeComponent,
@@ -36,6 +36,13 @@ const MONTH_LABEL = new Intl.DateTimeFormat('pl-PL', { month: 'short', year: '2-
         [caption]="overview.value() ? '+' + overview.value()!.storesInPeriod + ' w okresie' : ''" />
       <sv-stat-card label="Aktywne sklepy" icon="success" tone="green" [value]="fmt(overview.value()?.activeStores)" caption="Dostępne" />
       <sv-stat-card label="Zawieszone sklepy" icon="alert" tone="coral" [value]="fmt(overview.value()?.suspendedStores)" caption="Zablokowane" />
+    </div>
+    <div class="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:gap-4 xl:grid-cols-4">
+      <sv-stat-card label="MRR (netto)" icon="trending" tone="green" [value]="billingMoney(billing.value()?.mrrMinor)" caption="Aktywne subskrypcje" />
+      <sv-stat-card label="ARR (netto)" icon="chartLine" tone="blue" [value]="billingMoney(billing.value()?.arrMinor)" caption="MRR × 12" />
+      <sv-stat-card label="Wpływy z 30 dni" icon="dollar" tone="violet" [value]="billingMoney(billing.value()?.collectedLast30DaysNetMinor)" caption="Opłacone subskrypcje (netto)" />
+      <sv-stat-card label="Okresy próbne" icon="calendar" tone="orange" [value]="billing.value() ? '' + (billing.value()!.byStatus['TRIALING'] ?? 0) : null"
+        [caption]="billing.value() ? billing.value()!.trialsEndingIn7Days + ' kończy się w 7 dni' : ''" />
     </div>
 
     <div class="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -96,6 +103,11 @@ const MONTH_LABEL = new Intl.DateTimeFormat('pl-PL', { month: 'short', year: '2-
 })
 export class OverviewPage {
   private readonly api = inject(AdminApi);
+  private readonly billingApi = inject(AdminBillingApi);
+  protected readonly billing = rxResource({ stream: () => this.billingApi.stats() });
+  protected billingMoney(v: number | undefined): string | null {
+    return v === undefined ? null : formatMoney(v);
+  }
   protected readonly today = new Intl.DateTimeFormat('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
     .format(new Date());
   protected readonly isoToday = new Date().toISOString().slice(0, 10);

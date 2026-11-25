@@ -121,11 +121,28 @@ Rejestr publikacji zdarzeń (outbox) — schemat zgodny z Spring Modulith JDBC.
 ### shedlock
 Blokady zadań cyklicznych.
 
-## 4. Tabele — kolejne fazy (projekt)
+## 4. Tabele — Faza 2 (zaimplementowane, migracja V3)
+
+| Tabela | RLS | Opis |
+|---|---|---|
+| `subscription_plans` | — | Plany (kod, nazwa, kolejność, aktywny, publiczny, dni próby, `version`) |
+| `plan_prices` | — | Ceny netto (`MONTH`/`YEAR`, waluta, kwota); zmiana ceny = nowy wiersz, stary `active=false` (obecni klienci zachowują cenę) |
+| `plan_entitlements` | — | `(plan_id, key) → value`; `-1` = bez limitu |
+| `billing_coupons` | — | Rabat % lub kwotowy, `ONCE`/`REPEATING`/`FOREVER`, limit użyć, ważność |
+| `platform_payment_providers` | — | Konfiguracja operatorów platformy; `credentials_encrypted` (AES-GCM, AAD = operator); jeden `active_for_billing` |
+| `webhook_events` | — | Powiadomienia operatorów; unikalne `(provider, event_id)` — idempotencja; status/próby/błąd |
+| `subscriptions` | ✔ | Jedna na dzierżawę: status, plan, cena, okres, próba, karencja, zaplanowana zmiana, kupon |
+| `subscription_events` | ✔ | Historia (tylko INSERT dla roli aplikacji) |
+| `subscription_charges` | ✔ | Opłaty: numer `SUB-RRRR-NNNNNN`, rodzaj, okres, kwota katalogowa, rabat, netto, stawka i kwota VAT, brutto, operator, przypomnienia; maks. jedna `OPEN` na rodzaj |
+| `coupon_redemptions` | ✔ | Jedno użycie kuponu na sklep |
+| `entitlement_overrides` | ✔ | Wyjątki od limitów per sklep (powód, autor, wygaśnięcie) |
+| `tenant_usage` | ✔ | Liczniki miesięczne `(tenant, metric, period)` |
+
+## 5. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |
 |---|---|
-| 2 | `subscription_plans`, `plan_prices` (okres, waluta, kwota), `plan_entitlements` (klucz, wartość), `subscriptions`, `subscription_events` (historia), `subscription_payments`, `billing_invoices`, `billing_coupons`, `tenant_billing_profiles`, `webhook_events` (provider, event_id unikalne — idempotencja), `entitlement_overrides` |
+| 2 (pozostałe) | `billing_invoices` (faktury VAT/KSeF — Q-06), `tenant_billing_profiles` (dane do faktury) |
 | 3 | `products`, `product_variants`, `product_options`, `product_option_values`, `product_images`, `categories` (drzewo: `parent_id` + `path ltree`), `product_categories`, `brands`, `inventory_items`, `inventory_movements`, `customers`, `customer_addresses`, `customer_consents`, `carts`, `cart_items`, `orders`, `order_items`, `order_addresses`, `order_status_history`, `order_notes`, `returns`, `complaints`, `discounts`, `discount_usage`, `tenant_counters`, `wishlists` |
 | 4 | `themes` (globalne), `theme_configurations` (draft/published, JSON), `pages`, `blog_posts`, `navigation_menus`, `seo_redirects`, `reviews`, `media_assets`, `media_variants` |
 | 5 | `integrations`, `integration_credentials` (szyfrowane), `payments`, `payment_transactions`, `refunds`, `shipments`, `shipment_events`, `shipping_methods`, `shipping_zones` |
@@ -136,7 +153,7 @@ Blokady zadań cyklicznych.
 Projekt szczegółowy każdej tabeli zostanie dopisany do tego dokumentu w momencie implementacji fazy
 (migracja + opis), aby dokumentacja nie rozjeżdżała się z kodem.
 
-## 5. Strategia indeksowania i wydajności
+## 6. Strategia indeksowania i wydajności
 - Wszystkie listy paginowane (keyset dla dużych zbiorów: zamówienia, ruchy magazynowe; offset dla małych).
 - Wyszukiwanie produktów: `tsvector` (konfiguracja `simple` + `unaccent`; polski słownik ispell opcjonalnie) z
   indeksem GIN; w przyszłości OpenSearch/Meilisearch, jeśli zajdzie potrzeba.
@@ -144,5 +161,5 @@ Projekt szczegółowy każdej tabeli zostanie dopisany do tego dokumentu w momen
 - Pula połączeń HikariCP: rozmiar ~ (2 × rdzenie) na instancję; przy wielu replikach — PgBouncer w trybie
   transakcyjnym (**uwaga**: zmienne sesji RLS ustawiamy wtedy przez `SET LOCAL` w transakcji — zaplanowane w Fazie 8).
 
-## 6. Kopie zapasowe
+## 7. Kopie zapasowe
 Patrz `DEPLOYMENT.md` §6.

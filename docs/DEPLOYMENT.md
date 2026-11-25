@@ -42,7 +42,14 @@ Baza lokalna: skrypt `docker/postgres/init/01-roles.sql` tworzy role `shopivo_ow
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | nie | włącza logowanie Google |
 | `SHOPIVO_S3_*` | Faza 4 | endpoint, bucket, klucze, URL CDN |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID` | Faza 6 | domeny własne (Cloudflare for SaaS) |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` | Faza 2 | rozliczenia SaaS (zależnie od Q-02) |
+| `SHOPIVO_PUBLIC_API_URL` | tak (Faza 2) | publiczny adres API widziany przez operatorów płatności (adres powiadomień `…/api/v1/webhooks/billing/<operator>`); domyślnie `SHOPIVO_APP_URL` |
+| `SHOPIVO_TRIAL_PLAN` | nie | kod planu okresu próbnego (domyślnie `BUSINESS`) |
+| `SHOPIVO_COST_*` | nie | model kosztów do raportu rentowności (grosze): `BASE_MINOR`, `PER_MILLION_REQUESTS_MINOR`, `PER_ORDER_MINOR`, `PER_GB_MINOR` |
+
+Poświadczenia operatorów płatności (Przelewy24 / PayU / Tpay) **nie są** zmiennymi środowiskowymi — administrator
+wpisuje je w panelu (Rozliczenia → Operatorzy płatności); są szyfrowane kluczem `SHOPIVO_ENCRYPTION_KEYS`.
+Symulator płatności (`shopivo.payments.fake-gateway.enabled`) działa tylko lokalnie/w testach; aplikacja odmawia
+startu, jeśli jest włączony w profilu `prod`/`production`/`staging`.
 | `SENTRY_DSN` | nie | śledzenie błędów |
 
 ## 3. Architektura docelowa (agnostyczna względem chmury)

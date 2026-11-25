@@ -18,7 +18,7 @@ import java.util.Optional;
 public enum EntitlementKey {
     PRODUCTS_MAX("products.max", Kind.LIMIT, "Produkty", null),
     STAFF_MAX("staff.max", Kind.LIMIT, "Osoby w zespole (z właścicielem)", null),
-    STORAGE_MAX_MB("storage.max_mb", Kind.LIMIT, "Miejsce na pliki (MB)", null),
+    STORAGE_MAX_MB("storage.max_mb", Kind.LIMIT, "Miejsce na pliki", null),
     ORDERS_FAIR_USE("orders.monthly.fair_use", Kind.FAIR_USE, "Zamówienia miesięcznie", "orders"),
     STOREFRONT_REQUESTS_FAIR_USE("storefront.requests.monthly.fair_use", Kind.FAIR_USE, "Odsłony sklepu miesięcznie", "storefront.requests"),
     AI_MONTHLY_CREDITS("ai.monthly_credits", Kind.LIMIT, "Kredyty AI miesięcznie", "ai.credits"),
