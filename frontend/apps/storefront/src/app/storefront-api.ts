@@ -7,7 +7,7 @@ export interface Seller { companyName: string | null; taxId: string | null; addr
 export interface PublicCategory { id: string; parentId: string | null; name: string; slug: string; description: string | null; depth: number; seoTitle: string | null; seoDescription: string | null; }
 export interface PublicStore {
   name: string; status: 'DRAFT' | 'PUBLISHED' | 'SUSPENDED'; open: boolean; preview: boolean; locale: string; currency: string;
-  hostname: string; theme: ThemeConfig; seller: Seller; categories: PublicCategory[];
+  hostname: string; theme: ThemeConfig; seller: Seller | null; categories: PublicCategory[];
 }
 export interface ProductCard {
   id: string; slug: string; name: string; brand: string | null; priceMinor: number; maxPriceMinor: number; compareAtMinor: number | null;

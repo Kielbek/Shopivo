@@ -73,7 +73,8 @@ class StorefrontController {
             String address = st.addressLine1() == null ? null : String.join(", ", java.util.stream.Stream.of(st.addressLine1(),
                     st.addressLine2(), (st.postalCode() == null ? "" : st.postalCode() + " ") + (st.city() == null ? "" : st.city()))
                     .filter(x -> x != null && !x.isBlank()).toList());
-            Seller seller = new Seller(st.legalCompanyName(), st.taxId(), address,
+            // Seller data (often a sole trader's home address and phone) becomes public only once the merchant publishes.
+            Seller seller = !open ? null : new Seller(st.legalCompanyName(), st.taxId(), address,
                     st.orderEmail() != null ? st.orderEmail() : s.contactEmail(), st.phone());
             return new PublicStore(s.name(), s.status(), open, preview, s.defaultLocale(), s.defaultCurrency(), s.primaryHostname(),
                     themes.storefront(preview), seller, open ? catalog.categories() : List.of());

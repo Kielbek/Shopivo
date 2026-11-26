@@ -7,7 +7,7 @@ Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 27/27 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 61/61 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 62/62 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
 | Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 48/48 ✔ (panel 40, admin 3, witryna 5) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
@@ -38,6 +38,13 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   zamiast motywu; krój pisma motywu nie był stosowany; nieistniejący produkt zwracał 200 zamiast 404 (odczyt zasobu w
   stanie błędu przerywał SSR); adresy w sitemap/robots budowane z wewnętrznego żądania (zły schemat/port) — teraz z
   `shopivo.storefront-url-template`.
+
+## Przegląd Fazy 4a (2026-11-26) — naprawione
+Wyścigi przy uploadzie zdjęć (limit zdjęć, limit miejsca, osierocone pliki przy równoległym usunięciu produktu),
+przetwarzanie zdjęć poza transakcją bazy i z limitem równoległości (ochrona pamięci), limity czasu klienta S3, limit
+pobrań zdjęć, atomowy zapis szkicu motywu, ukrycie danych sprzedawcy przed publikacją, twardy wymóg klucza tokenów
+podglądu, ochrona linku podglądu (usuwanie z adresu, `no-store`, `noindex`), ucieczka znaków w wyszukiwarce.
+Szczegóły i testy: `docs/SECURITY.md` §12.
 
 ## Faza 3 — silnik e-commerce (2026-11-26)
 

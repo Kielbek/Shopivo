@@ -72,6 +72,7 @@ class StorefrontIT extends IntegrationTest {
         JsonNode draft = json(sf(host, "/store", null));
         assertThat(draft.get("open").asBoolean()).isFalse();
         assertThat(draft.get("categories").size()).isZero();
+        assertThat(draft.get("seller").isNull()).as("seller data is not public before publication").isTrue();
         var closed = sf(host, "/products", null);
         assertThat(closed.getStatus()).isEqualTo(404);
         assertThat(json(closed).get("code").asString()).isEqualTo("STORE_NOT_PUBLISHED");
@@ -209,5 +210,42 @@ class StorefrontIT extends IntegrationTest {
         var refused = owner.upload(base(t) + "/products/" + p + "/images", png(50, 50), "a.png", "image/png");
         assertThat(refused.status()).isEqualTo(402);
         assertThat(refused.code()).isEqualTo("ENTITLEMENT_LIMIT");
+        // Files written before the refused transaction are removed again (no orphans counted against nobody).
+        java.nio.file.Path dir = java.nio.file.Path.of(System.getProperty("java.io.tmpdir"), "shopivo-test-media", "t", t);
+        try (var files = java.nio.file.Files.exists(dir) ? java.nio.file.Files.walk(dir) : java.util.stream.Stream.<java.nio.file.Path>empty()) {
+            assertThat(files.filter(java.nio.file.Files::isRegularFile).toList()).isEmpty();
+        }
+    }
+
+    @Test
+    void concurrentUploadsCannotExceedTheImageLimitAndThemeSavesAreCompareAndSet() throws Exception {
+        ApiClient owner = registeredUser(uniqueEmail("race"));
+        String t = createStore(owner, "Sklep Wyścig", uniqueSlug("race"));
+        String p = owner.post(base(t) + "/products", product("P", "ACTIVE", "R-1", 100, 1, List.of())).json().get("id").asString();
+        byte[] img = png(40, 40);
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(8);
+        try {
+            List<java.util.concurrent.Future<Integer>> results = new java.util.ArrayList<>();
+            for (int i = 0; i < 14; i++) {
+                results.add(pool.submit(() -> owner.upload(base(t) + "/products/" + p + "/images", img, "a.png", "image/png").status()));
+            }
+            int created = 0;
+            for (var r : results) if (r.get() == 201) created++;
+            assertThat(created).isEqualTo(10);
+        } finally {
+            pool.shutdown();
+        }
+        JsonNode images = owner.get(base(t) + "/products/" + p).json().get("images");
+        assertThat(images.size()).isEqualTo(10);
+        List<Integer> positions = new java.util.ArrayList<>();
+        images.forEach(i -> positions.add(i.get("position").asInt()));
+        assertThat(positions).containsExactlyInAnyOrder(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
+
+        var first = owner.put(base(t) + "/theme", Map.of("code", "HOME", "settings", Map.of(), "version", -1));
+        assertThat(first.status()).isEqualTo(200);
+        assertThat(owner.put(base(t) + "/theme", Map.of("code", "TOYS", "settings", Map.of(), "version", -1)).status()).isEqualTo(409);
+        long v = first.json().get("version").asLong();
+        assertThat(owner.put(base(t) + "/theme", Map.of("code", "TOYS", "settings", Map.of(), "version", v)).status()).isEqualTo(200);
+        assertThat(owner.put(base(t) + "/theme", Map.of("code", "FASHION", "settings", Map.of(), "version", v)).status()).isEqualTo(409);
     }
 }

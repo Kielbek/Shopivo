@@ -241,6 +241,7 @@ public class Products {
                 limits.forEach(l -> l.checkCanAddProduct(tenant, count + reactivated - 1));
             }
         }
+        if (action == BulkAction.DELETE && !found.isEmpty()) lockForImages(found.stream().map(ProductEntity::getId).toList());
         for (ProductEntity p : found) {
             switch (action) {
                 case ACTIVATE -> p.changeStatus(ProductStatus.ACTIVE);
@@ -259,6 +260,7 @@ public class Products {
 
     @Transactional
     public void delete(UUID id) {
+        lockForImages(List.of(id));
         ProductEntity p = products.findById(id).orElseThrow(() -> new NotFoundException("Nie znaleziono produktu."));
         media.deleteOwner(IMAGE_OWNER, id);
         products.delete(p);
@@ -281,23 +283,34 @@ public class Products {
 
     // ------------------------------------------------------------------------------------------------ images
 
-    @Transactional
+    /** Not transactional on purpose — see {@link pl.shopivo.media.Media#upload}; the product row is locked inside its transaction. */
     public pl.shopivo.media.Media.ImageView addImage(UUID productId, byte[] data, String alt) {
-        products.findById(productId).orElseThrow(() -> new NotFoundException("Nie znaleziono produktu."));
-        var image = media.upload(IMAGE_OWNER, productId, data, alt);
-        auditLog.record(AuditEntry.tenant("catalog.product.image.added", TenantContext.requireTenantId(), "product", productId));
+        UUID tenant = TenantContext.requireTenantId();
+        var image = media.upload(IMAGE_OWNER, productId, data, alt, () -> lockForImages(List.of(productId)));
+        auditLog.record(AuditEntry.tenant("catalog.product.image.added", tenant, "product", productId));
         return image;
+    }
+
+    /**
+     * Locks product rows before their images change or are removed, so an upload running concurrently with a delete
+     * either sees the product gone (404) or finishes first and has its image deleted with the product — never an
+     * orphaned file.
+     */
+    private void lockForImages(List<UUID> ids) {
+        List<UUID> locked = jdbc.query("select id from products where tenant_id = ? and id = any(?) order by id for update",
+                (rs, i) -> rs.getObject(1, UUID.class), TenantContext.requireTenantId(), ids.toArray(UUID[]::new));
+        if (locked.size() != ids.size()) throw new NotFoundException("Nie znaleziono produktu.");
     }
 
     @Transactional
     public void deleteImage(UUID productId, UUID imageId) {
-        products.findById(productId).orElseThrow(() -> new NotFoundException("Nie znaleziono produktu."));
+        lockForImages(List.of(productId));
         media.delete(IMAGE_OWNER, productId, imageId);
     }
 
     @Transactional
     public List<pl.shopivo.media.Media.ImageView> updateImages(UUID productId, List<UUID> order, Map<UUID, String> alts) {
-        products.findById(productId).orElseThrow(() -> new NotFoundException("Nie znaleziono produktu."));
+        lockForImages(List.of(productId));
         media.update(IMAGE_OWNER, productId, order, alts);
         return media.list(IMAGE_OWNER, List.of(productId)).getOrDefault(productId, List.of());
     }

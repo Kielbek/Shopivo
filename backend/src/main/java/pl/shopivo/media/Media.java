@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import pl.shopivo.shared.error.BusinessRuleException;
 import pl.shopivo.shared.error.NotFoundException;
 import pl.shopivo.shared.persistence.UuidV7;
@@ -29,8 +30,10 @@ public class Media {
     private final ObjectStorage storage;
     private final ImageProcessor images;
     private final List<MediaQuotaPolicy> quota;
+    private final TransactionTemplate tx;
 
-    Media(JdbcTemplate jdbc, ObjectStorage storage, ImageProcessor images, List<MediaQuotaPolicy> quota) {
+    Media(JdbcTemplate jdbc, ObjectStorage storage, ImageProcessor images, List<MediaQuotaPolicy> quota, TransactionTemplate tx) {
+        this.tx = tx;
         this.jdbc = jdbc;
         this.storage = storage;
         this.images = images;
@@ -40,24 +43,32 @@ public class Media {
     public record ImageView(UUID id, String alt, int width, int height, int position, Map<String, String> urls) {
     }
 
-    @Transactional
-    public ImageView upload(String ownerType, UUID ownerId, byte[] data, String alt) {
-        UUID tenant = TenantContext.requireTenantId();
-        Integer count = jdbc.queryForObject("select count(*) from media_assets where tenant_id = ? and owner_type = ? and owner_id = ?",
-                Integer.class, tenant, ownerType, ownerId);
-        if (count != null && count >= MAX_PER_OWNER) {
-            throw new BusinessRuleException("TOO_MANY_IMAGES", "Produkt może mieć najwyżej " + MAX_PER_OWNER + " zdjęć.");
+    /**
+     * Stores an image of {@code ownerId}. Deliberately not transactional: decoding and resizing (up to 40 MP) and the
+     * uploads to object storage happen <em>before</em> a short transaction, so no database connection or lock is held
+     * during slow work. Inside that transaction {@code lockOwner} must lock the owner row (and throw if it no longer
+     * exists), and a per-store advisory lock serialises the image-count and storage-quota checks so concurrent uploads
+     * cannot exceed them. Files are removed again if the transaction does not commit.
+     */
+    public ImageView upload(String ownerType, UUID ownerId, byte[] data, String alt, Runnable lockOwner) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            throw new IllegalStateException("Media.upload must be called outside a transaction");
         }
-        ImageProcessor.Processed p = images.process(data);
+        UUID tenant = TenantContext.requireTenantId();
+        // Cheap pre-check so an obviously rejected upload is not processed at all (re-checked under the lock below).
+        tx.executeWithoutResult(s -> {
+            lockOwner.run();
+            checkCount(tenant, ownerType, ownerId);
+        });
+        ImageProcessor.Processed p = images.processLimited(data);
         long total = data.length + p.variants().values().stream().mapToLong(v -> v.length).sum();
-        long used = usedBytes();
-        quota.forEach(q -> q.checkCanStore(tenant, used, total));
         UUID id = UuidV7.generate();
         String base = "t/" + tenant + "/" + id + "/";
+        String original = base + "orig." + ("png".equals(p.format()) ? "png" : "jpg");
         List<String> written = new ArrayList<>();
         try {
-            storage.put(base + "orig." + ("png".equals(p.format()) ? "png" : "jpg"), data, "image/" + p.format());
-            written.add(base + "orig." + ("png".equals(p.format()) ? "png" : "jpg"));
+            storage.put(original, data, "image/" + p.format());
+            written.add(original);
             for (var v : p.variants().entrySet()) {
                 storage.put(base + "w" + v.getKey() + ".jpg", v.getValue(), "image/jpeg");
                 written.add(base + "w" + v.getKey() + ".jpg");
@@ -67,13 +78,34 @@ public class Media {
             log.error("Storing image failed", e);
             throw new BusinessRuleException("STORAGE_UNAVAILABLE", "Nie udało się zapisać zdjęcia. Spróbuj ponownie.");
         }
-        // If the transaction rolls back, the stored files are removed.
-        afterRollback(written);
-        jdbc.update("""
-                insert into media_assets (id, tenant_id, owner_type, owner_id, storage_key, content_type, width, height, total_bytes, alt, position)
-                values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, id, tenant, ownerType, ownerId, base, "image/" + p.format(), p.width(), p.height(), total, clean(alt), count == null ? 0 : count);
-        return new ImageView(id, clean(alt), p.width(), p.height(), count == null ? 0 : count, urls(tenant, id));
+        try {
+            return tx.execute(s -> {
+                jdbc.query("select pg_advisory_xact_lock(hashtextextended(?, 0))", rs -> { }, "media:" + tenant);
+                lockOwner.run();
+                int position = checkCount(tenant, ownerType, ownerId);
+                long used = usedBytes();
+                quota.forEach(q -> q.checkCanStore(tenant, used, total));
+                jdbc.update("""
+                        insert into media_assets (id, tenant_id, owner_type, owner_id, storage_key, content_type, width, height, total_bytes, alt, position)
+                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, id, tenant, ownerType, ownerId, base, "image/" + p.format(), p.width(), p.height(), total, clean(alt), position);
+                return new ImageView(id, clean(alt), p.width(), p.height(), position, urls(tenant, id));
+            });
+        } catch (RuntimeException e) {
+            written.forEach(this::quietDelete);
+            throw e;
+        }
+    }
+
+    /** Returns the number of images the owner already has (= position of the next one) or refuses when full. */
+    private int checkCount(UUID tenant, String ownerType, UUID ownerId) {
+        Integer count = jdbc.queryForObject("select count(*) from media_assets where tenant_id = ? and owner_type = ? and owner_id = ?",
+                Integer.class, tenant, ownerType, ownerId);
+        int n = count == null ? 0 : count;
+        if (n >= MAX_PER_OWNER) {
+            throw new BusinessRuleException("TOO_MANY_IMAGES", "Produkt może mieć najwyżej " + MAX_PER_OWNER + " zdjęć.");
+        }
+        return n;
     }
 
     @Transactional(readOnly = true)
@@ -168,16 +200,6 @@ public class Media {
         } else {
             remove.run();
         }
-    }
-
-    private void afterRollback(List<String> keys) {
-        if (!TransactionSynchronizationManager.isSynchronizationActive()) return;
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCompletion(int status) {
-                if (status != STATUS_COMMITTED) keys.forEach(Media.this::quietDelete);
-            }
-        });
     }
 
     private void quietDelete(String key) {

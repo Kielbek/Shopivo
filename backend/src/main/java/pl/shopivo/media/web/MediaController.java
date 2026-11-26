@@ -1,6 +1,7 @@
 package pl.shopivo.media.web;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.util.UUID;
 import org.springframework.http.CacheControl;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import pl.shopivo.media.ObjectStorage;
 import pl.shopivo.shared.error.NotFoundException;
+import pl.shopivo.shared.ratelimit.RateLimiter;
 
 /**
  * Public image variants (product photos are public by nature). Only the generated JPEG variants are reachable — the
@@ -22,13 +24,18 @@ import pl.shopivo.shared.error.NotFoundException;
 class MediaController {
 
     private final ObjectStorage storage;
+    private final RateLimiter rateLimiter;
 
-    MediaController(ObjectStorage storage) {
+    MediaController(ObjectStorage storage, RateLimiter rateLimiter) {
         this.storage = storage;
+        this.rateLimiter = rateLimiter;
     }
 
     @GetMapping("/api/v1/media/{tenantId}/{imageId}/{variant:w400|w1200}.jpg")
-    ResponseEntity<byte[]> image(@PathVariable UUID tenantId, @PathVariable UUID imageId, @PathVariable String variant) {
+    ResponseEntity<byte[]> image(HttpServletRequest request, @PathVariable UUID tenantId, @PathVariable UUID imageId,
+            @PathVariable String variant) {
+        // Every miss costs a storage round-trip: bound it per client (a CDN absorbs normal traffic in production).
+        rateLimiter.consume("media:" + request.getRemoteAddr(), 1200, Duration.ofMinutes(1));
         byte[] data = storage.get("t/" + tenantId + "/" + imageId + "/" + variant + ".jpg").orElseThrow(NotFoundException::new);
         return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG)
                 .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable())

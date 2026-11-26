@@ -2,6 +2,7 @@ package pl.shopivo.themes;
 
 import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,16 +57,16 @@ public class Themes {
         } catch (IllegalArgumentException e) {
             throw new BusinessRuleException("INVALID_THEME", e.getMessage());
         }
-        Row current = row();
-        long expected = current == null ? -1 : current.version();
-        if (expected != version) {
+        String draft = json.writeValueAsString(new ThemeConfig(code, valid));
+        UUID tenant = TenantContext.requireTenantId();
+        // Compare-and-set in one statement: two editors saving the same version cannot both win.
+        int changed = version < 0
+                ? jdbc.update("insert into store_themes (tenant_id, draft_json) values (?, ?) on conflict (tenant_id) do nothing", tenant, draft)
+                : jdbc.update("update store_themes set draft_json = ?, updated_at = now(), version = version + 1 where tenant_id = ? and version = ?",
+                        draft, tenant, version);
+        if (changed == 0) {
             throw new ConflictException("VERSION_CONFLICT", "Wygląd sklepu został w międzyczasie zmieniony. Odśwież stronę.");
         }
-        String draft = json.writeValueAsString(new ThemeConfig(code, valid));
-        jdbc.update("""
-                insert into store_themes (tenant_id, draft_json) values (?, ?)
-                on conflict (tenant_id) do update set draft_json = excluded.draft_json, updated_at = now(), version = store_themes.version + 1
-                """, TenantContext.requireTenantId(), draft);
         return state();
     }
 

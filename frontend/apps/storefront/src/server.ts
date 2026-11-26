@@ -74,6 +74,11 @@ app.use((_req, res, next) => {
 app.use(express.static(browserDistFolder, { maxAge: '1y', index: false, redirect: false }));
 
 app.use((req, res, next) => {
+  if ('podglad' in req.query) {
+    // Draft content for one merchant: never cached by a CDN/browser, never indexed.
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('X-Robots-Tag', 'noindex, nofollow');
+  }
   angularApp
     .handle(req, { clientIp: req.ip } satisfies StorefrontRequestContext)
     .then((response) => (response ? writeResponseToNodeResponse(response, res) : next()))

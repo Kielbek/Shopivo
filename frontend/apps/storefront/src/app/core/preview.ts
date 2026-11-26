@@ -23,6 +23,12 @@ export class StorePreview {
       try {
         if (fromUrl) sessionStorage.setItem(KEY, fromUrl);
         token = fromUrl ?? sessionStorage.getItem(KEY);
+        if (fromUrl) {
+          // Keep the secret out of the address bar (copied links, screenshots, history).
+          const clean = new URL(window.location.href);
+          clean.searchParams.delete('podglad');
+          history.replaceState(history.state, '', clean.pathname + clean.search + clean.hash);
+        }
       } catch {
         token = fromUrl;
       }

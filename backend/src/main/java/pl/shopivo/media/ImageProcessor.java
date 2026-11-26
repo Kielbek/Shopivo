@@ -17,7 +17,12 @@ import javax.imageio.ImageWriteParam;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import pl.shopivo.shared.error.ApiException;
 import pl.shopivo.shared.error.BusinessRuleException;
 
 /**
@@ -35,6 +40,35 @@ public class ImageProcessor {
     public static final int[] WIDTHS = {400, 1200};
 
     public record Processed(String format, int width, int height, Map<Integer, byte[]> variants) {
+    }
+
+    /**
+     * A decoded 40 MP image takes ~160 MB of heap (320 MB for 16-bit PNG). Bounding concurrent decodes keeps a burst of
+     * uploads from exhausting the JVM heap; callers that cannot get a slot in time receive 503.
+     */
+    private final Semaphore slots;
+
+    public ImageProcessor(@Value("${shopivo.media.max-concurrent-processing:2}") int maxConcurrent) {
+        this.slots = new Semaphore(Math.max(1, maxConcurrent), true);
+        ImageIO.setUseCache(false); // decode in memory, no temp files
+    }
+
+    /** {@link #process} with the concurrency bound. */
+    public Processed processLimited(byte[] data) {
+        try {
+            if (!slots.tryAcquire(30, TimeUnit.SECONDS)) {
+                throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "IMAGE_PROCESSING_BUSY",
+                        "Serwer przetwarza teraz wiele zdjęć. Spróbuj ponownie za chwilę.");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "IMAGE_PROCESSING_BUSY", "Spróbuj ponownie za chwilę.");
+        }
+        try {
+            return process(data);
+        } finally {
+            slots.release();
+        }
     }
 
     public Processed process(byte[] data) {

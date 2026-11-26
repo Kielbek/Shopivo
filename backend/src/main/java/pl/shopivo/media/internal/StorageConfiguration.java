@@ -25,7 +25,10 @@ class StorageConfiguration {
             var builder = S3Client.builder()
                     .region(Region.of("auto".equals(p.region()) ? "us-east-1" : p.region()))
                     .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(p.accessKey(), p.secretKey())))
-                    .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(p.pathStyle()).build());
+                    .serviceConfiguration(S3Configuration.builder().pathStyleAccessEnabled(p.pathStyle()).build())
+                    // Bounded: a slow or unreachable bucket must not pin request threads indefinitely.
+                    .overrideConfiguration(o -> o.apiCallTimeout(java.time.Duration.ofSeconds(30))
+                            .apiCallAttemptTimeout(java.time.Duration.ofSeconds(10)));
             if (p.endpoint() != null && !p.endpoint().isBlank()) builder.endpointOverride(URI.create(p.endpoint()));
             return new S3ObjectStorage(builder.build(), p.bucket());
         }

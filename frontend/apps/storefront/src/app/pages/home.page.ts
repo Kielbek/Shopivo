@@ -76,8 +76,8 @@ export class HomePage {
       this.seo.set({
         title: s.name, description: settings['heroSubtitle'] || `Sklep internetowy ${s.name}.`, path: '/',
         jsonLd: [{
-          '@context': 'https://schema.org', '@type': 'Organization', name: s.seller.companyName || s.name, url: this.seo.origin() + '/',
-          ...(s.seller.email ? { email: s.seller.email } : {}), ...(s.seller.taxId ? { vatID: 'PL' + s.seller.taxId } : {}),
+          '@context': 'https://schema.org', '@type': 'Organization', name: s.seller?.companyName || s.name, url: this.seo.origin() + '/',
+          ...(s.seller?.email ? { email: s.seller.email } : {}), ...(s.seller?.taxId ? { vatID: 'PL' + s.seller.taxId } : {}),
         }, { '@context': 'https://schema.org', '@type': 'WebSite', name: s.name, url: this.seo.origin() + '/',
           potentialAction: { '@type': 'SearchAction', target: this.seo.origin() + '/szukaj?q={q}', 'query-input': 'required name=q' } }],
       }, s.name);

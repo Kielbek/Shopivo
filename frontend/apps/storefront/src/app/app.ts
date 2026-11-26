@@ -104,16 +104,18 @@ import { StoreState } from './core/store-state';
                   }
                 </ul>
               </div>
+              @if (s.seller; as seller) {
               <div>
                 <p class="font-semibold">Sprzedawca</p>
                 <address class="mt-2 space-y-1 not-italic text-sf-muted">
-                  @if (s.seller.companyName) {<p>{{ s.seller.companyName }}</p>}
-                  @if (s.seller.address) {<p>{{ s.seller.address }}</p>}
-                  @if (s.seller.taxId) {<p>NIP {{ s.seller.taxId }}</p>}
-                  @if (s.seller.email) {<p><a class="hover:underline" [href]="'mailto:' + s.seller.email">{{ s.seller.email }}</a></p>}
-                  @if (s.seller.phone) {<p><a class="hover:underline" [href]="'tel:' + s.seller.phone">{{ s.seller.phone }}</a></p>}
+                  @if (seller.companyName) {<p>{{ seller.companyName }}</p>}
+                  @if (seller.address) {<p>{{ seller.address }}</p>}
+                  @if (seller.taxId) {<p>NIP {{ seller.taxId }}</p>}
+                  @if (seller.email) {<p><a class="hover:underline" [href]="'mailto:' + seller.email">{{ seller.email }}</a></p>}
+                  @if (seller.phone) {<p><a class="hover:underline" [href]="'tel:' + seller.phone">{{ seller.phone }}</a></p>}
                 </address>
               </div>
+              }
             </div>
             <div class="border-t border-sf-line py-4 text-center text-[12px] text-sf-muted">© {{ year }} {{ s.name }} · Sklep działa na platformie Shopivo</div>
           </footer>

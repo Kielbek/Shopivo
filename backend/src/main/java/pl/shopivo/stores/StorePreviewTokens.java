@@ -26,7 +26,11 @@ public class StorePreviewTokens {
     StorePreviewTokens(ShopivoProperties properties) {
         try {
             String material = properties.security() == null || properties.security().encryption() == null
-                    ? "" : String.valueOf(properties.security().encryption().keys());
+                    ? null : properties.security().encryption().keys();
+            // Never fall back to a constant key — tokens would be forgeable.
+            if (material == null || material.isBlank()) {
+                throw new IllegalStateException("shopivo.security.encryption.keys must be configured (store preview tokens)");
+            }
             this.key = MessageDigest.getInstance("SHA-256").digest(("shopivo-store-preview:" + material).getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             throw new IllegalStateException(e);

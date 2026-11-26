@@ -82,8 +82,11 @@ tabela `webhook_events` z unikalnym `(provider, event_id)`, przetwarzanie asynch
 odpowiedź 2xx dopiero po trwałym zapisie zdarzenia.
 
 ## 7. Pliki
-Limit rozmiaru, biała lista MIME na podstawie sygnatury, re-enkodowanie obrazów (usuwa EXIF/GPS i payloady),
-losowe nazwy obiektów, serwowanie z osobnej domeny CDN, `Content-Disposition` dla nie-obrazów.
+Zaimplementowane (Faza 4a): limit 10 MB, typ z sygnatury (JPEG/PNG), wymiary sprawdzane z nagłówka przed dekodowaniem
+(≤ 8000 px, ≤ 40 MP), dekodowanie bez metadanych, re-enkodowanie (serwowane są tylko warianty JPEG — bez EXIF/GPS i
+payloadów), maks. 2 równoległe dekodowania na instancję (503 przy przeciążeniu), losowe identyfikatory obiektów,
+klucze budowane wyłącznie z UUID i stałej listy wariantów, `nosniff`, limit 1200 pobrań/min/IP. Osobna domena CDN —
+Faza 6.
 
 ## 8. Zależności i CI
 Dependabot (Maven, npm, Actions), `npm audit --audit-level=high`, OWASP Dependency-Check / OSV-Scanner,
@@ -142,3 +145,29 @@ adresy i blokowania towaru zamówieniami za pobraniem (limit 10 zamówień / 10 
 Fazie 4 razem z interfejsem sklepu); sklep w stanie „Szkic” przyjmuje zamówienia przez API (blokada wraz z publikacją
 sklepu w Fazie 4); pamięć podręczna stanu subskrypcji per instancja (do 30 s opóźnienia między replikami).
 
+## 12. Przegląd Fazy 4a (2026-11-26) — ustalenia i poprawki
+
+| # | Ustalenie | Ryzyko | Poprawka | Test |
+|---|---|---|---|---|
+| 1 | Równoległe uploady sprawdzały limit 10 zdjęć i limit miejsca bez blokady | przekroczenie limitów planu, zduplikowane pozycje | blokada wiersza produktu + blokada doradcza per sklep na czas krótkiej transakcji | `StorefrontIT` (14 równoległych uploadów → dokładnie 10) |
+| 2 | Upload równoległy z usunięciem produktu mógł zostawić osierocone pliki (liczone do limitu) | wyciek miejsca, koszty | usuwanie produktu najpierw blokuje wiersz; upload po usunięciu → 404 | `CatalogIT`, `StorefrontIT` |
+| 3 | Dekodowanie i zapis do S3 wewnątrz transakcji bazy | wyczerpanie puli połączeń przy wolnym S3/dużych zdjęciach | przetwarzanie i zapis plików przed krótką transakcją; pliki usuwane, gdy transakcja się nie powiedzie | `StorefrontIT` (brak plików po odrzuceniu z limitu) |
+| 4 | Brak limitu równoległych dekodowań (do ~320 MB na obraz) | OutOfMemory przy serii uploadów | semafor (domyślnie 2, `shopivo.media.max-concurrent-processing`), 503 `IMAGE_PROCESSING_BUSY` | — |
+| 5 | Klient S3 bez limitów czasu | zawieszone wątki przy awarii magazynu | 10 s na próbę, 30 s na wywołanie | — |
+| 6 | Publiczne pobieranie zdjęć bez limitu (każdy brak = zapytanie do S3) | koszty/DoS | 1200/min/IP | — |
+| 7 | Zapis szkicu motywu: sprawdzenie wersji i zapis w dwóch krokach | utrata zmian przy dwóch edytorach | compare-and-set w jednym zapytaniu (409) | `StorefrontIT` |
+| 8 | Dane sprzedawcy (adres, telefon — często prywatne) publiczne przed publikacją sklepu | ujawnienie danych osobowych | zwracane dopiero dla opublikowanego sklepu lub w podglądzie | `StorefrontIT` |
+| 9 | Klucz tokenów podglądu z pustej konfiguracji byłby stały | fałszowanie podglądu | brak kluczy → aplikacja nie startuje | — |
+| 10 | Token podglądu zostawał w pasku adresu; strony podglądu mogły trafić do cache/indeksu | wyciek linku, indeksowanie szkicu | usuwanie z adresu (`history.replaceState`), `Cache-Control: private, no-store`, `X-Robots-Tag: noindex`, `noindex` w meta | ręcznie (curl, E2E) |
+| 11 | Wyszukiwarka: brak ucieczki `\` w LIKE i limitu długości frazy | błędne wyniki, kosztowne zapytania | ucieczka `\`, `%`, `_`; fraza ≤ 100 znaków | — |
+
+Zweryfikowane bez zmian: zapytania katalogu publicznego zawsze z `tenant_id` sklepu z nagłówka `Host` (+ RLS), tylko
+produkty `ACTIVE` i widoczne kategorie, brak dokładnych stanów magazynowych w API; wartości motywu walidowane na
+serwerze (kolory `#RRGGBB`, listy opcji, długości, bez znaków sterujących), w szablonach wyłącznie interpolacja Angulara
+(bez `innerHTML`), JSON-LD z ucieczką `<`; token podglądu HMAC przypisany do sklepu i ważny 2 h; upload zdjęcia do
+produktu innego sklepu → 404 (test).
+
+Znane, nienaprawione: CSP witryny nie ogranicza jeszcze `script-src` (wymaga nonce dla skryptów wstawianych przez Angular
+SSR — Faza 8); serwer SSR akceptuje każdy `Host` (domeny własne) — LB musi przepuszczać tylko domeny platformy i
+zweryfikowane domeny własne, a wywołania API z SSR idą wyłącznie na stały adres `SHOPIVO_API_URL` (brak SSRF przez
+`Host`); unieważnienie statusu publikacji na innych instancjach do 30 s.

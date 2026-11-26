@@ -87,13 +87,15 @@ public class PublicCatalog {
         List<Object> args = new ArrayList<>(List.of(tenant));
         if (categorySlug != null && !categorySlug.isBlank()) {
             String path = categories().stream().filter(c -> c.slug().equals(categorySlug)).findFirst()
-                    .map(c -> jdbc.queryForObject("select path from categories where id = ?", String.class, c.id()))
+                    .map(c -> jdbc.queryForObject("select path from categories where tenant_id = ? and id = ?", String.class, tenant, c.id()))
                     .orElseThrow(() -> new NotFoundException("Nie znaleziono kategorii."));
             where.append(" and exists (select 1 from product_categories pc join categories c on c.id = pc.category_id where pc.product_id = p.id and c.path like ? || '%')");
             args.add(path);
         }
         if (query != null && !query.isBlank()) {
-            String like = "%" + query.trim().toLowerCase().replace("%", "\\%").replace("_", "\\_") + "%";
+            String q = query.strip();
+            if (q.length() > 100) q = q.substring(0, 100);
+            String like = "%" + q.toLowerCase(java.util.Locale.ROOT).replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%";
             where.append(" and (lower(p.name) like ? or lower(coalesce(p.description, '')) like ?)");
             args.add(like);
             args.add(like);
