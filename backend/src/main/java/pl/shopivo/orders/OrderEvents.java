@@ -14,6 +14,10 @@ public final class OrderEvents {
     public record OrderShipped(UUID tenantId, UUID orderId) {
     }
 
+    /** The order was delivered/fulfilled (e.g. time to ask for a review). */
+    public record OrderCompleted(UUID tenantId, UUID orderId) {
+    }
+
     public record OrderCanceled(UUID tenantId, UUID orderId, boolean notifyCustomer) {
     }
 }

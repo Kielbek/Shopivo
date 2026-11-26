@@ -5,6 +5,7 @@
 <section>
   <h1 style="font-size:20px;margin:0 0 12px;" th:text="${heading}">Zamówienie</h1>
   <p th:each="line : ${lines}" th:text="${line}">Treść</p>
+  <p th:if="${actionUrl != null}" style="margin:24px 0;"><a th:href="${actionUrl}" th:text="${actionLabel}" style="display:inline-block;background:#18181b;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:6px;font-weight:600;">Przejdź</a></p>
   <table th:if="${items != null}" role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border-collapse:collapse;font-size:14px;">
     <tr th:each="item : ${items}">
       <td style="padding:8px 0;border-bottom:1px solid #EDF0F4;" th:text="${item.name}">Produkt</td>

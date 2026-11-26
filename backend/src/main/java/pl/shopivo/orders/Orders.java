@@ -198,6 +198,7 @@ public class Orders {
                 requireFrom(o, target, OrderStatus.SHIPPED);
                 jdbc.update("update orders set status = 'COMPLETED', completed_at = now(), updated_at = now(), version = version + 1 where id = ?", id);
                 event(jdbc, tenant, id, "STATUS", "Status: zrealizowane", false, actor);
+                events.publishEvent(new OrderEvents.OrderCompleted(tenant, id));
             }
             case CANCELED -> cancel(o, reason, actor, true);
             case NEW -> throw new BusinessRuleException("INVALID_TRANSITION", "Nie można przywrócić statusu „Nowe”.");

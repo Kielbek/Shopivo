@@ -13,7 +13,7 @@ app.disable('x-powered-by');
 app.set('trust proxy', process.env['SHOPIVO_TRUST_PROXY'] ?? 'loopback');
 const angularApp = new AngularNodeAppEngine();
 
-const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type', 'x-cart-token', 'x-order-token', 'x-store-preview'];
+const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type', 'x-cart-token', 'x-order-token', 'x-review-token', 'x-store-preview'];
 const FORWARDED_RESPONSE_HEADERS = ['content-type', 'cache-control', 'vary', 'retry-after'];
 
 /** Proxies one request to the backend with the visitor's host and IP (the backend resolves the store from the host). */

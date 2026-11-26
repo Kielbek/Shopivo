@@ -24,6 +24,10 @@ import pl.shopivo.catalog.PublicCatalog;
 import pl.shopivo.content.ContentKind;
 import pl.shopivo.content.PublicContent;
 import pl.shopivo.content.Redirects;
+import pl.shopivo.reviews.Reviews;
+import pl.shopivo.shared.ratelimit.RateLimiter;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import pl.shopivo.shared.error.NotFoundException;
 import pl.shopivo.shared.tenancy.TenantContext;
 import pl.shopivo.shared.web.PageResponse;
@@ -45,10 +49,13 @@ class StorefrontController {
     private final PublicCatalog catalog;
     private final PublicContent content;
     private final Redirects redirects;
+    private final Reviews reviews;
+    private final RateLimiter rateLimiter;
     private final TransactionTemplate tx;
     private final String urlTemplate;
 
-    StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, PublicContent content, Redirects redirects, TransactionTemplate tx,
+    StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, PublicContent content, Redirects redirects, Reviews reviews,
+            RateLimiter rateLimiter, TransactionTemplate tx,
             @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate) {
         this.storefront = storefront;
         this.stores = stores;
@@ -56,6 +63,8 @@ class StorefrontController {
         this.catalog = catalog;
         this.content = content;
         this.redirects = redirects;
+        this.reviews = reviews;
+        this.rateLimiter = rateLimiter;
         this.tx = tx;
         this.urlTemplate = urlTemplate;
     }
@@ -113,6 +122,42 @@ class StorefrontController {
         UUID tenant = storefront.resolvePublished(request);
         if (slug.length() > 220) throw new NotFoundException();
         return cached(inTenant(tenant, () -> catalog.product(slug)), storefront.isPreview(request, tenant));
+    }
+
+    record ProductReviews(Reviews.Summary summary, PageResponse<Reviews.PublicReview> reviews) {
+    }
+
+    /** Approved reviews of a product (verified buyers only) with the rating summary. */
+    @GetMapping("/products/{slug}/reviews")
+    ResponseEntity<ProductReviews> productReviews(HttpServletRequest request, @PathVariable String slug,
+            @RequestParam(defaultValue = "0") int page) {
+        UUID tenant = storefront.resolvePublished(request);
+        if (slug.length() > 220) throw new NotFoundException();
+        return cached(inTenant(tenant, () -> {
+            UUID productId = catalog.product(slug).id();
+            return new ProductReviews(reviews.summary(productId),
+                    PageResponse.of(reviews.approved(productId, PageRequest.of(Math.clamp(page, 0, 500), 10)), r -> r));
+        }), storefront.isPreview(request, tenant));
+    }
+
+    /** Products of the order behind a review invitation link (X-Review-Token). */
+    @GetMapping("/review-invitation")
+    ResponseEntity<Reviews.Invitation> reviewInvitation(HttpServletRequest request) {
+        UUID tenant = storefront.resolvePublished(request);
+        rateLimiter.consume("review-link:" + request.getRemoteAddr(), 60, Duration.ofMinutes(10));
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore())
+                .body(inTenant(tenant, () -> reviews.invitation(request.getHeader("X-Review-Token"))));
+    }
+
+    @PostMapping("/reviews")
+    ResponseEntity<Void> submitReview(HttpServletRequest request, @RequestBody Reviews.ReviewInput input) {
+        UUID tenant = storefront.resolvePublished(request);
+        rateLimiter.consume("review-submit:" + request.getRemoteAddr(), 20, Duration.ofMinutes(10));
+        inTenant(tenant, () -> {
+            reviews.submit(request.getHeader("X-Review-Token"), input);
+            return null;
+        });
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).cacheControl(CacheControl.noStore()).build();
     }
 
     @GetMapping("/pages/{slug}")
