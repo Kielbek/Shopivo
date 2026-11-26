@@ -2,6 +2,7 @@ package pl.shopivo.content.internal;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import pl.shopivo.content.LegalKey;
 import pl.shopivo.stores.StoreSettingsView;
@@ -17,9 +18,11 @@ import pl.shopivo.stores.Stores;
 public class LegalTemplates {
 
     private final Stores stores;
+    private final String urlTemplate;
 
-    LegalTemplates(Stores stores) {
+    LegalTemplates(Stores stores, @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate) {
         this.stores = stores;
+        this.urlTemplate = urlTemplate;
     }
 
     public String render(LegalKey key) {
@@ -32,7 +35,7 @@ public class LegalTemplates {
                         .filter(x -> x != null && !x.isBlank()).collect(Collectors.joining(", ")), "adres firmy"),
                 or(s.orderEmail() != null ? s.orderEmail() : store.contactEmail(), "adres e-mail"),
                 s.phone() == null || s.phone().isBlank() ? null : s.phone(),
-                "https://" + store.primaryHostname(),
+                urlTemplate.replace("{host}", store.primaryHostname()),
                 store.name());
         return switch (key) {
             case TERMS -> terms(d);

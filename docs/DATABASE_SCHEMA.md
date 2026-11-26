@@ -168,13 +168,22 @@ Blokady zadań cyklicznych.
 | `store_themes` | Klucz `tenant_id`; `draft_json`, `published_json` (walidowane przez `ThemeRegistry`), `published_at`, `version` (optymistyczna blokada) |
 | indeksy V6 | `orders_unpaid_transfer_idx` (częściowy, auto-anulowanie), `carts_updated_idx` (czyszczenie koszyków) |
 
+## 5b. Tabele — Faza 4b (migracja V8; z RLS)
+
+| Tabela / zmiana | Opis |
+|---|---|
+| `content_entries` | Strony (`PAGE`) i wpisy (`POST`): `slug` unikalny w rodzaju, `system_key` (`TERMS`, `PRIVACY`, `RETURNS`, `SHIPPING` — najwyżej jeden każdego), treść ≤ 100 000 znaków (podzbiór Markdown), `status`, `show_in_footer`, SEO, `published_revision`, `version` |
+| `content_revisions` | Niezmienne kopie każdej opublikowanej wersji (`REVOKE UPDATE` dla roli aplikacji) |
+| `seo_redirects` | `from_path` → `to_path` (oba zaczynają się od `/`, różne), `automatic`; łańcuchy spłaszczane przy zapisie |
+| `orders.terms_revision_id` | Wersja regulaminu zaakceptowana przy zamówieniu |
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |
 |---|---|
 | 2 (pozostałe) | `billing_invoices` (faktury VAT/KSeF — Q-06), `tenant_billing_profiles` (dane do faktury) |
 | 3 (pozostałe) | `returns`, `complaints`, `discounts`, `discount_usage`, `wishlists` |
-| 4b | `pages`, `blog_posts`, `navigation_menus`, `seo_redirects`, `reviews`, konta klientów (`customer_accounts`, `customer_addresses`) |
+| 4c | `reviews`, konta klientów (`customer_accounts`, `customer_addresses`), `navigation_menus` |
 | 5 | `integrations`, `integration_credentials` (szyfrowane), `payments`, `payment_transactions`, `refunds`, `shipments`, `shipment_events`, `shipping_methods`, `shipping_zones` |
 | 6 | rozszerzenia `store_domains`, `domain_checks` |
 | 7 | `newsletter_subscribers`, `abandoned_carts`, `marketing_settings`, `analytics_daily` (agregaty), `ai_usage`, `ai_jobs` |

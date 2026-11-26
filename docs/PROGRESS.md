@@ -1,15 +1,15 @@
 # Shopivo — postęp prac
 
-Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a** (z ograniczeniami opisanymi niżej). W toku: Faza 4b.
+Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a**, **Faza 4b** (z ograniczeniami opisanymi niżej). Następna: Faza 4c.
 
 ## Wyniki testów (rzeczywiście uruchomione)
 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
-| Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 27/27 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 62/62 ✔ |
+| Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 31/31 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 64/64 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
-| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 48/48 ✔ (panel 40, admin 3, witryna 5) |
+| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 51/51 ✔ (panel 40, admin 3, witryna 8) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
 | `npm audit --omit=dev --audit-level=high` | | 0 podatności |
 | Ręczny przepływ E2E w Chromium (Playwright, skrypt poza repo) na pełnym stosie lokalnym | rejestracja → e-mail (Mailpit) → weryfikacja → logowanie → sklep → dane firmy (walidacja NIP) → zaproszenie → MFA (QR) → panel admina → blokada sprzedawcy w panelu admina | ✔ |
@@ -38,6 +38,19 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   zamiast motywu; krój pisma motywu nie był stosowany; nieistniejący produkt zwracał 200 zamiast 404 (odczyt zasobu w
   stanie błędu przerywał SSR); adresy w sitemap/robots budowane z wewnętrznego żądania (zły schemat/port) — teraz z
   `shopivo.storefront-url-template`.
+
+| Ręczny przepływ E2E Fazy 4b (Playwright, poza repo) | panel: regulamin i polityka ze wzoru (ostrzeżenie, uzupełnienie, podgląd, publikacja) → wpis na blogu → przekierowanie → publikacja sklepu; klient: stopka → regulamin, blog → wpis, link do regulaminu w checkoucie, zamówienie; panel: podgląd wersji regulaminu zaakceptowanej w zamówieniu; `curl`: 301 ze starego adresu, 404 bez przekierowania, tytuł/opis SSR, JSON-LD `BlogPosting`; mobile bez poziomego przewijania, 0 błędów konsoli | ✔ |
+
+## Faza 4b — strony, blog, dokumenty prawne, przekierowania (2026-11-26)
+
+- **Strony i blog** (moduł `content`): strony informacyjne i wpisy, szkic/publikacja, podgląd w sklepie, SEO, link w
+  stopce; treść w bezpiecznym podzbiorze Markdown (podgląd w panelu = renderowanie w sklepie).
+- **Dokumenty prawne**: wzory regulaminu, polityki prywatności, zwrotów (z wzorem formularza odstąpienia) i dostawy
+  wypełniane danymi firmy; wymagane do publikacji sklepu (bez znaczników „[uzupełnij…]”); niezmienne wersje; zamówienie
+  zapisuje wersję zaakceptowanego regulaminu, widoczną w szczegółach zamówienia; linki w stopce i przy checkboxie.
+- **Przekierowania 301**: ręczne w panelu i automatyczne po zmianie adresu produktu, kategorii, strony, wpisu;
+  obsługa w serwerze SSR po 404.
+- **Zdjęcia**: orientacja EXIF (zdjęcia z telefonu zapisywane prosto).
 
 ## Przegląd Fazy 4a (2026-11-26) — naprawione
 Wyścigi przy uploadzie zdjęć (limit zdjęć, limit miejsca, osierocone pliki przy równoległym usunięciu produktu),
@@ -159,10 +172,12 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - **Faza 2:** limity produktów, plików i AI są zdefiniowane, ale egzekwowane będą wraz z tymi modułami (Fazy 3–7);
   licznik zamówień ruszy z modułem zamówień.
 - **Faza 3:** brak importu CSV, rabatów, zwrotów/reklamacji i kont klientów (zaplanowane w kolejnych fazach).
-- **Faza 4a:** brak treści regulaminu i polityki prywatności w witrynie — checkbox w checkoucie nie linkuje jeszcze do
-  regulaminu (strony CMS w Fazie 4b; treści wymagają prawnika, Q-08). **Nie publikować prawdziwych sklepów przed 4b.**
-- **Faza 4a:** brak kont klientów, opinii, stron CMS/bloga, przekierowań SEO i CAPTCHA w checkoucie (limit 10/10 min/IP).
-- **Faza 4a:** zdjęcia: orientacja EXIF nie jest uwzględniana (zdjęcia z telefonu mogą być obrócone), brak WebP/AVIF,
+- **Faza 4b:** wzory dokumentów prawnych to punkt wyjścia, nie porada prawna — przed udostępnieniem sprzedawcom
+  produkcyjnym powinien je przejrzeć prawnik (Q-08). Panel wyraźnie to komunikuje.
+- **Faza 4b:** brak kont klientów, opinii o produktach, CAPTCHA w checkoucie (limit 10/10 min/IP), menu nawigacji
+  definiowanego przez sprzedawcę, zdjęć we wpisach bloga.
+- **Faza 4b:** przekierowanie działa przy wejściu z zewnątrz (SSR); nawigacja wewnątrz aplikacji na stary adres pokaże 404.
+- **Faza 4a:** zdjęcia: brak WebP/AVIF,
   przetwarzanie synchroniczne; pliki serwowane przez backend (CDN — Faza 6). Adapter S3 sprawdzony na emulatorze (moto),
   nie na prawdziwym R2/S3.
 - **Faza 4a:** JSON-LD `Organization` jest tylko na stronie głównej; motywy różnią się ustawieniami, nie strukturą sekcji (ADR-016).
@@ -180,7 +195,6 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - Obrazy Docker Hub bywały limitowane (429) w środowisku deweloperskim — w CI nie jest to problem.
 
 ## Następny krok
-**Faza 4b**: konta klientów (rejestracja, logowanie, historia zamówień, adresy), strony CMS (regulamin, polityka
-prywatności, zwroty — podlinkowane w checkoucie i stopce), blog, opinie produktów, przekierowania 301, CAPTCHA w
-checkoucie, orientacja EXIF. Przed produkcją nadal: Q-06 (faktury/KSeF), test adapterów na sandboxach operatorów,
-cennik (Q-05), treści prawne (Q-08).
+**Faza 4c**: konta klientów (rejestracja, logowanie, historia zamówień, adresy), opinie o produktach (tylko po zakupie,
+moderacja, oznaczenie zweryfikowanych — wymóg Omnibus), CAPTCHA w checkoucie, menu nawigacji. Przed produkcją nadal:
+Q-06 (faktury/KSeF), test adapterów na sandboxach operatorów, cennik (Q-05), przegląd prawny wzorów (Q-08).

@@ -46,6 +46,21 @@ async function proxy(req: express.Request, res: express.Response, next: express.
   }
 }
 
+/** Asks the backend for a redirect of the request path; only store-relative targets are ever followed. */
+async function redirectFor(req: express.Request): Promise<string | null> {
+  try {
+    const upstream = await fetch(`${apiOrigin}/api/v1/storefront/redirect?path=${encodeURIComponent(req.path)}`, {
+      headers: { 'x-forwarded-host': req.hostname, 'x-forwarded-proto': req.protocol, 'x-forwarded-for': req.ip ?? '' },
+      signal: AbortSignal.timeout(3_000),
+    });
+    if (upstream.status !== 200) return null;
+    const { location } = (await upstream.json()) as { location?: string };
+    return typeof location === 'string' && /^\/(?!\/)/.test(location) && !location.includes('\\') ? location : null;
+  } catch {
+    return null;
+  }
+}
+
 // Storefront API (cart and checkout included). Bodies are small JSON documents — anything larger is refused here.
 app.all('/api/v1/storefront/{*path}', express.raw({ type: () => true, limit: '64kb' }), (req, res, next) => {
   if (!['GET', 'POST', 'PATCH'].includes(req.method)) {
@@ -81,7 +96,15 @@ app.use((req, res, next) => {
   }
   angularApp
     .handle(req, { clientIp: req.ip } satisfies StorefrontRequestContext)
-    .then((response) => (response ? writeResponseToNodeResponse(response, res) : next()))
+    .then(async (response) => {
+      if (!response) return next();
+      // Only after a miss: a configured (or automatic, after a URL change) 301 for this path.
+      if (response.status === 404 && req.method === 'GET') {
+        const location = await redirectFor(req);
+        if (location) return res.redirect(301, location);
+      }
+      return writeResponseToNodeResponse(response, res);
+    })
     .catch(next);
 });
 

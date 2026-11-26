@@ -56,7 +56,8 @@ import { StoreContext } from '../store/store-context';
               <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'ustawienia']">Dane firmy</a> ·
               <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'produkty']">Produkty</a> ·
               <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'wysylka']">Wysyłka</a> ·
-              <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'platnosci']">Płatności</a>
+              <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'platnosci']">Płatności</a> ·
+              <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'tresci']">Strony i blog</a>
             </p>
           }
         }

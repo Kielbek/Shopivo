@@ -101,7 +101,11 @@ export const ORDER_TOKEN_KEY = 'shopivo.lastOrder';
             </dl>
             <div class="mt-5 space-y-3 text-[13px]">
               <label class="flex items-start gap-2.5"><input type="checkbox" class="sf-check mt-0.5" name="terms" [(ngModel)]="f.terms" [attr.aria-invalid]="invalid('terms')" />
-                <span>Akceptuję regulamin sklepu i zapoznałem(-am) się z informacją o prawie odstąpienia od umowy.</span></label>
+                <span>Akceptuję
+                  @if (legal('TERMS'); as t) {<a class="sf-link" [href]="t" target="_blank" rel="noopener">regulamin sklepu</a>} @else {regulamin sklepu}
+                  i zapoznałem(-am) się z informacją o prawie odstąpienia od umowy.
+                  @if (legal('PRIVACY'); as p) {Dane przetwarzamy zgodnie z <a class="sf-link" [href]="p" target="_blank" rel="noopener">polityką prywatności</a>.}
+                </span></label>
               <label class="flex items-start gap-2.5"><input type="checkbox" class="sf-check mt-0.5" name="mkt" [(ngModel)]="f.marketing" />
                 <span>Chcę otrzymywać informacje o nowościach i promocjach e-mailem (zgodę możesz wycofać w każdej chwili).</span></label>
             </div>
@@ -120,6 +124,10 @@ export class CheckoutPage {
   private readonly store = inject(StoreState);
   private readonly router = inject(Router);
   protected readonly options = rxResource({ stream: () => this.api.checkoutOptions() });
+  /** Links to the store's published legal documents (opened in a new tab so the form is not lost). */
+  protected legal(key: 'TERMS' | 'PRIVACY'): string | null {
+    return this.store.store()?.footerLinks.find((l) => l.systemKey === key)?.path ?? null;
+  }
   protected readonly opts = computed(() => (this.options.hasValue() ? this.options.value() : undefined));
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);

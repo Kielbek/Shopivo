@@ -8,7 +8,15 @@ export interface PublicCategory { id: string; parentId: string | null; name: str
 export interface PublicStore {
   name: string; status: 'DRAFT' | 'PUBLISHED' | 'SUSPENDED'; open: boolean; preview: boolean; locale: string; currency: string;
   hostname: string; theme: ThemeConfig; seller: Seller | null; categories: PublicCategory[];
+  footerLinks: FooterLink[]; blog: boolean;
 }
+export type LegalKey = 'TERMS' | 'PRIVACY' | 'RETURNS' | 'SHIPPING';
+export interface FooterLink { title: string; path: string; systemKey: LegalKey | null; }
+export interface PublicEntry {
+  kind: 'PAGE' | 'POST'; systemKey: LegalKey | null; slug: string; title: string; excerpt: string | null; body: string;
+  seoTitle: string | null; seoDescription: string | null; publishedAt: string | null; updatedAt: string; draft: boolean;
+}
+export interface PostCard { slug: string; title: string; excerpt: string | null; publishedAt: string; }
 export interface ProductCard {
   id: string; slug: string; name: string; brand: string | null; priceMinor: number; maxPriceMinor: number; compareAtMinor: number | null;
   lowestPrice30dMinor: number | null; currency: string; available: boolean; imageUrl: string | null; imageAlt: string | null;
@@ -66,6 +74,18 @@ export class StorefrontApi {
 
   product(slug: string): Observable<PublicProduct> {
     return this.http.get<PublicProduct>(`${this.base}/products/${encodeURIComponent(slug)}`);
+  }
+
+  page(slug: string): Observable<PublicEntry> {
+    return this.http.get<PublicEntry>(`${this.base}/pages/${encodeURIComponent(slug)}`);
+  }
+
+  posts(page: number): Observable<Page<PostCard>> {
+    return this.http.get<Page<PostCard>>(`${this.base}/posts`, { params: new HttpParams().set('page', page).set('size', 12) });
+  }
+
+  post(slug: string): Observable<PublicEntry> {
+    return this.http.get<PublicEntry>(`${this.base}/posts/${encodeURIComponent(slug)}`);
   }
 
   createCart(): Observable<{ token: string; cart: Cart }> {

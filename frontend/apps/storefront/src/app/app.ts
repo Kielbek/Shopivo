@@ -58,6 +58,7 @@ import { StoreState } from './core/store-state';
                 @for (c of store.topCategories().slice(0, 6); track c.id) {
                   <a [routerLink]="['/kategoria', c.slug]" class="text-[14px] font-medium hover:underline">{{ c.name }}</a>
                 }
+                @if (s.blog) {<a routerLink="/blog" class="text-[14px] font-medium hover:underline">Blog</a>}
               </nav>
               <form class="ml-auto hidden md:block" role="search" (ngSubmit)="search()">
                 <label class="sr-only" for="sf-search">Szukaj produktów</label>
@@ -82,6 +83,7 @@ import { StoreState } from './core/store-state';
                     @for (c of store.topCategories(); track c.id) {
                       <a [routerLink]="['/kategoria', c.slug]" class="py-2.5 font-medium">{{ c.name }}</a>
                     }
+                    @if (s.blog) {<a routerLink="/blog" class="py-2.5 font-medium">Blog</a>}
                   </nav>
                 </div>
               </div>
@@ -92,7 +94,7 @@ import { StoreState } from './core/store-state';
 
           <footer class="mt-16 border-t border-sf-line bg-sf-surface">
             <div class="sf-container grid gap-8 py-10 text-[14px] sm:grid-cols-2 lg:grid-cols-4">
-              <div class="lg:col-span-2">
+              <div>
                 <p class="text-[17px] font-semibold">{{ s.name }}</p>
                 @if (store.settings()['footerNote']) {<p class="mt-2 max-w-md text-sf-muted">{{ store.settings()['footerNote'] }}</p>}
               </div>
@@ -104,6 +106,15 @@ import { StoreState } from './core/store-state';
                   }
                 </ul>
               </div>
+              @if (s.footerLinks.length || s.blog) {
+                <div>
+                  <p class="font-semibold">Informacje</p>
+                  <ul class="mt-2 space-y-1.5 text-sf-muted">
+                    @for (l of s.footerLinks; track l.path) {<li><a [routerLink]="l.path" class="hover:underline">{{ l.title }}</a></li>}
+                    @if (s.blog) {<li><a routerLink="/blog" class="hover:underline">Blog</a></li>}
+                  </ul>
+                </div>
+              }
               @if (s.seller; as seller) {
               <div>
                 <p class="font-semibold">Sprzedawca</p>

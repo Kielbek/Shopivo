@@ -3,8 +3,8 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LucideDynamicIcon } from '@lucide/angular';
-import { ApiError, OrdersApi } from '@shopivo/api-client';
-import { ORDER_STATUS_LABELS, Order, OrderAddress, OrderStatus, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from '@shopivo/shared-models';
+import { ApiError, ContentApi, OrdersApi } from '@shopivo/api-client';
+import { ContentRevision, ORDER_STATUS_LABELS, Order, OrderAddress, OrderStatus, PAYMENT_METHOD_LABELS, PAYMENT_STATUS_LABELS } from '@shopivo/shared-models';
 import {
   AlertComponent, BadgeComponent, ButtonComponent, CardComponent, DatePipe, DialogComponent, FieldComponent, LoadingComponent,
   MoneyPipe, ToastService, icons,
@@ -12,13 +12,14 @@ import {
 import { Observable, firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 import { ORDER_TONE, PAYMENT_TONE } from './order-tones';
+import { RichPreviewComponent } from '../content/rich-preview';
 
 type Pending = { kind: 'ship' } | { kind: 'cancel' } | null;
 
 @Component({
   selector: 'sv-order-detail-page',
   imports: [FormsModule, RouterLink, LucideDynamicIcon, CardComponent, BadgeComponent, ButtonComponent, AlertComponent, FieldComponent,
-    LoadingComponent, DialogComponent, DatePipe, MoneyPipe],
+    LoadingComponent, DialogComponent, DatePipe, MoneyPipe, RichPreviewComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (order.isLoading() && !order.value()) {
@@ -131,6 +132,11 @@ type Pending = { kind: 'ship' } | { kind: 'cancel' } | null;
             @if (o.customerNote) {
               <div class="mt-3 rounded-[8px] bg-canvas px-3 py-2 text-[13px]"><p class="text-[12px] font-medium text-ink-muted">Uwagi klienta</p>{{ o.customerNote }}</div>
             }
+            @if (o.termsAcceptedAt) {
+              <p class="mt-3 text-[12px] text-ink-muted">Regulamin zaakceptowany {{ o.termsAcceptedAt | svDate }}
+                @if (o.termsRevisionId) {· <button type="button" class="sv-link" (click)="showTerms(o.termsRevisionId)">pokaż tę wersję</button>}
+              </p>
+            }
           </sv-card>
           @if (o.shippingAddress; as a) {
             <sv-card heading="Dostawa">
@@ -176,6 +182,14 @@ type Pending = { kind: 'ship' } | { kind: 'cancel' } | null;
           }
         </ng-container>
       </sv-dialog>
+
+      <sv-dialog heading="Regulamin zaakceptowany przez klienta" [open]="!!terms()" (closed)="terms.set(null)">
+        @if (terms(); as r) {
+          <p class="text-[12px] text-ink-muted">{{ r.title }} · wersja opublikowana {{ r.publishedAt | svDate }}</p>
+          <div class="mt-3 max-h-[60vh] overflow-y-auto rounded-[8px] border border-line p-4"><sv-rich-preview [source]="r.body" /></div>
+        }
+        <ng-container dialog-actions><button sv-button variant="secondary" type="button" (click)="terms.set(null)">Zamknij</button></ng-container>
+      </sv-dialog>
     }
   `,
 })
@@ -190,6 +204,16 @@ export class OrderDetailPage {
   protected readonly orderTone = ORDER_TONE;
   protected readonly paymentTone = PAYMENT_TONE;
   protected readonly canWrite = this.ctx.can('ORDERS_WRITE');
+  private readonly content = inject(ContentApi);
+  protected readonly terms = signal<ContentRevision | null>(null);
+
+  protected async showTerms(revisionId: string): Promise<void> {
+    try {
+      this.terms.set(await firstValueFrom(this.content.revision(this.t(), revisionId)));
+    } catch (e) {
+      this.toast.error(ApiError.from(e).message);
+    }
+  }
 
   readonly orderId = input.required<string>();
   protected readonly t = computed(() => this.ctx.tenantId());

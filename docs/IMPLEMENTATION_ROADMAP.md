@@ -66,10 +66,10 @@ Infrastruktura
 - [x] Silnik motywów: rejestr pól i presetów (ADR-016), szkic/publikacja, podgląd tokenem (4a)
 - [x] 8 motywów: Fashion, Beauty, Electronics, Toys, Home, Sports, Automotive, Jewelry (4a)
 - [x] Publikacja sklepu z listą braków (4a)
-- [x] Strony: główna, katalog, kategoria, wyszukiwarka, produkt, koszyk, checkout, potwierdzenie (4a) · [ ] konto klienta, CMS (regulamin!), blog (4b)
-- [x] SEO: meta, canonical, sitemap per sklep, robots.txt, JSON-LD (Product, Breadcrumb, Organization), OG (4a) · [ ] przekierowania (4b)
-- [x] Media: upload S3, warianty obrazów, limity (4a) · [ ] CDN (Faza 6), WebP/AVIF, EXIF
-- [ ] Opinie produktów, CAPTCHA w checkoucie (4b)
+- [x] Strony: główna, katalog, kategoria, wyszukiwarka, produkt, koszyk, checkout, potwierdzenie (4a) · [x] strony CMS z dokumentami prawnymi, blog (4b) · [ ] konto klienta (4c)
+- [x] SEO: meta, canonical, sitemap per sklep, robots.txt, JSON-LD (Product, Breadcrumb, Organization), OG (4a) · [x] przekierowania 301 (4b)
+- [x] Media: upload S3, warianty obrazów, limity (4a) · [x] EXIF (4b) · [ ] CDN (Faza 6), WebP/AVIF
+- [ ] Opinie produktów, CAPTCHA w checkoucie, konta klientów (4c)
 
 ## Faza 5 — płatności i wysyłka sprzedawców
 - [ ] Szyfrowane poświadczenia, test połączenia, statusy integracji

@@ -9,3 +9,4 @@ export * from './orders-api';
 export * from './storefront-admin-api';
 export * from './session-store';
 export * from './guards';
+export * from './content-api';

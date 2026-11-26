@@ -367,7 +367,7 @@ export interface Order {
   shippingAddress: OrderAddress | null; billing: OrderBilling | null; shippingMethodName: string | null; shippingMinor: number;
   paymentFeeMinor: number; subtotalMinor: number; discountMinor: number; totalMinor: number; taxMinor: number; currency: string;
   customerNote: string | null; trackingNumber: string | null; items: OrderItem[]; events: OrderEvent[]; paidAt: string | null;
-  shippedAt: string | null; completedAt: string | null; canceledAt: string | null; cancelReason: string | null; createdAt: string; version: number;
+  shippedAt: string | null; completedAt: string | null; canceledAt: string | null; cancelReason: string | null; termsAcceptedAt: string | null; termsRevisionId: string | null; createdAt: string; version: number;
 }
 export interface OrderRow {
   id: string; number: number; status: OrderStatus; paymentStatus: OrderPaymentStatus; paymentMethod: OrderPaymentMethod;
@@ -395,3 +395,23 @@ export interface ThemeState { draft: ThemeConfig; published: ThemeConfig | null;
 export interface ThemeResponse { presets: ThemePreset[]; fields: ThemeField[]; state: ThemeState; }
 export interface PublishReadiness { ready: boolean; missing: string[]; }
 export interface ProductImage { id: string; alt: string | null; width: number; height: number; position: number; urls: Record<string, string>; }
+
+// ------------------------------------------------------------------------------------------------ content (pages, blog, redirects)
+export type ContentKind = 'PAGE' | 'POST';
+export type ContentStatus = 'DRAFT' | 'PUBLISHED';
+export type LegalKey = 'TERMS' | 'PRIVACY' | 'RETURNS' | 'SHIPPING';
+export interface ContentSummary {
+  id: string; kind: ContentKind; systemKey: LegalKey | null; slug: string; path: string; title: string; status: ContentStatus;
+  showInFooter: boolean; publishedAt: string | null; updatedAt: string;
+}
+export interface ContentEntry extends ContentSummary {
+  excerpt: string | null; body: string; seoTitle: string | null; seoDescription: string | null; publishedRevision: number; version: number;
+}
+export interface ContentInput {
+  kind: ContentKind; title: string; slug: string | null; excerpt: string | null; body: string; status: ContentStatus; showInFooter: boolean;
+  seoTitle: string | null; seoDescription: string | null; version: number;
+}
+export interface LegalStatus { key: LegalKey; title: string; requiredForPublish: boolean; entry: ContentSummary | null; }
+export interface Redirect { id: string; fromPath: string; toPath: string; automatic: boolean; createdAt: string; }
+export interface ContentRevision { title: string; body: string; publishedAt: string; }
+export * from './rich-text';

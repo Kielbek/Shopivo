@@ -174,6 +174,15 @@ szkicu przez krótkotrwały token HMAC (`X-Store-Preview`, 2 h) — odpowiedzi p
 wyłącznie systemowe (bez zewnętrznych serwerów czcionek: szybkość, RODO). Nowe układy sekcji można dodać w
 przyszłości jako kolejne pola rejestru bez zmiany kontraktu API.
 
+### ADR-018: Treści i dokumenty prawne (Faza 4b)
+Treść stron to mały podzbiór Markdown parsowany do danych (`libs/shared-models/rich-text.ts`, wspólny dla witryny i
+podglądu w panelu) i renderowany wiązaniami Angulara — bez `innerHTML`, linki tylko `https:`/`mailto:`/`tel:`/względne.
+Regulamin i polityka prywatności są wymagane do publikacji sklepu; wzory wypełniane danymi firmy powstają jako szkic z
+widocznymi znacznikami „[uzupełnij…]” (blokują publikację sklepu). Każda publikacja zmienionego tekstu tworzy niezmienną
+wersję, a zamówienie zapisuje wersję regulaminu zaakceptowaną przez klienta. Przekierowania 301: zmiana adresu
+opublikowanego produktu, kategorii, strony lub wpisu dodaje je automatycznie; serwer SSR pyta o przekierowanie tylko po
+404 i przyjmuje wyłącznie cele względne (bez otwartych przekierowań).
+
 ### ADR-017: Publikacja sklepu (Faza 4a)
 Sklep startuje jako szkic. Publikacja wymaga kompletu danych sprzedawcy wymaganych przy sprzedaży na odległość (firma,
 NIP, adres, e-mail), aktywnego produktu, sposobu dostawy i metody płatności — moduły zgłaszają braki przez SPI
@@ -202,7 +211,7 @@ produkty lub zamówienia (SPI `CurrencyChangeGuard`).
 | `media` | Pliki (S3/lokalnie), przetwarzanie zdjęć, limity miejsca (SPI `MediaQuotaPolicy`) | — |
 | `themes` | Rejestr pól i presetów, szkic/publikacja motywu | — |
 | `storefront` | Publiczne API witryny (BFF): konfiguracja sklepu, katalog, sitemap, robots | stores, themes, catalog |
-| `content`, `seo` | CMS/blog, przekierowania (Faza 4b) | — |
+| `content` | Strony, blog, dokumenty prawne (wzory, wersje), przekierowania 301 (SPI `StorePublishCheck`) | stores |
 | `notifications`, `email` | Powiadomienia, szablony, wysyłka | — |
 | `analytics`, `ai`, `support`, `admin`, `audit` | Statystyki, AI, zgłoszenia, panel admina, dziennik audytu | — |
 

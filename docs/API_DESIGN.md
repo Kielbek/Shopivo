@@ -204,12 +204,33 @@ Nagłówek `X-Store-Preview: <token>` (HMAC, ważny 2 h, przypisany do sklepu) p
 ### Pliki `/api/v1/media/{tenantId}/{imageId}/{w400|w1200}.jpg`
 Publiczne, `Cache-Control: max-age=31536000, immutable`, `X-Content-Type-Options: nosniff`.
 
-## 8. Kolejne fazy (zarys)
-- `/api/v1/storefront/account|pages|blog|reviews` (Faza 4b)
+## 8. Faza 4b — strony, blog, przekierowania (zaimplementowane)
+
+### Panel `/api/v1/tenants/{tenantId}`
+| Metoda | Ścieżka | Uprawnienie | Opis |
+|---|---|---|---|
+| GET | `/content?kind=PAGE\|POST&q&page&size` | `STORE_READ` | Lista stron lub wpisów |
+| GET | `/content/legal` | `STORE_READ` | Stan dokumentów prawnych (regulamin, polityka prywatności, zwroty, dostawa) |
+| POST | `/content/legal/{TERMS\|PRIVACY\|RETURNS\|SHIPPING}` | `CONTENT_WRITE` | Utworzenie dokumentu ze wzoru (szkic, dane firmy wstawione; 409 gdy istnieje) |
+| GET/POST/PUT/DELETE | `/content[/{id}]` | odczyt `STORE_READ`, zmiany `CONTENT_WRITE` | `status: PUBLISHED` publikuje i tworzy wersję (gdy tekst się zmienił); `version` → 409; regulaminu/polityki nie można wycofać ani usunąć w opublikowanym sklepie (422 `LEGAL_PAGE_REQUIRED`) |
+| GET | `/content/revisions/{id}` | `ORDERS_READ` lub `CONTENT_WRITE` | Tekst opublikowanej wersji (np. regulamin zaakceptowany przy zamówieniu — `termsRevisionId` w zamówieniu) |
+| GET/POST/DELETE | `/redirects[/{id}]` | odczyt `STORE_READ`, zmiany `SEO_WRITE` | Przekierowania 301 (tylko ścieżki w sklepie; pełny URL skracany do ścieżki) |
+
+### Witryna `/api/v1/storefront`
+| Metoda | Ścieżka | Opis |
+|---|---|---|
+| GET | `/pages/{slug}`, `/posts/{slug}` | Opublikowane (szkic tylko z `X-Store-Preview`) |
+| GET | `/posts?page&size≤48` | Lista wpisów |
+| GET | `/redirect?path=` | Cel przekierowania (`{location}`) lub 404 — wywoływane przez serwer SSR tylko po 404 |
+
+`/store` zwraca też `footerLinks` (dokumenty prawne + strony oznaczone do stopki) i `blog`; sitemap obejmuje strony i wpisy.
+
+## 9. Kolejne fazy (zarys)
+- `/api/v1/storefront/account|reviews` (konta klientów, opinie)
 - `/api/v1/webhooks/payments/{provider}/{tenantId}`,
   `/api/v1/webhooks/shipping/{provider}/{tenantId}` (Fazy 2, 5)
 
-## 9. Limity zapytań
+## 10. Limity zapytań
 Redis, okno stałe per klucz:
 | Zakres | Klucz | Limit |
 |---|---|---|
