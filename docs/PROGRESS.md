@@ -9,7 +9,7 @@ Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 49/49 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
 | Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 75/75 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
-| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 70/70 ✔ (panel 56, admin 3, witryna 11) |
+| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 74/74 ✔ (panel 60, admin 3, witryna 11) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
 | `npm audit --omit=dev --audit-level=high` | | 0 podatności |
 | Ręczny przepływ E2E w Chromium (Playwright, skrypt poza repo) na pełnym stosie lokalnym | rejestracja → e-mail (Mailpit) → weryfikacja → logowanie → sklep → dane firmy (walidacja NIP) → zaproszenie → MFA (QR) → panel admina → blokada sprzedawcy w panelu admina | ✔ |
@@ -51,6 +51,15 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 
 ## Usprawnienia UX katalogu (2026-11-26)
 
+- **Wygląd sklepu — galeria szablonów**: wszystkie 8 szablonów darmowych (nazwy: Atelier, Róża, Volt, Bajka, Ostoja,
+  Sprint, Tor, Kruszec). Sklep bez wybranego szablonu trafia do galerii: karty z miniaturą sklepu (komputer + telefon,
+  rysowaną z kolorów i układu szablonu), paleta, styl, cechy, „Polecany dla Twojej branży”, filtry stylu i branży,
+  szczegóły w oknie. „Wybierz szablon” zmienia tylko szkic (teksty sprzedawcy zostają). Widok konfiguracji: karta
+  „Twój szablon” z krokami (wybierz → dopasuj i zapisz → opublikuj), „Zmień szablon” wraca do galerii, ustawienia z
+  objaśnieniami grup, ostrzeżenie o słabym kontraście tekstu, przycisk strony głównej wybierany z drzewa kategorii,
+  podgląd „Na żywo” (natychmiast) i „W sklepie” (prawdziwy sklep ze szkicem, komputer/tablet/telefon).
+  E2E: galeria → filtr → szczegóły → wybór → konfiguracja (kontrast) → zapis → podgląd w sklepie → publikacja → zmiana
+  szablonu z zachowaniem tekstów; widoki mobilne bez przewijania w bok, 0 błędów konsoli.
 - **Strony i dokumenty prawne**: zakładka „Strony” to lista — dokumenty prawne (postęp „x z 4 gotowe”, status,
   „Wymagany”, liczba brakujących informacji, „Utwórz ze wzoru” → od razu edytor) i pozostałe strony; kliknięcie
   wiersza otwiera edycję. Edytor dokumentu prawnego: panel „Dokument prawny ze wzoru” z listą braków, „Dane w
@@ -296,6 +305,8 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - **Faza 5a:** adaptery Przelewy24 / PayU / Tpay sprawdzone tylko na atrapach HTTP i symulatorze — **przed produkcją
   konieczny test na sandboxach operatorów** (wymaga kont testowych). Zwroty wykonuje sprzedawca w panelu operatora (zwrot
   przez API — Faza 5b). Brak raportu płatności w panelu (widoczne w historii zamówienia).
+- **Szablony:** 8 szablonów na jednym silniku (różnią się ustawieniami, nie strukturą sekcji — ADR-016); miniatury w
+  galerii są rysowane, nie są zrzutami prawdziwego sklepu.
 - **Dokumenty prawne:** odświeżenie ze wzoru zastępuje całą treść (bez scalania ręcznych zmian — panel ostrzega);
   podgląd w ramce wymaga ustawienia `SHOPIVO_PANEL_ORIGIN` w witrynie.
 - **UX katalogu:** kategorie są sortowane alfabetycznie — brak zmiany kolejności (np. przeciąganiem w drzewie);
