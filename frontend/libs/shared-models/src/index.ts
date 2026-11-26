@@ -354,7 +354,7 @@ export const VAT_RATES: { bps: number; label: string }[] = [
 // ---------------------------------------------------------------- orders & customers (Phase 3)
 export type OrderStatus = 'NEW' | 'PROCESSING' | 'SHIPPED' | 'COMPLETED' | 'CANCELED';
 export type OrderPaymentStatus = 'UNPAID' | 'PAID' | 'REFUNDED';
-export type OrderPaymentMethod = 'BANK_TRANSFER' | 'COD' | 'MANUAL';
+export type OrderPaymentMethod = 'BANK_TRANSFER' | 'COD' | 'MANUAL' | 'ONLINE';
 export type ShippingType = 'COURIER' | 'PARCEL_LOCKER' | 'POST' | 'PICKUP' | 'DIGITAL';
 
 export interface OrderAddress { name: string; company: string | null; line1: string; line2: string | null; postalCode: string; city: string; countryCode: string; phone: string | null; }
@@ -386,7 +386,7 @@ export interface Customer {
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = { NEW: 'Nowe', PROCESSING: 'W realizacji', SHIPPED: 'Wysłane', COMPLETED: 'Zrealizowane', CANCELED: 'Anulowane' };
 export const PAYMENT_STATUS_LABELS: Record<OrderPaymentStatus, string> = { UNPAID: 'Nieopłacone', PAID: 'Opłacone', REFUNDED: 'Zwrócone' };
-export const PAYMENT_METHOD_LABELS: Record<OrderPaymentMethod, string> = { BANK_TRANSFER: 'Przelew tradycyjny', COD: 'Za pobraniem', MANUAL: 'Inna (ręcznie)' };
+export const PAYMENT_METHOD_LABELS: Record<OrderPaymentMethod, string> = { BANK_TRANSFER: 'Przelew tradycyjny', COD: 'Za pobraniem', MANUAL: 'Inna (ręcznie)', ONLINE: 'Płatność online' };
 export const SHIPPING_TYPE_LABELS: Record<ShippingType, string> = { COURIER: 'Kurier', PARCEL_LOCKER: 'Paczkomat / automat', POST: 'Poczta', PICKUP: 'Odbiór osobisty', DIGITAL: 'Dostawa elektroniczna' };
 
 // ---------------------------------------------------------------- storefront & themes (Phase 4)
@@ -428,3 +428,11 @@ export interface Review {
 // ------------------------------------------------------------------------------------------------ navigation
 export interface NavigationItem { label: string; path: string; }
 export interface NavigationMenu { items: NavigationItem[]; custom: boolean; version: number; }
+
+// ------------------------------------------------------------------------------------------------ online payments (store's operator)
+export interface OperatorCredentialField { key: string; label: string; secret: boolean; hint: string | null; }
+export interface OperatorDescriptor { id: string; name: string; description: string; credentials: OperatorCredentialField[]; docsUrl: string | null; }
+export interface OnlinePaymentsState {
+  providerId: string; providerName: string; sandbox: boolean; enabled: boolean; verifiedAt: string | null; filled: Record<string, boolean>; version: number;
+}
+export interface OnlinePaymentsOverview { operators: OperatorDescriptor[]; current: OnlinePaymentsState | null; }

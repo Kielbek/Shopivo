@@ -200,6 +200,15 @@ Blokady zadań cyklicznych.
 |---|---|
 | `store_navigation` | Menu nagłówka sklepu: `items_json` (etykieta + ścieżka w sklepie), `version` |
 
+## 5f. Tabele — Faza 5a (migracja V12; z RLS)
+
+| Tabela / zmiana | Opis |
+|---|---|
+| `orders.payment_method` | dodane `ONLINE` |
+| `store_payment_providers` | Konto operatora sklepu (jedno): `provider_id`, `credentials_enc` (AES-GCM, AAD = sklep + operator), `sandbox`, `enabled`, `verified_at` |
+| `order_payments` | Próby płatności (id = identyfikator dla operatora), kwota, waluta, status `PENDING/PAID/FAILED`, identyfikator u operatora |
+| `store_payment_events` | Powiadomienia operatora (unikalny `event_key` w sklepie — idempotencja) z wynikiem (`PAID`, `AMOUNT_MISMATCH`, `UNKNOWN_PAYMENT`…) |
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |

@@ -192,6 +192,14 @@ Konto widzi zamówienia złożone na swój adres e-mail, dlatego logowanie wymag
 linku **i** hasła ustawionego w tej rejestracji — kto zarejestruje cudzy adres, nie przejmie konta, nawet gdy właściciel
 skrzynki kliknie link. Opinie z konta korzystają z tej samej weryfikacji zakupu co link z e-maila.
 
+### ADR-020: Płatności online sklepów (Faza 5a)
+Każdy sklep używa **własnego** konta u operatora (Przelewy24 / PayU / Tpay) — pieniądze trafiają wprost do sprzedawcy,
+Shopivo nie jest pośrednikiem płatności (bez licencji KIP/PSD2) i nie widzi danych kart (płatność na stronie operatora).
+Te same bezstanowe adaptery obsługują subskrypcje platformy i sklepy (poświadczenia w każdym wywołaniu). Dane
+dostępowe sklepu są szyfrowane AES-GCM z danymi powiązanymi „sklep + operator” i nigdy nie wracają do przeglądarki.
+Adres powiadomień zawiera identyfikator sklepu wyłącznie po to, by wybrać klucz weryfikujący podpis — powiadomienie jest
+wiarygodne tylko dzięki podpisowi. Moduł `orders` zna płatności online wyłącznie przez SPI `OnlinePayments`.
+
 ### ADR-017: Publikacja sklepu (Faza 4a)
 Sklep startuje jako szkic. Publikacja wymaga kompletu danych sprzedawcy wymaganych przy sprzedaży na odległość (firma,
 NIP, adres, e-mail), aktywnego produktu, sposobu dostawy i metody płatności — moduły zgłaszają braki przez SPI
@@ -220,6 +228,7 @@ produkty lub zamówienia (SPI `CurrencyChangeGuard`).
 | `media` | Pliki (S3/lokalnie), przetwarzanie zdjęć, limity miejsca (SPI `MediaQuotaPolicy`) | — |
 | `themes` | Rejestr pól i presetów, szkic/publikacja motywu | — |
 | `storefront` | Publiczne API witryny (BFF): konfiguracja sklepu, katalog, sitemap, robots | stores, themes, catalog |
+| `storepayments` | Płatności online sklepów z kontem sprzedawcy u operatora: szyfrowane dane, próby płatności, powiadomienia (SPI `OnlinePayments` z `orders`) | orders, payments, stores |
 | `shared.captcha` | Weryfikacja CAPTCHA (Turnstile; wyłączona tylko lokalnie i w testach) | — |
 | `accounts` | Konta klientów sklepu: rejestracja z potwierdzeniem, sesje w ciasteczku na domenie sklepu, historia zamówień, adresy, opinie z konta | orders, reviews, stores, email |
 | `reviews` | Opinie od zweryfikowanych kupujących: zaproszenia po realizacji zamówienia, moderacja, odpowiedzi, podsumowania | orders, email, stores |

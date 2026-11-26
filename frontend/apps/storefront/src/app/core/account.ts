@@ -109,6 +109,10 @@ export class CustomerSession {
     return this.http.delete<SavedAddress[]>(`${BASE}/addresses/${id}`);
   }
 
+  payOrder(number: number): Observable<{ redirectUrl: string }> {
+    return this.http.post<{ redirectUrl: string }>(`${BASE}/orders/${number}/pay`, null);
+  }
+
   reviewable(): Observable<Reviewable[]> {
     return this.http.get<Reviewable[]>(`${BASE}/reviews/pending`);
   }

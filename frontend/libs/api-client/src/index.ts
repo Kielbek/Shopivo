@@ -11,3 +11,4 @@ export * from './session-store';
 export * from './guards';
 export * from './content-api';
 export * from './reviews-api';
+export * from './online-payments-api';

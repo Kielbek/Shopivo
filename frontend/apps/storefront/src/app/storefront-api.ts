@@ -42,13 +42,13 @@ export interface CartLine {
 }
 export interface Cart { currency: string; lines: CartLine[]; itemCount: number; subtotalMinor: number; checkoutReady: boolean; }
 export interface ShippingMethod { id: string; name: string; description: string | null; type: string; priceMinor: number; freeFromMinor: number | null; }
-export interface PaymentOption { method: 'BANK_TRANSFER' | 'COD'; label: string; feeMinor: number; }
+export interface PaymentOption { method: 'BANK_TRANSFER' | 'COD' | 'ONLINE'; label: string; feeMinor: number; }
 export interface CheckoutOptions { shippingMethods: ShippingMethod[]; paymentMethods: PaymentOption[]; }
 export interface Address { name: string; company: string | null; line1: string; line2: string | null; postalCode: string; city: string; countryCode: string; phone: string | null; }
 export interface CheckoutInput {
   email: string; phone: string | null; firstName: string; lastName: string; shippingAddress: Address | null;
   billing: { invoice: boolean; companyName: string; taxId: string; address: Address | null } | null; shippingMethodId: string | null;
-  paymentMethod: 'BANK_TRANSFER' | 'COD'; customerNote: string | null; termsAccepted: boolean; marketingConsent: boolean;
+  paymentMethod: 'BANK_TRANSFER' | 'COD' | 'ONLINE'; customerNote: string | null; termsAccepted: boolean; marketingConsent: boolean;
 }
 export interface CheckoutResult { number: number; orderToken: string; totalMinor: number; currency: string; }
 export interface OrderConfirmation {
@@ -128,6 +128,11 @@ export class StorefrontApi {
     let headers = cartHeader(token);
     if (captcha) headers = headers.set('X-Captcha-Token', captcha);
     return this.http.post<CheckoutResult>(`${this.base}/checkout`, input, { headers });
+  }
+
+  /** Starts (or retries) the online payment; the customer is then sent to the operator's page. */
+  payOrder(orderToken: string): Observable<{ redirectUrl: string }> {
+    return this.http.post<{ redirectUrl: string }>(`${this.base}/orders/pay`, null, { headers: new HttpHeaders({ 'X-Order-Token': orderToken }) });
   }
 
   orderStatus(orderToken: string): Observable<OrderConfirmation> {

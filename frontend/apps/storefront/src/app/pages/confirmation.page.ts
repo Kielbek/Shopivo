@@ -17,6 +17,23 @@ import { ORDER_TOKEN_KEY } from './checkout.page';
         <p class="text-[14px] font-medium text-sf-success">Zamówienie przyjęte</p>
         <h1 class="mt-1 text-[30px] font-semibold tracking-tight">Dziękujemy! Zamówienie nr {{ o.number }}</h1>
         <p class="mt-3 text-sf-muted">Potwierdzenie wysłaliśmy e-mailem.</p>
+        @if (o.paymentMethod === 'ONLINE') {
+          <section class="sf-panel mt-6 p-5" aria-labelledby="online-pay" aria-live="polite">
+            <h2 id="online-pay" class="text-[17px] font-semibold">Płatność online</h2>
+            @if (o.paymentStatus === 'PAID') {
+              <p class="mt-2 font-medium text-sf-success">Płatność otrzymana — dziękujemy!</p>
+            } @else if (o.status === 'CANCELED') {
+              <p class="mt-2">Zamówienie zostało anulowane.</p>
+            } @else if (waiting()) {
+              <p class="mt-2">Czekamy na potwierdzenie płatności od operatora… To zwykle trwa kilka sekund.</p>
+            } @else {
+              <p class="mt-2">Zamówienie nie jest jeszcze opłacone. Jeśli płatność się nie udała albo została przerwana, możesz spróbować ponownie.
+                Nieopłacone zamówienie zostanie anulowane po 24 godzinach.</p>
+              @if (payError(); as e) {<p class="mt-2 text-[14px] text-sf-danger" role="alert">{{ e }}</p>}
+              <button type="button" class="sf-btn mt-4" [disabled]="paying()" (click)="pay()">{{ paying() ? 'Przekierowanie…' : 'Zapłać ' + fmt(o.totalMinor, o.currency) }}</button>
+            }
+          </section>
+        }
         @if (o.bankTransfer; as b) {
           <section class="sf-panel mt-6 p-5" aria-labelledby="pay">
             <h2 id="pay" class="text-[17px] font-semibold">Dane do przelewu</h2>
@@ -52,6 +69,10 @@ export class ConfirmationPage {
   private readonly api = inject(StorefrontApi);
   protected readonly order = signal<OrderConfirmation | null>(null);
   protected readonly missing = signal(false);
+  protected readonly waiting = signal(false);
+  protected readonly paying = signal(false);
+  protected readonly payError = signal<string | null>(null);
+  private token: string | null = null;
 
   constructor() {
     inject(Seo).set({ title: 'Potwierdzenie zamówienia', path: '/zamowienie/potwierdzenie', noindex: true }, inject(StoreState).store()?.name ?? '');
@@ -69,10 +90,42 @@ export class ConfirmationPage {
       this.missing.set(true);
       return;
     }
+    this.token = token;
     try {
       this.order.set(await firstValueFrom(this.api.orderStatus(token)));
     } catch {
       this.missing.set(true);
+      return;
+    }
+    // Back from the operator: the notification usually arrives within seconds — check a few times before offering a retry.
+    const o = this.order();
+    if (o?.paymentMethod === 'ONLINE' && o.paymentStatus === 'UNPAID' && o.status !== 'CANCELED') {
+      this.waiting.set(true);
+      for (let i = 0; i < 6; i++) {
+        await new Promise((r) => setTimeout(r, 2500));
+        try {
+          const next = await firstValueFrom(this.api.orderStatus(token));
+          this.order.set(next);
+          if (next.paymentStatus !== 'UNPAID' || next.status === 'CANCELED') break;
+        } catch {
+          break;
+        }
+      }
+      this.waiting.set(false);
+    }
+  }
+
+  protected async pay(): Promise<void> {
+    if (!this.token) return;
+    this.paying.set(true);
+    this.payError.set(null);
+    try {
+      const r = await firstValueFrom(this.api.payOrder(this.token));
+      window.location.assign(r.redirectUrl);
+    } catch (e) {
+      const detail = (e as { error?: { detail?: string } }).error?.detail;
+      this.payError.set(detail ?? 'Nie udało się rozpocząć płatności. Spróbuj ponownie za chwilę.');
+      this.paying.set(false);
     }
   }
 

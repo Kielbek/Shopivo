@@ -272,12 +272,25 @@ zamówieniu (unikalny indeks).
   do 12 pozycji, tylko ścieżki w sklepie, 409 przy konflikcie; pusta lista = domyślne kategorie); w witrynie `/store` → `menu`.
 - **Klienci**: `accountCreatedAt` w `/customers` i `/customers/{id}` — data założenia potwierdzonego konta w sklepie.
 
-## 12. Kolejne fazy (zarys)
-- Faza 5: płatności i wysyłka sprzedawców
+## 12. Faza 5a — płatności online sklepów (zaimplementowane)
+
+| Metoda | Ścieżka | Uprawnienie / autoryzacja | Opis |
+|---|---|---|---|
+| GET | `/tenants/{t}/online-payments` | `STORE_READ` | Dostępni operatorzy (pola danych), stan konta sklepu — **bez wartości sekretów** (`filled`: które pola są ustawione) |
+| PUT | `/tenants/{t}/online-payments` | `STORE_SETTINGS_WRITE` | `{providerId, credentials, sandbox, version}`; puste pola = bez zmian; każda zmiana wyłącza płatności do ponownego testu |
+| POST | `/tenants/{t}/online-payments/test`, `/enabled` | `STORE_SETTINGS_WRITE` | Test połączenia u operatora; włączenie tylko po udanym teście |
+| POST | `/storefront/orders/pay` | nagłówek `X-Order-Token` | Start/ponowienie płatności nieopłaconego zamówienia ONLINE → `{redirectUrl}` (tylko `https://`); 20/10 min/IP |
+| POST | `/storefront/account/orders/{number}/pay` | sesja klienta | To samo dla własnego zamówienia z konta |
+| POST | `/webhooks/store-payments/{tenantId}/{provider}` | podpis operatora kluczem sklepu | Powiadomienie: weryfikacja podpisu, zgodność kwoty i waluty z próbą płatności, idempotencja (`store_payment_events`), wpłata po anulowaniu → zdarzenie do zwrotu; 400 przy złym podpisie, 404 gdy sklep nie ma tego operatora |
+
+Metoda `ONLINE` w `/storefront/checkout/options` (gdy włączona); nieopłacone zamówienia ONLINE anulowane po 24 h.
+
+## 13. Kolejne fazy (zarys)
+- Faza 5b: wysyłka (InPost, DPD) — etykiety, śledzenie; zwroty płatności przez API operatorów
 - `/api/v1/webhooks/payments/{provider}/{tenantId}`,
   `/api/v1/webhooks/shipping/{provider}/{tenantId}` (Fazy 2, 5)
 
-## 13. Limity zapytań
+## 14. Limity zapytań
 Redis, okno stałe per klucz:
 | Zakres | Klucz | Limit |
 |---|---|---|

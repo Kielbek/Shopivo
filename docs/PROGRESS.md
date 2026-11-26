@@ -1,13 +1,13 @@
 # Shopivo — postęp prac
 
-Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a**, **Faza 4b**, **Faza 4c — opinie**, **Faza 4d — konta klientów**, **Faza 4e — CAPTCHA i menu** (z ograniczeniami opisanymi niżej). Następna: Faza 5.
+Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a**, **Faza 4b**, **Faza 4c — opinie**, **Faza 4d — konta klientów**, **Faza 4e — CAPTCHA i menu**, **Faza 5a — płatności online** (z ograniczeniami opisanymi niżej). Następna: Faza 5b.
 
 ## Wyniki testów (rzeczywiście uruchomione)
 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 35/35 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 70/70 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 71/71 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
 | Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 54/54 ✔ (panel 40, admin 3, witryna 11) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
@@ -46,6 +46,17 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 | Ręczny przepływ E2E Fazy 4d (Playwright, poza repo) | rejestracja w sklepie (walidacja regulaminu) → e-mail (Mailpit) → aktywacja z hasłem (złe hasło odrzucone, token usunięty z adresu) → adres domyślny → checkout z danymi z konta → zamówienie widoczne na koncie → realizacja → opinia z konta („Do oceny”) → szczegóły zamówienia z numerem przesyłki → wylogowanie, złe hasło, logowanie → opinia w panelu; ciasteczko HttpOnly, SameSite=Lax, tylko domena sklepu; mobile bez poziomego przewijania | ✔ |
 
 | Ręczny przepływ E2E Fazy 4e (Playwright, poza repo; Cloudflare niedostępny z tego środowiska — skrypt widgetu podstawiony w przeglądarce, backend z Turnstile wskazującym na lokalny serwer weryfikacji) | menu w panelu (wybór kategorii, własny adres odrzucony dla zewnętrznego URL, zmiana nazwy, kolejność, zapis) → menu w nagłówku sklepu → checkout: brak potwierdzenia blokowany w przeglądarce, token bota odrzucony przez serwer (400), token człowieka → zamówienie; rejestracja z CAPTCHA → aktywacja → oznaczenie „Konto” w panelu Klienci | ✔ |
+
+| Ręczny przepływ E2E Fazy 5a (Playwright, poza repo; operator = symulator deweloperski wysyłający podpisane powiadomienie na prawdziwy endpoint) | panel: wybór operatora, sekret (pole puste po zapisie — sekret nie wraca), test połączenia, włączenie → sklep: „Płatność online” w checkoucie → przekierowanie → powiadomienie → „Płatność otrzymana” → panel: zamówienie opłacone z referencją operatora; 0 błędów konsoli | ✔ |
+
+## Faza 5a — płatności online w sklepach (2026-11-26)
+
+- Moduł `storepayments`: konto sprzedawcy u Przelewy24 / PayU / Tpay (szyfrowane dane, tryb sandbox, test połączenia,
+  włączanie po teście), płatność przy zamówieniu i jej ponowienie (strona potwierdzenia, konto klienta), powiadomienia z
+  weryfikacją podpisu kluczem sklepu, zgodnością kwoty i waluty, idempotencją; wpłata po anulowaniu oznaczona do zwrotu;
+  nieopłacone zamówienia online anulowane po 24 h. Płatność online wystarcza do publikacji sklepu.
+- Test integracyjny `StorePaymentsIT`: konfiguracja (sekret nie wraca w API), podrobiony podpis (400), zła kwota (bez
+  zaksięgowania), powtórzone powiadomienie (jedno zaksięgowanie), wpłata po anulowaniu, izolacja sklepów.
 
 ## Domknięcie znanych ograniczeń (2026-11-26)
 - **CSP witryny** z `script-src`: skrypty tylko z własnej domeny, Cloudflare Turnstile, skróty SHA-256 stałych skryptów
@@ -224,6 +235,9 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - **Faza 4b:** wzory dokumentów prawnych to punkt wyjścia, nie porada prawna — przed udostępnieniem sprzedawcom
   produkcyjnym powinien je przejrzeć prawnik (Q-08). Panel wyraźnie to komunikuje.
 - **Faza 4b–4e:** brak zdjęć we wpisach bloga.
+- **Faza 5a:** adaptery Przelewy24 / PayU / Tpay sprawdzone tylko na atrapach HTTP i symulatorze — **przed produkcją
+  konieczny test na sandboxach operatorów** (wymaga kont testowych). Zwroty wykonuje sprzedawca w panelu operatora (zwrot
+  przez API — Faza 5b). Brak raportu płatności w panelu (widoczne w historii zamówienia).
 - **Faza 4e:** CAPTCHA przetestowana z lokalną atrapą Cloudflare (brak dostępu do Cloudflare z tego środowiska) — przed
   produkcją sprawdzić z prawdziwymi kluczami; przy niedostępności Cloudflare formularze działają bez CAPTCHA (świadomy
   wybór dostępności, z logiem); domeny własne sklepów trzeba dopisać w ustawieniach widgetu Turnstile.
@@ -248,6 +262,6 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - Obrazy Docker Hub bywały limitowane (429) w środowisku deweloperskim — w CI nie jest to problem.
 
 ## Następny krok
-**Faza 5 — płatności i wysyłka sprzedawców**: płatności online w sklepach (Przelewy24, PayU, Tpay — szyfrowane
-poświadczenia sprzedawcy, webhooki, zwroty), wysyłka (InPost Paczkomaty i kurier, DPD — etykiety, śledzenie). Przed
-produkcją nadal: Q-06 (faktury/KSeF), test adapterów na sandboxach operatorów, cennik (Q-05), przegląd prawny wzorów (Q-08).
+**Faza 5b — wysyłka**: InPost (Paczkomaty: wybór punktu w checkoucie, etykiety, śledzenie), kurier (InPost/DPD), numery
+przesyłek automatycznie w zamówieniu; zwroty płatności przez API operatorów. Przed produkcją nadal: Q-06 (faktury/KSeF),
+test adapterów na sandboxach operatorów, cennik (Q-05), przegląd prawny wzorów (Q-08).

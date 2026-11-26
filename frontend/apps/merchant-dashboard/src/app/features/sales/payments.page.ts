@@ -7,12 +7,13 @@ import {
   parseMoney,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
+import { OnlinePaymentsComponent } from './online-payments';
 import { StoreContext } from '../store/store-context';
 
 /** Offline payment methods. Online operators (Przelewy24, PayU, Tpay) are connected in the integrations phase. */
 @Component({
   selector: 'sv-payments-page',
-  imports: [FormsModule, PageHeaderComponent, SectionComponent, FieldComponent, ButtonComponent, AlertComponent, LoadingComponent],
+  imports: [FormsModule, OnlinePaymentsComponent, PageHeaderComponent, SectionComponent, FieldComponent, ButtonComponent, AlertComponent, LoadingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <sv-page-header title="Płatności" description="Metody płatności dostępne dla Twoich klientów." />
@@ -35,9 +36,6 @@ import { StoreContext } from '../store/store-context';
             <label class="flex items-center gap-2.5 text-[13px] text-ink"><input type="checkbox" role="switch" class="sv-switch" name="cod" [(ngModel)]="f.codEnabled" />Przyjmuj płatność za pobraniem</label>
             <sv-field label="Opłata za pobranie (brutto)" for="fee" class="mt-4 block sm:w-60"><input id="fee" name="fee" class="sv-input" inputmode="decimal" [(ngModel)]="fee" /></sv-field>
           </sv-section>
-          <sv-section title="Płatności online" description="BLIK, karty i szybkie przelewy przez Przelewy24, PayU lub Tpay.">
-            <p class="text-[13px] text-ink-soft">Podłączenie własnego konta operatora będzie dostępne w module integracji płatności (kolejny etap). Do tego czasu sklep przyjmuje przelewy i płatności przy odbiorze.</p>
-          </sv-section>
         </fieldset>
         @if (error(); as e) {<sv-alert tone="error" class="mt-4">{{ e }}</sv-alert>}
         @if (canWrite) {
@@ -45,6 +43,7 @@ import { StoreContext } from '../store/store-context';
         }
       </form>
     }
+    <sv-online-payments />
   `,
 })
 export class PaymentsPage {

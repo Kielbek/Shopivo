@@ -152,7 +152,7 @@ export class CheckoutPage {
     return t;
   }
   protected f = { email: '', phone: '', firstName: '', lastName: '', line1: '', postalCode: '', city: '', shippingMethodId: '',
-    paymentMethod: '' as '' | 'BANK_TRANSFER' | 'COD', invoice: false, company: '', nip: '', note: '', terms: false, marketing: false };
+    paymentMethod: '' as '' | 'BANK_TRANSFER' | 'COD' | 'ONLINE', invoice: false, company: '', nip: '', note: '', terms: false, marketing: false };
 
   /** Digital-only carts need no address or shipping. Cart lines do not carry the type, so the server decides; assume shipping. */
   protected readonly needsShipping = computed(() => (this.opts()?.shippingMethods.length ?? 0) > 0);
@@ -256,7 +256,7 @@ export class CheckoutPage {
         shippingAddress: this.needsShipping() ? { name: `${f.firstName} ${f.lastName}`.trim(), company: f.invoice ? f.company.trim() : null,
           line1: f.line1.trim(), line2: null, postalCode: f.postalCode.trim(), city: f.city.trim(), countryCode: 'PL', phone: f.phone.trim() || null } : null,
         billing: f.invoice ? { invoice: true, companyName: f.company.trim(), taxId: f.nip.trim(), address: null } : null,
-        shippingMethodId: this.needsShipping() ? f.shippingMethodId : null, paymentMethod: f.paymentMethod as 'BANK_TRANSFER' | 'COD',
+        shippingMethodId: this.needsShipping() ? f.shippingMethodId : null, paymentMethod: f.paymentMethod as 'BANK_TRANSFER' | 'COD' | 'ONLINE',
         customerNote: f.note.trim() || null, termsAccepted: f.terms, marketingConsent: f.marketing,
       }, this.takeCaptchaToken()));
       try {
@@ -265,6 +265,16 @@ export class CheckoutPage {
         // without storage the confirmation page shows a generic message
       }
       this.cart.clear();
+      if (f.paymentMethod === 'ONLINE') {
+        // Straight to the operator; if that fails, the confirmation page offers "Zapłać" again.
+        try {
+          const pay = await firstValueFrom(this.api.payOrder(result.orderToken));
+          window.location.assign(pay.redirectUrl);
+          return;
+        } catch {
+          // fall through to the confirmation page
+        }
+      }
       await this.router.navigate(['/zamowienie/potwierdzenie']);
     } catch (e: unknown) {
       // Tokens are single-use: a new check is needed for the next attempt (reset before anything else is awaited).

@@ -72,8 +72,8 @@ Infrastruktura
 - [x] Opinie produktów od zweryfikowanych kupujących, moderacja (4c) · [x] konta klientów (4d) · [x] CAPTCHA, menu nawigacji (4e)
 
 ## Faza 5 — płatności i wysyłka sprzedawców
-- [ ] Szyfrowane poświadczenia, test połączenia, statusy integracji
-- [ ] Płatności: Przelewy24, PayU, Stripe (adaptery), webhooki, uzgadnianie, zwroty
+- [x] Szyfrowane poświadczenia, test połączenia, statusy integracji (5a — płatności)
+- [x] Płatności online sklepów: Przelewy24, PayU, Tpay (konto sprzedawcy), webhooki, idempotencja (5a) · [ ] zwroty przez API, test na sandboxach
 - [ ] Wysyłka: InPost (Paczkomaty + kurier), DPD, DHL — etykiety, śledzenie
 - [ ] Fakturownia, BaseLinker, Allegro (zakres do ustalenia)
 

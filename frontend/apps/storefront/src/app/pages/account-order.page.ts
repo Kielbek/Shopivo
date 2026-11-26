@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
-import { CustomerSession } from '../core/account';
+import { CustomerSession, apiMessage } from '../core/account';
+import { firstValueFrom } from 'rxjs';
 import { money } from '../core/format';
 import { Seo } from '../core/seo';
 import { StoreState } from '../core/store-state';
@@ -19,6 +20,13 @@ import { ORDER_STATUS, PAYMENT_STATUS } from './account.page';
       } @else if (o(); as o) {
         <h1 class="mt-3 text-[28px] font-semibold tracking-tight">Zamówienie nr {{ o.number }}</h1>
         <p class="mt-1 text-sf-muted">{{ date(o.createdAt) }} · {{ status[o.status] }} · {{ payment[o.paymentStatus] }}</p>
+        @if (o.paymentMethod === 'ONLINE' && o.paymentStatus === 'UNPAID' && o.status !== 'CANCELED') {
+          <div class="sf-panel mt-4 p-4">
+            <p>Zamówienie czeka na płatność online.</p>
+            @if (payError(); as e) {<p class="mt-2 text-[14px] text-sf-danger" role="alert">{{ e }}</p>}
+            <button type="button" class="sf-btn mt-3" [disabled]="paying()" (click)="pay(o.number)">{{ paying() ? 'Przekierowanie…' : 'Zapłać ' + fmt(o.totalMinor) }}</button>
+          </div>
+        }
         @if (o.trackingNumber) {<p class="mt-2">Numer przesyłki: <strong class="font-semibold">{{ o.trackingNumber }}</strong></p>}
         <ul class="sf-panel mt-6 divide-y divide-sf-line">
           @for (i of o.items; track $index) {
@@ -62,6 +70,27 @@ export class AccountOrderPage {
     void this.session.load().then(() => {
       if (!this.session.account()) void router.navigate(['/konto/logowanie'], { queryParams: { powrot: router.url }, replaceUrl: true });
     });
+  }
+
+  protected readonly paying = signal(false);
+  protected readonly payError = signal<string | null>(null);
+
+  protected async pay(number: number): Promise<void> {
+    this.paying.set(true);
+    this.payError.set(null);
+    try {
+      const r = await firstValueFrom(this.session.payOrder(number));
+      // The operator returns to the confirmation page; it must not show a different order from this tab's session.
+      try {
+        sessionStorage.removeItem('shopivo.lastOrder');
+      } catch {
+        // ignore
+      }
+      window.location.assign(r.redirectUrl);
+    } catch (e) {
+      this.payError.set(apiMessage(e));
+      this.paying.set(false);
+    }
   }
 
   protected fmt(minor: number): string {
