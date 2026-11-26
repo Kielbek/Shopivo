@@ -59,11 +59,14 @@ class StorefrontController {
     private final String urlTemplate;
 
     private final pl.shopivo.themes.ThemeImages themeImages;
+    private final String panelOrigin;
 
     StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, PublicContent content, Redirects redirects, Navigation navigation, Reviews reviews,
             RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha, TransactionTemplate tx,
-            @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate, pl.shopivo.themes.ThemeImages themeImages) {
+            @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate, pl.shopivo.themes.ThemeImages themeImages,
+            pl.shopivo.shared.config.ShopivoProperties properties) {
         this.themeImages = themeImages;
+        this.panelOrigin = originOf(properties.appUrl());
         this.storefront = storefront;
         this.stores = stores;
         this.themes = themes;
@@ -85,7 +88,7 @@ class StorefrontController {
     record PublicStore(String name, StoreStatus status, boolean open, boolean preview, String locale, String currency,
             String hostname, Themes.ThemeConfig theme, Seller seller, List<PublicCatalog.PublicCategory> categories,
             List<PublicContent.Link> footerLinks, boolean blog, List<Navigation.Item> menu, String captchaSiteKey,
-            Map<String, Map<String, String>> themeImages) {
+            Map<String, Map<String, String>> themeImages, String panelOrigin) {
     }
 
     @GetMapping("/store")
@@ -106,7 +109,7 @@ class StorefrontController {
             return new PublicStore(s.name(), s.status(), open, preview, s.defaultLocale(), s.defaultCurrency(), s.primaryHostname(),
                     themes.storefront(preview), seller, open ? catalog.categories() : List.of(),
                     open ? content.footerLinks() : List.of(), open && content.hasPosts(), open ? navigation.menu() : List.of(),
-                    captcha.siteKey(), themeImages.urls());
+                    captcha.siteKey(), themeImages.urls(), preview ? panelOrigin : null);
         });
         return cached(body, preview);
     }
@@ -263,5 +266,15 @@ class StorefrontController {
 
     private <T> T inTenant(UUID tenant, Supplier<T> action) {
         return TenantContext.callInTenant(tenant, () -> tx.execute(s -> action.get()));
+    }
+
+    /** The merchant panel's origin: in preview the storefront accepts live theme edits only from it (postMessage). */
+    private static String originOf(String url) {
+        try {
+            java.net.URI u = java.net.URI.create(url);
+            return u.getScheme() + "://" + u.getHost() + (u.getPort() > 0 ? ":" + u.getPort() : "");
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 }

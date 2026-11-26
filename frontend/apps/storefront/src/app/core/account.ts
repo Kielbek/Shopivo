@@ -23,7 +23,7 @@ const BASE = '/api/v1/storefront/account';
  * HttpOnly cookie that scripts cannot read.
  */
 export const accountInterceptor: HttpInterceptorFn = (req, next) =>
-  req.url.includes(BASE) ? next(req.clone({ setHeaders: { 'X-Requested-With': 'shopivo' } })) : next(req);
+  req.url.includes(BASE) || req.url.includes('/api/v1/storefront/newsletter') ? next(req.clone({ setHeaders: { 'X-Requested-With': 'shopivo' } })) : next(req);
 
 /** The signed-in customer of this store (browser only). */
 @Injectable({ providedIn: 'root' })

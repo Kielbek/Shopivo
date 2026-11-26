@@ -2,13 +2,18 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-export interface ThemeConfig { code: string; settings: Record<string, string>; }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface ThemeSection { id: string; type: string; enabled: boolean; data: Record<string, any>; }
+export interface ThemeConfig { code: string; settings: Record<string, string>; sections: ThemeSection[] | null; }
 export interface Seller { companyName: string | null; taxId: string | null; address: string | null; email: string | null; phone: string | null; }
-export interface PublicCategory { id: string; parentId: string | null; name: string; slug: string; description: string | null; depth: number; seoTitle: string | null; seoDescription: string | null; }
+export interface PublicCategory { id: string; parentId: string | null; name: string; slug: string; description: string | null; depth: number; seoTitle: string | null; seoDescription: string | null; image: Record<string, string> | null; }
 export interface PublicStore {
   name: string; status: 'DRAFT' | 'PUBLISHED' | 'SUSPENDED'; open: boolean; preview: boolean; locale: string; currency: string;
   hostname: string; theme: ThemeConfig; seller: Seller | null; categories: PublicCategory[];
   footerLinks: FooterLink[]; blog: boolean; menu: { label: string; path: string }[]; captchaSiteKey: string | null;
+  themeImages: Record<string, Record<string, string>>;
+  /** Set only in preview: the editor allowed to send live theme changes. */
+  panelOrigin: string | null;
 }
 export type LegalKey = 'TERMS' | 'PRIVACY' | 'RETURNS' | 'SHIPPING';
 export interface FooterLink { title: string; path: string; systemKey: LegalKey | null; }
@@ -20,6 +25,7 @@ export interface ReviewSummary { average: number; count: number; distribution: n
 export interface PublicReview { authorName: string; rating: number; body: string | null; createdAt: string; reply: string | null; repliedAt: string | null; }
 export interface ProductReviews { summary: ReviewSummary; reviews: Page<PublicReview>; }
 export interface ReviewInvitation { orderNumber: number; suggestedAuthor: string; items: { productId: string; name: string; reviewed: boolean }[]; }
+export interface FeaturedReview { authorName: string; rating: number; body: string | null; createdAt: string; productName: string; productSlug: string; }
 export interface PostCard { slug: string; title: string; excerpt: string | null; publishedAt: string; }
 export interface ProductCard {
   id: string; slug: string; name: string; brand: string | null; priceMinor: number; maxPriceMinor: number; compareAtMinor: number | null;
@@ -71,12 +77,30 @@ export class StorefrontApi {
     return this.http.get<PublicStore>(`${this.base}/store`);
   }
 
-  products(q: { kategoria?: string; q?: string; sort?: string; page?: number; size?: number }): Observable<Page<ProductCard>> {
+  products(q: { kategoria?: string; q?: string; sort?: string; page?: number; size?: number; promocje?: boolean }): Observable<Page<ProductCard>> {
     let params = new HttpParams().set('page', q.page ?? 0).set('size', q.size ?? 24);
+    if (q.promocje) params = params.set('promocje', 'true');
     if (q.kategoria) params = params.set('kategoria', q.kategoria);
     if (q.q) params = params.set('q', q.q);
     if (q.sort) params = params.set('sort', q.sort);
     return this.http.get<Page<ProductCard>>(`${this.base}/products`, { params });
+  }
+
+  latestReviews(): Observable<FeaturedReview[]> {
+    return this.http.get<FeaturedReview[]>(`${this.base}/reviews/latest`);
+  }
+
+  subscribeNewsletter(email: string, captchaToken: string | null): Observable<void> {
+    const headers = captchaToken ? new HttpHeaders({ 'X-Captcha-Token': captchaToken }) : undefined;
+    return this.http.post<void>(`${this.base}/newsletter`, { email }, { headers });
+  }
+
+  confirmNewsletter(token: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/newsletter/confirm`, { token });
+  }
+
+  unsubscribeNewsletter(token: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/newsletter/unsubscribe`, { token });
   }
 
   product(slug: string): Observable<PublicProduct> {

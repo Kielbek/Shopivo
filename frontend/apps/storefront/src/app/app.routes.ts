@@ -9,6 +9,7 @@ export const routes: Routes = [
   { path: 'strona/:slug', data: { kind: 'PAGE' }, loadComponent: () => import('./pages/content.page').then((m) => m.ContentPage) },
   { path: 'blog', loadComponent: () => import('./pages/blog.page').then((m) => m.BlogPage) },
   { path: 'blog/:slug', data: { kind: 'POST' }, loadComponent: () => import('./pages/content.page').then((m) => m.ContentPage) },
+  { path: 'newsletter', loadComponent: () => import('./pages/newsletter.page').then((m) => m.NewsletterPage) },
   { path: 'opinia', loadComponent: () => import('./pages/review.page').then((m) => m.ReviewPage) },
   { path: 'konto', loadComponent: () => import('./pages/account.page').then((m) => m.AccountPage) },
   { path: 'konto/logowanie', loadComponent: () => import('./pages/account-auth.pages').then((m) => m.LoginPage) },
