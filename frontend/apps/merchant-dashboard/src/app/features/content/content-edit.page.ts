@@ -13,6 +13,7 @@ import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 import { RichPreviewComponent } from './rich-preview';
 import { DevicePreviewComponent } from './device-preview';
+import { LegalDataFormComponent } from './legal-data-form';
 
 interface Form {
   title: string; slug: string; excerpt: string; body: string; showInFooter: boolean; seoTitle: string; seoDescription: string;
@@ -23,7 +24,7 @@ const PLACEHOLDER = /\[uzupełnij[^\]]*\]/g;
 /** Editor of a page or blog post (route `tresci/nowa?rodzaj=` or `tresci/:id`). */
 @Component({
   selector: 'sv-content-edit-page',
-  imports: [DevicePreviewComponent, FormsModule, RouterLink, DatePipe, LucideDynamicIcon, PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent,
+  imports: [DevicePreviewComponent, LegalDataFormComponent, FormsModule, RouterLink, DatePipe, LucideDynamicIcon, PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent,
     AlertComponent, LoadingComponent, FieldComponent, DialogComponent, TabsComponent, RichPreviewComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -42,11 +43,38 @@ const PLACEHOLDER = /\[uzupełnij[^\]]*\]/g;
       </sv-page-header>
 
       @if (current()?.systemKey) {
-        <sv-alert tone="warning" class="mt-5">
-          To wzór dokumentu wypełniony danymi Twojej firmy. Shopivo nie świadczy porad prawnych — przeczytaj go uważnie, dostosuj do
-          swojej działalności (najlepiej z prawnikiem) i uzupełnij fragmenty oznaczone „[uzupełnij…]”.
-          @if (placeholders() > 0) {<strong class="font-semibold"> Do uzupełnienia: {{ placeholders() }}.</strong>}
-        </sv-alert>
+        <section class="sv-card mt-5 p-5" aria-labelledby="legal-panel">
+          <div class="flex flex-wrap items-start gap-4">
+            <span class="flex size-10 shrink-0 items-center justify-center rounded-[10px]" [class]="placeholders() ? 'bg-warning/20 text-warning-ink' : 'bg-success/15 text-success-ink'">
+              <svg [lucideIcon]="placeholders() ? icons.legal : icons.check" [size]="18" /></span>
+            <div class="min-w-0 flex-1">
+              <h2 id="legal-panel" class="text-[15px] font-semibold text-ink">Dokument prawny ze wzoru</h2>
+              <p class="mt-0.5 text-[13px] text-ink-soft">Wzór wypełniamy danymi Twojej firmy. Shopivo nie świadczy porad prawnych — przeczytaj go i dostosuj do swojej
+                działalności (najlepiej z prawnikiem).</p>
+              @if (placeholders()) {
+                <p class="mt-3 text-[13px] text-warning-ink"><strong class="font-semibold">Do uzupełnienia ({{ placeholders() }}):</strong> {{ missingItems().join(' · ') }}</p>
+              } @else {
+                <p class="mt-3 text-[13px] text-success-ink">Wszystkie dane są uzupełnione.</p>
+              }
+            </div>
+            @if (canWrite) {
+              <div class="flex flex-wrap gap-2">
+                <button sv-button size="sm" [variant]="placeholders() ? 'primary' : 'secondary'" (click)="dataForm.openForm()"><svg [lucideIcon]="icons.pencil" />Dane w dokumentach</button>
+                <button sv-button size="sm" variant="ghost" (click)="confirmTemplate.set(true)"><svg [lucideIcon]="icons.refresh" />Wstaw aktualny wzór</button>
+              </div>
+            }
+          </div>
+        </section>
+        <sv-legal-data-form #dataForm (saved)="confirmTemplate.set(true)" />
+        <sv-dialog heading="Wstawić aktualny wzór?" [open]="confirmTemplate()" (closed)="confirmTemplate.set(false)">
+          <p class="text-[14px] text-ink-soft">Treść w edytorze zastąpimy wzorem wypełnionym aktualnymi danymi. Zmiana nie jest zapisana, dopóki nie klikniesz
+            „Zapisz” lub „Opublikuj” — możesz ją przejrzeć w podglądzie.</p>
+          <sv-alert tone="warning" class="mt-4">Twoje ręczne zmiany w treści tego dokumentu zostaną zastąpione.</sv-alert>
+          <ng-container dialog-actions>
+            <button sv-button variant="secondary" type="button" (click)="confirmTemplate.set(false)">Nie teraz</button>
+            <button sv-button type="button" [loading]="loadingTemplate()" (click)="insertTemplate()">Wstaw wzór</button>
+          </ng-container>
+        </sv-dialog>
       }
       @if (error(); as e) {<sv-alert tone="error" class="mt-5">{{ e }}</sv-alert>}
 
@@ -226,6 +254,32 @@ export class ContentEditPage {
     this.current();
     return (this.f.body.match(PLACEHOLDER) ?? []).length;
   });
+  protected readonly missingItems = computed(() => {
+    this.bodyVersion();
+    this.current();
+    return (this.f.body.match(PLACEHOLDER) ?? []).map((m) => m.replace(/^\[uzupełnij:?\s*/i, '').replace(/\]$/, '').trim() || 'uzupełnij');
+  });
+  protected readonly confirmTemplate = signal(false);
+  protected readonly loadingTemplate = signal(false);
+
+  /** Puts the template (filled with the current data) into the editor; the merchant reviews and saves it. */
+  protected async insertTemplate(): Promise<void> {
+    const key = this.current()?.systemKey;
+    if (!key) return;
+    this.loadingTemplate.set(true);
+    try {
+      this.f.body = (await firstValueFrom(this.api.legalTemplate(this.ctx.tenantId(), key))).body;
+      this.bodyVersion.update((v) => v + 1);
+      this.confirmTemplate.set(false);
+      this.view.set('podglad');
+      this.toast.success('Wstawiono wzór — sprawdź treść i zapisz lub opublikuj.');
+    } catch (e) {
+      this.toast.error(ApiError.from(e).message);
+    } finally {
+      this.loadingTemplate.set(false);
+    }
+  }
+
   protected readonly storeUrl = computed(() =>
     (this.config.value()?.storefrontUrlTemplate ?? 'https://{host}').replace('{host}', this.ctx.store()?.primaryHostname ?? ''));
 

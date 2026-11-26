@@ -37,7 +37,7 @@ type Tab = 'strony' | 'blog' | 'menu' | 'przekierowania';
     @if (tab() === 'strony') {
       <div role="tabpanel" id="panel-strony" aria-labelledby="tab-strony">
         <sv-legal-documents />
-        <sv-card class="mt-5" [flush]="true" heading="Wszystkie strony">
+        <sv-card class="mt-5" [flush]="true" heading="Pozostałe strony" subheading="O nas, kontakt, FAQ i inne strony informacyjne. Kliknij stronę, aby ją edytować.">
           <ng-container *ngTemplateOutlet="list" />
         </sv-card>
       </div>
@@ -90,20 +90,21 @@ type Tab = 'strony' | 'blog' | 'menu' | 'przekierowania';
         <sv-loading />
       } @else if (entries.error()) {
         <div class="p-5"><sv-alert tone="error">Nie udało się wczytać listy.</sv-alert></div>
-      } @else if (!entries.value()?.items?.length) {
+      } @else if (!items().length) {
         <sv-empty-state [icon]="'pages'" [title]="query() ? 'Brak wyników' : tab() === 'blog' ? 'Brak wpisów' : 'Brak stron'"
           [description]="tab() === 'blog' ? 'Wpisy na blogu pomagają klientom i wyszukiwarkom — opisz nowości, porady, kulisy pracy.' : 'Dodaj np. stronę „O nas” lub „Kontakt”.'" />
       } @else {
         <ul>
-          @for (e of entries.value()!.items; track e.id) {
-            <li class="flex flex-wrap items-center gap-3 border-b border-line px-5 py-3 last:border-b-0">
+          @for (e of items(); track e.id) {
+            <li class="relative flex flex-wrap items-center gap-3 border-b border-line px-5 py-3.5 last:border-b-0 hover:bg-hover">
               <div class="min-w-0 flex-1">
-                <a [routerLink]="[e.id]" class="font-medium text-ink hover:underline">{{ e.title }}</a>
+                <a [routerLink]="[e.id]" class="font-medium text-ink after:absolute after:inset-0 hover:underline">{{ e.title }}</a>
                 <p class="truncate text-[12px] text-ink-muted">{{ e.path }} · zmieniono {{ e.updatedAt | svDate }}</p>
               </div>
               @if (e.systemKey) {<sv-badge tone="info">Dokument prawny</sv-badge>}
               @if (e.showInFooter && !e.systemKey) {<sv-badge>W stopce</sv-badge>}
               <sv-badge [tone]="e.status === 'PUBLISHED' ? 'success' : 'neutral'">{{ e.status === 'PUBLISHED' ? 'Opublikowana' : 'Szkic' }}</sv-badge>
+              <svg [lucideIcon]="icons.chevronRight" [size]="16" class="text-ink-muted" aria-hidden="true" />
             </li>
           }
         </ul>
@@ -134,6 +135,8 @@ export class ContentPage {
     params: () => (this.kind() ? { t: this.ctx.tenantId(), kind: this.kind()!, q: this.query().trim() } : undefined),
     stream: ({ params }) => this.api.list(params.t, params.kind, params.q, 0),
   });
+  /** On the pages tab legal documents have their own section above. */
+  protected readonly items = computed(() => (this.entries.value()?.items ?? []).filter((e) => this.tab() !== 'strony' || !e.systemKey));
   protected readonly redirects = rxResource({
     params: () => (this.tab() === 'przekierowania' ? this.ctx.tenantId() : undefined),
     stream: ({ params }) => this.api.redirects(params),

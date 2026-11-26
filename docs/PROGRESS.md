@@ -51,14 +51,14 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 
 ## Usprawnienia UX katalogu (2026-11-26)
 
-- **Dokumenty prawne**: lista z postępem („x z 4 gotowe”) i tym, czego brakuje w każdym dokumencie; podgląd
-  prawdziwej strony sklepu (z motywem, także szkic) w widokach Komputer / Tablet / Telefon; dla nieutworzonych —
-  podgląd wzoru z Twoimi danymi; formularz „Dane w dokumentach” (dane firmy, termin wysyłki z gotowymi
-  propozycjami, data obowiązywania, adres zwrotów, narzędzia statystyk i reklam z podpowiedziami — polityka
-  prywatności opisuje tylko to, czego sklep używa), a po zapisie — odświeżenie wybranych dokumentów ze wzoru z
-  ostrzeżeniem o nadpisaniu ręcznych zmian. Edytor stron ma zakładkę „W sklepie” z tym samym podglądem urządzeń.
-  Migracja V15, `LegalSettingsIT`; E2E: braki → formularz → aktualizacja 2 dokumentów → 0 braków, iPhone 13 bez
-  poziomego przewijania, 0 błędów konsoli.
+- **Strony i dokumenty prawne**: zakładka „Strony” to lista — dokumenty prawne (postęp „x z 4 gotowe”, status,
+  „Wymagany”, liczba brakujących informacji, „Utwórz ze wzoru” → od razu edytor) i pozostałe strony; kliknięcie
+  wiersza otwiera edycję. Edytor dokumentu prawnego: panel „Dokument prawny ze wzoru” z listą braków, „Dane w
+  dokumentach” (dane firmy, termin wysyłki z propozycjami, data obowiązywania, adres zwrotów, narzędzia statystyk i
+  reklam — polityka prywatności opisuje tylko to, czego sklep używa) i „Wstaw aktualny wzór” (do przejrzenia przed
+  zapisem, z ostrzeżeniem o nadpisaniu); każda strona ma zakładkę „W sklepie” — prawdziwa strona sklepu (także szkic)
+  w widokach Komputer / Tablet / Telefon. Migracja V15, `LegalSettingsIT`; E2E: lista → utworzenie ze wzoru → edytor
+  → dane → wzór → publikacja → podgląd na komputerze i telefonie, iPhone 13 bez przewijania w bok, 0 błędów konsoli.
 - **Wczytywanie bez spinnerów**: wszędzie cieniowane szkielety (shimmer) w kształcie treści — lista, tabela, formularz,
   karty, szczegóły, cała strona panelu; karty statystyk z cieniowaniem zamiast „—”; przyciski w trakcie akcji mają
   przesuwający się połysk zamiast kółka; szkielet w `index.html` widoczny od pierwszej chwili (przed startem Angulara)
