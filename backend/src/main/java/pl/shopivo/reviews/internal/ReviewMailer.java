@@ -52,7 +52,8 @@ class ReviewMailer {
     void on(OrderEvents.OrderCompleted e) {
         Invite inv = TenantContext.callInTenant(e.tenantId(), () -> tx.execute(s -> {
             OrderView order = orders.get(e.orderId());
-            if (order.source() != pl.shopivo.orders.OrderModel.Source.STOREFRONT || order.items().stream().allMatch(i -> i.productId() == null)) {
+            if (order.source() != pl.shopivo.orders.OrderModel.Source.STOREFRONT || !Reviews.isVerifiedPurchase(order)
+                    || order.items().stream().allMatch(i -> i.productId() == null)) {
                 return null;
             }
             String token = reviews.invite(e.orderId());

@@ -47,4 +47,9 @@ public class CapturingEmailSender implements EmailSender {
     public void clear() {
         sent.clear();
     }
+
+    /** Forgets the e-mails sent to one address (other tests running in the same context are unaffected). */
+    public void clear(String to) {
+        sent.removeIf(m -> m.to().equalsIgnoreCase(to));
+    }
 }

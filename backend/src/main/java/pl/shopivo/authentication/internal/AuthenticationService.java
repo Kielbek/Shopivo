@@ -1,5 +1,6 @@
 package pl.shopivo.authentication.internal;
 
+import pl.shopivo.shared.security.PasswordPolicy;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;

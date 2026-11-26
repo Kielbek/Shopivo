@@ -1,5 +1,6 @@
 package pl.shopivo.authentication;
 
+import pl.shopivo.shared.security.PasswordPolicy;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Map;

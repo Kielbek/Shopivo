@@ -13,7 +13,9 @@ app.disable('x-powered-by');
 app.set('trust proxy', process.env['SHOPIVO_TRUST_PROXY'] ?? 'loopback');
 const angularApp = new AngularNodeAppEngine();
 
-const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type', 'x-cart-token', 'x-order-token', 'x-review-token', 'x-store-preview'];
+const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type', 'x-cart-token', 'x-order-token', 'x-review-token', 'x-store-preview', 'x-requested-with'];
+/** The only cookie the storefront API ever sees: the customer session (HttpOnly, host-only). */
+const CUSTOMER_COOKIE = 'shopivo_customer';
 const FORWARDED_RESPONSE_HEADERS = ['content-type', 'cache-control', 'vary', 'retry-after'];
 
 /** Proxies one request to the backend with the visitor's host and IP (the backend resolves the store from the host). */
@@ -28,6 +30,8 @@ async function proxy(req: express.Request, res: express.Response, next: express.
       const v = req.headers[h];
       if (typeof v === 'string') headers[h] = v;
     }
+    const session = customerSession(req.headers.cookie);
+    if (session && path.startsWith('/api/v1/storefront/account/')) headers['cookie'] = `${CUSTOMER_COOKIE}=${session}`;
     const upstream = await fetch(apiOrigin + path, {
       method: req.method,
       headers,
@@ -40,10 +44,25 @@ async function proxy(req: express.Request, res: express.Response, next: express.
       const value = upstream.headers.get(header);
       if (value) res.setHeader(header, value);
     }
+    if (path.startsWith('/api/v1/storefront/account/')) {
+      const cookies = upstream.headers.getSetCookie().filter((c) => c.startsWith(CUSTOMER_COOKIE + '='));
+      if (cookies.length) res.setHeader('set-cookie', cookies);
+    }
     res.send(Buffer.from(await upstream.arrayBuffer()));
   } catch (error) {
     next(error);
   }
+}
+
+function customerSession(cookieHeader: string | undefined): string | null {
+  for (const part of (cookieHeader ?? '').split(';')) {
+    const [name, ...rest] = part.trim().split('=');
+    if (name === CUSTOMER_COOKIE) {
+      const value = rest.join('=');
+      return /^[A-Za-z0-9_-]{20,100}$/.test(value) ? value : null;
+    }
+  }
+  return null;
 }
 
 /** Asks the backend for a redirect of the request path; only store-relative targets are ever followed. */
@@ -63,7 +82,7 @@ async function redirectFor(req: express.Request): Promise<string | null> {
 
 // Storefront API (cart and checkout included). Bodies are small JSON documents — anything larger is refused here.
 app.all('/api/v1/storefront/{*path}', express.raw({ type: () => true, limit: '64kb' }), (req, res, next) => {
-  if (!['GET', 'POST', 'PATCH'].includes(req.method)) {
+  if (!['GET', 'POST', 'PATCH', 'PUT', 'DELETE'].includes(req.method)) {
     res.status(405).end();
     return;
   }

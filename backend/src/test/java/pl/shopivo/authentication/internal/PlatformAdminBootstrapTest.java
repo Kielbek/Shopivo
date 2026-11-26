@@ -1,5 +1,6 @@
 package pl.shopivo.authentication.internal;
 
+import pl.shopivo.shared.security.PasswordPolicy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;

@@ -94,7 +94,36 @@ public class Reviews {
 
     @Transactional
     public void submit(String token, ReviewInput in) {
-        OrderView order = orderFor(token);
+        store(orderFor(token), in);
+    }
+
+    /** Review written from a customer account: the caller must have checked that the order belongs to the account. */
+    @Transactional
+    public void submitForOrder(OrderView order, ReviewInput in) {
+        if (!isVerifiedPurchase(order)) {
+            throw new BusinessRuleException("NOT_VERIFIED_PURCHASE", "Opinię można wystawić po zrealizowaniu i opłaceniu zamówienia.");
+        }
+        store(order, in);
+    }
+
+    public record Reviewable(long orderNumber, UUID productId, String name, Instant completedAt) {
+    }
+
+    /** Products from verified purchases among these orders that the customer has not reviewed yet. */
+    @Transactional(readOnly = true)
+    public List<Reviewable> reviewable(List<OrderView> orders) {
+        List<Reviewable> result = new ArrayList<>();
+        for (OrderView o : orders) {
+            if (!isVerifiedPurchase(o)) continue;
+            Set<UUID> done = reviewedProducts(o.id());
+            Set<UUID> seen = new java.util.HashSet<>();
+            o.items().stream().filter(i -> i.productId() != null && !done.contains(i.productId()) && seen.add(i.productId()))
+                    .forEach(i -> result.add(new Reviewable(o.number(), i.productId(), i.name(), o.completedAt())));
+        }
+        return result;
+    }
+
+    private void store(OrderView order, ReviewInput in) {
         if (in.productId() == null || order.items().stream().noneMatch(i -> in.productId().equals(i.productId()))) {
             throw new BusinessRuleException("PRODUCT_NOT_IN_ORDER", "Ten produkt nie należy do zamówienia.");
         }
@@ -124,8 +153,19 @@ public class Reviews {
             throw new ApiException(org.springframework.http.HttpStatus.GONE, "INVITATION_EXPIRED", "Link do wystawienia opinii wygasł.");
         }
         OrderView order = orders.get(inv.orderId());
-        if (order.status() != OrderStatus.COMPLETED) throw invalidLink();
+        if (!isVerifiedPurchase(order)) throw invalidLink();
         return order;
+    }
+
+    /**
+     * A purchase counts as verified only when the order was delivered (completed) and actually paid — or paid on delivery
+     * (cash on delivery) — and the money was not returned. Canceled or refunded orders never qualify.
+     */
+    public static boolean isVerifiedPurchase(OrderView order) {
+        return order.status() == OrderStatus.COMPLETED
+                && order.paymentStatus() != pl.shopivo.orders.OrderModel.PaymentStatus.REFUNDED
+                && (order.paymentStatus() == pl.shopivo.orders.OrderModel.PaymentStatus.PAID
+                        || order.paymentMethod() == pl.shopivo.orders.OrderModel.PaymentMethod.COD);
     }
 
     private static NotFoundException invalidLink() {

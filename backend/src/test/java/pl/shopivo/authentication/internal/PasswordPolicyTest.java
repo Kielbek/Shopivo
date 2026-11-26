@@ -1,5 +1,6 @@
 package pl.shopivo.authentication.internal;
 
+import pl.shopivo.shared.security.PasswordPolicy;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 

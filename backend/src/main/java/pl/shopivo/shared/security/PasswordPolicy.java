@@ -1,4 +1,4 @@
-package pl.shopivo.authentication.internal;
+package pl.shopivo.shared.security;
 
 import java.util.Locale;
 import java.util.Set;
@@ -10,9 +10,9 @@ import pl.shopivo.shared.error.BusinessRuleException;
  * no passwords derived from the e-mail address. Breached-password lookup (HIBP k-anonymity) is planned for phase 8.
  */
 @Component
-class PasswordPolicy {
+public class PasswordPolicy {
 
-    static final int MIN_LENGTH = 10;
+    public static final int MIN_LENGTH = 10;
     static final int MAX_LENGTH = 128;
 
     private static final Set<String> COMMON = Set.of(
@@ -23,7 +23,7 @@ class PasswordPolicy {
             "monika1234", "marcin1234", "mateusz123", "lewandowski", "dragon1234", "football12", "sklep12345",
             "shopivo123", "shopivo2026", "welcome123", "letmein123", "qazwsxedc1");
 
-    void validate(String password, String email) {
+    public void validate(String password, String email) {
         if (password == null || password.length() < MIN_LENGTH) {
             throw weak("Hasło musi mieć co najmniej " + MIN_LENGTH + " znaków.", "TOO_SHORT");
         }

@@ -110,6 +110,24 @@ public class Orders {
         return new PageImpl<>(rows, pageable, total == null ? 0 : total);
     }
 
+    /** Orders placed with this e-mail (case-insensitive) — for a customer account whose e-mail is verified. */
+    @Transactional(readOnly = true)
+    public List<OrderView> forEmail(String email, int limit) {
+        UUID tenant = TenantContext.requireTenantId();
+        List<UUID> ids = jdbc.query("select id from orders where tenant_id = ? and lower(email) = lower(?) order by created_at desc limit ?",
+                (rs, i) -> rs.getObject(1, UUID.class), tenant, email, Math.clamp(limit, 1, 200));
+        return ids.stream().map(this::get).toList();
+    }
+
+    /** One order by its number, only if it was placed with this e-mail (otherwise 404). */
+    @Transactional(readOnly = true)
+    public OrderView byNumberForEmail(long number, String email) {
+        UUID id = jdbc.query("select id from orders where tenant_id = ? and number = ? and lower(email) = lower(?)",
+                (rs, i) -> rs.getObject(1, UUID.class), TenantContext.requireTenantId(), number, email).stream().findFirst()
+                .orElseThrow(() -> new NotFoundException("Nie znaleziono zamówienia."));
+        return get(id);
+    }
+
     @Transactional(readOnly = true)
     public OrderView get(UUID id) {
         UUID tenant = TenantContext.requireTenantId();
