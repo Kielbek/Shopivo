@@ -55,10 +55,15 @@ public class OrderJobs {
         }
     }
 
-    @Scheduled(cron = "${shopivo.orders.cart-cleanup-cron:0 47 3 * * *}")
+    @Scheduled(cron = "${shopivo.orders.cart-cleanup-cron:0 47 * * * *}")
     @SchedulerLock(name = "orders.carts.cleanup", lockAtMostFor = "PT20M")
     public void deleteStaleCarts() {
-        TenantContext.runAsSystem(() -> tx.executeWithoutResult(s ->
-                jdbc.update("delete from carts where updated_at < now() - interval '30 days'")));
+        // Abandoned carts after 30 days; carts that never got an item after a day (cheap to create, so they could be
+        // used to fill the table).
+        TenantContext.runAsSystem(() -> tx.executeWithoutResult(s -> {
+            jdbc.update("delete from carts where updated_at < now() - interval '30 days'");
+            jdbc.update("delete from carts c where c.status = 'OPEN' and c.updated_at < now() - interval '1 day' "
+                    + "and not exists (select 1 from cart_items i where i.cart_id = c.id)");
+        }));
     }
 }

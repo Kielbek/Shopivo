@@ -231,7 +231,12 @@ public class SubscriptionEngine {
             record(s, "PAYMENT_AMOUNT_MISMATCH", s.getStatus(), s.getStatus(), null, charge.getNumber());
             return PaymentOutcome.REJECTED;
         }
-        // A voided charge paid anyway (e.g. old payment link): the money arrived, so honour it.
+        // A voided charge paid anyway (e.g. an old payment link opened later): the money arrived, so it is honoured —
+        // but flagged, because the store may have paid twice and the platform has to refund one of the payments.
+        if (charge.getStatus() == ChargeEntity.Status.VOID) {
+            log.warn("Payment received for voided charge {} of tenant {} — check for a duplicate payment", charge.getNumber(), s.getTenantId());
+            record(s, "PAYMENT_ON_VOID_CHARGE", s.getStatus(), s.getStatus(), null, charge.getNumber());
+        }
         settle(s, charge, providerPaymentId, Instant.now());
         return PaymentOutcome.APPLIED;
     }

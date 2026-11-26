@@ -59,7 +59,7 @@ class SecurityConfiguration {
     @Bean
     SecurityFilterChain apiSecurity(HttpSecurity http, SessionService sessions, SessionCookies cookies,
             UserAccounts users, TenantMemberships memberships, JsonMapper jsonMapper, ProblemResponseWriter problems,
-            ShopivoProperties properties, Environment environment, ObjectProvider<TenantWriteAccessPolicy> writePolicies,
+            ShopivoProperties properties, Environment environment, pl.shopivo.shared.ratelimit.RateLimiter rateLimiter, ObjectProvider<TenantWriteAccessPolicy> writePolicies,
             ObjectProvider<ClientRegistrationRepository> clientRegistrations,
             ObjectProvider<OAuthLoginSuccessHandler> oauthSuccessHandler) throws Exception {
 
@@ -85,6 +85,7 @@ class SecurityConfiguration {
                 .requestCache(c -> c.disable())
                 .addFilterBefore(new SessionAuthenticationFilter(sessions, cookies, users,
                         properties.security().requirePlatformStaffMfa()), AnonymousAuthenticationFilter.class)
+                .addFilterAfter(new UserRateLimitFilter(rateLimiter, problems), SessionAuthenticationFilter.class)
                 .addFilterAfter(new TenantAccessFilter(memberships, jsonMapper, writePolicies.orderedStream().toList()),
                         AuthorizationFilter.class)
                 .headers(h -> h

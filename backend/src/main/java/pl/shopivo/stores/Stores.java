@@ -39,9 +39,11 @@ public class Stores {
     private final StoreDomains domains;
     private final TenantMemberships memberships;
     private final AuditLog auditLog;
+    private final java.util.List<CurrencyChangeGuard> currencyGuards;
 
     Stores(StoreRepository stores, StoreSettingsRepository settings, StoreDomains domains,
-            TenantMemberships memberships, AuditLog auditLog) {
+            TenantMemberships memberships, AuditLog auditLog, java.util.List<CurrencyChangeGuard> currencyGuards) {
+        this.currencyGuards = currencyGuards;
         this.stores = stores;
         this.settings = settings;
         this.domains = domains;
@@ -70,6 +72,14 @@ public class Stores {
         }
         validateCurrency(update.defaultCurrency());
         validateTimezone(update.timezone());
+        if (!update.defaultCurrency().equals(store.getDefaultCurrency())) {
+            for (CurrencyChangeGuard guard : currencyGuards) {
+                String reason = guard.blockingReason();
+                if (reason != null) {
+                    throw new BusinessRuleException("CURRENCY_LOCKED", "Nie można zmienić waluty — " + reason + ".");
+                }
+            }
+        }
         String name = update.name().trim();
         store.update(name, blankToNull(update.contactEmail()), update.defaultLocale(), update.defaultCurrency(), update.timezone());
         memberships.renameCurrentTenant(name);

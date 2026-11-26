@@ -67,7 +67,7 @@ public class TenantAccessFilter extends OncePerRequestFilter {
             notFound(response);
             return;
         }
-        if (isWrite(request) && !isBillingPath(matcher.group(2)) && writePolicies.stream().anyMatch(p -> !p.canWrite(tenantId))) {
+        if (isWrite(request) && !allowedWhenReadOnly(matcher.group(2)) && writePolicies.stream().anyMatch(p -> !p.canWrite(tenantId))) {
             writeProblem(response, HttpStatus.PAYMENT_REQUIRED, "SUBSCRIPTION_INACTIVE",
                     "Subskrypcja sklepu wygasła — sklep działa w trybie tylko do odczytu. Opłać subskrypcję, aby wprowadzać zmiany.");
             return;
@@ -88,9 +88,16 @@ public class TenantAccessFilter extends OncePerRequestFilter {
         return !("GET".equals(m) || "HEAD".equals(m) || "OPTIONS".equals(m));
     }
 
-    /** Billing must stay usable when the subscription is inactive — otherwise the merchant could never pay. */
-    private static boolean isBillingPath(String rest) {
-        return rest != null && rest.startsWith("/subscription");
+    private static final java.util.regex.Pattern ORDER_FULFILMENT =
+            java.util.regex.Pattern.compile("^/orders/[0-9a-fA-F-]{36}/(status|paid|refunded|notes)$");
+
+    /**
+     * Writes still allowed for a read-only store: billing (otherwise the merchant could never pay) and handling of
+     * orders customers already placed (shipping, payment, cancellation) — obligations towards consumers do not end
+     * with the subscription. Creating new orders, products etc. stays blocked.
+     */
+    static boolean allowedWhenReadOnly(String rest) {
+        return rest != null && (rest.startsWith("/subscription") || ORDER_FULFILMENT.matcher(rest).matches());
     }
 
     private void notFound(HttpServletResponse response) throws IOException {

@@ -10,7 +10,7 @@ import {
 } from '@shopivo/shared-models';
 import {
   AlertComponent, BadgeComponent, BadgeTone, ButtonComponent, CardComponent, DatePipe, DialogComponent, EmptyStateComponent,
-  FieldComponent, LoadingComponent, MoneyPipe, PageHeaderComponent, TabOption, TabsComponent, ToastService, formatMoney,
+  FieldComponent, LoadingComponent, MoneyPipe, PageHeaderComponent, TabOption, TabsComponent, ToastService, formatMoney, isSafeRedirectUrl,
   formatNumber, icons,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
@@ -593,6 +593,10 @@ export class SubscriptionPage implements OnInit {
   /** Sends the merchant to the operator, or — for fully discounted charges — just refreshes. */
   private async followPayment(url: string | null, charge: Charge): Promise<void> {
     if (url) {
+      if (!isSafeRedirectUrl(url)) {
+        this.toast.error('Operator płatności zwrócił nieprawidłowy adres. Spróbuj ponownie lub skontaktuj się z obsługą.');
+        return;
+      }
       window.location.assign(url);
       return;
     }

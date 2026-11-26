@@ -81,14 +81,17 @@ public class Inventory {
         return change(variantId, delta, reason, note, null, actor);
     }
 
-    /** Atomic change used by adjustments and (later) orders. Fails if the result would be negative or below reserved. */
+    /**
+     * Atomic change. Decreases fail if the result would be negative or below the reserved quantity; increases are always
+     * accepted (with backorders the reservations may exceed the stock, and receiving goods must still be possible).
+     */
     @Transactional
     public StockLevel change(UUID variantId, int delta, MovementReason reason, String note, String reference, UUID actor) {
         var rows = jdbc.query("""
                 update inventory_items set on_hand = on_hand + ?, updated_at = now()
-                where variant_id = ? and tenant_id = ? and on_hand + ? >= reserved and on_hand + ? >= 0
+                where variant_id = ? and tenant_id = ? and on_hand + ? >= 0 and (? > 0 or on_hand + ? >= reserved)
                 returning on_hand, reserved
-                """, (rs, i) -> new StockLevel(rs.getInt(1), rs.getInt(2)), delta, variantId, TenantContext.requireTenantId(), delta, delta);
+                """, (rs, i) -> new StockLevel(rs.getInt(1), rs.getInt(2)), delta, variantId, TenantContext.requireTenantId(), delta, delta, delta);
         if (rows.isEmpty()) {
             if (level(variantId).isEmpty()) throw new NotFoundException("Ten wariant nie ma śledzonego stanu magazynowego.");
             throw new BusinessRuleException("INSUFFICIENT_STOCK", "Stan nie może spaść poniżej zera ani poniżej ilości zarezerwowanej w zamówieniach.");

@@ -7,8 +7,8 @@ Ostatnia aktualizacja: 2026-11-25 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 35/35 ✔ |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 52/52 ✔ |
-| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 44/44 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 58/58 ✔ |
+| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 45/45 ✔ |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
 | `npm audit --omit=dev --audit-level=high` | | 0 podatności |
 | Ręczny przepływ E2E w Chromium (Playwright, skrypt poza repo) na pełnym stosie lokalnym | rejestracja → e-mail (Mailpit) → weryfikacja → logowanie → sklep → dane firmy (walidacja NIP) → zaproszenie → MFA (QR) → panel admina → blokada sprzedawcy w panelu admina | ✔ |
@@ -91,6 +91,12 @@ dla panelu sprzedawcy i admina, ikony Lucide, własne wykresy SVG. Panel sprzeda
 Panel admina: realne dane (nowy endpoint `GET /api/v1/admin/stats/growth`, parametr okresu w `/overview`).
 Zweryfikowano: build produkcyjny, CSP (0 naruszeń), 0 px poziomego przepełnienia na 390/900/1440 px, pełny przepływ
 E2E w przeglądarce.
+
+## Przegląd Faz 2–3 (2026-11-26) — naprawione
+12 ustaleń (szczegóły: `SECURITY.md` §11), m.in.: limit rozmiaru żądań (DoS publicznego API), limit żądań API panelu na
+użytkownika, błąd przyjęcia dostawy przy przedsprzedaży, realizacja zamówień przy wygasłej subskrypcji, blokada zmiany
+waluty przy istniejących cenach, polskie komunikaty błędów, walidacja przekierowania do operatora, sprzątanie koszyków
+i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `BackorderIT` (1), test przekierowań (frontend).
 
 ## Przegląd bezpieczeństwa i gotowości produkcyjnej (2026-11-25) — naprawione
 

@@ -322,6 +322,9 @@ public class Products {
 
     private List<OptionInput> normaliseOptions(List<OptionInput> raw) {
         if (raw == null || raw.isEmpty()) return List.of();
+        if (raw.stream().anyMatch(o -> o.values() != null && o.values().size() > 200)) {
+            throw new BusinessRuleException("TOO_MANY_VALUES", "Opcja może mieć najwyżej 50 wartości.");
+        }
         if (raw.size() > MAX_OPTIONS) throw new BusinessRuleException("TOO_MANY_OPTIONS", "Produkt może mieć najwyżej 3 opcje (np. rozmiar, kolor, materiał).");
         List<OptionInput> result = new ArrayList<>();
         Set<String> names = new HashSet<>();

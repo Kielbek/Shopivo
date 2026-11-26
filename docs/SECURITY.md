@@ -112,3 +112,33 @@ akceptowana przy zakładaniu sklepu, rejestr podprocesorów (hosting, e-mail, AI
 
 ## 10. Stan wdrożenia kontroli
 Aktualny stan: `docs/PROGRESS.md`.
+
+## 11. Przegląd Faz 2–3 (2026-11-26) — ustalenia i poprawki
+
+| # | Ustalenie | Ryzyko | Poprawka | Test |
+|---|---|---|---|---|
+| 1 | Publiczne API (checkout, webhooki) przyjmowało dowolnie duże ciało żądania (Tomcat limituje tylko formularze) | DoS pamięci przez anonimowego klienta | `RequestSizeLimitFilter`: 1 MB, webhooki 64 KB, także dla `chunked` | `ReviewRegressionIT` |
+| 2 | Brak limitu żądań API panelu na użytkownika (opisany w dokumentacji, niezaimplementowany) | przeciążenie bazy skryptem z ważną sesją | `UserRateLimitFilter`: 300/min, 429 + `Retry-After` | `ReviewRegressionIT` |
+| 3 | Przy sprzedaży „na minusie” (rezerwacje > stan) przyjęcie dostawy było odrzucane | błąd działania magazynu | zwiększenia stanu zawsze dozwolone, zmniejszenia nadal nie poniżej rezerwacji | `BackorderIT` |
+| 4 | Wygasła subskrypcja blokowała realizację już złożonych (i opłaconych) zamówień | naruszenie obowiązków wobec konsumentów | w trybie tylko do odczytu dozwolona obsługa istniejących zamówień | `ReviewRegressionIT` |
+| 5 | Zmiana waluty sklepu przy istniejących cenach/zamówieniach | kwoty w PLN sprzedawane jako EUR | SPI `CurrencyChangeGuard` (katalog, zamówienia) → 422 `CURRENCY_LOCKED` | `ReviewRegressionIT` |
+| 6 | Komunikaty błędów frameworka po angielsku, mogły zawierać fragmenty żądania | spójność, ujawnianie szczegółów | stałe polskie komunikaty dla 400/404/405/413/415 | `ReviewRegressionIT` |
+| 7 | Przekierowanie do operatora płatności akceptowało dowolny URL | `javascript:` przy skompromitowanej odpowiedzi | tylko `https:` (lub `http:` tego samego originu — dev) | `format.spec.ts` |
+| 8 | Puste koszyki (tanie do utworzenia) czyszczone dopiero po 30 dniach | zaśmiecanie bazy | puste koszyki usuwane po 1 dniu, zadanie co godzinę, indeks `carts_updated_idx` | — |
+| 9 | Zadanie anulowania nieopłaconych przelewów skanowało wszystkie zamówienia | wydajność przy skali | indeks częściowy `orders_unpaid_transfer_idx` (V6) | — |
+| 10 | Wpłata za anulowaną opłatę subskrypcji (stary link) była cicho zaliczana | podwójna płatność bez śladu | zdarzenie `PAYMENT_ON_VOID_CHARGE` + log ostrzegawczy (do zwrotu przez administratora) | — |
+| 11 | Błędna kwota w powiadomieniu Tpay kończyła się błędem 500 | ponawianie śmieciowych powiadomień | odrzucenie jako nieprawidłowe powiadomienie (400) | — |
+| 12 | Brak górnych limitów niektórych list wejściowych (kategorie produktu, wartości opcji) | duże zapytania `IN (…)` | limity 50 kategorii / 200 wartości przed dostępem do bazy | — |
+
+Zweryfikowane bez zmian: izolacja dzierżaw w nowych tabelach (RLS + jawny `tenant_id` w zapytaniach JDBC, testy
+izolacji w `CatalogIT`/`OrdersIT`), tokeny koszyka i zamówienia (256 bit, w bazie tylko skrót, zawsze w zakresie sklepu
+z nagłówka `Host`), ceny i dostępność wyłącznie z katalogu po stronie serwera, atomowe rezerwacje (test współbieżny),
+weryfikacja podpisów i kwot powiadomień operatorów, sekrety operatorów szyfrowane i nigdy nie zwracane, ochrona CSV przed
+formułami, eksport zgód marketingowych tylko dla osób ze zgodą, `Cache-Control: no-store` na odpowiedziach koszyka
+(nagłówki Spring Security).
+
+**Ryzyka zaakceptowane (do kolejnych faz):** checkout gościa może być nadużyty do wysyłania e-maili potwierdzeń na cudze
+adresy i blokowania towaru zamówieniami za pobraniem (limit 10 zamówień / 10 min / IP; CAPTCHA/Turnstile planowane w
+Fazie 4 razem z interfejsem sklepu); sklep w stanie „Szkic” przyjmuje zamówienia przez API (blokada wraz z publikacją
+sklepu w Fazie 4); pamięć podręczna stanu subskrypcji per instancja (do 30 s opóźnienia między replikami).
+

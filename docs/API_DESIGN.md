@@ -186,4 +186,11 @@ Redis, okno stałe per klucz:
 | Logowanie | e-mail | 10/15 min, potem blokada konta 15 min (rosnąca) |
 | Rejestracja, reset hasła, ponowna weryfikacja | IP | 5/min |
 | API panelu | użytkownik | 300/min |
-| Storefront API | IP + host | 600/min |
+| Storefront API | IP | 600/min (wszystkie żądania sklepu) |
+| Utworzenie koszyka | IP | 30/min |
+| Checkout | IP | 10 / 10 min |
+| Płatność za subskrypcję | użytkownik | 10 / 10 min |
+
+Rozmiar ciała żądania: maks. 1 MB dla `/api/**`, 64 KB dla webhooków (413 `PAYLOAD_TOO_LARGE`).
+Sklep z wygasłą subskrypcją (tylko do odczytu) może nadal: opłacić subskrypcję (`/subscription/**`) i obsługiwać
+złożone zamówienia (`/orders/{id}/status|paid|refunded|notes`); pozostałe zapisy → 402 `SUBSCRIPTION_INACTIVE`.

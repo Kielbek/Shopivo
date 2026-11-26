@@ -134,7 +134,12 @@ class TpayGateway implements PaymentGateway {
             case "FALSE", "CHARGEBACK" -> PaymentStatus.FAILED;
             default -> PaymentStatus.PENDING;
         };
-        long amount = new BigDecimal(f.getOrDefault("tr_amount", "0")).movePointRight(2).longValueExact();
+        long amount;
+        try {
+            amount = new BigDecimal(f.getOrDefault("tr_amount", "0")).movePointRight(2).longValueExact();
+        } catch (ArithmeticException | NumberFormatException e) {
+            throw new InvalidNotificationException("Malformed Tpay amount");
+        }
         return new PaymentNotification(f.getOrDefault("tr_crc", ""), f.get("tr_id"), mapped, amount, "PLN",
                 "tpay:" + f.get("tr_id") + ":" + status);
     }

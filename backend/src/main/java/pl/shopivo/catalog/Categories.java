@@ -102,6 +102,7 @@ public class Categories {
     @Transactional(readOnly = true)
     public List<CategoryEntity> require(List<UUID> ids) {
         if (ids == null || ids.isEmpty()) return List.of();
+        if (ids.size() > 50) throw new BusinessRuleException("TOO_MANY_CATEGORIES", "Produkt może należeć do najwyżej 50 kategorii.");
         List<CategoryEntity> found = repository.findByIdIn(ids);
         if (found.size() != new java.util.HashSet<>(ids).size()) {
             throw new BusinessRuleException("CATEGORY_NOT_FOUND", "Wybrana kategoria nie istnieje.");

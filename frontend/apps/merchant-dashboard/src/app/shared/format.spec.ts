@@ -27,3 +27,16 @@ describe('plural', () => {
     expect(plural(22, 'zamówienie', 'zamówienia', 'zamówień')).toBe('22 zamówienia');
   });
 });
+
+import { isSafeRedirectUrl } from '@shopivo/shared-ui';
+
+describe('payment redirect validation', () => {
+  it('allows https and same-origin http only', () => {
+    expect(isSafeRedirectUrl('https://secure.przelewy24.pl/trnRequest/X', 'https://app.shopivo.pl')).toBe(true);
+    expect(isSafeRedirectUrl('http://localhost:4200/sklep/x/subskrypcja', 'http://localhost:4200')).toBe(true);
+    expect(isSafeRedirectUrl('http://evil.example/pay', 'https://app.shopivo.pl')).toBe(false);
+    expect(isSafeRedirectUrl('javascript:alert(1)', 'https://app.shopivo.pl')).toBe(false);
+    expect(isSafeRedirectUrl('data:text/html,x', 'https://app.shopivo.pl')).toBe(false);
+    expect(isSafeRedirectUrl(null)).toBe(false);
+  });
+});

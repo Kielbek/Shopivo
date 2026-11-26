@@ -285,7 +285,7 @@ export interface UsageReport { period: string; rows: UsageRow[]; costModel: Cost
 
 export const SUBSCRIPTION_EVENT_LABELS: Record<string, string> = {
   TRIAL_STARTED: 'Rozpoczęto okres próbny', CHECKOUT_STARTED: 'Rozpoczęto zakup planu', PAYMENT_RECEIVED: 'Płatność zaksięgowana',
-  PAYMENT_FAILED: 'Płatność nieudana', PAYMENT_AMOUNT_MISMATCH: 'Odrzucono płatność o niezgodnej kwocie',
+  PAYMENT_FAILED: 'Płatność nieudana', PAYMENT_AMOUNT_MISMATCH: 'Odrzucono płatność o niezgodnej kwocie', PAYMENT_ON_VOID_CHARGE: 'Wpłata za anulowaną płatność — sprawdź, czy nie zapłacono podwójnie',
   UPGRADE_STARTED: 'Rozpoczęto zmianę planu', DOWNGRADE_SCHEDULED: 'Zaplanowano zmianę planu', CHANGE_CANCELED: 'Anulowano zaplanowaną zmianę',
   CANCEL_SCHEDULED: 'Zaplanowano zakończenie subskrypcji', CANCEL_REVOKED: 'Wznowiono subskrypcję', CANCELED: 'Subskrypcja zakończona',
   TRIAL_EXPIRED: 'Okres próbny zakończony', RENEWAL_ISSUED: 'Wystawiono płatność za odnowienie', RENEWED: 'Subskrypcja odnowiona',

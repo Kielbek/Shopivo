@@ -83,6 +83,10 @@ public class StoreEntity extends BaseEntity {
         return version;
     }
 
+    public String getDefaultCurrency() {
+        return defaultCurrency;
+    }
+
     public void update(String name, String contactEmail, String locale, String currency, String timezone) {
         this.name = name;
         this.contactEmail = contactEmail;

@@ -99,3 +99,17 @@ export function plural(n: number, one: string, few: string, many: string): strin
   const word = n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many;
   return `${n} ${word}`;
 }
+
+/**
+ * Accepts only http(s) URLs for redirects to a payment operator (never `javascript:`/`data:`); plain http only for the
+ * current origin (local development, where the simulated operator returns straight to the panel).
+ */
+export function isSafeRedirectUrl(url: string | null | undefined, origin: string = globalThis.location?.origin ?? ''): boolean {
+  if (!url) return false;
+  try {
+    const parsed = new URL(url, origin || undefined);
+    return parsed.protocol === 'https:' || (parsed.protocol === 'http:' && parsed.origin === origin);
+  } catch {
+    return false;
+  }
+}

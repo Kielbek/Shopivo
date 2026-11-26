@@ -99,7 +99,9 @@ na atrapie HTTP — **przed uruchomieniem produkcyjnym wymagają testu na sandbo
   opłata za pobranie — stawką 23% (uproszczenie; stawka dostawy „za towarem” do rozważenia przy fakturach, Q-06).
 - Stan to `on_hand` i `reserved`. Złożenie zamówienia rezerwuje towar warunkowym `UPDATE … WHERE on_hand - reserved >= qty`
   (bez blokad aplikacyjnych — dwóch klientów nie kupi ostatniej sztuki; potwierdzone testem współbieżnym). Wysyłka
-  zdejmuje towar ze stanu (ruch `SALE`), anulowanie przed wysyłką zwalnia rezerwację. Nieopłacone przelewy są anulowane
+  zdejmuje towar ze stanu (ruch `SALE`), anulowanie przed wysyłką zwalnia rezerwację. Przy sprzedaży „na minusie”
+  rezerwacje mogą przekraczać stan — przyjęcia towaru są wtedy zawsze dozwolone, zmniejszenia nie mogą zejść poniżej rezerwacji.
+  Waluty sklepu nie można zmienić, gdy istnieją ceny lub zamówienia (`CurrencyChangeGuard`). Nieopłacone przelewy są anulowane
   automatycznie po terminie ustawionym przez sklep.
 - Omnibus: każda zmiana ceny zamyka okres w `variant_price_history`; „najniższa cena z 30 dni przed obniżką” to minimum
   cen obowiązujących w 30 dniach przed wejściem bieżącej ceny.

@@ -84,6 +84,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             HttpStatusCode statusCode, WebRequest request) {
         if (body instanceof ProblemDetail problem && problem.getProperties() == null) {
             problem.setProperty("code", defaultCode(statusCode));
+            // Framework messages are English and may echo request details — replace them with stable Polish text.
+            problem.setDetail(defaultDetail(statusCode));
         }
         return super.createResponseEntity(body, headers, statusCode, request);
     }
@@ -101,6 +103,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 "field", error.getField(),
                 "code", error.getCode() == null ? "Invalid" : error.getCode(),
                 "message", error.getDefaultMessage() == null ? "Nieprawidłowa wartość" : error.getDefaultMessage());
+    }
+
+    private static String defaultDetail(HttpStatusCode status) {
+        return switch (status.value()) {
+            case 400 -> "Nieprawidłowe żądanie — sprawdź, czy wysłano wszystkie wymagane dane w poprawnym formacie.";
+            case 404 -> "Nie znaleziono zasobu.";
+            case 405 -> "Ta operacja nie jest obsługiwana.";
+            case 406 -> "Nieobsługiwany format odpowiedzi.";
+            case 413 -> "Przesłane dane są za duże.";
+            case 415 -> "Nieobsługiwany format danych.";
+            default -> status.is5xxServerError() ? "Wystąpił nieoczekiwany błąd. Spróbuj ponownie później." : "Nie udało się wykonać operacji.";
+        };
     }
 
     private static String defaultCode(HttpStatusCode status) {
