@@ -12,6 +12,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 import { RichPreviewComponent } from './rich-preview';
+import { DevicePreviewComponent } from './device-preview';
 
 interface Form {
   title: string; slug: string; excerpt: string; body: string; showInFooter: boolean; seoTitle: string; seoDescription: string;
@@ -22,7 +23,7 @@ const PLACEHOLDER = /\[uzupełnij[^\]]*\]/g;
 /** Editor of a page or blog post (route `tresci/nowa?rodzaj=` or `tresci/:id`). */
 @Component({
   selector: 'sv-content-edit-page',
-  imports: [FormsModule, RouterLink, DatePipe, LucideDynamicIcon, PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent,
+  imports: [DevicePreviewComponent, FormsModule, RouterLink, DatePipe, LucideDynamicIcon, PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent,
     AlertComponent, LoadingComponent, FieldComponent, DialogComponent, TabsComponent, RichPreviewComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -85,6 +86,15 @@ const PLACEHOLDER = /\[uzupełnij[^\]]*\]/g;
                     <li>pusta linia = nowy akapit, <code>---</code> = linia</li>
                   </ul>
                 </details>
+              </div>
+            } @else if (view() === 'sklep') {
+              <div role="tabpanel" id="panel-sklep" aria-labelledby="tab-sklep" class="mt-4">
+                @if (current(); as e) {
+                  <p class="mb-3 text-[12px] text-ink-muted">Tak stronę widzą klienci (z wyglądem Twojego sklepu). Pokazuje zapisaną wersję — zapisz zmiany i kliknij „Odśwież”.</p>
+                  <sv-device-preview [url]="previewUrl()" [title]="'Podgląd: ' + e.title" />
+                } @else {
+                  <p class="text-[13px] text-ink-muted">Zapisz stronę, aby zobaczyć ją w wyglądzie sklepu.</p>
+                }
               </div>
             } @else {
               <div role="tabpanel" id="panel-podglad" aria-labelledby="tab-podglad" class="mt-4 rounded-[10px] border border-line p-5">
@@ -173,7 +183,7 @@ export class ContentEditPage {
   protected readonly icons = icons;
   protected readonly canWrite = this.ctx.can('CONTENT_WRITE');
   protected readonly canPreview = this.ctx.can('THEMES_WRITE');
-  protected readonly viewTabs: TabOption[] = [{ id: 'edycja', label: 'Edycja' }, { id: 'podglad', label: 'Podgląd' }];
+  protected readonly viewTabs: TabOption[] = [{ id: 'edycja', label: 'Edycja' }, { id: 'podglad', label: 'Podgląd tekstu' }, { id: 'sklep', label: 'W sklepie' }];
 
   /** Route param (absent for a new entry). */
   readonly id = input<string>();
@@ -181,7 +191,19 @@ export class ContentEditPage {
   readonly rodzaj = input<string>();
 
   protected f: Form = { title: '', slug: '', excerpt: '', body: '', showInFooter: false, seoTitle: '', seoDescription: '' };
-  protected readonly view = signal<'edycja' | 'podglad'>('edycja');
+  protected readonly view = signal<'edycja' | 'podglad' | 'sklep'>('edycja');
+  private readonly previewLink = rxResource({
+    params: () => (this.view() === 'sklep' ? this.ctx.tenantId() : undefined),
+    stream: ({ params }) => this.admin.previewLink(params),
+  });
+  protected readonly previewUrl = computed(() => {
+    const e = this.current();
+    const link = this.previewLink.hasValue() ? this.previewLink.value()?.url : null;
+    if (!e || !link) return null;
+    const url = new URL(link);
+    url.pathname = e.path;
+    return url.toString();
+  });
   protected readonly saving = signal<ContentStatus | null>(null);
   protected readonly deleting = signal(false);
   protected readonly confirmDelete = signal(false);

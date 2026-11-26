@@ -5,7 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LucideDynamicIcon } from '@lucide/angular';
 import { ApiError, ContentApi } from '@shopivo/api-client';
-import { ContentKind, LegalKey, Redirect } from '@shopivo/shared-models';
+import { ContentKind, Redirect } from '@shopivo/shared-models';
 import {
   AlertComponent, BadgeComponent, DatePipe, ButtonComponent, CardComponent, EmptyStateComponent, FieldComponent, LoadingComponent,
   PageHeaderComponent, TabOption, TabsComponent, ToastService, icons,
@@ -13,6 +13,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 import { NavigationEditorComponent } from './navigation-editor';
+import { LegalDocumentsComponent } from './legal-documents';
 
 type Tab = 'strony' | 'blog' | 'menu' | 'przekierowania';
 
@@ -20,7 +21,7 @@ type Tab = 'strony' | 'blog' | 'menu' | 'przekierowania';
 @Component({
   selector: 'sv-content-page',
   imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, LucideDynamicIcon, PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent,
-    AlertComponent, LoadingComponent, EmptyStateComponent, TabsComponent, FieldComponent, NavigationEditorComponent],
+    AlertComponent, LoadingComponent, EmptyStateComponent, TabsComponent, FieldComponent, NavigationEditorComponent, LegalDocumentsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <sv-page-header title="Strony i blog" description="Regulamin, polityka prywatności i inne strony informacyjne, wpisy na blogu, menu sklepu oraz przekierowania starych adresów.">
@@ -35,36 +36,7 @@ type Tab = 'strony' | 'blog' | 'menu' | 'przekierowania';
 
     @if (tab() === 'strony') {
       <div role="tabpanel" id="panel-strony" aria-labelledby="tab-strony">
-        <sv-card class="mt-5" heading="Dokumenty prawne" subheading="Regulamin i polityka prywatności są wymagane do publikacji sklepu. Wzory wypełniamy danymi Twojej firmy — przeczytaj je i dostosuj (najlepiej z prawnikiem) przed publikacją.">
-          @if (legal.isLoading() && !legal.value()) {
-            <sv-loading />
-          } @else if (legal.error()) {
-            <sv-alert tone="error">Nie udało się wczytać dokumentów.</sv-alert>
-          } @else {
-            <ul class="divide-y divide-line">
-              @for (l of legal.value(); track l.key) {
-                <li class="flex flex-wrap items-center gap-3 py-3">
-                  <span class="flex size-9 shrink-0 items-center justify-center rounded-[10px]"
-                    [class]="l.entry?.status === 'PUBLISHED' ? 'bg-success/15 text-success-ink' : l.requiredForPublish ? 'bg-warning/20 text-warning-ink' : 'bg-canvas text-ink-soft'">
-                    <svg [lucideIcon]="l.entry?.status === 'PUBLISHED' ? icons.check : icons.pages" [size]="16" />
-                  </span>
-                  <div class="min-w-0 flex-1">
-                    <p class="font-medium text-ink">{{ l.title }}
-                      @if (l.requiredForPublish) {<span class="ml-1 text-[12px] font-normal text-ink-muted">· wymagany</span>}</p>
-                    <p class="text-[12px] text-ink-muted">
-                      @if (!l.entry) {Nie utworzono} @else if (l.entry.status === 'PUBLISHED') {Opublikowany · {{ l.entry.path }}} @else {Szkic — nie jest widoczny w sklepie}
-                    </p>
-                  </div>
-                  @if (l.entry) {
-                    <a sv-button variant="secondary" size="sm" [routerLink]="[l.entry.id]">Edytuj</a>
-                  } @else if (canWrite) {
-                    <button sv-button variant="secondary" size="sm" [loading]="creating() === l.key" (click)="createLegal(l.key)">Utwórz ze wzoru</button>
-                  }
-                </li>
-              }
-            </ul>
-          }
-        </sv-card>
+        <sv-legal-documents />
         <sv-card class="mt-5" [flush]="true" heading="Wszystkie strony">
           <ng-container *ngTemplateOutlet="list" />
         </sv-card>
@@ -152,7 +124,6 @@ export class ContentPage {
 
   protected readonly tab = signal<Tab>((this.route.snapshot.queryParamMap.get('zakladka') as Tab) || 'strony');
   protected readonly query = signal('');
-  protected readonly creating = signal<LegalKey | null>(null);
   protected from = '';
   protected to = '';
   protected readonly addingRedirect = signal(false);
@@ -163,10 +134,6 @@ export class ContentPage {
     params: () => (this.kind() ? { t: this.ctx.tenantId(), kind: this.kind()!, q: this.query().trim() } : undefined),
     stream: ({ params }) => this.api.list(params.t, params.kind, params.q, 0),
   });
-  protected readonly legal = rxResource({
-    params: () => (this.tab() === 'strony' ? this.ctx.tenantId() : undefined),
-    stream: ({ params }) => this.api.legal(params),
-  });
   protected readonly redirects = rxResource({
     params: () => (this.tab() === 'przekierowania' ? this.ctx.tenantId() : undefined),
     stream: ({ params }) => this.api.redirects(params),
@@ -176,18 +143,6 @@ export class ContentPage {
     this.tab.set(tab);
     this.query.set('');
     void this.router.navigate([], { relativeTo: this.route, queryParams: { zakladka: tab === 'strony' ? null : tab }, replaceUrl: true });
-  }
-
-  protected async createLegal(key: LegalKey): Promise<void> {
-    this.creating.set(key);
-    try {
-      const entry = await firstValueFrom(this.api.createLegal(this.ctx.tenantId(), key));
-      await this.router.navigate([entry.id], { relativeTo: this.route });
-    } catch (e) {
-      this.toast.error(ApiError.from(e).message);
-    } finally {
-      this.creating.set(null);
-    }
   }
 
   protected async addRedirect(): Promise<void> {

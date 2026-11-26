@@ -11,7 +11,7 @@ import {
   LucidePalette, LucidePlus, LucideReceipt, LucideSearch, LucideSettings, LucideShield, LucideShieldCheck,
   LucideShoppingBag, LucideStore, LucideTrendingUp, LucideTruck, LucideUser, LucideUserPlus, LucideUsers, LucideWallet,
   LucideX, LucideShoppingCart, LucideBox, LucideCircleDollarSign, LucideEllipsis, LucideImage, LucideDownload, LucideCopy,
-  LucideArrowLeft, LucideArrowRight, LucideStar, LucideChevronUp, LucideExternalLink, LucideEye, LucideFolderPlus, LucideTrash2, LucideHistory, LucidePencil, LucideEyeOff,
+  LucideArrowLeft, LucideArrowRight, LucideStar, LucideChevronUp, LucideExternalLink, LucideEye, LucideFolderPlus, LucideTrash2, LucideHistory, LucidePencil, LucideEyeOff, LucideTablet, LucideRefreshCw, LucideScale,
   LucideShirt, LucideFootprints, LucideSmartphone, LucideMonitor, LucideSofa, LucideHouse, LucideSprout, LucideSparkles, LucideSprayCan, LucideGem, LucideDumbbell, LucideCar, LucidePawPrint, LucideToyBrick, LucideBaby, LucideShoppingBasket, LucideWrench, LucideHardHat, LucideHammer, LucidePenLine, LucideMusic, LucideGamepad2, LucideScissors, LucideGift, LucideWatch, LucideGlasses, LucideHeartPulse, LucideLeaf, LucideApple, LucideBriefcase, LucideTent, LucideLayoutGrid, LucideImagePlus, LucideUpload, LucideGripVertical, LucideLightbulb, LucideRuler, LucideWeight, LucideTag,
 } from '@lucide/angular';
 
@@ -119,6 +119,9 @@ export const icons = {
   external: LucideExternalLink,
   eye: LucideEye,
   eyeOff: LucideEyeOff,
+  tablet: LucideTablet,
+  refresh: LucideRefreshCw,
+  legal: LucideScale,
   folderPlus: LucideFolderPlus,
   trash: LucideTrash2,
   history: LucideHistory,

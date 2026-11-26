@@ -422,7 +422,13 @@ export interface ContentInput {
   kind: ContentKind; title: string; slug: string | null; excerpt: string | null; body: string; status: ContentStatus; showInFooter: boolean;
   seoTitle: string | null; seoDescription: string | null; version: number;
 }
-export interface LegalStatus { key: LegalKey; title: string; requiredForPublish: boolean; entry: ContentSummary | null; }
+export interface LegalStatus { key: LegalKey; title: string; requiredForPublish: boolean; entry: ContentSummary | null; missing: string[]; }
+/** Facts used by the legal document templates besides the company data (version -1 = not saved yet). */
+export interface LegalSettings {
+  shippingTime: string | null; effectiveDate: string | null; returnsAddress: string | null; analyticsTools: string | null; marketingTools: string | null;
+  version: number;
+}
+export interface LegalTemplate { key: LegalKey; body: string; missing: string[]; }
 export interface Redirect { id: string; fromPath: string; toPath: string; automatic: boolean; createdAt: string; }
 export interface ContentRevision { title: string; body: string; publishedAt: string; }
 export * from './rich-text';

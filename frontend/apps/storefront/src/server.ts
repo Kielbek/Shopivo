@@ -117,8 +117,15 @@ app.get('/api/v1/media/{*path}', (req, res, next) => void proxy(req, res, next, 
 app.get('/sitemap.xml', (req, res, next) => void proxy(req, res, next, '/api/v1/storefront/sitemap.xml'));
 app.get('/robots.txt', (req, res, next) => void proxy(req, res, next, '/api/v1/storefront/robots.txt'));
 
+/**
+ * Origins of the merchant panel (comma-separated, e.g. https://panel.shopivo.pl). Only preview responses (`?podglad=`,
+ * draft content behind a signed token) may be framed by them — for the panel's device preview. Live pages stay unframeable.
+ */
+const PANEL_ORIGINS = (process.env['SHOPIVO_PANEL_ORIGIN'] ?? '')
+  .split(',').map((o) => o.trim()).filter((o) => /^https?:\/\/[a-z0-9.-]+(:\d+)?$/i.test(o));
+
 // Baseline security headers for every page.
-app.use((_req, res, next) => {
+app.use((req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
@@ -134,7 +141,7 @@ app.use((_req, res, next) => {
     "font-src 'self'",
     "connect-src 'self' https://challenges.cloudflare.com",
     'frame-src https://challenges.cloudflare.com',
-    "frame-ancestors 'self'",
+    'podglad' in req.query && PANEL_ORIGINS.length ? `frame-ancestors 'self' ${PANEL_ORIGINS.join(' ')}` : "frame-ancestors 'self'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

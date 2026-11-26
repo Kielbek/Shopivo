@@ -309,6 +309,19 @@ dla takiej metody (`PICKUP_POINT_REQUIRED`) i sprawdzany u przewoźnika. `Shippi
 | POST | `/stores` | zalogowany | opcjonalne pole `industry` (np. `FASHION`); nieznany kod → 400 |
 | PUT | `/tenants/{t}/store/industry` | `STORE_SETTINGS_WRITE` | `{industry}` lub `{industry: null}`; widok sklepu (`GET /tenants/{t}/store`) zwraca `industry` |
 
+## 13b. Dokumenty prawne — dane i podgląd (zaimplementowane)
+
+| Metoda | Ścieżka | Uprawnienie | Opis |
+|---|---|---|---|
+| GET | `/tenants/{t}/content/legal` | `STORE_READ` | Status dokumentów + `missing`: lista znaczników „[uzupełnij: …]” pozostałych w treści |
+| GET / PUT | `/tenants/{t}/content/legal/settings` | `STORE_READ` / `CONTENT_WRITE` | Termin wysyłki, data obowiązywania regulaminu, adres zwrotów, narzędzia analityczne i reklamowe; `version` -1 = pierwszy zapis; 409 przy nieaktualnej wersji, 422 przy nawiasach kwadratowych lub dacie spoza zakresu |
+| GET | `/tenants/{t}/content/legal/{key}/template` | `STORE_READ` | Wzór wypełniony aktualnymi danymi + `missing` (podgląd przed utworzeniem, odświeżenie treści) |
+
+Odświeżenie dokumentu ze wzoru to zwykły `PUT /content/{id}` z treścią wzoru (opublikowany dokument publikuje nową
+rewizję; zamówienia wskazują rewizję zaakceptowaną przez klienta). Podgląd w panelu to prawdziwa strona sklepu w
+`<iframe>` z linkiem podglądu; witryna pozwala na osadzenie tylko odpowiedziom `?podglad=` i tylko z adresów
+`SHOPIVO_PANEL_ORIGIN`.
+
 ## 14. Kolejne fazy (zarys)
 - Faza 5c: DPD; zwroty płatności przez API operatorów
 - `/api/v1/webhooks/payments/{provider}/{tenantId}`,

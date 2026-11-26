@@ -4,7 +4,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import java.time.format.DateTimeFormatter;
 import pl.shopivo.content.LegalKey;
+import pl.shopivo.content.LegalSettings;
 import pl.shopivo.stores.StoreSettingsView;
 import pl.shopivo.stores.StoreView;
 import pl.shopivo.stores.Stores;
@@ -17,26 +19,36 @@ import pl.shopivo.stores.Stores;
 @Component
 public class LegalTemplates {
 
+    private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("d.MM.yyyy");
+
     private final Stores stores;
+    private final LegalSettings legal;
     private final String urlTemplate;
 
-    LegalTemplates(Stores stores, @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate) {
+    LegalTemplates(Stores stores, LegalSettings legal, @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate) {
         this.stores = stores;
+        this.legal = legal;
         this.urlTemplate = urlTemplate;
     }
 
     public String render(LegalKey key) {
         StoreView store = stores.current();
         StoreSettingsView s = stores.currentSettings();
+        LegalSettings.View l = legal.current();
+        String address = or(Stream.of(s.addressLine1(), s.addressLine2(), join(s.postalCode(), s.city()))
+                .filter(x -> x != null && !x.isBlank()).collect(Collectors.joining(", ")), "adres firmy");
         Data d = new Data(
                 or(s.legalCompanyName(), "nazwa firmy"),
                 or(s.taxId(), "NIP"),
-                or(Stream.of(s.addressLine1(), s.addressLine2(), join(s.postalCode(), s.city()))
-                        .filter(x -> x != null && !x.isBlank()).collect(Collectors.joining(", ")), "adres firmy"),
+                address,
                 or(s.orderEmail() != null ? s.orderEmail() : store.contactEmail(), "adres e-mail"),
                 s.phone() == null || s.phone().isBlank() ? null : s.phone(),
                 urlTemplate.replace("{host}", store.primaryHostname()),
-                store.name());
+                store.name(),
+                or(l.shippingTime(), "termin wysyłki, np. do 2 dni roboczych od zaksięgowania płatności"),
+                l.effectiveDate() == null ? "[uzupełnij: data obowiązywania]" : l.effectiveDate().format(DATE),
+                l.returnsAddress() == null ? address : l.returnsAddress(),
+                l.analyticsTools(), l.marketingTools());
         return switch (key) {
             case TERMS -> terms(d);
             case PRIVACY -> privacy(d);
@@ -45,7 +57,8 @@ public class LegalTemplates {
         };
     }
 
-    record Data(String company, String taxId, String address, String email, String phone, String url, String storeName) {
+    record Data(String company, String taxId, String address, String email, String phone, String url, String storeName,
+            String shippingTime, String effectiveDate, String returnsAddress, String analyticsTools, String marketingTools) {
         String contact() {
             return "e-mail: " + email + (phone == null ? "" : ", tel. " + phone);
         }
@@ -85,7 +98,7 @@ public class LegalTemplates {
                 ## § 6. Dostawa
 
                 1. Sprzedawca realizuje dostawy na terenie Polski. Dostępne sposoby i koszty dostawy są prezentowane podczas składania zamówienia.
-                2. Termin wysyłki: [uzupełnij: np. do 2 dni roboczych od zaksięgowania płatności].
+                2. Termin wysyłki: %s.
 
                 ## § 7. Prawo odstąpienia od umowy
 
@@ -115,9 +128,9 @@ public class LegalTemplates {
 
                 1. W sprawach nieuregulowanych stosuje się przepisy prawa polskiego, w szczególności Kodeksu cywilnego i ustawy o prawach konsumenta.
                 2. Zmiana regulaminu nie dotyczy zamówień złożonych przed jej wejściem w życie.
-                3. Regulamin obowiązuje od dnia [uzupełnij: data].
-                """.formatted(d.storeName(), d.url(), d.company(), d.address(), d.taxId(), d.contact(), d.email(), d.address(), d.email(),
-                d.address());
+                3. Regulamin obowiązuje od dnia %s.
+                """.formatted(d.storeName(), d.url(), d.company(), d.address(), d.taxId(), d.contact(), d.shippingTime(), d.email(),
+                d.returnsAddress(), d.email(), d.address(), d.effectiveDate());
     }
 
     private static String privacy(Data d) {
@@ -153,8 +166,26 @@ public class LegalTemplates {
 
                 ## Pliki cookies i pamięć przeglądarki
 
-                Sklep zapisuje w pamięci Twojej przeglądarki wyłącznie informacje niezbędne do działania koszyka i potwierdzenia zamówienia. Nie używamy plików cookies analitycznych ani reklamowych. [uzupełnij, jeśli dodasz narzędzia analityczne lub reklamowe]
-                """.formatted(d.company(), d.address(), d.taxId(), d.contact());
+                %s
+                """.formatted(d.company(), d.address(), d.taxId(), d.contact(), cookies(d));
+    }
+
+    /** The cookies section depends on the tools the store actually uses — nothing is claimed that is not configured. */
+    private static String cookies(Data d) {
+        String base = "Sklep zapisuje w pamięci Twojej przeglądarki informacje niezbędne do działania koszyka i potwierdzenia zamówienia.";
+        if (d.analyticsTools() == null && d.marketingTools() == null) {
+            return base + " Nie używamy plików cookies analitycznych ani reklamowych.";
+        }
+        StringBuilder sb = new StringBuilder(base);
+        if (d.analyticsTools() != null) {
+            sb.append("\n\n**Statystyka:** korzystamy z narzędzi ").append(d.analyticsTools())
+                    .append(", aby wiedzieć, jak klienci korzystają ze sklepu. Pliki cookies tych narzędzi zapisujemy tylko za Twoją zgodą (art. 6 ust. 1 lit. a RODO).");
+        }
+        if (d.marketingTools() != null) {
+            sb.append("\n\n**Reklama:** korzystamy z narzędzi ").append(d.marketingTools())
+                    .append(", aby pokazywać reklamy naszych produktów. Pliki cookies tych narzędzi zapisujemy tylko za Twoją zgodą, którą możesz w każdej chwili wycofać.");
+        }
+        return sb.toString();
     }
 
     private static String returns(Data d) {
@@ -188,7 +219,7 @@ public class LegalTemplates {
                 - Data:
 
                 (*) Niepotrzebne skreślić.
-                """.formatted(d.email(), d.address(), d.email(), d.address(), d.company(), d.address(), d.email());
+                """.formatted(d.email(), d.returnsAddress(), d.email(), d.address(), d.company(), d.address(), d.email());
     }
 
     private static String shipping(Data d) {
@@ -197,7 +228,7 @@ public class LegalTemplates {
 
                 Wysyłamy zamówienia na terenie Polski. Dostępne sposoby dostawy i ich koszty widzisz w koszyku i podczas składania zamówienia – zanim je potwierdzisz.
 
-                Termin wysyłki: [uzupełnij: np. do 2 dni roboczych od zaksięgowania płatności].
+                Termin wysyłki: %s.
 
                 ## Płatności
 
@@ -206,7 +237,7 @@ public class LegalTemplates {
                 ## Masz pytania?
 
                 Napisz do nas: %s.
-                """.formatted(d.contact());
+                """.formatted(d.shippingTime(), d.contact());
     }
 
     private static String or(String v, String what) {

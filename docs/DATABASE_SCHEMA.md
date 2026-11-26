@@ -224,6 +224,12 @@ Blokady zadań cyklicznych.
 |---|---|
 | `stores.industry` | Branża sklepu (35 kodów, `CHECK`), `NULL` = nie wybrano; służy wyłącznie podpowiedziom w panelu |
 
+## 5i. Tabele — dane dokumentów prawnych (migracja V15; z RLS)
+
+| Tabela | Opis |
+|---|---|
+| `store_legal_settings` | Dane używane we wzorach (poza danymi firmy z `store_settings`): `shipping_time`, `effective_date`, `returns_address` (NULL = adres firmy), `analytics_tools`, `marketing_tools`, `version` |
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |

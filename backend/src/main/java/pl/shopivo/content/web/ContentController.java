@@ -32,9 +32,11 @@ class ContentController {
     private final Redirects redirects;
     private final pl.shopivo.content.PublicContent publicContent;
     private final pl.shopivo.content.Navigation navigation;
+    private final pl.shopivo.content.LegalSettings legalSettings;
 
     ContentController(Content content, Redirects redirects, pl.shopivo.content.PublicContent publicContent,
-            pl.shopivo.content.Navigation navigation) {
+            pl.shopivo.content.Navigation navigation, pl.shopivo.content.LegalSettings legalSettings) {
+        this.legalSettings = legalSettings;
         this.navigation = navigation;
         this.publicContent = publicContent;
         this.content = content;
@@ -48,15 +50,38 @@ class ContentController {
         return PageResponse.of(content.list(kind, q, PageRequest.of(Math.clamp(page, 0, 1000), Math.clamp(size, 1, 100))), e -> e);
     }
 
-    record LegalStatus(LegalKey key, String title, boolean requiredForPublish, Content.EntrySummary entry) {
+    record LegalStatus(LegalKey key, String title, boolean requiredForPublish, Content.EntrySummary entry, List<String> missing) {
+    }
+
+    record LegalTemplate(LegalKey key, String body, List<String> missing) {
     }
 
     @GetMapping("/content/legal")
     @PreAuthorize("@tenantAccess.can('STORE_READ')")
     List<LegalStatus> legal(@PathVariable UUID tenantId) {
         Map<LegalKey, java.util.Optional<Content.EntrySummary>> status = content.legalStatus();
+        Map<LegalKey, List<String>> missing = content.legalMissing();
         return java.util.Arrays.stream(LegalKey.values())
-                .map(k -> new LegalStatus(k, k.title(), k.requiredForPublish(), status.get(k).orElse(null))).toList();
+                .map(k -> new LegalStatus(k, k.title(), k.requiredForPublish(), status.get(k).orElse(null), missing.getOrDefault(k, List.of()))).toList();
+    }
+
+    @GetMapping("/content/legal/settings")
+    @PreAuthorize("@tenantAccess.can('STORE_READ')")
+    pl.shopivo.content.LegalSettings.View legalSettings(@PathVariable UUID tenantId) {
+        return legalSettings.current();
+    }
+
+    @PutMapping("/content/legal/settings")
+    @PreAuthorize("@tenantAccess.can('CONTENT_WRITE')")
+    pl.shopivo.content.LegalSettings.View saveLegalSettings(@PathVariable UUID tenantId, @RequestBody pl.shopivo.content.LegalSettings.View input) {
+        return legalSettings.save(input);
+    }
+
+    @GetMapping("/content/legal/{key}/template")
+    @PreAuthorize("@tenantAccess.can('STORE_READ')")
+    LegalTemplate legalTemplate(@PathVariable UUID tenantId, @PathVariable LegalKey key) {
+        String body = content.legalTemplate(key);
+        return new LegalTemplate(key, body, pl.shopivo.content.LegalSettings.missing(body));
     }
 
     @PostMapping("/content/legal/{key}")

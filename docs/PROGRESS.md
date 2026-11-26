@@ -7,7 +7,7 @@ Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 49/49 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 73/73 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 75/75 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
 | Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 70/70 ✔ (panel 56, admin 3, witryna 11) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
@@ -51,6 +51,14 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 
 ## Usprawnienia UX katalogu (2026-11-26)
 
+- **Dokumenty prawne**: lista z postępem („x z 4 gotowe”) i tym, czego brakuje w każdym dokumencie; podgląd
+  prawdziwej strony sklepu (z motywem, także szkic) w widokach Komputer / Tablet / Telefon; dla nieutworzonych —
+  podgląd wzoru z Twoimi danymi; formularz „Dane w dokumentach” (dane firmy, termin wysyłki z gotowymi
+  propozycjami, data obowiązywania, adres zwrotów, narzędzia statystyk i reklam z podpowiedziami — polityka
+  prywatności opisuje tylko to, czego sklep używa), a po zapisie — odświeżenie wybranych dokumentów ze wzoru z
+  ostrzeżeniem o nadpisaniu ręcznych zmian. Edytor stron ma zakładkę „W sklepie” z tym samym podglądem urządzeń.
+  Migracja V15, `LegalSettingsIT`; E2E: braki → formularz → aktualizacja 2 dokumentów → 0 braków, iPhone 13 bez
+  poziomego przewijania, 0 błędów konsoli.
 - **Wczytywanie bez spinnerów**: wszędzie cieniowane szkielety (shimmer) w kształcie treści — lista, tabela, formularz,
   karty, szczegóły, cała strona panelu; karty statystyk z cieniowaniem zamiast „—”; przyciski w trakcie akcji mają
   przesuwający się połysk zamiast kółka; szkielet w `index.html` widoczny od pierwszej chwili (przed startem Angulara)
@@ -288,6 +296,8 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - **Faza 5a:** adaptery Przelewy24 / PayU / Tpay sprawdzone tylko na atrapach HTTP i symulatorze — **przed produkcją
   konieczny test na sandboxach operatorów** (wymaga kont testowych). Zwroty wykonuje sprzedawca w panelu operatora (zwrot
   przez API — Faza 5b). Brak raportu płatności w panelu (widoczne w historii zamówienia).
+- **Dokumenty prawne:** odświeżenie ze wzoru zastępuje całą treść (bez scalania ręcznych zmian — panel ostrzega);
+  podgląd w ramce wymaga ustawienia `SHOPIVO_PANEL_ORIGIN` w witrynie.
 - **UX katalogu:** kategorie są sortowane alfabetycznie — brak zmiany kolejności (np. przeciąganiem w drzewie);
   zdjęcia nadal tylko JPEG/PNG (WebP/AVIF — później); podpowiedzi branżowe są stałą listą w panelu.
 - **Faza 5b:** adapter InPost ShipX sprawdzony tylko na lokalnej atrapie API — **przed produkcją test na sandboxie

@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {
-  ContentEntry, ContentInput, ContentKind, ContentRevision, ContentSummary, LegalKey, LegalStatus, NavigationItem, NavigationMenu, Page, Redirect,
+  ContentEntry, ContentInput, ContentKind, ContentRevision, ContentSummary, LegalKey, LegalSettings, LegalStatus, LegalTemplate, NavigationItem, NavigationMenu, Page, Redirect,
 } from '@shopivo/shared-models';
 import { Observable } from 'rxjs';
 
@@ -22,6 +22,18 @@ export class ContentApi {
 
   legal(t: string): Observable<LegalStatus[]> {
     return this.http.get<LegalStatus[]>(`${this.base(t)}/content/legal`);
+  }
+
+  legalSettings(t: string): Observable<LegalSettings> {
+    return this.http.get<LegalSettings>(`${this.base(t)}/content/legal/settings`);
+  }
+
+  saveLegalSettings(t: string, input: LegalSettings): Observable<LegalSettings> {
+    return this.http.put<LegalSettings>(`${this.base(t)}/content/legal/settings`, input);
+  }
+
+  legalTemplate(t: string, key: LegalKey): Observable<LegalTemplate> {
+    return this.http.get<LegalTemplate>(`${this.base(t)}/content/legal/${key}/template`);
   }
 
   createLegal(t: string, key: LegalKey): Observable<ContentEntry> {

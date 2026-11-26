@@ -162,6 +162,20 @@ public class Content {
         return get(id);
     }
 
+    /** The template for a legal document filled with the current data (to compare with / replace the current text). */
+    public String legalTemplate(LegalKey key) {
+        return templates.render(key);
+    }
+
+    /** Missing-data markers left in each existing legal document. */
+    @Transactional(readOnly = true)
+    public Map<LegalKey, java.util.List<String>> legalMissing() {
+        Map<LegalKey, java.util.List<String>> result = new java.util.EnumMap<>(LegalKey.class);
+        jdbc.query("select system_key, body from content_entries where tenant_id = ? and system_key is not null",
+                rs -> { result.put(LegalKey.valueOf(rs.getString(1)), LegalSettings.missing(rs.getString(2))); }, TenantContext.requireTenantId());
+        return result;
+    }
+
     /** Status of the legal documents (for the panel checklist). */
     @Transactional(readOnly = true)
     public Map<LegalKey, Optional<EntrySummary>> legalStatus() {
