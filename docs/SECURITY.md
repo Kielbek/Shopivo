@@ -167,8 +167,7 @@ serwerze (kolory `#RRGGBB`, listy opcji, długości, bez znaków sterujących), 
 (bez `innerHTML`), JSON-LD z ucieczką `<`; token podglądu HMAC przypisany do sklepu i ważny 2 h; upload zdjęcia do
 produktu innego sklepu → 404 (test).
 
-Znane, nienaprawione: CSP witryny nie ogranicza jeszcze `script-src` (wymaga nonce dla skryptów wstawianych przez Angular
-SSR — Faza 8); serwer SSR akceptuje każdy `Host` (domeny własne) — LB musi przepuszczać tylko domeny platformy i
+Znane, nienaprawione (stan z przeglądu 4a; CSP naprawione później): serwer SSR akceptuje każdy `Host` (domeny własne) — LB musi przepuszczać tylko domeny platformy i
 zweryfikowane domeny własne, a wywołania API z SSR idą wyłącznie na stały adres `SHOPIVO_API_URL` (brak SSRF przez
 `Host`); unieważnienie statusu publikacji na innych instancjach do 30 s.
 
@@ -192,4 +191,7 @@ do opinii) przechowywane jako skróty; aktywacja konta wymaga hasła z rejestrac
 treść stron bez `innerHTML`; przekierowania i menu tylko do ścieżek w sklepie.
 
 Znane, nienaprawione: zamówienia przypisane do konta po adresie e-mail (zamówienie złożone przez kogoś innego na ten sam
-adres będzie widoczne właścicielowi skrzynki — tak samo jak e-mail z potwierdzeniem); CSP witryny bez `script-src` (Faza 8).
+adres będzie widoczne właścicielowi skrzynki — tak samo jak e-mail z potwierdzeniem).
+
+**Uzupełnienie (2026-11-26):** CSP witryny ma już `script-src` — `'self'`, Turnstile, skróty stałych skryptów z szablonu
+buildu i `nonce` na odpowiedź (bez `unsafe-inline`), `connect-src`/`frame-src` ograniczone do własnej domeny i Turnstile.

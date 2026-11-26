@@ -1,10 +1,31 @@
 import { AngularNodeAppEngine, createNodeRequestHandler, isMainModule, writeResponseToNodeResponse } from '@angular/ssr/node';
 import express from 'express';
+import { createHash, randomBytes } from 'node:crypto';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { StorefrontRequestContext } from './app/api-origin';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 const apiOrigin = process.env['SHOPIVO_API_URL'] ?? 'http://localhost:8080';
+
+/**
+ * CSP hashes of the static inline scripts that the build puts into the HTML templates (Angular's event-replay contract,
+ * the stylesheet loader). Computed from the built files at startup, so they always match the deployed bundle; any other
+ * inline script needs this response's nonce.
+ */
+const STATIC_SCRIPT_HASHES = (() => {
+  const hashes = new Set<string>();
+  for (const file of [join(import.meta.dirname, 'index.server.html'), join(browserDistFolder, 'index.csr.html'), join(browserDistFolder, 'index.html')]) {
+    if (!existsSync(file)) continue;
+    const html = readFileSync(file, 'utf8');
+    for (const m of html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/g)) {
+      const attrs = m[1] ?? '';
+      if (/\ssrc=/.test(attrs) || /type="application\/(ld\+)?json"/.test(attrs) || !m[2].trim()) continue;
+      hashes.add(`'sha256-${createHash('sha256').update(m[2]).digest('base64')}'`);
+    }
+  }
+  return [...hashes].join(' ');
+})();
 
 const app = express();
 app.disable('x-powered-by');
@@ -101,7 +122,23 @@ app.use((_req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  res.setHeader('Content-Security-Policy', "frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'");
+  // Scripts only from this origin, Cloudflare Turnstile and inline scripts carrying this response's nonce (Angular's
+  // SSR bootstrap). Merchant content is rendered without innerHTML, so this is defence in depth.
+  const nonce = randomBytes(16).toString('base64');
+  res.locals['cspNonce'] = nonce;
+  res.setHeader('Content-Security-Policy', [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' ${STATIC_SCRIPT_HASHES} https://challenges.cloudflare.com`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "font-src 'self'",
+    "connect-src 'self' https://challenges.cloudflare.com",
+    'frame-src https://challenges.cloudflare.com',
+    "frame-ancestors 'self'",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; '));
   next();
 });
 
@@ -114,7 +151,7 @@ app.use((req, res, next) => {
     res.setHeader('X-Robots-Tag', 'noindex, nofollow');
   }
   angularApp
-    .handle(req, { clientIp: req.ip } satisfies StorefrontRequestContext)
+    .handle(req, { clientIp: req.ip, cspNonce: res.locals['cspNonce'] } satisfies StorefrontRequestContext)
     .then(async (response) => {
       if (!response) return next();
       // Only after a miss: a configured (or automatic, after a URL change) 301 for this path.

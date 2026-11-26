@@ -8,6 +8,8 @@ import { InjectionToken, REQUEST, REQUEST_CONTEXT, inject } from '@angular/core'
 /** Passed by server.ts to `AngularNodeAppEngine.handle()` for every request. */
 export interface StorefrontRequestContext {
   clientIp?: string;
+  /** Per-response CSP nonce, applied by Angular to the inline scripts it renders. */
+  cspNonce?: string;
 }
 
 export const STOREFRONT_API_ORIGIN = new InjectionToken<string>('STOREFRONT_API_ORIGIN');

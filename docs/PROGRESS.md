@@ -6,7 +6,7 @@ Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
-| Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 34/34 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
+| Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 35/35 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
 | Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 70/70 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
 | Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 54/54 ✔ (panel 40, admin 3, witryna 11) |
@@ -46,6 +46,13 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 | Ręczny przepływ E2E Fazy 4d (Playwright, poza repo) | rejestracja w sklepie (walidacja regulaminu) → e-mail (Mailpit) → aktywacja z hasłem (złe hasło odrzucone, token usunięty z adresu) → adres domyślny → checkout z danymi z konta → zamówienie widoczne na koncie → realizacja → opinia z konta („Do oceny”) → szczegóły zamówienia z numerem przesyłki → wylogowanie, złe hasło, logowanie → opinia w panelu; ciasteczko HttpOnly, SameSite=Lax, tylko domena sklepu; mobile bez poziomego przewijania | ✔ |
 
 | Ręczny przepływ E2E Fazy 4e (Playwright, poza repo; Cloudflare niedostępny z tego środowiska — skrypt widgetu podstawiony w przeglądarce, backend z Turnstile wskazującym na lokalny serwer weryfikacji) | menu w panelu (wybór kategorii, własny adres odrzucony dla zewnętrznego URL, zmiana nazwy, kolejność, zapis) → menu w nagłówku sklepu → checkout: brak potwierdzenia blokowany w przeglądarce, token bota odrzucony przez serwer (400), token człowieka → zamówienie; rejestracja z CAPTCHA → aktywacja → oznaczenie „Konto” w panelu Klienci | ✔ |
+
+## Domknięcie znanych ograniczeń (2026-11-26)
+- **CSP witryny** z `script-src`: skrypty tylko z własnej domeny, Cloudflare Turnstile, skróty SHA-256 stałych skryptów
+  z szablonu buildu (liczone przy starcie serwera) i jednorazowy `nonce` na odpowiedź dla skryptów SSR Angulara; bez
+  `unsafe-inline`. Sprawdzone pełnymi scenariuszami E2E (sklep, treści, konta) — 0 naruszeń w konsoli.
+- **Zdarzenia (outbox)**: ponowienia z rosnącą przerwą (5 min → maks. 6 h), najwyżej 10 prób; potem zdarzenie zostaje
+  jako „martwe” i jest raportowane w logu raz dziennie; zakończone publikacje usuwane po 30 dniach (test `EventRedeliveryTest`).
 
 ## Przegląd Faz 4b–4e (2026-11-26) — naprawione
 Blokada kont klientów zastąpiona limitem per adres (bez możliwości blokowania cudzych kont i bez ujawniania, czy konto
@@ -238,8 +245,6 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
   separacja domen witryn (ADR-012) czeka na decyzję Q-03.
 - `X-Forwarded-Host` od klienta musi być nadpisywany przez LB/Cloudflare (inaczej możliwe podanie dowolnego hosta
   sklepu — ujawnia tylko publiczne dane witryn, ale należy to skonfigurować).
-- Publikacje zdarzeń, które stale się nie udają (np. błędny adres e-mail), są ponawiane bez limitu — limit prób
-  i dead-letter w Fazie 8.
 - Obrazy Docker Hub bywały limitowane (429) w środowisku deweloperskim — w CI nie jest to problem.
 
 ## Następny krok
