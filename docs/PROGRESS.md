@@ -1,13 +1,13 @@
 # Shopivo — postęp prac
 
-Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a**, **Faza 4b**, **Faza 4c — opinie** (z ograniczeniami opisanymi niżej). Następne: konta klientów (4d).
+Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a**, **Faza 4b**, **Faza 4c — opinie**, **Faza 4d — konta klientów** (z ograniczeniami opisanymi niżej). Następne: CAPTCHA i menu nawigacji (4e).
 
 ## Wyniki testów (rzeczywiście uruchomione)
 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 31/31 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 65/65 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 68/68 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
 | Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 51/51 ✔ (panel 40, admin 3, witryna 8) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
@@ -42,6 +42,19 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 | Ręczny przepływ E2E Fazy 4b (Playwright, poza repo) | panel: regulamin i polityka ze wzoru (ostrzeżenie, uzupełnienie, podgląd, publikacja) → wpis na blogu → przekierowanie → publikacja sklepu; klient: stopka → regulamin, blog → wpis, link do regulaminu w checkoucie, zamówienie; panel: podgląd wersji regulaminu zaakceptowanej w zamówieniu; `curl`: 301 ze starego adresu, 404 bez przekierowania, tytuł/opis SSR, JSON-LD `BlogPosting`; mobile bez poziomego przewijania, 0 błędów konsoli | ✔ |
 
 | Ręczny przepływ E2E Fazy 4c (Playwright, poza repo) | zakup w sklepie → opłacenie, wysyłka, realizacja → e-mail z linkiem (Mailpit) → formularz opinii (token usunięty z paska adresu, walidacja oceny) → e-mail do sklepu → moderacja i odpowiedź w panelu → opinia, średnia, rozkład i „Zweryfikowany zakup” na karcie produktu; `curl`: JSON-LD `aggregateRating` w SSR; mobile bez poziomego przewijania; 0 błędów konsoli | ✔ |
+
+| Ręczny przepływ E2E Fazy 4d (Playwright, poza repo) | rejestracja w sklepie (walidacja regulaminu) → e-mail (Mailpit) → aktywacja z hasłem (złe hasło odrzucone, token usunięty z adresu) → adres domyślny → checkout z danymi z konta → zamówienie widoczne na koncie → realizacja → opinia z konta („Do oceny”) → szczegóły zamówienia z numerem przesyłki → wylogowanie, złe hasło, logowanie → opinia w panelu; ciasteczko HttpOnly, SameSite=Lax, tylko domena sklepu; mobile bez poziomego przewijania | ✔ |
+
+## Faza 4d — konta klientów (2026-11-26)
+
+- Moduł `accounts`: rejestracja z potwierdzeniem e-maila (link + hasło z rejestracji), logowanie z blokadą po 5 próbach,
+  reset i zmiana hasła (wylogowanie innych sesji), usunięcie konta, adresy, historia zamówień po potwierdzonym e-mailu.
+- Sklep: logowanie, rejestracja, aktywacja, reset hasła, „Moje konto” (zamówienia, do oceny, adresy, ustawienia),
+  szczegóły zamówienia, ikona konta w nagłówku, dane z konta w checkoucie.
+- Opinie: weryfikacja zakupu zaostrzona — tylko zamówienia zrealizowane **i opłacone** (lub za pobraniem), nigdy zwrócone;
+  zalogowany klient ocenia tylko produkty z własnych takich zamówień.
+- Błąd projektowy wykryty przed wdrożeniem i naprawiony: ponowna rejestracja niepotwierdzonego adresu mogła pozwolić
+  przejąć konto po kliknięciu linku przez właściciela skrzynki — aktywacja wymaga teraz hasła z tej rejestracji (test).
 
 ## Faza 4c — opinie o produktach (2026-11-26)
 
@@ -185,8 +198,10 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - **Faza 3:** brak importu CSV, rabatów, zwrotów/reklamacji i kont klientów (zaplanowane w kolejnych fazach).
 - **Faza 4b:** wzory dokumentów prawnych to punkt wyjścia, nie porada prawna — przed udostępnieniem sprzedawcom
   produkcyjnym powinien je przejrzeć prawnik (Q-08). Panel wyraźnie to komunikuje.
-- **Faza 4b/4c:** brak kont klientów, CAPTCHA w checkoucie (limit 10/10 min/IP), menu nawigacji definiowanego przez
+- **Faza 4b–4d:** brak CAPTCHA w checkoucie i rejestracji (są limity na IP i e-mail), menu nawigacji definiowanego przez
   sprzedawcę, zdjęć we wpisach bloga.
+- **Faza 4d:** zamówienie nie jest przypisywane do konta inaczej niż przez e-mail (zmiana e-maila konta nie jest jeszcze
+  możliwa); panel sprzedawcy nie pokazuje jeszcze, czy klient ma konto; brak logowania przez Google/Apple dla klientów.
 - **Faza 4c:** zaproszenia do opinii tylko dla zamówień ze sklepu (nie z panelu) i tylko automatycznie po realizacji;
   brak gwiazdek na kafelkach produktów w listach; zatwierdzona opinia pojawia się w sklepie do 30 s później (cache API).
 - **Faza 4b:** przekierowanie działa przy wejściu z zewnątrz (SSR); nawigacja wewnątrz aplikacji na stary adres pokaże 404.
@@ -208,6 +223,6 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - Obrazy Docker Hub bywały limitowane (429) w środowisku deweloperskim — w CI nie jest to problem.
 
 ## Następny krok
-**Faza 4d**: konta klientów (rejestracja, logowanie, historia zamówień, adresy — osobno dla każdego sklepu), CAPTCHA w
-checkoucie, menu nawigacji. Przed produkcją nadal: Q-06 (faktury/KSeF), test adapterów na sandboxach operatorów, cennik
-(Q-05), przegląd prawny wzorów (Q-08).
+**Faza 4e**: CAPTCHA (np. Cloudflare Turnstile) w checkoucie i rejestracji, menu nawigacji sklepu, informacja o koncie
+klienta w panelu. Potem Faza 5 (płatności i wysyłka sprzedawców). Przed produkcją nadal: Q-06 (faktury/KSeF), test
+adapterów na sandboxach operatorów, cennik (Q-05), przegląd prawny wzorów (Q-08).

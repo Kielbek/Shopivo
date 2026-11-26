@@ -144,10 +144,13 @@ class StorefrontAccountController {
 
     // ------------------------------------------------------------------------------------------------ signed in
 
+    /** The signed-in customer, or 204 for anonymous visitors (asked on every page view — not an error). */
     @GetMapping("/me")
     ResponseEntity<CustomerAccounts.Account> me(HttpServletRequest request) {
         UUID tenant = guard(request);
-        return noStore(signedIn(tenant, request));
+        String token = cookie(request);
+        return run(tenant, () -> accounts.session(token)).map(StorefrontAccountController::noStore)
+                .orElseGet(() -> ResponseEntity.noContent().cacheControl(CacheControl.noStore()).build());
     }
 
     @PatchMapping("/me")

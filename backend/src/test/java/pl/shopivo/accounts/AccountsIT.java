@@ -135,7 +135,8 @@ class AccountsIT extends IntegrationTest {
         assertThat(acc(HttpMethod.GET, s.host(), "/account/me", session, null).json().get("email").asString()).isEqualTo(email);
         assertThat(call(HttpMethod.GET, s.host(), "/account/me", session, null, false, null, null).status()).isEqualTo(403);
         Shop other = shop("acc-b");
-        assertThat(acc(HttpMethod.GET, other.host(), "/account/me", session, null).code()).isEqualTo("NOT_SIGNED_IN");
+        assertThat(acc(HttpMethod.GET, other.host(), "/account/me", session, null).status()).isEqualTo(204);
+        assertThat(acc(HttpMethod.GET, other.host(), "/account/orders", session, null).code()).isEqualTo("NOT_SIGNED_IN");
 
         // Registering again does not reveal the account (same 202, a "you already have an account" e-mail)
         assertThat(acc(HttpMethod.POST, s.host(), "/account/register", null, registration(email, PW)).status()).isEqualTo(202);
@@ -178,7 +179,7 @@ class AccountsIT extends IntegrationTest {
 
         // Logout ends the session
         assertThat(acc(HttpMethod.POST, s.host(), "/account/logout", session, null).setCookie()).contains("Max-Age=0");
-        assertThat(acc(HttpMethod.GET, s.host(), "/account/me", session, null).code()).isEqualTo("NOT_SIGNED_IN");
+        assertThat(acc(HttpMethod.GET, s.host(), "/account/me", session, null).status()).isEqualTo(204);
     }
 
     @Test
@@ -218,7 +219,7 @@ class AccountsIT extends IntegrationTest {
                 .status()).isEqualTo(204);
         assertThat(acc(HttpMethod.POST, s.host(), "/account/password-reset/confirm", null, Map.of("token", reset, "password", "Nowe-Haslo-Klientki-8"))
                 .code()).isEqualTo("INVALID_TOKEN");
-        assertThat(acc(HttpMethod.GET, s.host(), "/account/me", session, null).code()).isEqualTo("NOT_SIGNED_IN");
+        assertThat(acc(HttpMethod.GET, s.host(), "/account/me", session, null).status()).isEqualTo(204);
 
         // Lockout after repeated failures
         for (int i = 0; i < 5; i++) acc(HttpMethod.POST, s.host(), "/account/login", null, Map.of("email", victim, "password", "zle-haslo-" + i));
@@ -235,7 +236,7 @@ class AccountsIT extends IntegrationTest {
                 Map.of("token", link(email, "Potwierdź konto", "/konto/potwierdz"), "password", PW)).session();
         assertThat(acc(HttpMethod.POST, s.host(), "/account/delete", session, Map.of("password", "zle")).code()).isEqualTo("WRONG_PASSWORD");
         assertThat(acc(HttpMethod.POST, s.host(), "/account/delete", session, Map.of("password", PW)).status()).isEqualTo(204);
-        assertThat(acc(HttpMethod.GET, s.host(), "/account/me", session, null).code()).isEqualTo("NOT_SIGNED_IN");
+        assertThat(acc(HttpMethod.GET, s.host(), "/account/me", session, null).status()).isEqualTo(204);
         assertThat(acc(HttpMethod.POST, s.host(), "/account/login", null, Map.of("email", email, "password", PW)).code()).isEqualTo("INVALID_CREDENTIALS");
     }
 }

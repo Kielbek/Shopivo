@@ -184,13 +184,23 @@ Blokady zadań cyklicznych.
 | `review_invitations` | Jedno zaproszenie na zamówienie: skrót tokenu (unikalny), `expires_at` (90 dni) |
 | `product_reviews` | `product_id`, `order_id` (unikalna para), `author_name`, `rating` 1–5, `body`, `status` (`PENDING`/`APPROVED`/`REJECTED`), `reply`, moderacja (kto, kiedy) |
 
+## 5d. Tabele — Faza 4d (migracja V10; z RLS)
+
+| Tabela | Opis |
+|---|---|
+| `customer_accounts` | Konto klienta sklepu: `email` (małe litery, unikalny w sklepie), `password_hash` (Argon2id), `email_verified_at`, licznik nieudanych logowań i blokada |
+| `customer_account_tokens` | Jednorazowe linki `VERIFY`/`RESET` (skrót), `pending_password_hash` — hasło z rejestracji, do której należy link |
+| `customer_sessions` | Sesje (skrót tokenu ciasteczka), wygasają po 30 dniach; sprzątane codziennie |
+| `customer_addresses` | Zapisane adresy (do 10), domyślny |
+| indeks `orders_email_lower_idx` | Historia zamówień konta po e-mailu |
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |
 |---|---|
 | 2 (pozostałe) | `billing_invoices` (faktury VAT/KSeF — Q-06), `tenant_billing_profiles` (dane do faktury) |
 | 3 (pozostałe) | `returns`, `complaints`, `discounts`, `discount_usage`, `wishlists` |
-| 4d | konta klientów (`customer_accounts`, `customer_addresses`), `navigation_menus` |
+| 4e | `navigation_menus` |
 | 5 | `integrations`, `integration_credentials` (szyfrowane), `payments`, `payment_transactions`, `refunds`, `shipments`, `shipment_events`, `shipping_methods`, `shipping_zones` |
 | 6 | rozszerzenia `store_domains`, `domain_checks` |
 | 7 | `newsletter_subscribers`, `abandoned_carts`, `marketing_settings`, `analytics_daily` (agregaty), `ai_usage`, `ai_jobs` |

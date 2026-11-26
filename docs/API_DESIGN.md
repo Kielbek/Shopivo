@@ -240,12 +240,35 @@ Publiczne, `Cache-Control: max-age=31536000, immutable`, `X-Content-Type-Options
 Zaproszenie (jednorazowy token, w bazie skrót) wysyłane e-mailem po zmianie statusu zamówienia ze sklepu na „Zrealizowane”;
 sklep dostaje e-mail o opinii do moderacji.
 
-## 10. Kolejne fazy (zarys)
-- `/api/v1/storefront/account` (konta klientów), CAPTCHA w checkoucie
+**Weryfikacja zakupu** (oba sposoby wystawienia opinii): zamówienie zrealizowane (`COMPLETED`) i opłacone (`PAID`) lub
+za pobraniem (`COD`), nigdy zwrócone (`REFUNDED`); produkt musi być pozycją tego zamówienia; jedna opinia na produkt w
+zamówieniu (unikalny indeks).
+
+## 10. Faza 4d — konta klientów (zaimplementowane)
+
+`/api/v1/storefront/account/**` — sklep z nagłówka `Host` (tylko opublikowany), **każde** żądanie z nagłówkiem
+`X-Requested-With: shopivo` (inaczej 403 `MISSING_HEADER` — ochrona CSRF), sesja w ciasteczku `shopivo_customer`
+(HttpOnly, SameSite=Lax, bez atrybutu Domain — tylko domena tego sklepu, `Secure` w produkcji, 30 dni). Odpowiedzi `no-store`.
+
+| Metoda | Ścieżka | Opis |
+|---|---|---|
+| POST | `/register` | `{email, password, firstName, lastName, termsAccepted}` → zawsze 202 (nie ujawnia, czy konto istnieje); e-mail z linkiem lub „masz już konto”; 10/10 min/IP, 3/h/e-mail |
+| POST | `/verify` | `{token, password}` — link z e-maila **i** hasło z tej rejestracji → ciasteczko sesji (ochrona przed przejęciem konta zarejestrowanego na cudzy e-mail) |
+| POST | `/login`, `/logout` | Logowanie tylko po potwierdzeniu e-maila; jednakowa odpowiedź dla nieznanego e-maila i złego hasła; blokada 15 min po 5 nieudanych próbach; 30/10 min/IP |
+| POST | `/password-reset`, `/password-reset/confirm` | Zawsze 202; link jednorazowy ważny 1 h; po zmianie hasła wszystkie sesje kończą się |
+| GET/PATCH | `/me` | Dane konta (GET dla gościa → 204) |
+| POST | `/password`, `/delete` | Zmiana hasła (inne sesje wylogowane), usunięcie konta (wymaga hasła; zamówienia zostają w sklepie) |
+| GET/POST/PUT/DELETE | `/addresses[/{id}]` | Do 10 adresów, domyślny |
+| GET | `/orders`, `/orders/{number}` | Zamówienia złożone na potwierdzony e-mail konta (bez notatek wewnętrznych); cudze → 404 |
+| GET | `/reviews/pending` | Produkty z własnych zweryfikowanych zakupów bez opinii |
+| POST | `/reviews` | `{orderNumber, productId, rating, body}` — tylko z własnego zamówienia spełniającego weryfikację zakupu |
+
+## 11. Kolejne fazy (zarys)
+- CAPTCHA w checkoucie i rejestracji, menu nawigacji
 - `/api/v1/webhooks/payments/{provider}/{tenantId}`,
   `/api/v1/webhooks/shipping/{provider}/{tenantId}` (Fazy 2, 5)
 
-## 11. Limity zapytań
+## 12. Limity zapytań
 Redis, okno stałe per klucz:
 | Zakres | Klucz | Limit |
 |---|---|---|

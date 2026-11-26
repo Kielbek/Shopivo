@@ -9,5 +9,7 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'zamowienie', renderMode: RenderMode.Client },
   { path: 'zamowienie/potwierdzenie', renderMode: RenderMode.Client },
   { path: 'opinia', renderMode: RenderMode.Client },
+  { path: 'konto', renderMode: RenderMode.Client },
+  { path: 'konto/**', renderMode: RenderMode.Client },
   { path: '**', renderMode: RenderMode.Server },
 ];

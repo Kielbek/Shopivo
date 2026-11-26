@@ -7,6 +7,7 @@ import { CartState } from '../core/cart';
 import { money } from '../core/format';
 import { Seo } from '../core/seo';
 import { StoreState } from '../core/store-state';
+import { CustomerSession } from '../core/account';
 import { StorefrontApi } from '../storefront-api';
 
 export const ORDER_TOKEN_KEY = 'shopivo.lastOrder';
@@ -27,6 +28,11 @@ export const ORDER_TOKEN_KEY = 'shopivo.lastOrder';
           <div class="space-y-8">
             <fieldset class="space-y-4">
               <legend class="text-[18px] font-semibold">Dane kontaktowe</legend>
+              @if (prefilled()) {
+                <p class="text-[13px] text-sf-muted">Uzupełniliśmy dane z Twojego konta ({{ customer.account()?.email }}). Możesz je zmienić dla tego zamówienia.</p>
+              } @else if (customer.ready() && !customer.account()) {
+                <p class="text-[13px] text-sf-muted">Masz konto? <a class="sf-link" routerLink="/konto/logowanie" [queryParams]="{ powrot: '/zamowienie' }">Zaloguj się</a>, aby uzupełnić dane i śledzić zamówienie.</p>
+              }
               <div class="grid gap-4 sm:grid-cols-2">
                 <div><label class="sf-label" for="email">E-mail</label><input id="email" name="email" type="email" autocomplete="email" class="sf-input" required [(ngModel)]="f.email" [attr.aria-invalid]="invalid('email')" /></div>
                 <div><label class="sf-label" for="phone">Telefon</label><input id="phone" name="phone" type="tel" autocomplete="tel" class="sf-input" [(ngModel)]="f.phone" /></div>
@@ -132,6 +138,8 @@ export class CheckoutPage {
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
   private readonly touched = signal(false);
+  protected readonly customer = inject(CustomerSession);
+  protected readonly prefilled = signal(false);
   protected f = { email: '', phone: '', firstName: '', lastName: '', line1: '', postalCode: '', city: '', shippingMethodId: '',
     paymentMethod: '' as '' | 'BANK_TRANSFER' | 'COD', invoice: false, company: '', nip: '', note: '', terms: false, marketing: false };
 
@@ -143,6 +151,30 @@ export class CheckoutPage {
   constructor() {
     inject(Seo).set({ title: 'Zamówienie', path: '/zamowienie', noindex: true }, this.store.store()?.name ?? '');
     void this.cart.refresh();
+    void this.prefill();
+  }
+
+  /** Signed-in customers get their data and default address filled in (only into empty fields). */
+  private async prefill(): Promise<void> {
+    await this.customer.load();
+    const a = this.customer.account();
+    if (!a) return;
+    const f = this.f;
+    f.email ||= a.email;
+    f.firstName ||= a.firstName;
+    f.lastName ||= a.lastName;
+    f.phone ||= a.phone ?? '';
+    try {
+      const addr = (await firstValueFrom(this.customer.addresses())).find((x) => x.isDefault);
+      if (addr) {
+        f.line1 ||= addr.line1 + (addr.line2 ? ', ' + addr.line2 : '');
+        f.postalCode ||= addr.postalCode;
+        f.city ||= addr.city;
+      }
+    } catch {
+      // Addresses are a convenience; checkout works without them.
+    }
+    this.prefilled.set(true);
   }
 
   protected fmt(v: number): string {

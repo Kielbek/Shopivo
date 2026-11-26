@@ -4,6 +4,7 @@ import { Meta, Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { CartState } from './core/cart';
+import { CustomerSession } from './core/account';
 import { StoreState } from './core/store-state';
 
 @Component({
@@ -64,7 +65,11 @@ import { StoreState } from './core/store-state';
                 <label class="sr-only" for="sf-search">Szukaj produktów</label>
                 <input id="sf-search" name="q" type="search" class="sf-input !h-10 w-56" placeholder="Szukaj produktów…" [(ngModel)]="query" />
               </form>
-              <a routerLink="/koszyk" class="relative ml-auto flex size-10 items-center justify-center md:ml-0" [attr.aria-label]="'Koszyk, produktów: ' + cart.count()">
+              <a [routerLink]="customer.account() ? '/konto' : '/konto/logowanie'" class="ml-auto flex size-10 items-center justify-center md:ml-0"
+                [attr.aria-label]="customer.account() ? 'Moje konto' : 'Zaloguj się'">
+                <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>
+              </a>
+              <a routerLink="/koszyk" class="relative flex size-10 items-center justify-center" [attr.aria-label]="'Koszyk, produktów: ' + cart.count()">
                 <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
                 @if (cart.count() > 0) {
                   <span class="absolute -right-0.5 -top-0.5 flex min-w-5 items-center justify-center rounded-full bg-sf-primary px-1 text-[11px] font-bold text-sf-on-primary">{{ cart.count() }}</span>
@@ -138,6 +143,7 @@ import { StoreState } from './core/store-state';
 export class App {
   protected readonly store = inject(StoreState);
   protected readonly cart = inject(CartState);
+  protected readonly customer = inject(CustomerSession);
   private readonly router = inject(Router);
   private readonly response = inject(RESPONSE_INIT, { optional: true });
   private readonly title = inject(Title);
@@ -157,6 +163,7 @@ export class App {
         this.meta.updateTag({ name: 'robots', content: 'noindex, nofollow' });
       } else {
         void this.cart.refresh();
+        void this.customer.load();
       }
     });
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe(() => this.menu.set(false));
