@@ -177,13 +177,20 @@ Blokady zadań cyklicznych.
 | `seo_redirects` | `from_path` → `to_path` (oba zaczynają się od `/`, różne), `automatic`; łańcuchy spłaszczane przy zapisie |
 | `orders.terms_revision_id` | Wersja regulaminu zaakceptowana przy zamówieniu |
 
+## 5c. Tabele — Faza 4c (migracja V9; z RLS)
+
+| Tabela | Opis |
+|---|---|
+| `review_invitations` | Jedno zaproszenie na zamówienie: skrót tokenu (unikalny), `expires_at` (90 dni) |
+| `product_reviews` | `product_id`, `order_id` (unikalna para), `author_name`, `rating` 1–5, `body`, `status` (`PENDING`/`APPROVED`/`REJECTED`), `reply`, moderacja (kto, kiedy) |
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |
 |---|---|
 | 2 (pozostałe) | `billing_invoices` (faktury VAT/KSeF — Q-06), `tenant_billing_profiles` (dane do faktury) |
 | 3 (pozostałe) | `returns`, `complaints`, `discounts`, `discount_usage`, `wishlists` |
-| 4c | `reviews`, konta klientów (`customer_accounts`, `customer_addresses`), `navigation_menus` |
+| 4d | konta klientów (`customer_accounts`, `customer_addresses`), `navigation_menus` |
 | 5 | `integrations`, `integration_credentials` (szyfrowane), `payments`, `payment_transactions`, `refunds`, `shipments`, `shipment_events`, `shipping_methods`, `shipping_zones` |
 | 6 | rozszerzenia `store_domains`, `domain_checks` |
 | 7 | `newsletter_subscribers`, `abandoned_carts`, `marketing_settings`, `analytics_daily` (agregaty), `ai_usage`, `ai_jobs` |

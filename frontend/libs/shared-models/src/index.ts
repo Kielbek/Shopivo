@@ -415,3 +415,10 @@ export interface LegalStatus { key: LegalKey; title: string; requiredForPublish:
 export interface Redirect { id: string; fromPath: string; toPath: string; automatic: boolean; createdAt: string; }
 export interface ContentRevision { title: string; body: string; publishedAt: string; }
 export * from './rich-text';
+
+// ------------------------------------------------------------------------------------------------ reviews
+export type ReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export interface Review {
+  id: string; productId: string; productName: string | null; orderId: string; orderNumber: number; authorName: string; rating: number;
+  body: string | null; status: ReviewStatus; reply: string | null; repliedAt: string | null; moderatedAt: string | null; createdAt: string;
+}

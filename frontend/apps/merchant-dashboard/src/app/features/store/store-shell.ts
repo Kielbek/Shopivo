@@ -28,6 +28,7 @@ const NAV: { title?: string; items: MerchantNavItem[] }[] = [
       { label: 'Kategorie i marki', icon: 'categories', path: 'kategorie', permission: 'PRODUCTS_READ' },
       { label: 'Magazyn', icon: 'inventory', path: 'magazyn', permission: 'PRODUCTS_READ' },
       { label: 'Klienci', icon: 'users', path: 'klienci', permission: 'CUSTOMERS_READ' },
+      { label: 'Opinie', icon: 'star', path: 'opinie', permission: 'PRODUCTS_READ' },
     ],
   },
   {

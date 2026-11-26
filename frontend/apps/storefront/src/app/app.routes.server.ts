@@ -8,5 +8,6 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'koszyk', renderMode: RenderMode.Client },
   { path: 'zamowienie', renderMode: RenderMode.Client },
   { path: 'zamowienie/potwierdzenie', renderMode: RenderMode.Client },
+  { path: 'opinia', renderMode: RenderMode.Client },
   { path: '**', renderMode: RenderMode.Server },
 ];

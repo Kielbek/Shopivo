@@ -16,6 +16,10 @@ export interface PublicEntry {
   kind: 'PAGE' | 'POST'; systemKey: LegalKey | null; slug: string; title: string; excerpt: string | null; body: string;
   seoTitle: string | null; seoDescription: string | null; publishedAt: string | null; updatedAt: string; draft: boolean;
 }
+export interface ReviewSummary { average: number; count: number; distribution: number[]; }
+export interface PublicReview { authorName: string; rating: number; body: string | null; createdAt: string; reply: string | null; repliedAt: string | null; }
+export interface ProductReviews { summary: ReviewSummary; reviews: Page<PublicReview>; }
+export interface ReviewInvitation { orderNumber: number; suggestedAuthor: string; items: { productId: string; name: string; reviewed: boolean }[]; }
 export interface PostCard { slug: string; title: string; excerpt: string | null; publishedAt: string; }
 export interface ProductCard {
   id: string; slug: string; name: string; brand: string | null; priceMinor: number; maxPriceMinor: number; compareAtMinor: number | null;
@@ -86,6 +90,18 @@ export class StorefrontApi {
 
   post(slug: string): Observable<PublicEntry> {
     return this.http.get<PublicEntry>(`${this.base}/posts/${encodeURIComponent(slug)}`);
+  }
+
+  productReviews(slug: string, page: number): Observable<ProductReviews> {
+    return this.http.get<ProductReviews>(`${this.base}/products/${encodeURIComponent(slug)}/reviews`, { params: new HttpParams().set('page', page) });
+  }
+
+  reviewInvitation(token: string): Observable<ReviewInvitation> {
+    return this.http.get<ReviewInvitation>(`${this.base}/review-invitation`, { headers: new HttpHeaders({ 'X-Review-Token': token }) });
+  }
+
+  submitReview(token: string, input: { productId: string; rating: number; body: string | null; authorName: string | null }): Observable<void> {
+    return this.http.post<void>(`${this.base}/reviews`, input, { headers: new HttpHeaders({ 'X-Review-Token': token }) });
   }
 
   createCart(): Observable<{ token: string; cart: Cart }> {

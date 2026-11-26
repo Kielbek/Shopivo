@@ -1,13 +1,13 @@
 # Shopivo — postęp prac
 
-Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a**, **Faza 4b** (z ograniczeniami opisanymi niżej). Następna: Faza 4c.
+Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a**, **Faza 4b**, **Faza 4c — opinie** (z ograniczeniami opisanymi niżej). Następne: konta klientów (4d).
 
 ## Wyniki testów (rzeczywiście uruchomione)
 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 31/31 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 64/64 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 65/65 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
 | Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 51/51 ✔ (panel 40, admin 3, witryna 8) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
@@ -40,6 +40,17 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   `shopivo.storefront-url-template`.
 
 | Ręczny przepływ E2E Fazy 4b (Playwright, poza repo) | panel: regulamin i polityka ze wzoru (ostrzeżenie, uzupełnienie, podgląd, publikacja) → wpis na blogu → przekierowanie → publikacja sklepu; klient: stopka → regulamin, blog → wpis, link do regulaminu w checkoucie, zamówienie; panel: podgląd wersji regulaminu zaakceptowanej w zamówieniu; `curl`: 301 ze starego adresu, 404 bez przekierowania, tytuł/opis SSR, JSON-LD `BlogPosting`; mobile bez poziomego przewijania, 0 błędów konsoli | ✔ |
+
+| Ręczny przepływ E2E Fazy 4c (Playwright, poza repo) | zakup w sklepie → opłacenie, wysyłka, realizacja → e-mail z linkiem (Mailpit) → formularz opinii (token usunięty z paska adresu, walidacja oceny) → e-mail do sklepu → moderacja i odpowiedź w panelu → opinia, średnia, rozkład i „Zweryfikowany zakup” na karcie produktu; `curl`: JSON-LD `aggregateRating` w SSR; mobile bez poziomego przewijania; 0 błędów konsoli | ✔ |
+
+## Faza 4c — opinie o produktach (2026-11-26)
+
+- Moduł `reviews`: opinię może wystawić tylko kupujący — po realizacji zamówienia ze sklepu wysyłamy jednorazowy link
+  (ważny 90 dni) z listą produktów z tego zamówienia; jedna opinia na produkt w zamówieniu.
+- Moderacja w panelu („Opinie”: do moderacji / opublikowane / odrzucone), publiczna odpowiedź sklepu, e-mail o nowej opinii,
+  przypomnienie w panelu, że nie wolno ukrywać opinii tylko dlatego, że są negatywne.
+- Karta produktu: średnia, liczba, rozkład ocen, oznaczenie „Zweryfikowany zakup”, informacja o sposobie weryfikacji
+  (wymóg dyrektywy Omnibus), dane strukturalne `AggregateRating` i `Review`.
 
 ## Faza 4b — strony, blog, dokumenty prawne, przekierowania (2026-11-26)
 
@@ -174,8 +185,10 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - **Faza 3:** brak importu CSV, rabatów, zwrotów/reklamacji i kont klientów (zaplanowane w kolejnych fazach).
 - **Faza 4b:** wzory dokumentów prawnych to punkt wyjścia, nie porada prawna — przed udostępnieniem sprzedawcom
   produkcyjnym powinien je przejrzeć prawnik (Q-08). Panel wyraźnie to komunikuje.
-- **Faza 4b:** brak kont klientów, opinii o produktach, CAPTCHA w checkoucie (limit 10/10 min/IP), menu nawigacji
-  definiowanego przez sprzedawcę, zdjęć we wpisach bloga.
+- **Faza 4b/4c:** brak kont klientów, CAPTCHA w checkoucie (limit 10/10 min/IP), menu nawigacji definiowanego przez
+  sprzedawcę, zdjęć we wpisach bloga.
+- **Faza 4c:** zaproszenia do opinii tylko dla zamówień ze sklepu (nie z panelu) i tylko automatycznie po realizacji;
+  brak gwiazdek na kafelkach produktów w listach; zatwierdzona opinia pojawia się w sklepie do 30 s później (cache API).
 - **Faza 4b:** przekierowanie działa przy wejściu z zewnątrz (SSR); nawigacja wewnątrz aplikacji na stary adres pokaże 404.
 - **Faza 4a:** zdjęcia: brak WebP/AVIF,
   przetwarzanie synchroniczne; pliki serwowane przez backend (CDN — Faza 6). Adapter S3 sprawdzony na emulatorze (moto),
@@ -195,6 +208,6 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - Obrazy Docker Hub bywały limitowane (429) w środowisku deweloperskim — w CI nie jest to problem.
 
 ## Następny krok
-**Faza 4c**: konta klientów (rejestracja, logowanie, historia zamówień, adresy), opinie o produktach (tylko po zakupie,
-moderacja, oznaczenie zweryfikowanych — wymóg Omnibus), CAPTCHA w checkoucie, menu nawigacji. Przed produkcją nadal:
-Q-06 (faktury/KSeF), test adapterów na sandboxach operatorów, cennik (Q-05), przegląd prawny wzorów (Q-08).
+**Faza 4d**: konta klientów (rejestracja, logowanie, historia zamówień, adresy — osobno dla każdego sklepu), CAPTCHA w
+checkoucie, menu nawigacji. Przed produkcją nadal: Q-06 (faktury/KSeF), test adapterów na sandboxach operatorów, cennik
+(Q-05), przegląd prawny wzorów (Q-08).

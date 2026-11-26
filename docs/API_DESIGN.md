@@ -225,12 +225,27 @@ Publiczne, `Cache-Control: max-age=31536000, immutable`, `X-Content-Type-Options
 
 `/store` zwraca też `footerLinks` (dokumenty prawne + strony oznaczone do stopki) i `blog`; sitemap obejmuje strony i wpisy.
 
-## 9. Kolejne fazy (zarys)
-- `/api/v1/storefront/account|reviews` (konta klientów, opinie)
+## 9. Faza 4c — opinie o produktach (zaimplementowane)
+
+| Metoda | Ścieżka | Uprawnienie | Opis |
+|---|---|---|---|
+| GET | `/api/v1/tenants/{t}/reviews?status&page&size` | `PRODUCTS_READ` | Opinie (z nazwą produktu i numerem zamówienia) |
+| GET | `/api/v1/tenants/{t}/reviews/pending-count` | `PRODUCTS_READ` | Liczba opinii do moderacji |
+| POST | `/api/v1/tenants/{t}/reviews/{id}/moderation` | `CONTENT_WRITE` | `{status: APPROVED\|REJECTED}` |
+| PUT | `/api/v1/tenants/{t}/reviews/{id}/reply` | `CONTENT_WRITE` | Publiczna odpowiedź sklepu (`null` usuwa) |
+| GET | `/api/v1/storefront/products/{slug}/reviews?page` | publiczne | `{summary: {average, count, distribution}, reviews}` — tylko zatwierdzone |
+| GET | `/api/v1/storefront/review-invitation` | nagłówek `X-Review-Token` | Produkty zamówienia z zaproszenia; 404 zły token, 410 wygasły (90 dni); 60/10 min/IP |
+| POST | `/api/v1/storefront/reviews` | nagłówek `X-Review-Token` | `{productId, rating 1–5, body ≤ 2000, authorName ≤ 60}`; tylko produkty z zamówienia, jedna opinia na produkt w zamówieniu (409); 20/10 min/IP |
+
+Zaproszenie (jednorazowy token, w bazie skrót) wysyłane e-mailem po zmianie statusu zamówienia ze sklepu na „Zrealizowane”;
+sklep dostaje e-mail o opinii do moderacji.
+
+## 10. Kolejne fazy (zarys)
+- `/api/v1/storefront/account` (konta klientów), CAPTCHA w checkoucie
 - `/api/v1/webhooks/payments/{provider}/{tenantId}`,
   `/api/v1/webhooks/shipping/{provider}/{tenantId}` (Fazy 2, 5)
 
-## 10. Limity zapytań
+## 11. Limity zapytań
 Redis, okno stałe per klucz:
 | Zakres | Klucz | Limit |
 |---|---|---|
