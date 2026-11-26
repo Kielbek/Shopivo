@@ -93,6 +93,17 @@ dają niejednolite API; własny silnik daje jeden model niezależny od operatora
 fakturowanie VAT/KSeF (Q-06) nadal otwarte; adaptery napisane wg publicznej dokumentacji operatorów i przetestowane
 na atrapie HTTP — **przed uruchomieniem produkcyjnym wymagają testu na sandboxach operatorów**.
 
+### ADR-015: Ceny, VAT i magazyn w zamówieniach (Faza 3)
+- Ceny wariantów są wprowadzane tak, jak pokazuje je sklep (domyślnie brutto; przy `prices_include_tax = false` brutto
+  wyliczane ze stawki produktu). Zamówienie przechowuje migawkę cen i stawek; VAT zawarty liczony per pozycja, dostawa i
+  opłata za pobranie — stawką 23% (uproszczenie; stawka dostawy „za towarem” do rozważenia przy fakturach, Q-06).
+- Stan to `on_hand` i `reserved`. Złożenie zamówienia rezerwuje towar warunkowym `UPDATE … WHERE on_hand - reserved >= qty`
+  (bez blokad aplikacyjnych — dwóch klientów nie kupi ostatniej sztuki; potwierdzone testem współbieżnym). Wysyłka
+  zdejmuje towar ze stanu (ruch `SALE`), anulowanie przed wysyłką zwalnia rezerwację. Nieopłacone przelewy są anulowane
+  automatycznie po terminie ustawionym przez sklep.
+- Omnibus: każda zmiana ceny zamyka okres w `variant_price_history`; „najniższa cena z 30 dni przed obniżką” to minimum
+  cen obowiązujących w 30 dniach przed wejściem bieżącej ceny.
+
 ### ADR-014: Limity planów i koszty („czy tani plan nie zje serwera?”)
 Limity są danymi (`plan_entitlements`, nadpisania per sklep). Dwa rodzaje: **twarde** (produkty, zespół, miejsce na
 pliki, kredyty AI) blokują dodawanie zasobu (HTTP 402 `ENTITLEMENT_LIMIT`), **uczciwe użytkowanie** (zamówienia i
@@ -159,8 +170,9 @@ asynchronicznie. Serwowanie przez CDN. Kontrola własności: rekord `media_asset
 | `subscriptions` | Plany, ceny, limity, cykl subskrypcji, opłaty, kupony, pomiar zużycia, raport rentowności | billing, tenants, stores, users, email |
 | `billing` | Wybór/konfiguracja operatora dla subskrypcji, linki płatności, odbiór powiadomień (SPI `BillingEventHandler`) | payments |
 | `payments` (adaptery) | Przelewy24, PayU, Tpay (+ symulator dev/test): rejestracja płatności, weryfikacja podpisów | — |
-| `products`, `categories`, `inventory` | Katalog i stany magazynowe | media |
-| `customers`, `carts`, `checkout`, `orders` | Klienci sklepu, koszyk, finalizacja, zamówienia | products, inventory, payments, shipping, discounts |
+| `catalog` | Produkty, warianty, kategorie, marki, magazyn (rezerwacje, ruchy), historia cen; SPI `ProductLimitPolicy` | stores |
+| `customers` | Klienci sklepu, zgody marketingowe | — |
+| `orders` | Koszyk, checkout, zamówienia, sposoby dostawy, płatności offline, e-maile, zadania | catalog, customers, stores |
 | `payments`, `shipping`, `integrations` | Adaptery operatorów, poświadczenia, webhooki | — |
 | `discounts`, `marketing`, `reviews` | Promocje, newsletter, porzucone koszyki, opinie | — |
 | `themes`, `content`, `seo`, `media` | Motywy, CMS/blog, SEO/sitemapy, pliki | — |

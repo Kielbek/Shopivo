@@ -1,14 +1,14 @@
 # Shopivo — postęp prac
 
-Ostatnia aktualizacja: 2026-11-25 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2** (z ograniczeniami opisanymi niżej).
+Ostatnia aktualizacja: 2026-11-25 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3** (z ograniczeniami opisanymi niżej).
 
 ## Wyniki testów (rzeczywiście uruchomione)
 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
-| Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 31/31 ✔ |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 45/45 ✔ |
-| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 41/41 ✔ |
+| Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 35/35 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 52/52 ✔ |
+| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 44/44 ✔ |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
 | `npm audit --omit=dev --audit-level=high` | | 0 podatności |
 | Ręczny przepływ E2E w Chromium (Playwright, skrypt poza repo) na pełnym stosie lokalnym | rejestracja → e-mail (Mailpit) → weryfikacja → logowanie → sklep → dane firmy (walidacja NIP) → zaproszenie → MFA (QR) → panel admina → blokada sprzedawcy w panelu admina | ✔ |
@@ -16,6 +16,22 @@ Ostatnia aktualizacja: 2026-11-25 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 
 | Ręczny przepływ E2E Fazy 2 (Playwright, poza repo) | admin konfiguruje i aktywuje operatora (symulator) → sprzedawca na okresie próbnym wybiera Starter → przekierowanie → podpisane powiadomienie → plan aktywny, płatność „Opłacona”; widok mobilny bez poziomego przewijania; strony admina (subskrypcje, plany, kupony, zużycie, MRR) | ✔ |
+
+| Ręczny przepływ E2E Fazy 3 (Playwright, poza repo) | kategorie i marka → produkt z 3 wariantami w edytorze → obniżka z Omnibusem → korekta magazynu i historia → wysyłka i płatności w ustawieniach → zamówienie przez API storefrontu → opłacenie, wysyłka z numerem, notatka → zamówienie ręczne → karta klienta; widoki mobilne bez poziomego przewijania, 0 błędów konsoli | ✔ |
+
+## Faza 3 — silnik e-commerce (2026-11-26)
+
+- **Katalog** (`catalog`): produkty z opcjami i wariantami (generowane kombinacje), SKU/EAN z walidacją, ceny przed
+  obniżką z informacją Omnibus, drzewo kategorii, marki, akcje masowe, duplikowanie, eksport CSV, limit produktów z planu.
+- **Magazyn**: stany i rezerwacje, korekty z powodem i autorem, dziennik ruchów, niskie stany.
+- **Sprzedaż** (`orders`, `customers`): koszyk i checkout storefrontu (API; interfejs sklepu w Fazie 4), przelew
+  tradycyjny i pobranie, sposoby dostawy z progiem darmowej, numeracja zamówień, VAT, realizacja (opłacone → wysłane z
+  numerem przesyłki → zrealizowane), anulowanie ze zwolnieniem towaru, auto-anulowanie nieopłaconych przelewów,
+  e-maile do klienta i sklepu, zamówienia ręczne z panelu, klienci ze zgodami i eksportem.
+- **Panel**: Produkty, edytor produktu, Kategorie i marki, Magazyn, Zamówienia, Szczegóły zamówienia, Nowe zamówienie,
+  Klienci, Wysyłka, Płatności; Przegląd pokazuje prawdziwą sprzedaż, zamówienia i niskie stany.
+- Błędy znalezione testami i naprawione: edycja samych wariantów nie podbijała wersji produktu (brak wykrycia równoległej
+  edycji), błędna formuła Omnibus (uwzględniała cenę bieżącą), warianty nie generowały się po wpisaniu opcji w edytorze.
 
 ## Faza 2 — subskrypcje SaaS (2026-11-25)
 
@@ -109,6 +125,10 @@ E2E w przeglądarce.
   aktualizuje się w ciągu 30 s. Model kosztów w raporcie rentowności to wartości szacunkowe do kalibracji.
 - **Faza 2:** limity produktów, plików i AI są zdefiniowane, ale egzekwowane będą wraz z tymi modułami (Fazy 3–7);
   licznik zamówień ruszy z modułem zamówień.
+- **Faza 3:** checkout działa tylko przez API — interfejs sklepu dla klientów powstaje w Fazie 4. Sklep w stanie „Szkic”
+  przyjmuje zamówienia przez API; blokada do czasu publikacji zostanie dodana razem z publikacją sklepu (Faza 4).
+- **Faza 3:** brak zdjęć produktów, importu CSV, rabatów, zwrotów/reklamacji i kont klientów (zaplanowane w kolejnych fazach).
+- **Faza 3:** VAT od dostawy i opłaty za pobranie liczony stawką 23% (uproszczenie, patrz ADR-015).
 - Lokalnie operatora trzeba raz skonfigurować w panelu admina (Rozliczenia → Operatorzy płatności → Symulator, dowolny sekret).
 - Panel sprzedawcy nie ma jeszcze modułów produktów, zamówień itd. — nawigacja pokazuje wyłącznie działające sekcje.
 - `storefront` to szkielet SSR (bez motywów/katalogu) — Faza 4.
@@ -123,4 +143,4 @@ E2E w przeglądarce.
 - Obrazy Docker Hub bywały limitowane (429) w środowisku deweloperskim — w CI nie jest to problem.
 
 ## Następny krok
-**Faza 3 — silnik e-commerce** (produkty, kategorie, magazyn, klienci, koszyk, checkout, zamówienia) z podłączeniem limitów planu. Przed produkcją: decyzja Q-06 (faktury/KSeF), test adapterów na sandboxach operatorów, ostateczny cennik (Q-05).
+**Faza 4 — storefront i motywy**: publiczne strony sklepu (SSR) korzystające z gotowego API koszyka i checkoutu, katalog dla klientów, zdjęcia produktów (pliki), konta klientów, publikacja sklepu. Przed produkcją nadal: Q-06 (faktury/KSeF), test adapterów na sandboxach operatorów, cennik (Q-05).

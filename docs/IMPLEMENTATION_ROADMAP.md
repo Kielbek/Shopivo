@@ -51,14 +51,15 @@ Infrastruktura
 - [ ] Test adapterów na sandboxach operatorów (wymaga kont testowych)
 
 ## Faza 3 — silnik e-commerce
-- [ ] Produkty (draft/opublikowany, fizyczne/cyfrowe), warianty i opcje, zdjęcia, marki, SKU/EAN, wymiary, SEO
-- [ ] Kategorie (drzewo), magazyn + ruchy, alerty niskich stanów
-- [ ] Import/eksport CSV, edycja masowa
-- [ ] Klienci sklepu (konta per sklep), adresy, zgody, segmentacja, eksport
-- [ ] Koszyk (gość/klient, trwały), rabaty, wyliczanie podatków (VAT PL) i dostawy
-- [ ] Checkout (gość/konto, zgody), zamówienia, statusy, historia, notatki, anulowanie, zwroty, reklamacje
-- [ ] Omnibus — historia cen
-- [ ] Testy cyklu zamówienia i izolacji
+- [x] Produkty (szkic/aktywny/archiwum, fizyczne/cyfrowe), warianty i opcje, marki, SKU/EAN, wymiary, SEO
+- [ ] Zdjęcia produktów — wraz z modułem plików (Faza 4)
+- [x] Kategorie (drzewo), magazyn + ruchy, niskie stany
+- [x] Eksport CSV, akcje masowe · [ ] Import CSV
+- [x] Klienci sklepu (rejestr z zamówień), zgody, eksport zgód · [ ] konta klientów i adresy (Faza 4 — storefront)
+- [x] Koszyk gościa, VAT PL, koszty dostawy · [ ] rabaty (Faza 7 — marketing)
+- [x] Checkout gościa (zgody), zamówienia, statusy, historia, notatki, anulowanie · [ ] zwroty i reklamacje
+- [x] Omnibus — historia cen
+- [x] Testy cyklu zamówienia, izolacji i współbieżności
 
 ## Faza 4 — storefront i motywy
 - [ ] Routing po hoście (SSR), cache konfiguracji sklepu

@@ -138,12 +138,33 @@ Blokady zadań cyklicznych.
 | `entitlement_overrides` | ✔ | Wyjątki od limitów per sklep (powód, autor, wygaśnięcie) |
 | `tenant_usage` | ✔ | Liczniki miesięczne `(tenant, metric, period)` |
 
-## 5. Tabele — kolejne fazy (projekt)
+## 5. Tabele — Faza 3 (zaimplementowane, migracje V4–V5; wszystkie z RLS)
+
+| Tabela | Opis |
+|---|---|
+| `categories` | Drzewo: `parent_id` + zmaterializowana ścieżka `path` (`/id/id/`), `depth` ≤ 4, `slug` unikalny w sklepie |
+| `brands` | Marki |
+| `products` | Status (`DRAFT`/`ACTIVE`/`ARCHIVED`), typ (`PHYSICAL`/`DIGITAL`), stawka VAT (0/5/8/23%), opcje jako JSON (≤ 3), SEO, `version` |
+| `product_categories` | Przypisania produkt ↔ kategoria |
+| `product_variants` | Wartości opcji (JSON), SKU (unikalne w sklepie, bez wielkości liter), EAN (GTIN), cena, cena przed obniżką, koszt, waga/wymiary, śledzenie stanu, sprzedaż na minusie |
+| `variant_price_history` | Okresy cen wariantu (Omnibus) |
+| `inventory_items` | `on_hand`, `reserved`, próg niskiego stanu (jeden magazyn) |
+| `inventory_movements` | Dziennik ruchów — tylko INSERT dla aplikacji |
+| `customers` | Klienci (unikalny e-mail w sklepie), zgoda marketingowa z datą, statystyki zamówień |
+| `shipping_methods` | Sposoby dostawy |
+| `store_payment_settings` | Przelew (IBAN), pobranie (opłata), termin płatności |
+| `carts`, `cart_items` | Koszyki (skrót tokenu), czyszczone po 30 dniach |
+| `tenant_counters` | Liczniki per sklep (numery zamówień od 1001) |
+| `orders` | Migawka danych klienta, adresów (JSON), dostawy i kwot; statusy; skrót tokenu klienta |
+| `order_items` | Migawka nazwy/SKU/ceny/VAT; `reserved_qty` |
+| `order_events` | Historia i notatki — tylko INSERT dla aplikacji |
+
+## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |
 |---|---|
 | 2 (pozostałe) | `billing_invoices` (faktury VAT/KSeF — Q-06), `tenant_billing_profiles` (dane do faktury) |
-| 3 | `products`, `product_variants`, `product_options`, `product_option_values`, `product_images`, `categories` (drzewo: `parent_id` + `path ltree`), `product_categories`, `brands`, `inventory_items`, `inventory_movements`, `customers`, `customer_addresses`, `customer_consents`, `carts`, `cart_items`, `orders`, `order_items`, `order_addresses`, `order_status_history`, `order_notes`, `returns`, `complaints`, `discounts`, `discount_usage`, `tenant_counters`, `wishlists` |
+| 3 (pozostałe) | `product_images` (z modułem plików, Faza 4), `customer_addresses` i konta klientów (Faza 4), `returns`, `complaints`, `discounts`, `discount_usage`, `wishlists` |
 | 4 | `themes` (globalne), `theme_configurations` (draft/published, JSON), `pages`, `blog_posts`, `navigation_menus`, `seo_redirects`, `reviews`, `media_assets`, `media_variants` |
 | 5 | `integrations`, `integration_credentials` (szyfrowane), `payments`, `payment_transactions`, `refunds`, `shipments`, `shipment_events`, `shipping_methods`, `shipping_zones` |
 | 6 | rozszerzenia `store_domains`, `domain_checks` |
@@ -153,7 +174,7 @@ Blokady zadań cyklicznych.
 Projekt szczegółowy każdej tabeli zostanie dopisany do tego dokumentu w momencie implementacji fazy
 (migracja + opis), aby dokumentacja nie rozjeżdżała się z kodem.
 
-## 6. Strategia indeksowania i wydajności
+## 7. Strategia indeksowania i wydajności
 - Wszystkie listy paginowane (keyset dla dużych zbiorów: zamówienia, ruchy magazynowe; offset dla małych).
 - Wyszukiwanie produktów: `tsvector` (konfiguracja `simple` + `unaccent`; polski słownik ispell opcjonalnie) z
   indeksem GIN; w przyszłości OpenSearch/Meilisearch, jeśli zajdzie potrzeba.
@@ -161,5 +182,5 @@ Projekt szczegółowy każdej tabeli zostanie dopisany do tego dokumentu w momen
 - Pula połączeń HikariCP: rozmiar ~ (2 × rdzenie) na instancję; przy wielu replikach — PgBouncer w trybie
   transakcyjnym (**uwaga**: zmienne sesji RLS ustawiamy wtedy przez `SET LOCAL` w transakcji — zaplanowane w Fazie 8).
 
-## 7. Kopie zapasowe
+## 8. Kopie zapasowe
 Patrz `DEPLOYMENT.md` §6.

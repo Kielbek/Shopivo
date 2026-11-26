@@ -131,13 +131,54 @@ płatność nie jest zaliczana (zdarzenie `PAYMENT_AMOUNT_MISMATCH`).
 | PUT/DELETE | `/api/v1/admin/subscriptions/{tenantId}/overrides/{key}` | Wyjątki od limitów `{value, reason, expiresAt?}` |
 | GET | `/api/v1/admin/billing/usage?month=RRRR-MM` | Zużycie, przychód, szacowany koszt, marża, fair use |
 
-## 6. Kolejne fazy (zarys)
-- `/api/v1/tenants/{tenantId}/products|categories|inventory|orders|customers|discounts|…` (Faza 3)
-- `/api/v1/storefront/store|catalog|products/{slug}|cart|checkout|account|sitemap.xml` (Fazy 3–4)
+## 6. Faza 3 — katalog i sprzedaż (zaimplementowane)
+
+### Katalog `/api/v1/tenants/{tenantId}` (`PRODUCTS_READ` / `PRODUCTS_WRITE`)
+| Metoda | Ścieżka | Opis |
+|---|---|---|
+| GET | `/products?q&status&categoryId&lowStock&sort&page&size` | Lista (szukanie po nazwie, SKU, EAN; kategoria obejmuje podkategorie) |
+| GET | `/products/stats` | Liczniki produktów i stanów |
+| GET/POST/PUT/DELETE | `/products[/{id}]` | Produkt z opcjami (≤ 3) i wariantami (≤ 100); `version` → 409; limit planu → 402 |
+| POST | `/products/{id}/duplicate`, `/products/bulk` `{ids, action}` | Kopia (szkic), akcje masowe (≤ 200) |
+| GET | `/products/export.csv` | CSV (`;`, UTF-8 BOM, ochrona przed formułami) |
+| GET/POST/PUT/DELETE | `/categories[/{id}]` | Drzewo (≤ 5 poziomów, bez cykli) |
+| GET/POST/DELETE | `/brands[/{id}]` | Marki |
+| GET | `/inventory?q&lowStock` | Stany wariantów |
+| POST | `/inventory/{variantId}/adjust` `{mode: DELTA|SET, quantity, reason, note}` | Korekta (nie poniżej 0 ani rezerwacji) |
+| PUT | `/inventory/{variantId}/threshold` | Próg niskiego stanu |
+| GET | `/inventory/{variantId}/movements` | Historia ruchów (autor, powód, odniesienie) |
+
+Warianty zwracają `lowestPrice30dMinor` — najniższą cenę z 30 dni przed bieżącą ceną (Omnibus).
+
+### Sprzedaż `/api/v1/tenants/{tenantId}`
+| Metoda | Ścieżka | Uprawnienie | Opis |
+|---|---|---|---|
+| GET | `/orders?q&status&paymentStatus&customerId`, `/orders/stats`, `/orders/daily?days` | `ORDERS_READ` | Lista, KPI, sprzedaż dzienna |
+| GET | `/orders/{id}` | `ORDERS_READ` | Szczegóły z pozycjami i historią |
+| POST | `/orders` `{lines, customer}` | `ORDERS_WRITE` | Zamówienie ręczne (ceny i stany z serwera) |
+| POST | `/orders/{id}/status` `{status, trackingNumber?, reason?, version}` | `ORDERS_WRITE` | NEW→PROCESSING→SHIPPED→COMPLETED; anulowanie przed wysyłką |
+| POST | `/orders/{id}/paid`, `/refunded`, `/notes` | `ORDERS_WRITE` | Płatność, zwrot (po anulowaniu), notatka wewnętrzna |
+| GET/POST/PUT/DELETE | `/shipping-methods[/{id}]` | odczyt `ORDERS_READ`, zmiany `STORE_SETTINGS_WRITE` | Sposoby dostawy (cena, próg darmowej) |
+| GET/PUT | `/payment-settings` | `STORE_READ` / `STORE_SETTINGS_WRITE` | Przelew (IBAN mod-97), pobranie, termin płatności |
+| GET | `/customers?q&marketing&sort`, `/customers/{id}` | `CUSTOMERS_READ` | Klienci |
+| PATCH | `/customers/{id}/note` | `CUSTOMERS_WRITE` | Notatka |
+| GET | `/customers/marketing-export.csv` | `MARKETING_WRITE` | Tylko osoby ze zgodą |
+
+### Storefront `/api/v1/storefront` (sklep z nagłówka `Host`, bez sesji i CSRF)
+| Metoda | Ścieżka | Opis |
+|---|---|---|
+| POST | `/cart` | Nowy koszyk → `{token}` (przechowywany wyłącznie skrót) |
+| GET | `/cart` · POST `/cart/items` · PATCH `/cart/items/{variantId}` | Nagłówek `X-Cart-Token`; ceny i dostępność zawsze z katalogu |
+| GET | `/checkout/options` | Aktywne sposoby dostawy i metody płatności |
+| POST | `/checkout` | Nagłówek `X-Cart-Token`; walidacja (e-mail, kod pocztowy, NIP, regulamin), rezerwacja stanów → `{number, orderToken, totalMinor}`; limit 10 / 10 min / IP |
+| GET | `/orders/status` | Nagłówek `X-Order-Token` — potwierdzenie dla klienta (z danymi do przelewu) |
+
+## 7. Kolejne fazy (zarys)
+- `/api/v1/storefront/catalog|products/{slug}|account|sitemap.xml` (Faza 4)
 - `/api/v1/webhooks/payments/{provider}/{tenantId}`,
   `/api/v1/webhooks/shipping/{provider}/{tenantId}` (Fazy 2, 5)
 
-## 7. Limity zapytań
+## 8. Limity zapytań
 Redis, okno stałe per klucz:
 | Zakres | Klucz | Limit |
 |---|---|---|
