@@ -29,7 +29,7 @@ const DURATIONS: SelectOption[] = [
 
     <sv-card class="mt-6" [flush]="true">
       @if (coupons.isLoading() && !coupons.value()) {
-        <sv-loading />
+        <sv-loading variant="table" [rows]="6" />
       } @else if (coupons.error()) {
         <div class="p-5"><sv-alert tone="error">Nie udało się wczytać kuponów.</sv-alert></div>
       } @else if (!coupons.value()?.length) {

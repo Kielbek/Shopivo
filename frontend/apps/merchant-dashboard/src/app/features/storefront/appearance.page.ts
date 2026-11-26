@@ -37,7 +37,7 @@ const FONT_STACKS: Record<string, string> = {
     </sv-page-header>
 
     @if (data.isLoading() && !data.value()) {
-      <sv-loading />
+      <sv-loading variant="form" />
     } @else if (data.error()) {
       <sv-alert tone="error" class="mt-6">Nie udało się wczytać ustawień wyglądu.</sv-alert>
     } @else if (data.value(); as d) {

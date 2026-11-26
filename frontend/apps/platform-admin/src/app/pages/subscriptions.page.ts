@@ -26,11 +26,11 @@ const TONE: Record<SubscriptionStatus, BadgeTone> = {
     <sv-page-header title="Subskrypcje" description="Stan subskrypcji sklepów. MRR liczony z cen netto aktywnych subskrypcji." />
 
     <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-      <sv-stat-card label="MRR (netto)" icon="trending" tone="green" [value]="money(stats.value()?.mrrMinor)" caption="Miesięczny przychód powtarzalny" />
-      <sv-stat-card label="ARR (netto)" icon="chartLine" tone="blue" [value]="money(stats.value()?.arrMinor)" caption="MRR × 12" />
-      <sv-stat-card label="Okresy próbne" icon="calendar" tone="violet" [value]="count('TRIALING')"
+      <sv-stat-card [loading]="stats.isLoading()" label="MRR (netto)" icon="trending" tone="green" [value]="money(stats.value()?.mrrMinor)" caption="Miesięczny przychód powtarzalny" />
+      <sv-stat-card [loading]="stats.isLoading()" label="ARR (netto)" icon="chartLine" tone="blue" [value]="money(stats.value()?.arrMinor)" caption="MRR × 12" />
+      <sv-stat-card [loading]="stats.isLoading()" label="Okresy próbne" icon="calendar" tone="violet" [value]="count('TRIALING')"
         [caption]="stats.value() ? stats.value()!.trialsEndingIn7Days + ' kończy się w 7 dni' : ''" />
-      <sv-stat-card label="Zaległe płatności" icon="alert" tone="coral" [value]="count('PAST_DUE')"
+      <sv-stat-card [loading]="stats.isLoading()" label="Zaległe płatności" icon="alert" tone="coral" [value]="count('PAST_DUE')"
         [caption]="stats.value() ? 'Do zapłaty: ' + money(stats.value()!.unpaidTotalMinor) : ''" />
     </div>
 
@@ -41,7 +41,7 @@ const TONE: Record<SubscriptionStatus, BadgeTone> = {
         <sv-select class="sm:w-56" [options]="statusOptions" [value]="status()" (valueChange)="status.set($any($event))" ariaLabel="Status" />
       </div>
       @if (rows.isLoading() && !rows.value()) {
-        <sv-loading />
+        <sv-loading variant="table" [rows]="6" />
       } @else if (rows.error()) {
         <div class="p-5"><sv-alert tone="error">Nie udało się wczytać subskrypcji.</sv-alert></div>
       } @else if (!rows.value()?.length) {

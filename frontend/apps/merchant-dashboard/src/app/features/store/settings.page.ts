@@ -115,7 +115,7 @@ const TIMEZONES: SelectOption[] = [
           <p class="mt-0.5 text-[12px] text-ink-muted">Dane sprzedawcy na dokumentach sprzedaży i w regulaminie sklepu.</p>
         </div>
         @if (settings.isLoading()) {
-          <sv-loading />
+          <sv-loading variant="form" />
         } @else if (settings.error()) {
           <div class="p-5"><sv-alert tone="error">Nie udało się wczytać danych firmy.</sv-alert></div>
         } @else {

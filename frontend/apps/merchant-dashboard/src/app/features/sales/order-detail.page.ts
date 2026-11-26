@@ -24,7 +24,7 @@ type Pending = { kind: 'ship' } | { kind: 'cancel' } | null;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (order.isLoading() && !order.value()) {
-      <sv-loading class="mt-10" label="Wczytywanie zamówienia…" />
+      <sv-loading class="mt-2" variant="detail" label="Wczytywanie zamówienia…" />
     } @else if (order.error()) {
       <sv-alert tone="error" class="mt-6">Nie znaleziono zamówienia.</sv-alert>
     } @else if (order.value(); as o) {

@@ -35,7 +35,7 @@ const MANUAL_REASONS: MovementReason[] = ['RECEIPT', 'ADJUSTMENT', 'CORRECTION',
         </label>
       </div>
       @if (rows.isLoading() && !rows.value()) {
-        <sv-loading />
+        <sv-loading variant="table" [rows]="6" />
       } @else if (rows.error()) {
         <div class="p-5"><sv-alert tone="error">Nie udało się wczytać stanów.</sv-alert></div>
       } @else if (!rows.value()?.items?.length) {

@@ -17,7 +17,7 @@ interface Draft { values: Record<string, string>; sandbox: boolean; }
   template: `
     <sv-card class="mt-6" heading="Przewoźnicy" subheading="Podłącz własne konto u przewoźnika, aby klienci wybierali paczkomat, a Ty tworzył(a) przesyłki i etykiety z poziomu zamówienia.">
       @if (overview.isLoading() && !overview.value()) {
-        <sv-loading />
+        <sv-loading variant="form" />
       } @else if (overview.error()) {
         <sv-alert tone="error">Nie udało się wczytać przewoźników.</sv-alert>
       } @else {

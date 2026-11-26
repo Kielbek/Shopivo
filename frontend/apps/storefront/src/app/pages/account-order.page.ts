@@ -48,7 +48,7 @@ import { ORDER_STATUS, PAYMENT_STATUS } from './account.page';
         }
         @if (o.status === 'COMPLETED') {<a [routerLink]="['/konto']" [queryParams]="{ zakladka: 'opinie' }" class="sf-btn-outline mt-8">Oceń produkty</a>}
       } @else {
-        <p class="mt-6 text-sf-muted" aria-busy="true">Wczytywanie…</p>
+        <div class="mt-6 space-y-3" role="status" aria-busy="true"><span class="sr-only">Wczytywanie…</span><span class="sf-shimmer block h-5 w-2/3 rounded-[6px]"></span><span class="sf-shimmer block h-20 rounded-[10px]"></span><span class="sf-shimmer block h-20 rounded-[10px]"></span></div>
       }
     </div>
   `,

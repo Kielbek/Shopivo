@@ -27,12 +27,16 @@ const TONES: Record<StatTone, string> = {
     </span>
     <div class="min-w-0">
       <p class="truncate text-[13px] text-ink-muted">{{ label() }}</p>
-      @if (value() !== null) {
+      @if (loading()) {
+        <span class="sv-shimmer mt-1.5 block h-5 w-20 rounded-[5px]" aria-hidden="true"></span><span class="sr-only">Wczytywanie…</span>
+      } @else if (value() !== null) {
         <p class="mt-0.5 truncate text-[20px] font-semibold leading-tight tracking-[-0.01em] text-ink tabular-nums">{{ value() }}</p>
       } @else {
         <p class="mt-0.5 text-[20px] font-semibold leading-tight text-[#C5CBD6]" aria-label="Brak danych">—</p>
       }
-      @if (change() !== null && change() !== undefined) {
+      @if (loading()) {
+        <span class="sv-shimmer mt-2 block h-3 w-28 rounded-[4px]" aria-hidden="true"></span>
+      } @else if (change() !== null && change() !== undefined) {
         <p class="mt-1 flex items-center gap-1 text-[12px]">
           <span class="inline-flex items-center font-medium" [class.text-success-ink]="change()! >= 0" [class.text-danger-ink]="change()! < 0">
             <svg [lucideIcon]="change()! >= 0 ? ICONS.arrowUp : ICONS.arrowDown" [size]="14" />
@@ -50,6 +54,8 @@ export class StatCardComponent {
   protected readonly ICONS = icons;
   readonly label = input.required<string>();
   readonly value = input.required<string | null>();
+  /** Shows a shimmering placeholder instead of the value. */
+  readonly loading = input(false);
   readonly icon = input.required<IconName>();
   readonly tone = input<StatTone>('blue');
   /** Percentage change vs. previous period, e.g. 12.5 or -3. */

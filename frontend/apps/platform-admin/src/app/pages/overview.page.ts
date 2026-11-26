@@ -30,18 +30,18 @@ const MONTH_LABEL = new Intl.DateTimeFormat('pl-PL', { month: 'short', year: '2-
     }
 
     <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-      <sv-stat-card label="Użytkownicy" icon="users" tone="blue" [value]="fmt(overview.value()?.users)"
+      <sv-stat-card [loading]="overview.isLoading()" label="Użytkownicy" icon="users" tone="blue" [value]="fmt(overview.value()?.users)"
         [caption]="overview.value() ? '+' + overview.value()!.usersInPeriod + ' w okresie' : ''" />
-      <sv-stat-card label="Sklepy" icon="store" tone="violet" [value]="fmt(overview.value()?.stores)"
+      <sv-stat-card [loading]="overview.isLoading()" label="Sklepy" icon="store" tone="violet" [value]="fmt(overview.value()?.stores)"
         [caption]="overview.value() ? '+' + overview.value()!.storesInPeriod + ' w okresie' : ''" />
-      <sv-stat-card label="Aktywne sklepy" icon="success" tone="green" [value]="fmt(overview.value()?.activeStores)" caption="Dostępne" />
-      <sv-stat-card label="Zawieszone sklepy" icon="alert" tone="coral" [value]="fmt(overview.value()?.suspendedStores)" caption="Zablokowane" />
+      <sv-stat-card [loading]="overview.isLoading()" label="Aktywne sklepy" icon="success" tone="green" [value]="fmt(overview.value()?.activeStores)" caption="Dostępne" />
+      <sv-stat-card [loading]="overview.isLoading()" label="Zawieszone sklepy" icon="alert" tone="coral" [value]="fmt(overview.value()?.suspendedStores)" caption="Zablokowane" />
     </div>
     <div class="mt-3 grid grid-cols-2 gap-3 sm:mt-4 sm:gap-4 xl:grid-cols-4">
-      <sv-stat-card label="MRR (netto)" icon="trending" tone="green" [value]="billingMoney(billing.value()?.mrrMinor)" caption="Aktywne subskrypcje" />
-      <sv-stat-card label="ARR (netto)" icon="chartLine" tone="blue" [value]="billingMoney(billing.value()?.arrMinor)" caption="MRR × 12" />
-      <sv-stat-card label="Wpływy z 30 dni" icon="dollar" tone="violet" [value]="billingMoney(billing.value()?.collectedLast30DaysNetMinor)" caption="Opłacone subskrypcje (netto)" />
-      <sv-stat-card label="Okresy próbne" icon="calendar" tone="orange" [value]="billing.value() ? '' + (billing.value()!.byStatus['TRIALING'] ?? 0) : null"
+      <sv-stat-card [loading]="billing.isLoading()" label="MRR (netto)" icon="trending" tone="green" [value]="billingMoney(billing.value()?.mrrMinor)" caption="Aktywne subskrypcje" />
+      <sv-stat-card [loading]="billing.isLoading()" label="ARR (netto)" icon="chartLine" tone="blue" [value]="billingMoney(billing.value()?.arrMinor)" caption="MRR × 12" />
+      <sv-stat-card [loading]="billing.isLoading()" label="Wpływy z 30 dni" icon="dollar" tone="violet" [value]="billingMoney(billing.value()?.collectedLast30DaysNetMinor)" caption="Opłacone subskrypcje (netto)" />
+      <sv-stat-card [loading]="billing.isLoading()" label="Okresy próbne" icon="calendar" tone="orange" [value]="billing.value() ? '' + (billing.value()!.byStatus['TRIALING'] ?? 0) : null"
         [caption]="billing.value() ? billing.value()!.trialsEndingIn7Days + ' kończy się w 7 dni' : ''" />
     </div>
 
@@ -52,7 +52,7 @@ const MONTH_LABEL = new Intl.DateTimeFormat('pl-PL', { month: 'short', year: '2-
           <span class="flex items-center gap-1.5"><span class="size-2 rounded-full bg-violet"></span>Nowe sklepy</span>
         </div>
         @if (growth.isLoading() && !growth.value()) {
-          <sv-loading />
+          <sv-loading variant="cards" />
         } @else {
           <sv-line-chart [labels]="labels()" [series]="series()" [height]="300" ariaLabel="Nowi użytkownicy i nowe sklepy w wybranym okresie">
             <p class="text-[12px] text-ink-muted">Brak danych w wybranym okresie</p>

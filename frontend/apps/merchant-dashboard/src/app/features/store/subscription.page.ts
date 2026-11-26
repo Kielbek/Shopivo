@@ -46,7 +46,7 @@ type Dialog =
     }
 
     @if (sub.isLoading() && !sub.value()) {
-      <sv-loading class="mt-10" label="Wczytywanie subskrypcji…" />
+      <sv-loading class="mt-2" variant="detail" label="Wczytywanie subskrypcji…" />
     } @else if (sub.error() && !sub.value()) {
       <sv-alert tone="error" class="mt-6">Nie udało się wczytać subskrypcji.</sv-alert>
     } @else if (sub.value(); as s) {

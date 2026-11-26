@@ -52,7 +52,7 @@ function emptyVariant(): VariantRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (loading()) {
-      <sv-loading class="mt-10" label="Wczytywanie produktu…" />
+      <sv-loading class="mt-2" variant="detail" [rows]="6" label="Wczytywanie produktu…" />
     } @else if (loadError(); as e) {
       <sv-alert tone="error" class="mt-6">{{ e }}</sv-alert>
     } @else {

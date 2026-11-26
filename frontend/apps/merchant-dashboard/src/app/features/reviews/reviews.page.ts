@@ -27,7 +27,7 @@ const STATUS_LABEL: Record<ReviewStatus, string> = { PENDING: 'Do moderacji', AP
     <sv-card class="mt-5" [flush]="true">
       <div role="tabpanel" [id]="'panel-' + tab()" [attr.aria-labelledby]="'tab-' + tab()">
         @if (reviews.isLoading() && !reviews.value()) {
-          <sv-loading />
+          <sv-loading variant="table" [rows]="6" />
         } @else if (reviews.error()) {
           <div class="p-5"><sv-alert tone="error">Nie udało się wczytać opinii.</sv-alert></div>
         } @else if (!reviews.value()?.items?.length) {

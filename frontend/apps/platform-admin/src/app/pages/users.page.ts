@@ -23,7 +23,7 @@ import { firstValueFrom } from 'rxjs';
     @if (message(); as m) {<sv-alert [tone]="m.tone" class="mt-4">{{ m.text }}</sv-alert>}
     <div class="sv-card mt-4 overflow-hidden">
       @if (users.isLoading() && !users.value()) {
-        <sv-loading />
+        <sv-loading variant="table" [rows]="6" />
       } @else if (users.error()) {
         <div class="p-4"><sv-alert tone="error">Nie udało się wczytać użytkowników.</sv-alert></div>
       } @else if (!users.value()?.items?.length) {

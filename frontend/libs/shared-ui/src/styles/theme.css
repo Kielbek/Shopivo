@@ -84,6 +84,28 @@
       disabled:cursor-not-allowed disabled:bg-[#F7F8FA] disabled:text-ink-muted;
   }
 
+  /* Skeleton shimmer: a soft light band sweeping across grey placeholders (no spinners in the product). */
+  .sv-shimmer {
+    background: linear-gradient(90deg, #EDF0F4 0%, #EDF0F4 35%, #F7F8FA 50%, #EDF0F4 65%, #EDF0F4 100%);
+    background-size: 300% 100%;
+    animation: sv-shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Busy button: keeps its label, a light band sweeps across it. */
+  .sv-btn-busy {
+    position: relative;
+    overflow: hidden;
+  }
+  .sv-btn-busy::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 20%, rgba(255, 255, 255, 0.45) 50%, transparent 80%);
+    background-size: 250% 100%;
+    animation: sv-shimmer 1.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+
   /* Outlined variant for full-page forms (sign-in, onboarding): white field with a visible border. */
   .sv-input-outline {
     @apply h-11 border-line-strong bg-card text-[14.5px] hover:border-[#C9CFD9] hover:bg-card;
@@ -267,4 +289,13 @@
 @keyframes sv-sheet-in {
   from { transform: translateY(100%); }
   to { transform: none; }
+}
+
+@keyframes sv-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sv-shimmer, .sv-btn-busy::after { animation: none; }
 }

@@ -11,6 +11,21 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 </head>
 <body>
-  <sv-root></sv-root>
+  <sv-root>
+    <!-- Shown until Angular starts (replaced on bootstrap): a neutral skeleton, no spinner. -->
+    <style>
+      .boot{min-height:100vh;display:flex;background:#F3F5F8;font-family:system-ui,sans-serif}
+      .boot-side{width:264px;background:#fff;border-right:1px solid #E9ECF1;padding:20px;display:none}
+      .boot-main{flex:1;padding:24px 32px}
+      .boot b{display:block;border-radius:10px;margin-bottom:14px;background:linear-gradient(90deg,#E9ECF1 0%,#E9ECF1 35%,#F6F7F9 50%,#E9ECF1 65%,#E9ECF1 100%);background-size:300% 100%;animation:boot 1.5s ease-in-out infinite}
+      @keyframes boot{from{background-position:100% 0}to{background-position:-100% 0}}
+      @media (min-width:1024px){.boot-side{display:block}}
+      @media (prefers-reduced-motion:reduce){.boot b{animation:none}}
+    </style>
+    <div class="boot" role="status" aria-busy="true" aria-label="Wczytywanie panelu">
+      <div class="boot-side"><b style="height:32px;width:60%"></b><b style="height:30px;margin-top:28px"></b><b style="height:30px;width:85%"></b><b style="height:30px;width:75%"></b><b style="height:30px;width:80%"></b><b style="height:30px;width:70%"></b></div>
+      <div class="boot-main"><b style="height:36px;width:280px"></b><b style="height:28px;width:220px;margin-top:32px"></b><b style="height:110px;margin-top:20px"></b><b style="height:260px"></b></div>
+    </div>
+  </sv-root>
 </body>
 </html>

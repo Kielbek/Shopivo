@@ -11,7 +11,7 @@ import { AlertComponent, ButtonComponent, DatePipe, EmptyStateComponent, Loading
     <sv-page-header title="Dziennik zdarzeń" />
     <div class="sv-card mt-6 overflow-hidden">
       @if (logs.isLoading() && !logs.value()) {
-        <sv-loading />
+        <sv-loading variant="table" [rows]="6" />
       } @else if (logs.error()) {
         <div class="p-4"><sv-alert tone="error">Nie udało się wczytać dziennika.</sv-alert></div>
       } @else if (!logs.value()?.items?.length) {

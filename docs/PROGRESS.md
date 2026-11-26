@@ -51,6 +51,10 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 
 ## Usprawnienia UX katalogu (2026-11-26)
 
+- **Wczytywanie bez spinnerów**: wszędzie cieniowane szkielety (shimmer) w kształcie treści — lista, tabela, formularz,
+  karty, szczegóły, cała strona panelu; karty statystyk z cieniowaniem zamiast „—”; przyciski w trakcie akcji mają
+  przesuwający się połysk zamiast kółka; szkielet w `index.html` widoczny od pierwszej chwili (przed startem Angulara)
+  w panelu i panelu admina; w sklepie klienta szkielety w kolorach motywu. Animacja wyłączona przy „ogranicz ruch”.
 - **Logowanie i rejestracja** bez karty: spokojna strona z jedną kolumną, duży nagłówek, białe pola z obramowaniem,
   przycisk Google na górze (gdy skonfigurowany), pokazywanie hasła (ikona oka) w logowaniu, rejestracji i resecie
   hasła, bez powtarzania hasła, wskaźnik siły hasła. **Panel na całą szerokość** — bez ramki z marginesem na dużych

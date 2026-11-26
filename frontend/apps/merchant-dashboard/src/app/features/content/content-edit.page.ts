@@ -30,7 +30,7 @@ const PLACEHOLDER = /\[uzupełnij[^\]]*\]/g;
       <svg [lucideIcon]="icons.arrowLeft" [size]="14" />Strony i blog
     </a>
     @if (id() && entry.isLoading() && !entry.value()) {
-      <sv-loading class="mt-6" />
+      <sv-loading class="mt-2" variant="detail" />
     } @else if (id() && entry.error()) {
       <sv-alert tone="error" class="mt-6">Nie znaleziono strony.</sv-alert>
     } @else {

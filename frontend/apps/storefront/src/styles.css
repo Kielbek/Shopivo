@@ -42,6 +42,14 @@ body {
 }
 
 @layer components {
+  /* Loading skeletons (theme-aware: derived from the store's text colour). */
+  .sf-shimmer {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--sf-text) 7%, transparent) 0%, color-mix(in srgb, var(--sf-text) 7%, transparent) 35%,
+      color-mix(in srgb, var(--sf-text) 3%, transparent) 50%, color-mix(in srgb, var(--sf-text) 7%, transparent) 65%, color-mix(in srgb, var(--sf-text) 7%, transparent) 100%);
+    background-size: 300% 100%;
+    animation: sf-shimmer 1.5s ease-in-out infinite;
+  }
+
   .sf-container { @apply mx-auto w-full max-w-[1240px] px-4 sm:px-6; }
   .sf-btn {
     @apply inline-flex h-11 items-center justify-center gap-2 px-5 text-[15px] font-semibold transition
@@ -78,4 +86,13 @@ body {
   .sf-media { border-radius: var(--sf-radius); background: color-mix(in srgb, var(--sf-primary) 8%, var(--sf-bg)); overflow: hidden; }
   .sf-link { color: var(--sf-primary); text-decoration: underline; text-underline-offset: 2px; }
   .sf-check { @apply size-[18px] shrink-0; accent-color: var(--sf-primary); }
+}
+
+@keyframes sf-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: -100% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sf-shimmer { animation: none; }
 }

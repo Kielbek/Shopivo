@@ -14,7 +14,7 @@ import { auditActionLabel } from '../../shared/audit-labels';
     <sv-page-header title="Dziennik zdarzeń" />
     <sv-card class="mt-6" heading="Ostatnie zdarzenia" [flush]="true">
       @if (logs.isLoading() && !logs.value()) {
-        <sv-loading />
+        <sv-loading variant="table" [rows]="6" />
       } @else if (logs.error()) {
         <div class="px-5 pb-5"><sv-alert tone="error">Nie udało się wczytać dziennika.</sv-alert></div>
       } @else if (!logs.value()?.items?.length) {

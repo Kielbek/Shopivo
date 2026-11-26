@@ -26,15 +26,15 @@ import {
     </sv-page-header>
 
     @if (report.isLoading() && !report.value()) {
-      <sv-loading />
+      <sv-loading variant="table" [rows]="6" />
     } @else if (report.error()) {
       <sv-alert tone="error" class="mt-6">Nie udało się wczytać raportu.</sv-alert>
     } @else if (report.value(); as r) {
       <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-        <sv-stat-card label="Przychód (netto)" icon="dollar" tone="green" [value]="money(totals().revenue)" caption="Suma cen planów w miesiącu" />
-        <sv-stat-card label="Szacowany koszt" icon="chartPie" tone="orange" [value]="money(totals().cost)" caption="Model kosztów poniżej" />
-        <sv-stat-card label="Sklepy na minusie" icon="alert" tone="coral" [value]="'' + totals().negative" caption="Koszt wyższy niż przychód" />
-        <sv-stat-card label="Ponad limit fair use" icon="trending" tone="violet" [value]="'' + totals().fairUse" caption="Kandydaci do wyższego planu" />
+        <sv-stat-card [loading]="report.isLoading()" label="Przychód (netto)" icon="dollar" tone="green" [value]="money(totals().revenue)" caption="Suma cen planów w miesiącu" />
+        <sv-stat-card [loading]="report.isLoading()" label="Szacowany koszt" icon="chartPie" tone="orange" [value]="money(totals().cost)" caption="Model kosztów poniżej" />
+        <sv-stat-card [loading]="report.isLoading()" label="Sklepy na minusie" icon="alert" tone="coral" [value]="'' + totals().negative" caption="Koszt wyższy niż przychód" />
+        <sv-stat-card [loading]="report.isLoading()" label="Ponad limit fair use" icon="trending" tone="violet" [value]="'' + totals().fairUse" caption="Kandydaci do wyższego planu" />
       </div>
 
       <sv-card class="mt-4" [flush]="true">

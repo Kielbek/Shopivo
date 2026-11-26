@@ -31,10 +31,10 @@ type BulkAction = 'ACTIVATE' | 'DRAFT' | 'ARCHIVE' | 'DELETE';
     </sv-page-header>
 
     <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-      <sv-stat-card label="Produkty" icon="products" tone="blue" [value]="stat('products')" caption="Bez zarchiwizowanych" />
-      <sv-stat-card label="Aktywne" icon="success" tone="green" [value]="stat('activeProducts')" caption="Widoczne w sklepie" />
-      <sv-stat-card label="Niski stan" icon="inventory" tone="orange" [value]="stat('lowStockVariants')" caption="Warianty do uzupełnienia" />
-      <sv-stat-card label="Brak w magazynie" icon="alert" tone="coral" [value]="stat('outOfStockVariants')" caption="Warianty niedostępne" />
+      <sv-stat-card [loading]="stats.isLoading()" label="Produkty" icon="products" tone="blue" [value]="stat('products')" caption="Bez zarchiwizowanych" />
+      <sv-stat-card [loading]="stats.isLoading()" label="Aktywne" icon="success" tone="green" [value]="stat('activeProducts')" caption="Widoczne w sklepie" />
+      <sv-stat-card [loading]="stats.isLoading()" label="Niski stan" icon="inventory" tone="orange" [value]="stat('lowStockVariants')" caption="Warianty do uzupełnienia" />
+      <sv-stat-card [loading]="stats.isLoading()" label="Brak w magazynie" icon="alert" tone="coral" [value]="stat('outOfStockVariants')" caption="Warianty niedostępne" />
     </div>
 
     <sv-card class="mt-4" [flush]="true">
@@ -68,7 +68,7 @@ type BulkAction = 'ACTIVATE' | 'DRAFT' | 'ARCHIVE' | 'DELETE';
       }
 
       @if (rows.isLoading() && !rows.value()) {
-        <sv-loading />
+        <sv-loading variant="table" [rows]="6" />
       } @else if (rows.error()) {
         <div class="p-5"><sv-alert tone="error">Nie udało się wczytać produktów.</sv-alert></div>
       } @else if (!rows.value()?.items?.length) {

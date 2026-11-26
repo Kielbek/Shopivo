@@ -67,7 +67,7 @@ interface Draft { rating: number; body: string; sent: boolean; sending: boolean;
           }
         </ul>
       } @else {
-        <p class="mt-4 text-sf-muted" aria-busy="true">Wczytywanie…</p>
+        <div class="mt-6 space-y-3" role="status" aria-busy="true"><span class="sr-only">Wczytywanie…</span><span class="sf-shimmer block h-5 w-2/3 rounded-[6px]"></span><span class="sf-shimmer block h-20 rounded-[10px]"></span><span class="sf-shimmer block h-20 rounded-[10px]"></span></div>
       }
     </div>
   `,

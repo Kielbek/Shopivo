@@ -18,7 +18,7 @@ import { StoreContext } from '../store/store-context';
   template: `
     <sv-page-header title="Płatności" description="Metody płatności dostępne dla Twoich klientów." />
     @if (settings.isLoading() && !settings.value()) {
-      <sv-loading />
+      <sv-loading variant="form" />
     } @else {
       <form (ngSubmit)="save()">
         <fieldset [disabled]="!canWrite">

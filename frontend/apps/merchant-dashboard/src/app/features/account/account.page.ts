@@ -102,7 +102,7 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
                     <button sv-button (click)="recoveryCodes.set(null)">Zapisałem kody</button>
                   </div>
                 } @else if (mfa.isLoading()) {
-                  <sv-loading />
+                  <sv-loading variant="form" />
                 } @else if (mfa.value()?.enabled) {
                   <p class="text-[13px] text-ink-soft">Pozostałe kody zapasowe: <strong class="text-ink">{{ mfa.value()?.remainingRecoveryCodes }}</strong></p>
                   <form [formGroup]="disableForm" (ngSubmit)="disableMfa()" class="mt-4 grid gap-4 border-t border-line pt-4 md:grid-cols-[1fr_1fr_auto] md:items-end" novalidate>
@@ -149,7 +149,7 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
               }
             </div>
             @if (sessions.isLoading()) {
-              <sv-loading />
+              <sv-loading variant="form" />
             } @else {
               <ul class="px-5 pb-2 pt-3">
                 @for (s of sessions.value(); track s.id) {

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, model, s
 import { LucideDynamicIcon } from '@lucide/angular';
 import { ApiError, StorefrontAdminApi } from '@shopivo/api-client';
 import { ProductImage } from '@shopivo/shared-models';
-import { ButtonComponent, CardComponent, SpinnerComponent, ToastService, icons } from '@shopivo/shared-ui';
+import { ButtonComponent, CardComponent, ToastService, icons } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 
 const MAX = 10;
@@ -21,7 +21,7 @@ interface Tile { key: string; url: string; alt: string; saved: ProductImage | nu
  */
 @Component({
   selector: 'sv-product-images',
-  imports: [LucideDynamicIcon, ButtonComponent, CardComponent, SpinnerComponent],
+  imports: [LucideDynamicIcon, ButtonComponent, CardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'relative block',
@@ -88,8 +88,9 @@ interface Tile { key: string; url: string; alt: string; saved: ProductImage | nu
             </li>
           }
           @for (n of uploadingSlots(); track $index) {
-            <li class="flex aspect-square flex-col items-center justify-center gap-2 rounded-[10px] border border-dashed border-line-strong bg-canvas text-[12px] text-ink-muted">
-              <sv-spinner />Wysyłanie…
+            <li class="overflow-hidden rounded-[10px] border border-line bg-card" aria-busy="true">
+              <div class="sv-shimmer flex aspect-square items-end p-2"><span class="rounded-[6px] bg-card/90 px-1.5 py-0.5 text-[11px] text-ink-soft">Wysyłanie…</span></div>
+              <div class="space-y-2 p-2"><span class="sv-shimmer block h-8 rounded-[8px]"></span><span class="sv-shimmer block h-6 w-1/2 rounded-[6px]"></span></div>
             </li>
           }
           @if (canWrite() && count() + uploading() < max) {

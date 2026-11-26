@@ -25,10 +25,10 @@ import { ORDER_TONE, PAYMENT_TONE } from './order-tones';
     </sv-page-header>
 
     <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-      <sv-stat-card label="Nowe" icon="orders" tone="violet" [value]="stat('newOrders')" caption="Czekają na realizację" />
-      <sv-stat-card label="W realizacji" icon="shipping" tone="blue" [value]="stat('processing')" caption="Do wysłania" />
-      <sv-stat-card label="Nieopłacone" icon="alert" tone="orange" [value]="stat('unpaid')" caption="Przelewy w oczekiwaniu" />
-      <sv-stat-card label="Sprzedaż 30 dni" icon="dollar" tone="green" [value]="revenue()" [caption]="ordersCaption()" />
+      <sv-stat-card [loading]="stats.isLoading()" label="Nowe" icon="orders" tone="violet" [value]="stat('newOrders')" caption="Czekają na realizację" />
+      <sv-stat-card [loading]="stats.isLoading()" label="W realizacji" icon="shipping" tone="blue" [value]="stat('processing')" caption="Do wysłania" />
+      <sv-stat-card [loading]="stats.isLoading()" label="Nieopłacone" icon="alert" tone="orange" [value]="stat('unpaid')" caption="Przelewy w oczekiwaniu" />
+      <sv-stat-card [loading]="stats.isLoading()" label="Sprzedaż 30 dni" icon="dollar" tone="green" [value]="revenue()" [caption]="ordersCaption()" />
     </div>
 
     <sv-card class="mt-4" [flush]="true">
@@ -44,7 +44,7 @@ import { ORDER_TONE, PAYMENT_TONE } from './order-tones';
         </div>
       </div>
       @if (rows.isLoading() && !rows.value()) {
-        <sv-loading />
+        <sv-loading variant="table" [rows]="6" />
       } @else if (rows.error()) {
         <div class="p-5"><sv-alert tone="error">Nie udało się wczytać zamówień.</sv-alert></div>
       } @else if (!rows.value()?.items?.length) {

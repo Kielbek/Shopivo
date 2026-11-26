@@ -16,7 +16,7 @@ import { StoreState } from './core/store-state';
   template: `
     @switch (store.status()) {
       @case ('loading') {
-        <main class="flex flex-1 items-center justify-center"><span class="text-sf-muted">Wczytywanie…</span></main>
+        <main class="mx-auto w-full max-w-6xl flex-1 px-5 py-6" role="status" aria-busy="true"><span class="sr-only">Wczytywanie…</span><span class="sf-shimmer block h-10 w-40 rounded-[8px]"></span><span class="sf-shimmer mt-8 block h-64 rounded-[14px]"></span><span class="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4">@for (i of [0, 1, 2, 3]; track i) {<span class="sf-shimmer block aspect-[4/5] rounded-[12px]"></span>}</span></main>
       }
       @case ('not-found') {
         <main class="flex flex-1 items-center justify-center px-6 text-center">

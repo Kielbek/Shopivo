@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { SpinnerComponent } from './spinner';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'soft';
 
@@ -26,14 +25,14 @@ const SIZES = {
 /** `<button sv-button variant="primary" [loading]="saving()">Zapisz</button>` */
 @Component({
   selector: 'button[sv-button], a[sv-button]',
-  imports: [SpinnerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[class]': 'classes()',
     '[attr.aria-busy]': 'loading() || null',
+    '[class.sv-btn-busy]': 'loading()',
     '[attr.disabled]': 'loading() || disabled() ? "" : null',
   },
-  template: `@if (loading()) {<sv-spinner size="sm" />}<ng-content />`,
+  template: `<ng-content />@if (loading()) {<span class="sr-only">Proszę czekać…</span>}`,
 })
 export class ButtonComponent {
   readonly variant = input<ButtonVariant>('primary');

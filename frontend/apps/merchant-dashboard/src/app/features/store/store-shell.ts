@@ -78,7 +78,7 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (ctx.loading() && !ctx.store()) {
-      <sv-loading class="min-h-dvh bg-page" label="Wczytywanie sklepu…" />
+      <sv-loading variant="page" label="Wczytywanie sklepu…" />
     } @else if (ctx.error(); as e) {
       <div class="flex min-h-dvh items-start justify-center bg-page px-4 pt-24">
         <div class="sv-card w-full max-w-md p-6">

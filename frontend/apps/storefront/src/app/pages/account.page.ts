@@ -63,7 +63,7 @@ interface AddressForm { id: string | null; name: string; company: string; line1:
                 <p class="mt-6 text-sf-muted">Nie masz jeszcze zamówień złożonych na adres {{ a.email }}.</p>
                 <a routerLink="/produkty" class="sf-btn mt-4">Przejdź do sklepu</a>
               }
-            } @else {<p class="mt-6 text-sf-muted" aria-busy="true">Wczytywanie…</p>}
+            } @else {<div class="mt-6 space-y-3" role="status" aria-busy="true"><span class="sr-only">Wczytywanie…</span><span class="sf-shimmer block h-5 w-2/3 rounded-[6px]"></span><span class="sf-shimmer block h-20 rounded-[10px]"></span><span class="sf-shimmer block h-20 rounded-[10px]"></span></div>}
           }
           @case ('opinie') {
             <p class="mt-6 max-w-2xl text-[14px] text-sf-muted">Oceniać możesz produkty z Twoich zamówień, które zostały zrealizowane i opłacone.
@@ -162,7 +162,7 @@ interface AddressForm { id: string | null; name: string; company: string; line1:
       } @else if (session.ready()) {
         <p class="text-sf-muted">Przekierowujemy do logowania…</p>
       } @else {
-        <p class="text-sf-muted" aria-busy="true">Wczytywanie…</p>
+        <div class="space-y-3" role="status" aria-busy="true"><span class="sr-only">Wczytywanie…</span><span class="sf-shimmer block h-5 w-2/3 rounded-[6px]"></span><span class="sf-shimmer block h-20 rounded-[10px]"></span><span class="sf-shimmer block h-20 rounded-[10px]"></span></div>
       }
     </div>
   `,

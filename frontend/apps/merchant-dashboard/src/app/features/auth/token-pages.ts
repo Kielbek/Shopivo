@@ -13,7 +13,7 @@ import { PASSWORD_MIN_LENGTH } from '../../shared/validators';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @switch (state()) {
-      @case ('loading') {<sv-loading label="Potwierdzamy adres e-mail…" />}
+      @case ('loading') {<p class="text-[14px] text-ink-soft">Potwierdzamy adres e-mail…</p><sv-loading class="mt-3" variant="text" [rows]="2" label="Potwierdzamy adres e-mail…" />}
       @case ('done') {
         <h1 class="text-[30px] font-semibold leading-[38px] tracking-[-0.02em] text-ink">Adres e-mail potwierdzony</h1>
         <p class="mt-2 text-[14px] text-ink-soft">Twoje konto jest aktywne. Zaloguj się, aby utworzyć sklep.</p>
@@ -192,7 +192,7 @@ export class ResetPasswordPage {
           <a sv-button variant="secondary" class="mt-6" routerLink="/">Przejdź do panelu</a>
         }
       } @else {
-        <sv-loading label="Dołączamy Cię do zespołu sklepu…" />
+        <p class="text-[14px] text-ink-soft">Dołączamy Cię do zespołu sklepu…</p><sv-loading class="mt-3" variant="text" [rows]="2" label="Dołączamy Cię do zespołu sklepu…" />
       }
     </div>
   `,

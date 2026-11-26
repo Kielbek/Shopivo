@@ -73,3 +73,9 @@ Klasy pomocnicze: `.sv-input`, `.sv-label`, `.sv-checkbox`, `.sv-switch`, `.sv-c
 - Nawigacja panelu sprzedawcy jest filtrowana uprawnieniami roli (backend i tak je egzekwuje).
 - Panele działają od 320 px; tabele przewijają się w obrębie karty, bez poziomego przewijania strony.
 - Brak skryptów inline (CSP `script-src 'self'`).
+
+## Stany wczytywania (2026-11-26)
+Produkt nie używa spinnerów. Wczytywanie = szkielet w kształcie treści (`<sv-loading variant="list|table|form|cards|detail|page|text">`,
+klasa `.sv-shimmer`), karty statystyk mają `[loading]`, przycisk w trakcie akcji (`[loading]`) zachowuje etykietę i dostaje
+połysk (`.sv-btn-busy`), `aria-busy` i tekst dla czytników ekranu. W sklepie klienta: `.sf-shimmer` (kolor z motywu).
+Animacje są wyłączane przy `prefers-reduced-motion`.

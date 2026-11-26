@@ -21,7 +21,7 @@ import { StoreContext } from '../store/store-context';
     <sv-section class="mt-6" title="Płatności online"
       description="BLIK, karty i szybkie przelewy przez Twoje konto u operatora. Pieniądze trafiają bezpośrednio do Ciebie — Shopivo ich nie pośredniczy.">
       @if (overview.isLoading() && !overview.value()) {
-        <sv-loading />
+        <sv-loading variant="form" />
       } @else if (overview.error()) {
         <sv-alert tone="error">Nie udało się wczytać ustawień płatności online.</sv-alert>
       } @else {

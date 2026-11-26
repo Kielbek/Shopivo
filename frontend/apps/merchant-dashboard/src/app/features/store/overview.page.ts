@@ -68,12 +68,12 @@ const DAY = new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'short' })
     }
 
     <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-      <sv-stat-card label="Sprzedaż dziś" icon="cart" tone="coral" [value]="money(orderStats.value()?.revenueTodayMinor)"
+      <sv-stat-card [loading]="orderStats.isLoading()" label="Sprzedaż dziś" icon="cart" tone="coral" [value]="money(orderStats.value()?.revenueTodayMinor)"
         [caption]="orderStats.value() ? ordersWord(orderStats.value()!.ordersToday) : ''" />
-      <sv-stat-card label="Do realizacji" icon="bag" tone="violet" [value]="count(toFulfil())" caption="Nowe i w realizacji" />
-      <sv-stat-card label="Produkty" icon="box" tone="orange" [value]="count(catalogStats.value()?.activeProducts)"
+      <sv-stat-card [loading]="orderStats.isLoading()" label="Do realizacji" icon="bag" tone="violet" [value]="count(toFulfil())" caption="Nowe i w realizacji" />
+      <sv-stat-card [loading]="catalogStats.isLoading()" label="Produkty" icon="box" tone="orange" [value]="count(catalogStats.value()?.activeProducts)"
         [caption]="catalogStats.value() ? catalogStats.value()!.lowStockVariants + ' z niskim stanem' : ''" />
-      <sv-stat-card label="Przychód 30 dni" icon="dollar" tone="blue" [value]="money(orderStats.value()?.revenue30dMinor)"
+      <sv-stat-card [loading]="orderStats.isLoading()" label="Przychód 30 dni" icon="dollar" tone="blue" [value]="money(orderStats.value()?.revenue30dMinor)"
         [caption]="orderStats.value() ? ordersWord(orderStats.value()!.orders30d) : ''" />
     </div>
 
