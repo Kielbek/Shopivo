@@ -302,6 +302,13 @@ Metoda `ONLINE` w `/storefront/checkout/options` (gdy włączona); nieopłacone 
 dla takiej metody (`PICKUP_POINT_REQUIRED`) i sprawdzany u przewoźnika. `ShippingInput.carrier` w panelu
 (`CARRIER_NOT_CONNECTED`, `CARRIER_UNSUPPORTED`). Śledzenie: zadanie co 30 min (ShedLock).
 
+## 13a. Branża sklepu (zaimplementowane)
+
+| Metoda | Ścieżka | Uprawnienie | Opis |
+|---|---|---|---|
+| POST | `/stores` | zalogowany | opcjonalne pole `industry` (np. `FASHION`); nieznany kod → 400 |
+| PUT | `/tenants/{t}/store/industry` | `STORE_SETTINGS_WRITE` | `{industry}` lub `{industry: null}`; widok sklepu (`GET /tenants/{t}/store`) zwraca `industry` |
+
 ## 14. Kolejne fazy (zarys)
 - Faza 5c: DPD; zwroty płatności przez API operatorów
 - `/api/v1/webhooks/payments/{provider}/{tenantId}`,

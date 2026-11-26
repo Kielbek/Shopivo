@@ -1,13 +1,18 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { InfoTipComponent } from './info-tip';
 import { AbstractControl } from '@angular/forms';
 
 /** Label + control + hint/error, with accessible ids. */
 @Component({
   selector: 'sv-field',
+  imports: [InfoTipComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
-    <label class="sv-label" [attr.for]="for()">{{ label() }}</label>
+    <div class="flex items-center gap-1">
+      <label class="sv-label" [attr.for]="for()">{{ label() }}@if (optional()) {<span class="font-normal text-ink-muted">&nbsp;(opcjonalnie)</span>}</label>
+      @if (info()) {<sv-info-tip [text]="info()!" [label]="'Co to jest: ' + label()" />}
+    </div>
     <div class="mt-1.5"><ng-content /></div>
     @if (error()) {
       <p class="mt-1.5 text-[12px] text-danger-ink" [id]="for() + '-error'">{{ error() }}</p>
@@ -22,6 +27,8 @@ export class FieldComponent {
   readonly hint = input<string>();
   readonly error = input<string | null>();
   readonly optional = input(false);
+  /** Optional explanation shown behind a "?" next to the label. */
+  readonly info = input<string>();
 }
 
 /**

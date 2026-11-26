@@ -16,3 +16,4 @@ export * from './lib/app-shell';
 export * from './lib/tabs';
 export * from './lib/select';
 export * from './lib/gestures';
+export * from './lib/info-tip';

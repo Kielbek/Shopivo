@@ -130,6 +130,16 @@ public class Stores {
         return store.toView(primaryHostname(store));
     }
 
+    /** Sets the store's industry (only steers suggestions in the panel). */
+    public StoreView setIndustry(StoreIndustry industry) {
+        StoreEntity store = loadCurrent();
+        store.setIndustry(industry);
+        auditLog.record(AuditEntry.tenant("store.industry.updated", store.getTenantId(), "store", store.getId())
+                .with(java.util.Map.of("industry", industry == null ? "" : industry.name())));
+        stores.flush();
+        return store.toView(primaryHostname(store));
+    }
+
     @Transactional(readOnly = true)
     public StoreSettingsView currentSettings() {
         return settings.findFirstBy().map(StoreSettingsEntity::toView).orElseThrow(NotFoundException::new);

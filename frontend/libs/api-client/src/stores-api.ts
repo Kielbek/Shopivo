@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {
+  StoreIndustry,
   AuditLogEntry, InvitableRole, Invitation, MembershipStatus, MyStore, Page, SlugAvailability, Store,
   StoreRole, StoreSettings, TeamMember,
 } from '@shopivo/shared-models';
@@ -27,8 +28,8 @@ export class StoresApi {
     return this.http.get<MyStore[]>('/api/v1/stores');
   }
 
-  create(name: string, slug: string): Observable<Store> {
-    return this.http.post<Store>('/api/v1/stores', { name, slug });
+  create(name: string, slug: string, industry: StoreIndustry | null = null): Observable<Store> {
+    return this.http.post<Store>('/api/v1/stores', { name, slug, industry });
   }
 
   slugAvailability(slug: string): Observable<SlugAvailability> {
@@ -55,6 +56,10 @@ export class TenantApi {
 
   updateStore(tenantId: string, update: StoreUpdate): Observable<Store> {
     return this.http.patch<Store>(`${this.base(tenantId)}/store`, update);
+  }
+
+  setIndustry(tenantId: string, industry: StoreIndustry | null): Observable<Store> {
+    return this.http.put<Store>(`${this.base(tenantId)}/store/industry`, { industry });
   }
 
   settings(tenantId: string): Observable<StoreSettings> {

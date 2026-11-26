@@ -5,15 +5,19 @@ import { Router, RouterLink } from '@angular/router';
 import { LucideDynamicIcon } from '@lucide/angular';
 import { ApiError, CatalogApi, ProductInput, VariantInput } from '@shopivo/api-client';
 import { PRODUCT_STATUS_LABELS, Product, ProductImage, ProductStatus, ProductType, VAT_RATES } from '@shopivo/shared-models';
-import { ProductImagesComponent } from './product-images';
+import { PendingImage, ProductImagesComponent } from './product-images';
+import { CategoryTreeSelectComponent } from './category-tree';
+import { OptionRow, VariantOptionsComponent } from './variant-options';
+import { SeoPanelComponent } from './seo-panel';
+import { ParcelFieldsComponent } from './parcel-fields';
+import { industryOf } from './industries';
+import { StorefrontAdminApi } from '@shopivo/api-client';
 import {
   AlertComponent, BadgeComponent, ButtonComponent, CardComponent, DialogComponent, FieldComponent, LoadingComponent, MoneyPipe,
   SelectComponent, SelectOption, ToastService, icons, moneyInput, parseMoney,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
-
-interface OptionRow { name: string; values: string; }
 
 interface VariantRow {
   id: string | null;
@@ -43,7 +47,8 @@ function emptyVariant(): VariantRow {
 @Component({
   selector: 'sv-product-edit-page',
   imports: [FormsModule, RouterLink, LucideDynamicIcon, CardComponent, BadgeComponent, ButtonComponent, AlertComponent,
-    FieldComponent, LoadingComponent, SelectComponent, DialogComponent, MoneyPipe, ProductImagesComponent],
+    FieldComponent, LoadingComponent, SelectComponent, DialogComponent, MoneyPipe, ProductImagesComponent, CategoryTreeSelectComponent,
+    VariantOptionsComponent, SeoPanelComponent, ParcelFieldsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (loading()) {
@@ -79,20 +84,16 @@ function emptyVariant(): VariantRow {
           <div class="min-w-0 space-y-4">
             <sv-card heading="Podstawowe informacje">
               <div class="space-y-4">
-                <sv-field label="Nazwa produktu" for="p-name">
+                <sv-field label="Nazwa produktu" for="p-name" info="Krótko i konkretnie: co to jest + najważniejsza cecha. Tak klienci szukają w Google, np. „Kubek ceramiczny 350 ml oliwkowy”.">
                   <input id="p-name" name="name" class="sv-input" maxlength="200" required [(ngModel)]="name" placeholder="np. Koszulka z bawełny organicznej" />
                 </sv-field>
-                <sv-field label="Opis" for="p-desc" [optional]="true" hint="Zwykły tekst; formatowanie treści pojawi się wraz z edytorem stron sklepu.">
+                <sv-field label="Opis" for="p-desc" [optional]="true" hint="Materiał, wymiary, zastosowanie, pielęgnacja. Pierwsze zdania pokażą się też w Google.">
                   <textarea id="p-desc" name="description" class="sv-input min-h-36 py-2.5" maxlength="20000" [(ngModel)]="description"></textarea>
                 </sv-field>
               </div>
             </sv-card>
 
-            @if (!isNew()) {
-              <sv-product-images [tenantId]="ctx.tenantId()" [productId]="productId()!" [canWrite]="canWrite" [(images)]="images" />
-            } @else {
-              <sv-card heading="Zdjęcia"><p class="text-[13px] text-ink-muted">Zdjęcia dodasz po zapisaniu produktu.</p></sv-card>
-            }
+            <sv-product-images [tenantId]="ctx.tenantId()" [productId]="productId() ?? null" [canWrite]="canWrite" [(images)]="images" [(pending)]="pendingImages" />
 
             @if (!hasOptions()) {
               @let v = variants()[0];
@@ -101,7 +102,8 @@ function emptyVariant(): VariantRow {
                   <sv-field label="Cena (brutto)" for="v0-price">
                     <input id="v0-price" name="v0-price" class="sv-input" inputmode="decimal" placeholder="0,00" [(ngModel)]="v.price" />
                   </sv-field>
-                  <sv-field label="Cena przed obniżką" for="v0-compare" [optional]="true" hint="Przekreślona cena w sklepie">
+                  <sv-field label="Cena przed obniżką" for="v0-compare" [optional]="true" hint="Przekreślona cena w sklepie"
+                    info="Wpisz, gdy produkt jest w promocji — klient zobaczy przekreśloną starą cenę. Zgodnie z dyrektywą Omnibus sklep pokaże też najniższą cenę z 30 dni przed obniżką (liczymy ją sami).">
                     <input id="v0-compare" name="v0-compare" class="sv-input" inputmode="decimal" [(ngModel)]="v.compareAt" />
                   </sv-field>
                   <sv-field label="Koszt zakupu" for="v0-cost" [optional]="true" hint="Widoczny tylko dla Ciebie">
@@ -112,8 +114,8 @@ function emptyVariant(): VariantRow {
                   <p class="mt-3 text-[12px] text-ink-muted">Omnibus: najniższa cena z 30 dni przed obniżką — <strong class="font-medium text-ink">{{ v.lowest | svMoney }}</strong>.</p>
                 }
                 <div class="mt-4 grid gap-4 border-t border-line pt-4 sm:grid-cols-3">
-                  <sv-field label="SKU" for="v0-sku" [optional]="true"><input id="v0-sku" name="v0-sku" class="sv-input" maxlength="64" [(ngModel)]="v.sku" /></sv-field>
-                  <sv-field label="Kod EAN / GTIN" for="v0-ean" [optional]="true"><input id="v0-ean" name="v0-ean" class="sv-input" inputmode="numeric" maxlength="14" [(ngModel)]="v.ean" /></sv-field>
+                  <sv-field label="SKU" for="v0-sku" [optional]="true" info="Twój wewnętrzny kod produktu, np. KUB-350-OLI. Ułatwia magazyn i zamówienia. Widzisz go tylko Ty."><input id="v0-sku" name="v0-sku" class="sv-input" maxlength="64" [(ngModel)]="v.sku" /></sv-field>
+                  <sv-field label="Kod EAN / GTIN" for="v0-ean" [optional]="true" info="Kod kreskowy z opakowania producenta (8–14 cyfr). Pomaga w Google Shopping i porównywarkach. Nie masz — zostaw puste."><input id="v0-ean" name="v0-ean" class="sv-input" inputmode="numeric" maxlength="14" [(ngModel)]="v.ean" /></sv-field>
                   @if (v.trackInventory) {
                     @if (v.onHand === null) {
                       <sv-field label="Stan początkowy" for="v0-stock"><input id="v0-stock" name="v0-stock" class="sv-input" type="number" min="0" [(ngModel)]="v.stock" /></sv-field>
@@ -135,42 +137,36 @@ function emptyVariant(): VariantRow {
               </sv-card>
             }
 
-            <sv-card heading="Warianty" subheading="Np. rozmiar i kolor. Warianty powstają ze wszystkich kombinacji (maks. 100).">
-              <div card-actions>
-                @if (canWrite && options().length < 3) {
-                  <button sv-button type="button" size="sm" variant="secondary" (click)="addOption()"><svg [lucideIcon]="icons.plus" />Dodaj opcję</button>
-                }
-              </div>
+            <sv-card heading="Warianty" subheading="Np. rozmiar i kolor. Z opcji powstają wszystkie kombinacje (maks. 100) — cenę i stan ustawisz dla każdej.">
               @if (!options().length) {
-                <p class="text-[13px] text-ink-muted">Produkt ma jeden wariant. Dodaj opcję, jeśli występuje w kilku rozmiarach lub kolorach.</p>
-              } @else {
-                <div class="space-y-3">
-                  @for (o of options(); track $index; let i = $index) {
-                    <div class="grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)_auto] sm:items-end">
-                      <sv-field [label]="'Opcja ' + (i + 1)" [for]="'opt-name-' + i">
-                        <input class="sv-input" [id]="'opt-name-' + i" [name]="'opt-name-' + i" maxlength="40" placeholder="Rozmiar"
-                          [(ngModel)]="o.name" (ngModelChange)="rebuild()" />
-                      </sv-field>
-                      <sv-field label="Wartości (oddziel przecinkami)" [for]="'opt-values-' + i">
-                        <input class="sv-input" [id]="'opt-values-' + i" [name]="'opt-values-' + i" placeholder="S, M, L, XL"
-                          [(ngModel)]="o.values" (ngModelChange)="rebuild()" />
-                      </sv-field>
-                      <button sv-button type="button" variant="ghost" size="icon" [attr.aria-label]="'Usuń opcję ' + (o.name || i + 1)" (click)="removeOption(i)">
-                        <svg [lucideIcon]="icons.trash" />
-                      </button>
-                    </div>
-                  }
-                </div>
+                <p class="mb-3 text-[13px] text-ink-muted">Produkt ma jeden wariant. Dodaj opcje, jeśli występuje w kilku rozmiarach, kolorach lub pojemnościach.</p>
+              }
+              <sv-variant-options [options]="options()" (optionsChange)="options.set($event); rebuild()" [industry]="industry()" [disabled]="!canWrite" />
+              @if (options().length) {
                 @if (tooMany()) {
                   <sv-alert tone="warning" class="mt-4">Za dużo kombinacji ({{ combinations() }}). Produkt może mieć najwyżej 100 wariantów.</sv-alert>
                 } @else if (variants().length && hasOptions()) {
-                  <div class="-mx-5 mt-5 overflow-x-auto border-t border-line px-5 pt-3">
+                  <div class="mt-5 flex flex-wrap items-end gap-2 rounded-[10px] bg-canvas p-3">
+                    <p class="w-full text-[12px] font-medium text-ink-soft">Ustaw dla {{ bulkScopeLabel() }}:</p>
+                    @if (bulkGroups().length > 1) {
+                      <select class="sv-input !h-9 w-auto !text-[13px]" aria-label="Których wariantów dotyczy zmiana" [value]="bulkScope()" (change)="bulkScope.set($any($event.target).value)">
+                        <option value="">wszystkich wariantów</option>
+                        @for (g of bulkGroups(); track g) {<option [value]="g">tylko: {{ g }}</option>}
+                      </select>
+                    }
+                    <input class="sv-input !h-9 w-28" inputmode="decimal" placeholder="Cena" aria-label="Cena dla zaznaczonych wariantów" [value]="bulkPrice()" (input)="bulkPrice.set($any($event.target).value)" />
+                    @if (allTracked() && anyNew()) {
+                      <input class="sv-input !h-9 w-24" type="number" min="0" placeholder="Stan" aria-label="Stan dla zaznaczonych wariantów" [value]="bulkStock()" (input)="bulkStock.set($any($event.target).value)" />
+                    }
+                    <button sv-button type="button" size="sm" variant="secondary" [disabled]="!bulkPrice().trim() && !bulkStock().trim()" (click)="applyBulk(bulkPrice(), bulkStock())">Zastosuj</button>
+                  </div>
+                  <div class="-mx-5 mt-4 overflow-x-auto border-t border-line px-5 pt-3">
                     <table class="sv-table min-w-[640px]">
                       <thead><tr><th scope="col">Wariant</th><th scope="col">Cena (brutto)</th><th scope="col">Przed obniżką</th><th scope="col">SKU</th><th scope="col">EAN</th><th scope="col">Stan</th></tr></thead>
                       <tbody>
                         @for (v of variants(); track v.key; let i = $index) {
                           <tr>
-                            <td class="font-medium text-ink">{{ v.title }}</td>
+                            <td class="whitespace-nowrap font-medium text-ink">{{ v.title }}</td>
                             <td><input class="sv-input !h-9 w-24" inputmode="decimal" [name]="'vp-' + i" [attr.aria-label]="'Cena ' + v.title" [(ngModel)]="v.price" /></td>
                             <td><input class="sv-input !h-9 w-24" inputmode="decimal" [name]="'vc-' + i" [attr.aria-label]="'Cena przed obniżką ' + v.title" [(ngModel)]="v.compareAt" />
                               @if (v.compareAt && v.lowest !== null) {<span class="mt-1 block text-[11px] text-ink-muted">min. 30 dni: {{ v.lowest | svMoney }}</span>}</td>
@@ -187,7 +183,6 @@ function emptyVariant(): VariantRow {
                     </table>
                   </div>
                   <div class="mt-3 flex flex-wrap items-center gap-x-6 gap-y-3">
-                    <button sv-button type="button" size="sm" variant="ghost" (click)="applyFirstPrice()">Ustaw cenę pierwszego wariantu dla wszystkich</button>
                     <label class="flex items-center gap-2.5 text-[13px] text-ink"><input type="checkbox" role="switch" class="sv-switch" name="all-track"
                       [ngModel]="allTracked()" (ngModelChange)="setTracking($event)" />Śledź stany</label>
                     <label class="flex items-center gap-2.5 text-[13px] text-ink"><input type="checkbox" role="switch" class="sv-switch" name="all-back"
@@ -198,30 +193,12 @@ function emptyVariant(): VariantRow {
             </sv-card>
 
             @if (type === 'PHYSICAL') {
-              <sv-card heading="Wysyłka" subheading="Waga i wymiary paczki — potrzebne do wyliczania kosztów dostawy.">
-                <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  <sv-field label="Waga (g)" for="w"><input id="w" name="weight" type="number" min="0" class="sv-input" [(ngModel)]="weight" /></sv-field>
-                  <sv-field label="Długość (mm)" for="l"><input id="l" name="length" type="number" min="0" class="sv-input" [(ngModel)]="length" /></sv-field>
-                  <sv-field label="Szerokość (mm)" for="wd"><input id="wd" name="width" type="number" min="0" class="sv-input" [(ngModel)]="width" /></sv-field>
-                  <sv-field label="Wysokość (mm)" for="h"><input id="h" name="height" type="number" min="0" class="sv-input" [(ngModel)]="height" /></sv-field>
-                </div>
-                @if (hasOptions()) {<p class="mt-3 text-[12px] text-ink-muted">Wartości dotyczą wszystkich wariantów.</p>}
-              </sv-card>
+              <sv-parcel-fields [(weight)]="weight" [(length)]="length" [(width)]="width" [(height)]="height" [industry]="industry()"
+                [disabled]="!canWrite" [variantsNote]="hasOptions()" />
             }
 
-            <sv-card heading="Wyszukiwarki (SEO)">
-              <div class="space-y-4">
-                <sv-field label="Adres w sklepie" for="p-slug" [optional]="true" [hint]="'/produkt/' + (slug || 'tworzony-z-nazwy')">
-                  <input id="p-slug" name="slug" class="sv-input" maxlength="200" [(ngModel)]="slug" />
-                </sv-field>
-                <sv-field label="Tytuł strony" for="p-seo-title" [optional]="true" [hint]="(seoTitle.length) + ' / 160'">
-                  <input id="p-seo-title" name="seoTitle" class="sv-input" maxlength="160" [(ngModel)]="seoTitle" />
-                </sv-field>
-                <sv-field label="Opis strony" for="p-seo-desc" [optional]="true" [hint]="(seoDescription.length) + ' / 320'">
-                  <textarea id="p-seo-desc" name="seoDescription" class="sv-input min-h-20 py-2.5" maxlength="320" [(ngModel)]="seoDescription"></textarea>
-                </sv-field>
-              </div>
-            </sv-card>
+            <sv-seo-panel [name]="name" [text]="description" [brand]="brandName()" [storeName]="ctx.store()?.name ?? ''" [host]="ctx.store()?.primaryHostname ?? ''"
+              [(slug)]="slug" [(title)]="seoTitle" [(description)]="seoDescription" [disabled]="!canWrite" />
           </div>
 
           <div class="min-w-0 space-y-4">
@@ -250,21 +227,12 @@ function emptyVariant(): VariantRow {
             </sv-card>
 
             <sv-card heading="Kategorie" [flush]="true">
+              <div card-actions><a class="sv-link text-[12px]" [routerLink]="['/sklep', ctx.tenantId(), 'kategorie']">Zarządzaj</a></div>
               @if (!categories.value()?.length) {
-                <p class="px-5 pb-5 text-[13px] text-ink-muted">Brak kategorii.
+                <p class="px-5 pb-5 text-[13px] text-ink-muted">Nie masz jeszcze kategorii — pomagają klientom znaleźć produkt.
                   <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'kategorie']">Utwórz kategorie</a></p>
               } @else {
-                <ul class="max-h-72 overflow-y-auto px-5 pb-4">
-                  @for (c of categories.value(); track c.id) {
-                    <li [style.padding-left.px]="c.depth * 18">
-                      <label class="flex items-center gap-2.5 py-1.5 text-[13px] text-ink">
-                        <input type="checkbox" class="sv-checkbox" [name]="'cat-' + c.id" [checked]="categoryIds().has(c.id)"
-                          (change)="toggleCategory(c.id, $any($event.target).checked)" />
-                        {{ c.name }}
-                      </label>
-                    </li>
-                  }
-                </ul>
+                <sv-category-tree-select [categories]="categories.value() ?? []" [value]="categoryIds()" (valueChange)="categoryIds.set($event)" [disabled]="!canWrite" />
               }
             </sv-card>
           </div>
@@ -285,6 +253,7 @@ function emptyVariant(): VariantRow {
 export class ProductEditPage implements OnInit {
   protected readonly ctx = inject(StoreContext);
   private readonly api = inject(CatalogApi);
+  private readonly media = inject(StorefrontAdminApi);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
   protected readonly icons = icons;
@@ -330,7 +299,9 @@ export class ProductEditPage implements OnInit {
 
   protected readonly options = signal<OptionRow[]>([]);
   protected readonly variants = signal<VariantRow[]>([emptyVariant()]);
-  protected readonly categoryIds = signal(new Set<string>());
+  protected readonly categoryIds = signal<string[]>([]);
+  protected readonly pendingImages = signal<PendingImage[]>([]);
+  protected readonly industry = computed(() => this.ctx.store()?.industry ?? null);
   protected readonly images = signal<ProductImage[]>([]);
   protected readonly combinations = signal(1);
 
@@ -349,6 +320,11 @@ export class ProductEditPage implements OnInit {
   ngOnInit(): void {
     const id = this.productId();
     if (id) void this.load(id);
+    else this.type = industryOf(this.industry())?.productType ?? 'PHYSICAL';
+  }
+
+  protected brandName(): string | null {
+    return (this.brands.value() ?? []).find((b) => b.id === this.brandId)?.name ?? null;
   }
 
   private async load(id: string): Promise<void> {
@@ -378,8 +354,8 @@ export class ProductEditPage implements OnInit {
     this.length = first?.lengthMm ?? null;
     this.width = first?.widthMm ?? null;
     this.height = first?.heightMm ?? null;
-    this.options.set(p.options.map((o) => ({ name: o.name, values: o.values.join(', ') })));
-    this.categoryIds.set(new Set(p.categories.map((c) => c.id)));
+    this.options.set(p.options.map((o) => ({ name: o.name, values: [...o.values] })));
+    this.categoryIds.set(p.categories.map((c) => c.id));
     this.images.set(p.images ?? []);
     this.variants.set(p.variants.map((v) => ({
       id: v.id, key: keyOf(v.optionValues), optionValues: v.optionValues, title: v.title || 'Domyślny',
@@ -390,25 +366,14 @@ export class ProductEditPage implements OnInit {
     this.combinations.set(this.variants().length);
   }
 
-  protected addOption(): void {
-    this.options.update((o) => [...o, { name: '', values: '' }]);
-  }
-
-  protected removeOption(i: number): void {
-    this.options.update((o) => o.filter((_, j) => j !== i));
-    this.rebuild();
-  }
-
   private parsedOptions(): { name: string; values: string[] }[] {
     return this.options()
-      .map((o) => ({ name: o.name.trim(), values: [...new Set(o.values.split(',').map((v) => v.trim()).filter(Boolean))] }))
+      .map((o) => ({ name: o.name.trim(), values: [...new Set(o.values.map((v) => v.trim()).filter(Boolean))] }))
       .filter((o) => o.name && o.values.length);
   }
 
   /** Regenerates the variant rows from the options, keeping what was typed for combinations that still exist. */
   protected rebuild(): void {
-    // Option rows are edited in place by ngModel — publish a new array so dependent computeds re-evaluate.
-    this.options.set([...this.options()]);
     const opts = this.parsedOptions();
     const total = opts.reduce((n, o) => n * o.values.length, 1);
     this.combinations.set(total);
@@ -433,10 +398,39 @@ export class ProductEditPage implements OnInit {
     }));
   }
 
-  protected applyFirstPrice(): void {
-    const [first, ...rest] = this.variants();
-    if (!first) return;
-    this.variants.set([first, ...rest.map((v) => ({ ...v, price: first.price, compareAt: first.compareAt }))]);
+  /** Bulk edit scope: all variants or those with one value of the first option (e.g. only size M). */
+  protected readonly bulkScope = signal('');
+  protected readonly bulkPrice = signal('');
+  protected readonly bulkStock = signal('');
+  protected readonly bulkGroups = computed(() => this.parsedOptionsSignal()[0]?.values ?? []);
+  protected readonly anyNew = computed(() => this.variants().some((v) => v.onHand === null));
+  protected bulkScopeLabel(): string {
+    const scope = this.bulkScope();
+    const first = this.parsedOptionsSignal()[0]?.name;
+    return scope && first ? `wariantów: ${first} ${scope}` : 'wszystkich wariantów';
+  }
+
+  private parsedOptionsSignal() {
+    this.options();
+    return this.parsedOptions();
+  }
+
+  protected applyBulk(priceText: string, stockText: string): void {
+    const first = this.parsedOptions()[0]?.name;
+    const scope = this.bulkScope();
+    const price = priceText.trim() ? parseMoney(priceText) : null;
+    if (priceText.trim() && (price === null || price === undefined)) {
+      this.toast.error('Podaj prawidłową cenę, np. 79,90.');
+      return;
+    }
+    const stock = stockText.trim();
+    this.variants.update((vs) => vs.map((v) => {
+      if (scope && first && v.optionValues[first] !== scope) return v;
+      return { ...v, price: price !== null && price !== undefined ? priceText.trim() : v.price,
+        stock: stock && v.onHand === null ? String(Math.max(0, Math.floor(Number(stock) || 0))) : v.stock };
+    }));
+    this.bulkPrice.set('');
+    this.bulkStock.set('');
   }
 
   protected setTracking(on: boolean): void {
@@ -445,12 +439,6 @@ export class ProductEditPage implements OnInit {
 
   protected setBackorder(on: boolean): void {
     this.variants.update((vs) => vs.map((v) => ({ ...v, allowBackorder: on })));
-  }
-
-  protected toggleCategory(id: string, on: boolean): void {
-    const next = new Set(this.categoryIds());
-    if (on) next.add(id); else next.delete(id);
-    this.categoryIds.set(next);
   }
 
   protected async addBrand(): Promise<void> {
@@ -511,6 +499,7 @@ export class ProductEditPage implements OnInit {
       if (id) {
         this.fill(saved);
       } else {
+        await this.uploadPending(tenant, saved.id);
         await this.router.navigate(['/sklep', tenant, 'produkty', saved.id], { replaceUrl: true });
       }
     } catch (e) {
@@ -520,6 +509,23 @@ export class ProductEditPage implements OnInit {
     } finally {
       this.saving.set(false);
     }
+  }
+
+  /** Photos chosen before the product existed: uploaded in order once it is created; failures are reported, not fatal. */
+  private async uploadPending(tenant: string, productId: string): Promise<void> {
+    const pending = this.pendingImages();
+    let failed = 0;
+    for (const p of pending) {
+      try {
+        await firstValueFrom(this.media.uploadImage(tenant, productId, p.file, p.alt.trim() || null));
+      } catch {
+        failed++;
+      } finally {
+        URL.revokeObjectURL(p.url);
+      }
+    }
+    this.pendingImages.set([]);
+    if (failed) this.toast.error(`Nie udało się wysłać ${failed} zdj. — dodaj je ponownie w produkcie.`);
   }
 
   protected async duplicate(): Promise<void> {

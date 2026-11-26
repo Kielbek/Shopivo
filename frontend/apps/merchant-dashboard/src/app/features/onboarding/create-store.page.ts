@@ -7,6 +7,8 @@ import { SlugAvailability } from '@shopivo/shared-models';
 import { AlertComponent, ButtonComponent, FieldComponent, controlError, slugify } from '@shopivo/shared-ui';
 import { catchError, debounceTime, distinctUntilChanged, filter, firstValueFrom, of, switchMap, tap } from 'rxjs';
 import { TopBar } from './top-bar';
+import { IndustryPickerComponent } from '../store/industry-picker';
+import { StoreIndustry } from '@shopivo/shared-models';
 
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/;
 const REASONS: Record<string, string> = {
@@ -17,11 +19,11 @@ const REASONS: Record<string, string> = {
 
 @Component({
   selector: 'sv-create-store-page',
-  imports: [ReactiveFormsModule, RouterLink, AlertComponent, ButtonComponent, FieldComponent, TopBar],
+  imports: [ReactiveFormsModule, RouterLink, AlertComponent, ButtonComponent, FieldComponent, TopBar, IndustryPickerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <sv-top-bar />
-    <main class="mx-auto max-w-xl px-4 py-12 sm:px-6"><div class="sv-card p-6 sm:p-8">
+    <main class="mx-auto max-w-3xl px-4 py-12 sm:px-6"><div class="sv-card p-6 sm:p-8">
       <span class="inline-flex items-center gap-1.5 rounded-[6px] bg-primary-soft px-2 py-0.5 text-[12px] font-medium text-primary-strong">Nowy sklep</span>
       <h1 class="mt-3 text-[22px] font-semibold tracking-[-0.01em]">Jak nazywa się Twój sklep?</h1>
       <p class="mt-2 text-[14px] text-ink-soft">
@@ -42,6 +44,13 @@ const REASONS: Record<string, string> = {
             </span>
           </div>
         </sv-field>
+        <fieldset class="border-t border-line pt-5">
+          <legend class="sr-only">Branża</legend>
+          <p class="text-[15px] font-semibold text-ink">Co będziesz sprzedawać?</p>
+          <p class="mt-1 text-[13px] text-ink-soft">Dopasujemy podpowiedzi: gotowe rozmiary i kolory wariantów, propozycje kategorii i typowe
+            wymiary paczek. Możesz to zmienić w ustawieniach — nie ogranicza to, co sprzedajesz.</p>
+          <sv-industry-picker class="mt-4 block" [wide]="true" [(value)]="industry" />
+        </fieldset>
         <div class="flex items-center gap-3 pt-2">
           <button sv-button type="submit" size="lg" [loading]="submitting()">Utwórz sklep</button>
           <a routerLink="/sklepy" class="text-[13px] text-ink-soft hover:text-ink">Anuluj</a>
@@ -55,6 +64,7 @@ export class CreateStorePage {
   private readonly router = inject(Router);
   protected readonly config = toSignal(this.api.config().pipe(catchError(() => of(null))), { initialValue: null });
   protected slugEdited = false;
+  protected readonly industry = signal<StoreIndustry | null>(null);
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<ApiError | null>(null);
@@ -119,7 +129,7 @@ export class CreateStorePage {
     this.error.set(null);
     try {
       const { name, slug } = this.form.getRawValue();
-      const store = await firstValueFrom(this.api.create(name.trim(), slug));
+      const store = await firstValueFrom(this.api.create(name.trim(), slug, this.industry()));
       await this.router.navigate(['/sklep', store.tenantId]);
     } catch (e) {
       const error = ApiError.from(e);

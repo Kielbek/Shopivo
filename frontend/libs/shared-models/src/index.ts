@@ -75,6 +75,13 @@ export interface MyStore {
   permissions: StorePermission[];
 }
 
+/** Store industry (branża) — steers suggestions in the panel only. */
+export type StoreIndustry =
+  | 'FASHION' | 'FOOTWEAR' | 'ELECTRONICS' | 'COMPUTERS' | 'FURNITURE' | 'HOME' | 'GARDEN' | 'COSMETICS' | 'PERFUMES' | 'JEWELLER'
+  | 'SPORTS' | 'AUTOMOTIVE' | 'PETS' | 'TOYS' | 'KIDS' | 'GROCERY' | 'HOUSEHOLD' | 'BUILDING' | 'TOOLS' | 'STATIONERY' | 'BOOKS'
+  | 'MUSIC' | 'GAMES' | 'HOBBY' | 'HANDMADE' | 'GIFTS' | 'JEWELRY' | 'ACCESSORIES' | 'MEDICAL' | 'ECO' | 'DIGITAL' | 'FOOD'
+  | 'OFFICE' | 'OUTDOOR' | 'GENERAL';
+
 export interface Store {
   id: string;
   tenantId: string;
@@ -86,6 +93,7 @@ export interface Store {
   timezone: string;
   contactEmail: string | null;
   primaryHostname: string | null;
+  industry: StoreIndustry | null;
   createdAt: string;
   version: number;
 }

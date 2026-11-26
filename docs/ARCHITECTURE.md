@@ -208,6 +208,13 @@ weryfikacja paczkomatu, link śledzenia). Paczkomat jest sprawdzany u przewoźni
 do zamówienia. Wywołania przewoźnika są poza transakcjami bazy; jedna aktywna przesyłka na zamówienie (blokada
 doradcza). Śledzenie: zadanie co 30 min; doręczenie kończy wysłane zamówienie (i wysyła zaproszenie do opinii).
 
+### ADR-022: Branża sklepu jako źródło podpowiedzi
+Branża (35 typów) jest zapisywana w `stores.industry`, ale backend jej nie interpretuje — nie ogranicza katalogu ani
+nie zmienia reguł (VAT, typy produktów). Katalog podpowiedzi (zestawy opcji wariantów, kategorie startowe, typowe
+paczki, domyślny typ produktu) żyje w panelu (`features/catalog/industries.ts`), dzięki czemu poprawki treści nie
+wymagają migracji ani wdrożenia backendu. Kategorie startowe są tworzone zwykłym API kategorii (te same uprawnienia,
+walidacja i audyt).
+
 ### ADR-017: Publikacja sklepu (Faza 4a)
 Sklep startuje jako szkic. Publikacja wymaga kompletu danych sprzedawcy wymaganych przy sprzedaży na odległość (firma,
 NIP, adres, e-mail), aktywnego produktu, sposobu dostawy i metody płatności — moduły zgłaszają braki przez SPI

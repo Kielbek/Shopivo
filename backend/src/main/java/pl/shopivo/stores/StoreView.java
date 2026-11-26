@@ -14,6 +14,7 @@ public record StoreView(
         String timezone,
         String contactEmail,
         String primaryHostname,
+        StoreIndustry industry,
         Instant createdAt,
         long version) {
 }

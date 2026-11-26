@@ -36,6 +36,9 @@ public class StoreEntity extends BaseEntity {
     private String timezone;
     @Column(name = "contact_email", columnDefinition = "citext")
     private String contactEmail;
+
+    @Enumerated(EnumType.STRING)
+    private pl.shopivo.stores.StoreIndustry industry;
     @Column(name = "published_at")
     private Instant publishedAt;
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -106,8 +109,12 @@ public class StoreEntity extends BaseEntity {
         this.timezone = timezone;
     }
 
+    public void setIndustry(pl.shopivo.stores.StoreIndustry industry) {
+        this.industry = industry;
+    }
+
     public StoreView toView(String primaryHostname) {
         return new StoreView(getId(), tenantId, name, slug, status, defaultLocale, defaultCurrency, timezone,
-                contactEmail, primaryHostname, createdAt, version);
+                contactEmail, primaryHostname, industry, createdAt, version);
     }
 }

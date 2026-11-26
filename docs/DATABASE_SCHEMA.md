@@ -218,6 +218,12 @@ Blokady zadań cyklicznych.
 | `store_carrier_accounts` | Konto sklepu u przewoźnika (PK `tenant_id` + `carrier_id`): `credentials_enc` (AES-GCM, AAD = sklep + przewoźnik), `sandbox`, `enabled`, `verified_at` |
 | `shipments` | Przesyłki: `external_id`, `tracking_number`, `status` (`PENDING`…`DELIVERED`/`FAILED`/`CANCELED`), `carrier_status`, `parcel_json`, `last_checked_at`, `error` |
 
+## 5h. Zmiany — usprawnienia UX katalogu (migracja V14)
+
+| Zmiana | Opis |
+|---|---|
+| `stores.industry` | Branża sklepu (35 kodów, `CHECK`), `NULL` = nie wybrano; służy wyłącznie podpowiedziom w panelu |
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |

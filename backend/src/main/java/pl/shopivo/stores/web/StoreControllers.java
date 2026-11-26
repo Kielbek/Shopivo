@@ -56,7 +56,11 @@ class StoreControllers {
 
     record CreateStoreRequest(
             @NotBlank @Size(min = 2, max = 150) String name,
-            @NotBlank @Size(min = 3, max = 40) String slug) {
+            @NotBlank @Size(min = 3, max = 40) String slug,
+            pl.shopivo.stores.StoreIndustry industry) {
+    }
+
+    record IndustryRequest(pl.shopivo.stores.StoreIndustry industry) {
     }
 
     record UpdateStoreRequest(
@@ -100,7 +104,7 @@ class StoreControllers {
     StoreView create(@Valid @RequestBody CreateStoreRequest request) {
         CurrentUser user = SecurityUtils.requireUser();
         rateLimiter.consume("store-create:" + user.id(), 5, java.time.Duration.ofHours(1));
-        return provisioning.createStore(user, request.name(), request.slug());
+        return provisioning.createStore(user, request.name(), request.slug(), request.industry());
     }
 
     @GetMapping("/api/v1/stores/slug-availability")
@@ -120,6 +124,12 @@ class StoreControllers {
     StoreView update(@PathVariable UUID tenantId, @Valid @RequestBody UpdateStoreRequest r) {
         return stores.update(new Stores.StoreUpdate(r.name(), r.contactEmail(), r.defaultLocale(), r.defaultCurrency(),
                 r.timezone(), r.version()));
+    }
+
+    @PutMapping("/api/v1/tenants/{tenantId}/store/industry")
+    @PreAuthorize("@tenantAccess.can('STORE_SETTINGS_WRITE')")
+    StoreView updateIndustry(@PathVariable UUID tenantId, @RequestBody IndustryRequest r) {
+        return stores.setIndustry(r.industry());
     }
 
     @GetMapping("/api/v1/tenants/{tenantId}/store/settings")

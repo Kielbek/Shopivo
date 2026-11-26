@@ -2,13 +2,15 @@ import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@ang
 import { rxResource } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiError, TenantApi } from '@shopivo/api-client';
-import { StoreSettings } from '@shopivo/shared-models';
+import { StoreIndustry, StoreSettings } from '@shopivo/shared-models';
 import {
   AlertComponent, ButtonComponent, FieldComponent, LoadingComponent, SelectComponent, SelectOption, TabsComponent, ToastService,
   controlError,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from './store-context';
+import { IndustryPickerComponent } from './industry-picker';
+import { industryOf } from '../catalog/industries';
 
 const LOCALES: SelectOption[] = [
   { value: 'pl-PL', label: 'Polski' },
@@ -39,7 +41,7 @@ const TIMEZONES: SelectOption[] = [
 
 @Component({
   selector: 'sv-settings-page',
-  imports: [ReactiveFormsModule, TabsComponent, FieldComponent, SelectComponent, ButtonComponent, AlertComponent, LoadingComponent],
+  imports: [IndustryPickerComponent, ReactiveFormsModule, TabsComponent, FieldComponent, SelectComponent, ButtonComponent, AlertComponent, LoadingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -82,6 +84,30 @@ const TIMEZONES: SelectOption[] = [
           </div>
         }
       </form>
+
+      <section class="sv-card mt-5" aria-labelledby="industry-heading">
+        <div class="px-5 pb-1 pt-5">
+          <h2 id="industry-heading" class="text-[15px] font-semibold text-ink">Branża</h2>
+          <p class="mt-0.5 text-[12px] text-ink-muted">Na tej podstawie podpowiadamy rozmiary i kolory wariantów, kategorie startowe i typowe paczki.
+            Branża nie ogranicza tego, co sprzedajesz, i nie jest widoczna dla klientów.</p>
+        </div>
+        <div class="p-5">
+          @if (!editIndustry()) {
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <p class="text-[14px] text-ink">{{ industryLabel() ?? 'Nie wybrano' }}</p>
+              @if (canEdit) {<button sv-button variant="secondary" type="button" (click)="startIndustry()">{{ industryLabel() ? 'Zmień' : 'Wybierz branżę' }}</button>}
+            </div>
+          } @else {
+            <sv-industry-picker [wide]="true" [(value)]="industry" />
+          }
+        </div>
+        @if (editIndustry()) {
+          <div class="sv-card-footer">
+            <button sv-button variant="ghost" type="button" (click)="editIndustry.set(false)">Anuluj</button>
+            <button sv-button type="button" [loading]="savingIndustry()" (click)="saveIndustry()">Zapisz branżę</button>
+          </div>
+        }
+      </section>
     } @else {
       <div id="panel-company" role="tabpanel" aria-labelledby="tab-company" class="sv-card mt-5">
         <div class="px-5 pb-1 pt-5">
@@ -158,6 +184,30 @@ export class SettingsPage {
   protected readonly canEdit = this.ctx.can('STORE_SETTINGS_WRITE');
 
   protected readonly savingGeneral = signal(false);
+  protected readonly editIndustry = signal(false);
+  protected readonly savingIndustry = signal(false);
+  protected readonly industry = signal<StoreIndustry | null>(null);
+  protected industryLabel(): string | null {
+    return industryOf(this.ctx.store()?.industry)?.label ?? null;
+  }
+
+  protected startIndustry(): void {
+    this.industry.set(this.ctx.store()?.industry ?? null);
+    this.editIndustry.set(true);
+  }
+
+  protected async saveIndustry(): Promise<void> {
+    this.savingIndustry.set(true);
+    try {
+      this.ctx.updateStore(await firstValueFrom(this.api.setIndustry(this.ctx.tenantId(), this.industry())));
+      this.editIndustry.set(false);
+      this.toast.success('Zapisano branżę sklepu.');
+    } catch (e) {
+      this.toast.error(ApiError.from(e).message);
+    } finally {
+      this.savingIndustry.set(false);
+    }
+  }
   protected readonly savingCompany = signal(false);
   protected readonly tabs = [{ id: 'general', label: 'Sklep' }, { id: 'company', label: 'Dane firmy' }];
   protected readonly tab = signal('general');
