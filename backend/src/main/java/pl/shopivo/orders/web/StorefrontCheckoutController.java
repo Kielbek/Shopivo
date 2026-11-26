@@ -26,6 +26,8 @@ import pl.shopivo.orders.OrderModel.CartView;
 import pl.shopivo.orders.OrderModel.OrderConfirmation;
 import pl.shopivo.orders.OrderModel.PaymentMethod;
 import pl.shopivo.orders.OrderModel.ShippingMethodView;
+import pl.shopivo.orders.OnlinePayments;
+import pl.shopivo.orders.OrderModel;
 import pl.shopivo.orders.OrderPlacement;
 import pl.shopivo.orders.Orders;
 import pl.shopivo.orders.PaymentSettings;
@@ -52,10 +54,13 @@ class StorefrontCheckoutController {
     private final PaymentSettings payments;
     private final RateLimiter rateLimiter;
     private final pl.shopivo.shared.captcha.Captcha captcha;
+    private final List<OnlinePayments> online;
     private final TransactionTemplate tx;
 
     StorefrontCheckoutController(StorefrontTenants storefront, Carts carts, OrderPlacement placement, Orders orders,
-            ShippingMethods shipping, PaymentSettings payments, RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha, TransactionTemplate tx) {
+            ShippingMethods shipping, PaymentSettings payments, RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha, TransactionTemplate tx,
+            List<OnlinePayments> online) {
+        this.online = online;
         this.storefront = storefront;
         this.carts = carts;
         this.placement = placement;
@@ -113,6 +118,8 @@ class StorefrontCheckoutController {
             List<PaymentOption> methods = new ArrayList<>();
             if (settings.bankTransferEnabled()) methods.add(new PaymentOption(PaymentMethod.BANK_TRANSFER, "Przelew tradycyjny", 0));
             if (settings.codEnabled()) methods.add(new PaymentOption(PaymentMethod.COD, "Za pobraniem", settings.codFeeMinor()));
+            online.stream().map(OnlinePayments::activeOperatorName).flatMap(java.util.Optional::stream).findFirst()
+                    .ifPresent(name -> methods.add(0, new PaymentOption(PaymentMethod.ONLINE, "Płatność online (" + name + ")", 0)));
             return new CheckoutOptions(shipping.list(true), methods);
         });
     }
@@ -126,6 +133,31 @@ class StorefrontCheckoutController {
         captcha.verify(request.getHeader("X-Captcha-Token"), request.getRemoteAddr());
         var placed = inTenant(tenant, () -> placement.checkout(token, input));
         return new CheckoutResult(placed.number(), placed.publicToken(), placed.totalMinor(), placed.currency());
+    }
+
+    record PaymentRedirect(String redirectUrl) {
+    }
+
+    /** Starts (or retries) the online payment of an unpaid order; the customer is sent to the operator's page. */
+    @PostMapping("/orders/pay")
+    PaymentRedirect pay(HttpServletRequest request, @RequestHeader("X-Order-Token") String token) {
+        UUID tenant = storefront.resolvePublished(request);
+        rateLimiter.consume("order-pay:" + request.getRemoteAddr(), 20, Duration.ofMinutes(10));
+        return TenantContext.callInTenant(tenant, () -> {
+            OrderModel.OrderView order = tx.execute(s -> orders.byToken(token));
+            if (order.paymentMethod() != PaymentMethod.ONLINE) {
+                throw new pl.shopivo.shared.error.BusinessRuleException("NOT_ONLINE", "To zamówienie nie jest opłacane online.");
+            }
+            if (order.paymentStatus() != OrderModel.PaymentStatus.UNPAID || order.status() == OrderModel.OrderStatus.CANCELED) {
+                throw new pl.shopivo.shared.error.BusinessRuleException("NOT_PAYABLE",
+                        order.paymentStatus() == OrderModel.PaymentStatus.PAID ? "Zamówienie jest już opłacone." : "Zamówienie zostało anulowane.");
+            }
+            OnlinePayments provider = online.stream().filter(o -> o.activeOperatorName().isPresent()).findFirst()
+                    .orElseThrow(() -> new pl.shopivo.shared.error.BusinessRuleException("PAYMENT_METHOD_UNAVAILABLE",
+                            "Płatności online są chwilowo niedostępne. Skontaktuj się ze sklepem."));
+            // No transaction around the operator call (network); the provider records the attempt itself.
+            return new PaymentRedirect(provider.start(order, request.getRemoteAddr()));
+        });
     }
 
     @GetMapping("/orders/status")

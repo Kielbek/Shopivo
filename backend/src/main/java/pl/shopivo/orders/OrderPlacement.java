@@ -61,10 +61,13 @@ public class OrderPlacement {
     private final ApplicationEventPublisher events;
     private final JsonMapper json;
     private final pl.shopivo.content.LegalDocuments legal;
+    private final List<OnlinePayments> online;
 
     OrderPlacement(JdbcTemplate jdbc, CatalogLookup catalog, Inventory inventory, ShippingMethods shippingMethods,
             PaymentSettings paymentSettings, Customers customers, Carts carts, Stores stores, List<UsageRecorder> usage,
-            ApplicationEventPublisher events, JsonMapper json, pl.shopivo.content.LegalDocuments legal) {
+            ApplicationEventPublisher events, JsonMapper json, pl.shopivo.content.LegalDocuments legal,
+            List<OnlinePayments> online) {
+        this.online = online;
         this.legal = legal;
         this.jdbc = jdbc;
         this.catalog = catalog;
@@ -162,7 +165,8 @@ public class OrderPlacement {
         PaymentSettingsView settings = paymentSettings.current();
         if (payment == null) throw new BusinessRuleException("PAYMENT_REQUIRED", "Wybierz metodę płatności.");
         if (storefront && (payment == PaymentMethod.BANK_TRANSFER && !settings.bankTransferEnabled()
-                || payment == PaymentMethod.COD && (!settings.codEnabled() || !physical))) {
+                || payment == PaymentMethod.COD && (!settings.codEnabled() || !physical)
+                || payment == PaymentMethod.ONLINE && online.stream().noneMatch(o -> o.activeOperatorName().isPresent()))) {
             throw new BusinessRuleException("PAYMENT_METHOD_UNAVAILABLE", "Wybrana metoda płatności jest niedostępna.");
         }
 

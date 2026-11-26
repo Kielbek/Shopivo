@@ -206,6 +206,38 @@ public class Orders {
                 o.shippingMinor(), o.paymentFeeMinor(), o.totalMinor(), o.currency(), o.shippingMethodName(), bank, o.createdAt());
     }
 
+    /** The order behind a customer's order token (confirmation page), or 404. */
+    @Transactional(readOnly = true)
+    public OrderView byToken(String token) {
+        List<UUID> ids = jdbc.query("select id from orders where public_token_hash = ? and tenant_id = ?", (rs, i) -> rs.getObject(1, UUID.class),
+                Tokens.sha256(token == null ? "" : token), TenantContext.requireTenantId());
+        if (ids.isEmpty()) throw new NotFoundException("Nie znaleziono zamówienia.");
+        return get(ids.getFirst());
+    }
+
+    public enum OnlinePaymentOutcome { PAID, ALREADY_PAID, ORDER_CANCELED }
+
+    /**
+     * A verified operator notification: marks the order paid. A payment arriving for a canceled order does not revive it;
+     * it is recorded so the merchant refunds it.
+     */
+    @Transactional
+    public OnlinePaymentOutcome markPaidOnline(UUID id, String operator, String reference) {
+        UUID tenant = TenantContext.requireTenantId();
+        Head o = heads("select * from orders where id = ? and tenant_id = ? for update", id, tenant).stream()
+                .findFirst().orElseThrow(() -> new NotFoundException("Nie znaleziono zamówienia."));
+        if (o.paymentStatus() != PaymentStatus.UNPAID) return OnlinePaymentOutcome.ALREADY_PAID;
+        if (o.status() == OrderStatus.CANCELED) {
+            event(jdbc, tenant, id, "PAYMENT", "Wpłata online po anulowaniu zamówienia (" + operator + ", " + reference
+                    + ") — zwróć środki klientowi w panelu operatora", true, null);
+            return OnlinePaymentOutcome.ORDER_CANCELED;
+        }
+        jdbc.update("update orders set payment_status = 'PAID', paid_at = now(), updated_at = now(), version = version + 1 where id = ?", id);
+        event(jdbc, tenant, id, "PAYMENT", "Opłacono online (" + operator + ", " + reference + ")", false, null);
+        auditLog.record(AuditEntry.tenant("order.paid.online", tenant, "order", id));
+        return OnlinePaymentOutcome.PAID;
+    }
+
     // ------------------------------------------------------------------------------------------------ workflow
 
     @Transactional

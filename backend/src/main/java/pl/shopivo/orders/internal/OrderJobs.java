@@ -42,10 +42,13 @@ public class OrderJobs {
         List<Due> due = TenantContext.callAsSystem(() -> tx.execute(s -> jdbc.query("""
                 select o.tenant_id, o.id from orders o
                 left join store_payment_settings p on p.tenant_id = o.tenant_id
-                where o.status = 'NEW' and o.payment_status = 'UNPAID' and o.payment_method = 'BANK_TRANSFER'
-                  and o.created_at < ?::timestamptz - make_interval(days => coalesce(p.unpaid_cancel_days, 7))
+                where o.status = 'NEW' and o.payment_status = 'UNPAID'
+                  and ((o.payment_method = 'BANK_TRANSFER' and o.created_at < ?::timestamptz - make_interval(days => coalesce(p.unpaid_cancel_days, 7)))
+                    -- online payments are made right away; an order unpaid for a day only blocks stock
+                    or (o.payment_method = 'ONLINE' and o.created_at < ?::timestamptz - interval '1 day'))
                 limit 500
-                """, (rs, i) -> new Due(rs.getObject(1, UUID.class), rs.getObject(2, UUID.class)), java.sql.Timestamp.from(now))));
+                """, (rs, i) -> new Due(rs.getObject(1, UUID.class), rs.getObject(2, UUID.class)), java.sql.Timestamp.from(now),
+                java.sql.Timestamp.from(now))));
         for (Due d : due) {
             try {
                 TenantContext.runInTenant(d.tenantId(), () -> orders.cancelUnpaid(d.orderId(), "Brak płatności w wyznaczonym terminie"));

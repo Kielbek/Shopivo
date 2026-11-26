@@ -49,10 +49,12 @@ class StorefrontAccountController {
     private final CustomerAccounts accounts;
     private final RateLimiter rateLimiter;
     private final pl.shopivo.shared.captcha.Captcha captcha;
+    private final List<pl.shopivo.orders.OnlinePayments> online;
     private final boolean secureCookie;
 
     StorefrontAccountController(StorefrontTenants storefront, CustomerAccounts accounts, RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha,
-            ShopivoProperties properties) {
+            ShopivoProperties properties, List<pl.shopivo.orders.OnlinePayments> online) {
+        this.online = online;
         this.storefront = storefront;
         this.accounts = accounts;
         this.rateLimiter = rateLimiter;
@@ -256,6 +258,29 @@ class StorefrontAccountController {
         UUID tenant = guard(request);
         UUID id = signedIn(tenant, request).id();
         return noStore(run(tenant, () -> CustomerOrder.of(accounts.order(id, number))));
+    }
+
+    record PaymentRedirect(String redirectUrl) {
+    }
+
+    /** Pays (or retries paying) one of the customer's own unpaid online orders. */
+    @PostMapping("/orders/{number}/pay")
+    ResponseEntity<PaymentRedirect> pay(HttpServletRequest request, @PathVariable long number) {
+        UUID tenant = guard(request);
+        UUID id = signedIn(tenant, request).id();
+        rateLimiter.consume("acc-pay:" + id, 20, Duration.ofMinutes(10));
+        return noStore(run(tenant, () -> {
+            OrderView order = accounts.order(id, number);
+            if (order.paymentMethod() != pl.shopivo.orders.OrderModel.PaymentMethod.ONLINE
+                    || order.paymentStatus() != pl.shopivo.orders.OrderModel.PaymentStatus.UNPAID
+                    || order.status() == pl.shopivo.orders.OrderModel.OrderStatus.CANCELED) {
+                throw new pl.shopivo.shared.error.BusinessRuleException("NOT_PAYABLE", "Tego zamówienia nie można teraz opłacić online.");
+            }
+            var provider = online.stream().filter(o -> o.activeOperatorName().isPresent()).findFirst()
+                    .orElseThrow(() -> new pl.shopivo.shared.error.BusinessRuleException("PAYMENT_METHOD_UNAVAILABLE",
+                            "Płatności online są chwilowo niedostępne."));
+            return new PaymentRedirect(provider.start(order, request.getRemoteAddr()));
+        }));
     }
 
     /** Products the customer bought (completed, paid orders) and has not reviewed yet. */

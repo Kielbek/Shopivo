@@ -14,7 +14,11 @@ class OrdersPublishCheck implements StorePublishCheck {
     private final JdbcTemplate jdbc;
     private final PaymentSettings payments;
 
-    OrdersPublishCheck(JdbcTemplate jdbc, PaymentSettings payments) {
+    /** Lazy: the online payments module itself depends on the stores module, which collects this check. */
+    private final org.springframework.beans.factory.ObjectProvider<pl.shopivo.orders.OnlinePayments> online;
+
+    OrdersPublishCheck(JdbcTemplate jdbc, PaymentSettings payments, org.springframework.beans.factory.ObjectProvider<pl.shopivo.orders.OnlinePayments> online) {
+        this.online = online;
         this.jdbc = jdbc;
         this.payments = payments;
     }
@@ -26,7 +30,8 @@ class OrdersPublishCheck implements StorePublishCheck {
                 TenantContext.requireTenantId());
         if (!Boolean.TRUE.equals(shipping)) missing.add("Dodaj co najmniej jeden sposób dostawy");
         var p = payments.current();
-        if (!p.bankTransferEnabled() && !p.codEnabled()) missing.add("Włącz co najmniej jedną metodę płatności");
+        boolean online = this.online.orderedStream().anyMatch(o -> o.activeOperatorName().isPresent());
+        if (!p.bankTransferEnabled() && !p.codEnabled() && !online) missing.add("Włącz co najmniej jedną metodę płatności");
         return missing;
     }
 }

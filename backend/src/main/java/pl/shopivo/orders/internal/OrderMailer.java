@@ -61,6 +61,9 @@ class OrderMailer {
             lines.add("Prosimy o przelew " + money(d.order().totalMinor()) + " na rachunek " + formatIban(d.payment().bankAccountNumber())
                     + " (odbiorca: " + d.payment().bankAccountHolder() + "), tytuł: „Zamówienie " + d.order().number() + "”. "
                     + "Nieopłacone zamówienie zostanie anulowane po " + d.payment().unpaidCancelDays() + " dniach.");
+        } else if (d.order().paymentMethod() == PaymentMethod.ONLINE && d.order().paymentStatus() != PaymentStatus.PAID) {
+            lines.add("Wybrałeś(-aś) płatność online. Jeśli płatność nie została dokończona, nieopłacone zamówienie zostanie anulowane"
+                    + " po 24 godzinach. Jeśli masz konto w sklepie, zapłacisz też z poziomu „Moje konto”.");
         } else if (d.order().paymentMethod() == PaymentMethod.COD) {
             lines.add("Zapłacisz przy odbiorze przesyłki: " + money(d.order().totalMinor()) + ".");
         }

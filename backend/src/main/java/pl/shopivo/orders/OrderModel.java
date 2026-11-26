@@ -14,7 +14,7 @@ public final class OrderModel {
 
     public enum PaymentStatus { UNPAID, PAID, REFUNDED }
 
-    public enum PaymentMethod { BANK_TRANSFER, COD, MANUAL }
+    public enum PaymentMethod { BANK_TRANSFER, COD, MANUAL, ONLINE }
 
     public enum ShippingType { COURIER, PARCEL_LOCKER, POST, PICKUP, DIGITAL }
 
