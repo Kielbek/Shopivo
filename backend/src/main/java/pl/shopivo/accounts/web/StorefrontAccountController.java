@@ -48,13 +48,15 @@ class StorefrontAccountController {
     private final StorefrontTenants storefront;
     private final CustomerAccounts accounts;
     private final RateLimiter rateLimiter;
+    private final pl.shopivo.shared.captcha.Captcha captcha;
     private final boolean secureCookie;
 
-    StorefrontAccountController(StorefrontTenants storefront, CustomerAccounts accounts, RateLimiter rateLimiter,
+    StorefrontAccountController(StorefrontTenants storefront, CustomerAccounts accounts, RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha,
             ShopivoProperties properties) {
         this.storefront = storefront;
         this.accounts = accounts;
         this.rateLimiter = rateLimiter;
+        this.captcha = captcha;
         this.secureCookie = properties.security() == null || properties.security().cookieSecure();
     }
 
@@ -67,6 +69,7 @@ class StorefrontAccountController {
     ResponseEntity<Void> register(HttpServletRequest request, @RequestBody RegisterRequest body) {
         UUID tenant = guard(request);
         rateLimiter.consume("acc-register:" + request.getRemoteAddr(), 10, Duration.ofMinutes(10));
+        captcha.verify(request.getHeader("X-Captcha-Token"), request.getRemoteAddr());
         if (body.email() != null) rateLimiter.consume("acc-register-email:" + tenant + ":" + body.email().strip().toLowerCase(Locale.ROOT), 3, Duration.ofHours(1));
         run(tenant, () -> {
             accounts.register(new CustomerAccounts.Registration(body.email(), body.password(), body.firstName(), body.lastName(), body.termsAccepted()));
@@ -119,6 +122,7 @@ class StorefrontAccountController {
     ResponseEntity<Void> requestReset(HttpServletRequest request, @RequestBody EmailRequest body) {
         UUID tenant = guard(request);
         rateLimiter.consume("acc-reset:" + request.getRemoteAddr(), 5, Duration.ofMinutes(10));
+        captcha.verify(request.getHeader("X-Captcha-Token"), request.getRemoteAddr());
         if (body.email() != null) rateLimiter.consume("acc-reset-email:" + tenant + ":" + body.email().strip().toLowerCase(Locale.ROOT), 3, Duration.ofHours(1));
         run(tenant, () -> {
             accounts.requestReset(body.email());

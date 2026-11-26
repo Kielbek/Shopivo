@@ -31,8 +31,11 @@ class ContentController {
     private final Content content;
     private final Redirects redirects;
     private final pl.shopivo.content.PublicContent publicContent;
+    private final pl.shopivo.content.Navigation navigation;
 
-    ContentController(Content content, Redirects redirects, pl.shopivo.content.PublicContent publicContent) {
+    ContentController(Content content, Redirects redirects, pl.shopivo.content.PublicContent publicContent,
+            pl.shopivo.content.Navigation navigation) {
+        this.navigation = navigation;
         this.publicContent = publicContent;
         this.content = content;
         this.redirects = redirects;
@@ -94,6 +97,23 @@ class ContentController {
     @PreAuthorize("@tenantAccess.can('ORDERS_READ') or @tenantAccess.can('CONTENT_WRITE')")
     pl.shopivo.content.PublicContent.PublicEntry revision(@PathVariable UUID tenantId, @PathVariable UUID revisionId) {
         return publicContent.revision(revisionId).orElseThrow(() -> new pl.shopivo.shared.error.NotFoundException("Nie znaleziono wersji."));
+    }
+
+    // ------------------------------------------------------------------------------------------------ navigation
+
+    @GetMapping("/navigation")
+    @PreAuthorize("@tenantAccess.can('STORE_READ')")
+    pl.shopivo.content.Navigation.Menu navigation(@PathVariable UUID tenantId) {
+        return navigation.state();
+    }
+
+    record NavigationRequest(List<pl.shopivo.content.Navigation.Item> items, long version) {
+    }
+
+    @PutMapping("/navigation")
+    @PreAuthorize("@tenantAccess.can('CONTENT_WRITE')")
+    pl.shopivo.content.Navigation.Menu saveNavigation(@PathVariable UUID tenantId, @RequestBody NavigationRequest request) {
+        return navigation.save(request.items(), request.version());
     }
 
     // ------------------------------------------------------------------------------------------------ redirects

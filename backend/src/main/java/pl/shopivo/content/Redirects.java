@@ -25,7 +25,7 @@ public class Redirects {
 
     static final int MAX_REDIRECTS = 5000;
     /** A path on the store: starts with one slash, no scheme/host, no whitespace or control characters. */
-    private static final Pattern PATH = Pattern.compile("^/(?!/)[^\\s\\\\\\p{Cntrl}]{0,299}$");
+    static final Pattern PATH = Pattern.compile("^/(?!/)[^\\s\\\\\\p{Cntrl}]{0,299}$");
 
     private final JdbcTemplate jdbc;
     private final AuditLog auditLog;

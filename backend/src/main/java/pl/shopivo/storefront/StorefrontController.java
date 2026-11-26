@@ -24,6 +24,7 @@ import pl.shopivo.catalog.PublicCatalog;
 import pl.shopivo.content.ContentKind;
 import pl.shopivo.content.PublicContent;
 import pl.shopivo.content.Redirects;
+import pl.shopivo.content.Navigation;
 import pl.shopivo.reviews.Reviews;
 import pl.shopivo.shared.ratelimit.RateLimiter;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,13 +50,15 @@ class StorefrontController {
     private final PublicCatalog catalog;
     private final PublicContent content;
     private final Redirects redirects;
+    private final Navigation navigation;
     private final Reviews reviews;
     private final RateLimiter rateLimiter;
+    private final pl.shopivo.shared.captcha.Captcha captcha;
     private final TransactionTemplate tx;
     private final String urlTemplate;
 
-    StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, PublicContent content, Redirects redirects, Reviews reviews,
-            RateLimiter rateLimiter, TransactionTemplate tx,
+    StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, PublicContent content, Redirects redirects, Navigation navigation, Reviews reviews,
+            RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha, TransactionTemplate tx,
             @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate) {
         this.storefront = storefront;
         this.stores = stores;
@@ -63,8 +66,10 @@ class StorefrontController {
         this.catalog = catalog;
         this.content = content;
         this.redirects = redirects;
+        this.navigation = navigation;
         this.reviews = reviews;
         this.rateLimiter = rateLimiter;
+        this.captcha = captcha;
         this.tx = tx;
         this.urlTemplate = urlTemplate;
     }
@@ -75,7 +80,7 @@ class StorefrontController {
 
     record PublicStore(String name, StoreStatus status, boolean open, boolean preview, String locale, String currency,
             String hostname, Themes.ThemeConfig theme, Seller seller, List<PublicCatalog.PublicCategory> categories,
-            List<PublicContent.Link> footerLinks, boolean blog) {
+            List<PublicContent.Link> footerLinks, boolean blog, List<Navigation.Item> menu, String captchaSiteKey) {
     }
 
     @GetMapping("/store")
@@ -95,7 +100,8 @@ class StorefrontController {
                     st.orderEmail() != null ? st.orderEmail() : s.contactEmail(), st.phone());
             return new PublicStore(s.name(), s.status(), open, preview, s.defaultLocale(), s.defaultCurrency(), s.primaryHostname(),
                     themes.storefront(preview), seller, open ? catalog.categories() : List.of(),
-                    open ? content.footerLinks() : List.of(), open && content.hasPosts());
+                    open ? content.footerLinks() : List.of(), open && content.hasPosts(), open ? navigation.menu() : List.of(),
+                    captcha.siteKey());
         });
         return cached(body, preview);
     }

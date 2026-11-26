@@ -25,15 +25,22 @@ public class Customers {
 
     private final JdbcTemplate jdbc;
     private final AuditLog auditLog;
+    private final List<CustomerAccountLookup> accounts;
 
-    Customers(JdbcTemplate jdbc, AuditLog auditLog) {
+    Customers(JdbcTemplate jdbc, AuditLog auditLog, List<CustomerAccountLookup> accounts) {
+        this.accounts = accounts;
         this.jdbc = jdbc;
         this.auditLog = auditLog;
     }
 
     public record CustomerView(UUID id, String email, String firstName, String lastName, String phone, boolean acceptsMarketing,
             Instant marketingConsentAt, String note, int ordersCount, long totalSpentMinor, Instant lastOrderAt,
-            Instant createdAt, long version) {
+            Instant createdAt, long version, Instant accountCreatedAt) {
+
+        CustomerView withAccount(Instant at) {
+            return new CustomerView(id, email, firstName, lastName, phone, acceptsMarketing, marketingConsentAt, note, ordersCount,
+                    totalSpentMinor, lastOrderAt, createdAt, version, at);
+        }
     }
 
     public enum Sort { LAST_ORDER, NEWEST, TOTAL_SPENT, NAME }
@@ -42,7 +49,7 @@ public class Customers {
             rs.getString("email"), rs.getString("first_name"), rs.getString("last_name"), rs.getString("phone"),
             rs.getBoolean("accepts_marketing"), ts(rs.getTimestamp("marketing_consent_at")), rs.getString("note"),
             rs.getInt("orders_count"), rs.getLong("total_spent_minor"), ts(rs.getTimestamp("last_order_at")),
-            ts(rs.getTimestamp("created_at")), rs.getLong("version"));
+            ts(rs.getTimestamp("created_at")), rs.getLong("version"), null);
 
     /**
      * Finds or creates the customer for an order. Contact details are refreshed; a marketing consent given now is
@@ -98,13 +105,13 @@ public class Customers {
         List<Object> pageArgs = new ArrayList<>(args);
         pageArgs.add(pageable.getPageSize());
         pageArgs.add(pageable.getOffset());
-        return new PageImpl<>(jdbc.query("select * from customers" + where + " order by " + order + ", id limit ? offset ?", MAPPER,
-                pageArgs.toArray()), pageable, total == null ? 0 : total);
+        return new PageImpl<>(withAccounts(jdbc.query("select * from customers" + where + " order by " + order + ", id limit ? offset ?", MAPPER,
+                pageArgs.toArray())), pageable, total == null ? 0 : total);
     }
 
     @Transactional(readOnly = true)
     public CustomerView get(UUID id) {
-        return jdbc.query("select * from customers where id = ? and tenant_id = ?", MAPPER, id, TenantContext.requireTenantId())
+        return withAccounts(jdbc.query("select * from customers where id = ? and tenant_id = ?", MAPPER, id, TenantContext.requireTenantId()))
                 .stream().findFirst().orElseThrow(() -> new NotFoundException("Nie znaleziono klienta."));
     }
 
@@ -143,5 +150,13 @@ public class Customers {
 
     private static Instant ts(Timestamp t) {
         return t == null ? null : t.toInstant();
+    }
+
+    /** Marks customers who have a confirmed account in the store. */
+    private List<CustomerView> withAccounts(List<CustomerView> list) {
+        if (list.isEmpty() || accounts.isEmpty()) return list;
+        java.util.Map<String, Instant> found = new java.util.HashMap<>();
+        accounts.forEach(a -> found.putAll(a.verifiedAccountsCreatedAt(list.stream().map(c -> c.email().toLowerCase(java.util.Locale.ROOT)).toList())));
+        return list.stream().map(c -> c.withAccount(found.get(c.email().toLowerCase(java.util.Locale.ROOT)))).toList();
     }
 }

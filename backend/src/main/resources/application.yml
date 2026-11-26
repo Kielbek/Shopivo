@@ -166,6 +166,13 @@ shopivo:
     # Simulated operator for local development and tests only. Never enable in production.
     fake-gateway:
       enabled: false
+  # Bot protection of public storefront forms (checkout, customer registration, password reset).
+  # Production: turnstile (Cloudflare); 'none' is refused in prod/staging profiles.
+  captcha:
+    provider: ${SHOPIVO_CAPTCHA_PROVIDER:none}
+    site-key: ${SHOPIVO_CAPTCHA_SITE_KEY:}
+    secret-key: ${SHOPIVO_CAPTCHA_SECRET_KEY:}
+    verify-url: ${SHOPIVO_CAPTCHA_VERIFY_URL:}
   # Media files (product images). Production: s3 (AWS S3 / Cloudflare R2 / MinIO), private bucket.
   storage:
     type: ${SHOPIVO_STORAGE_TYPE:local}

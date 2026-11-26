@@ -51,10 +51,11 @@ class StorefrontCheckoutController {
     private final ShippingMethods shipping;
     private final PaymentSettings payments;
     private final RateLimiter rateLimiter;
+    private final pl.shopivo.shared.captcha.Captcha captcha;
     private final TransactionTemplate tx;
 
     StorefrontCheckoutController(StorefrontTenants storefront, Carts carts, OrderPlacement placement, Orders orders,
-            ShippingMethods shipping, PaymentSettings payments, RateLimiter rateLimiter, TransactionTemplate tx) {
+            ShippingMethods shipping, PaymentSettings payments, RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha, TransactionTemplate tx) {
         this.storefront = storefront;
         this.carts = carts;
         this.placement = placement;
@@ -62,6 +63,7 @@ class StorefrontCheckoutController {
         this.shipping = shipping;
         this.payments = payments;
         this.rateLimiter = rateLimiter;
+        this.captcha = captcha;
         this.tx = tx;
     }
 
@@ -121,6 +123,7 @@ class StorefrontCheckoutController {
             @RequestBody OrderPlacement.CustomerInput input) {
         UUID tenant = storefront.resolvePublished(request);
         rateLimiter.consume("checkout:" + request.getRemoteAddr(), 10, Duration.ofMinutes(10));
+        captcha.verify(request.getHeader("X-Captcha-Token"), request.getRemoteAddr());
         var placed = inTenant(tenant, () -> placement.checkout(token, input));
         return new CheckoutResult(placed.number(), placed.publicToken(), placed.totalMinor(), placed.currency());
     }
