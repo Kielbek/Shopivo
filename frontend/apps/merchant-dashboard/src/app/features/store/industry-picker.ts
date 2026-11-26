@@ -12,7 +12,7 @@ import { INDUSTRIES } from '../catalog/industries';
   template: `
     <div class="relative">
       <svg [lucideIcon]="icons.search" [size]="16" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-muted" />
-      <input type="search" class="sv-input pl-9" placeholder="Szukaj branży, np. buty, kosmetyki…" aria-label="Szukaj branży"
+      <input type="search" class="sv-input !bg-card pl-9" placeholder="Szukaj branży, np. buty, kosmetyki…" aria-label="Szukaj branży"
         [value]="query()" (input)="query.set($any($event.target).value)" />
     </div>
     <div role="radiogroup" [attr.aria-label]="label()" class="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3" [class.lg:grid-cols-4]="wide()">
