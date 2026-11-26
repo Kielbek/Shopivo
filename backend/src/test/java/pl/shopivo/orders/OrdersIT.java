@@ -53,6 +53,7 @@ class OrdersIT extends IntegrationTest {
                 "bankAccountNumber", "61 1090 1014 0000 0712 1981 2874", "codEnabled", true, "codFeeMinor", 500, "unpaidCancelDays", 7, "version", -1));
         assertThat(settings.status()).as(settings.body()).isEqualTo(200);
         assertThat(settings.json().get("bankAccountNumber").asString()).isEqualTo(IBAN);
+        publishStore(owner, t);
         return new Shop(owner, email, t, slug + ".shopivo.test", tracked, digital, shipping.json().get("id").asString());
     }
 
@@ -163,7 +164,7 @@ class OrdersIT extends IntegrationTest {
         assertThat(sf("GET", s.host(), "/orders/status", "zly-token", null).status()).isEqualTo(404);
         assertThat(emails.awaitEmail("anna@example.com", "Potwierdzenie zamówienia nr 1001").textBody())
                 .contains("61 1090 1014 0000 0712 1981 2874").contains("Wazon").contains("285,89 zł");
-        assertThat(emails.awaitEmail(s.ownerEmail(), "Nowe zamówienie nr 1001").textBody()).contains("Anna Klientka");
+        assertThat(emails.awaitEmail("zamowienia@example.com", "Nowe zamówienie nr 1001").textBody()).contains("Anna Klientka");
 
         // Merchant side
         var list = s.owner().get(base(s.tenant()) + "/orders?q=1001").json();

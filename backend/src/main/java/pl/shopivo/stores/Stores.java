@@ -40,10 +40,13 @@ public class Stores {
     private final TenantMemberships memberships;
     private final AuditLog auditLog;
     private final java.util.List<CurrencyChangeGuard> currencyGuards;
+    private final java.util.List<StorePublishCheck> publishChecks;
 
     Stores(StoreRepository stores, StoreSettingsRepository settings, StoreDomains domains,
-            TenantMemberships memberships, AuditLog auditLog, java.util.List<CurrencyChangeGuard> currencyGuards) {
+            TenantMemberships memberships, AuditLog auditLog, java.util.List<CurrencyChangeGuard> currencyGuards,
+            java.util.List<StorePublishCheck> publishChecks) {
         this.currencyGuards = currencyGuards;
+        this.publishChecks = publishChecks;
         this.stores = stores;
         this.settings = settings;
         this.domains = domains;
@@ -53,6 +56,45 @@ public class Stores {
 
     public record StoreUpdate(String name, String contactEmail, String defaultLocale, String defaultCurrency,
             String timezone, long version) {
+    }
+
+    /** What blocks publishing: seller identification required by law (company, NIP, address) and the other modules' checks. */
+    @Transactional(readOnly = true)
+    public java.util.List<String> publishReadiness() {
+        java.util.List<String> missing = new java.util.ArrayList<>();
+        StoreSettingsView s = currentSettings();
+        if (s.legalCompanyName() == null || s.taxId() == null || s.addressLine1() == null || s.postalCode() == null || s.city() == null) {
+            missing.add("Uzupełnij dane firmy (nazwa, NIP, adres) — sklep musi wskazywać sprzedawcę");
+        }
+        StoreView store = current();
+        if (store.contactEmail() == null && s.orderEmail() == null) {
+            missing.add("Podaj e-mail kontaktowy sklepu");
+        }
+        publishChecks.forEach(c -> missing.addAll(c.missingForPublish()));
+        return missing;
+    }
+
+    @Transactional
+    public StoreView publish() {
+        java.util.List<String> missing = publishReadiness();
+        if (!missing.isEmpty()) {
+            throw new BusinessRuleException("PUBLISH_NOT_READY", "Sklep nie jest jeszcze gotowy do publikacji.",
+                    java.util.Map.of("missing", missing));
+        }
+        StoreEntity store = loadCurrent();
+        store.publish();
+        auditLog.record(AuditEntry.tenant("store.published", store.getTenantId(), "store", store.getId()));
+        stores.flush();
+        return store.toView(primaryHostname(store));
+    }
+
+    @Transactional
+    public StoreView unpublish() {
+        StoreEntity store = loadCurrent();
+        store.unpublish();
+        auditLog.record(AuditEntry.tenant("store.unpublished", store.getTenantId(), "store", store.getId()));
+        stores.flush();
+        return store.toView(primaryHostname(store));
     }
 
     @Transactional(readOnly = true)

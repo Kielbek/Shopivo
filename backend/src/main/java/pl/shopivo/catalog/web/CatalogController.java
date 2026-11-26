@@ -142,6 +142,34 @@ class CatalogController {
                 .body(products.exportCsv().getBytes(StandardCharsets.UTF_8));
     }
 
+    record ImagesRequest(List<UUID> order, Map<UUID, String> alts) {
+    }
+
+    @PostMapping(path = "/products/{id}/images", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("@tenantAccess.can('PRODUCTS_WRITE')")
+    @ResponseStatus(HttpStatus.CREATED)
+    pl.shopivo.media.Media.ImageView uploadImage(@PathVariable UUID tenantId, @PathVariable UUID id,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file,
+            @RequestParam(value = "alt", required = false) String alt) throws java.io.IOException {
+        if (file.getSize() > pl.shopivo.media.ImageProcessor.MAX_BYTES) {
+            throw new pl.shopivo.shared.error.BusinessRuleException("FILE_TOO_LARGE", "Zdjęcie może mieć najwyżej 10 MB.");
+        }
+        return products.addImage(id, file.getBytes(), alt);
+    }
+
+    @PutMapping("/products/{id}/images")
+    @PreAuthorize("@tenantAccess.can('PRODUCTS_WRITE')")
+    List<pl.shopivo.media.Media.ImageView> updateImages(@PathVariable UUID tenantId, @PathVariable UUID id, @RequestBody ImagesRequest request) {
+        return products.updateImages(id, request.order(), request.alts());
+    }
+
+    @DeleteMapping("/products/{id}/images/{imageId}")
+    @PreAuthorize("@tenantAccess.can('PRODUCTS_WRITE')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void deleteImage(@PathVariable UUID tenantId, @PathVariable UUID id, @PathVariable UUID imageId) {
+        products.deleteImage(id, imageId);
+    }
+
     // ---------------------------------------------------------------- categories & brands
 
     @GetMapping("/categories")

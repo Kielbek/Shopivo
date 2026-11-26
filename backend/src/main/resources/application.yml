@@ -58,6 +58,10 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 11MB
   web:
     locale: pl
   thymeleaf:
@@ -162,3 +166,12 @@ shopivo:
     # Simulated operator for local development and tests only. Never enable in production.
     fake-gateway:
       enabled: false
+  # Media files (product images). Production: s3 (AWS S3 / Cloudflare R2 / MinIO), private bucket.
+  storage:
+    type: ${SHOPIVO_STORAGE_TYPE:local}
+    local-dir: ${SHOPIVO_STORAGE_LOCAL_DIR:./data/media}
+    endpoint: ${SHOPIVO_S3_ENDPOINT:}
+    region: ${SHOPIVO_S3_REGION:auto}
+    bucket: ${SHOPIVO_S3_BUCKET:}
+    access-key: ${SHOPIVO_S3_ACCESS_KEY:}
+    secret-key: ${SHOPIVO_S3_SECRET_KEY:}

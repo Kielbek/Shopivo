@@ -25,6 +25,9 @@ public class RequestSizeLimitFilter extends OncePerRequestFilter {
 
     static final long DEFAULT_LIMIT = 1024 * 1024;
     static final long WEBHOOK_LIMIT = 64 * 1024;
+    /** Image uploads (10 MB file + multipart overhead). */
+    static final long UPLOAD_LIMIT = 11 * 1024 * 1024;
+    static final java.util.regex.Pattern UPLOAD = java.util.regex.Pattern.compile("^/api/v1/tenants/[^/]+/products/[^/]+/images$");
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -34,7 +37,9 @@ public class RequestSizeLimitFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        long limit = request.getRequestURI().startsWith("/api/v1/webhooks/") ? WEBHOOK_LIMIT : DEFAULT_LIMIT;
+        String uri = request.getRequestURI();
+        long limit = uri.startsWith("/api/v1/webhooks/") ? WEBHOOK_LIMIT
+                : UPLOAD.matcher(uri).matches() ? UPLOAD_LIMIT : DEFAULT_LIMIT;
         if (request.getContentLengthLong() > limit) {
             response.setStatus(413);
             response.setContentType("application/problem+json");

@@ -89,6 +89,30 @@ public class ApiClient {
         }
     }
 
+    /** Multipart upload of one file (field "file"), with session cookies and the CSRF header. */
+    public Response upload(String path, byte[] content, String filename, String contentType) {
+        try {
+            if (csrfToken == null) {
+                csrfToken = send(HttpMethod.GET, "/api/v1/auth/csrf", null, false).json().get("token").asString();
+            }
+            var builder = org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart(path)
+                    .file(new org.springframework.mock.web.MockMultipartFile("file", filename, contentType, content))
+                    .header("X-XSRF-TOKEN", csrfToken)
+                    .with(r -> {
+                        r.setRemoteAddr(remoteAddr);
+                        return r;
+                    });
+            if (!cookies.isEmpty()) {
+                builder.cookie(cookies.entrySet().stream().map(e -> new Cookie(e.getKey(), e.getValue())).toArray(Cookie[]::new));
+            }
+            MockHttpServletResponse response = mvc.perform(builder).andReturn().getResponse();
+            String body = response.getContentAsString(java.nio.charset.StandardCharsets.UTF_8);
+            return new Response(response.getStatus(), body, body.isBlank() ? null : tryParse(body), response);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     public String cookie(String name) {
         return cookies.get(name);
     }

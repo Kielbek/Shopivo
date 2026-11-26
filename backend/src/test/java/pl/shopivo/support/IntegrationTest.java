@@ -111,6 +111,17 @@ public abstract class IntegrationTest {
         return res.json().get("tenantId").asString();
     }
 
+    /** Fills the seller data required by law and publishes the store (needs an active product, shipping and payment). */
+    protected void publishStore(ApiClient owner, String tenant) {
+        var settings = owner.get("/api/v1/tenants/" + tenant + "/store/settings").json();
+        var saved = owner.put("/api/v1/tenants/" + tenant + "/store/settings", Map.of("legalCompanyName", "Sklep Testowy Sp. z o.o.",
+                "taxId", "5260001246", "addressLine1", "ul. Testowa 1", "postalCode", "00-001", "city", "Warszawa", "countryCode", "PL",
+                "orderEmail", "zamowienia@example.com", "pricesIncludeTax", true, "version", settings.get("version").asLong()));
+        assertThat(saved.status()).as(saved.body()).isEqualTo(200);
+        var published = owner.post("/api/v1/tenants/" + tenant + "/store/publish", Map.of());
+        assertThat(published.status()).as(published.body()).isEqualTo(200);
+    }
+
     protected static String uniqueSlug(String prefix) {
         return prefix + "-" + UUID.randomUUID().toString().substring(0, 6);
     }

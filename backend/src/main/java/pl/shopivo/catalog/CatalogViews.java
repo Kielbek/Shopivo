@@ -32,13 +32,13 @@ public final class CatalogViews {
 
     public record ProductView(UUID id, String name, String slug, String description, ProductStatus status, ProductType type,
             BrandView brand, int vatRateBps, List<CategoryRef> categories, String seoTitle, String seoDescription,
-            List<OptionView> options, List<VariantView> variants, Instant publishedAt, Instant createdAt,
-            Instant updatedAt, long version) {
+            List<OptionView> options, List<VariantView> variants, List<pl.shopivo.media.Media.ImageView> images,
+            Instant publishedAt, Instant createdAt, Instant updatedAt, long version) {
     }
 
     public record ProductRow(UUID id, String name, String slug, ProductStatus status, ProductType type, int variantCount,
             String sku, long minPriceMinor, long maxPriceMinor, String currency, Integer stock, boolean lowStock,
-            List<String> categories, Instant updatedAt) {
+            List<String> categories, String thumbnailUrl, Instant updatedAt) {
     }
 
     public record InventoryRow(UUID variantId, UUID productId, String productName, String variantTitle, String sku,

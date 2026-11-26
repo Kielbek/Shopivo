@@ -36,6 +36,8 @@ public class StoreEntity extends BaseEntity {
     private String timezone;
     @Column(name = "contact_email", columnDefinition = "citext")
     private String contactEmail;
+    @Column(name = "published_at")
+    private Instant publishedAt;
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
     @Column(name = "updated_at", nullable = false)
@@ -81,6 +83,15 @@ public class StoreEntity extends BaseEntity {
 
     public long getVersion() {
         return version;
+    }
+
+    public void publish() {
+        this.status = StoreStatus.PUBLISHED;
+        if (publishedAt == null) publishedAt = Instant.now();
+    }
+
+    public void unpublish() {
+        this.status = StoreStatus.DRAFT;
     }
 
     public String getDefaultCurrency() {

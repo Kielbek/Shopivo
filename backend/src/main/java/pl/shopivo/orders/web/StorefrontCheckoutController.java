@@ -83,30 +83,30 @@ class StorefrontCheckoutController {
     @PostMapping("/cart")
     @ResponseStatus(HttpStatus.CREATED)
     Carts.NewCart createCart(HttpServletRequest request) {
-        UUID tenant = storefront.resolve(request);
+        UUID tenant = storefront.resolvePublished(request);
         rateLimiter.consume("cart-create:" + request.getRemoteAddr(), 30, Duration.ofMinutes(1));
         return inTenant(tenant, carts::create);
     }
 
     @GetMapping("/cart")
     CartView cart(HttpServletRequest request, @RequestHeader("X-Cart-Token") String token) {
-        return inTenant(storefront.resolve(request), () -> carts.view(token));
+        return inTenant(storefront.resolvePublished(request), () -> carts.view(token));
     }
 
     @PostMapping("/cart/items")
     CartView addItem(HttpServletRequest request, @RequestHeader("X-Cart-Token") String token, @Valid @RequestBody ItemRequest item) {
-        return inTenant(storefront.resolve(request), () -> carts.add(token, item.variantId(), item.quantity()));
+        return inTenant(storefront.resolvePublished(request), () -> carts.add(token, item.variantId(), item.quantity()));
     }
 
     @PatchMapping("/cart/items/{variantId}")
     CartView updateItem(HttpServletRequest request, @RequestHeader("X-Cart-Token") String token, @PathVariable UUID variantId,
             @Valid @RequestBody QuantityRequest body) {
-        return inTenant(storefront.resolve(request), () -> carts.update(token, variantId, body.quantity()));
+        return inTenant(storefront.resolvePublished(request), () -> carts.update(token, variantId, body.quantity()));
     }
 
     @GetMapping("/checkout/options")
     CheckoutOptions options(HttpServletRequest request) {
-        return inTenant(storefront.resolve(request), () -> {
+        return inTenant(storefront.resolvePublished(request), () -> {
             var settings = payments.current();
             List<PaymentOption> methods = new ArrayList<>();
             if (settings.bankTransferEnabled()) methods.add(new PaymentOption(PaymentMethod.BANK_TRANSFER, "Przelew tradycyjny", 0));
@@ -119,7 +119,7 @@ class StorefrontCheckoutController {
     @ResponseStatus(HttpStatus.CREATED)
     CheckoutResult checkout(HttpServletRequest request, @RequestHeader("X-Cart-Token") String token,
             @RequestBody OrderPlacement.CustomerInput input) {
-        UUID tenant = storefront.resolve(request);
+        UUID tenant = storefront.resolvePublished(request);
         rateLimiter.consume("checkout:" + request.getRemoteAddr(), 10, Duration.ofMinutes(10));
         var placed = inTenant(tenant, () -> placement.checkout(token, input));
         return new CheckoutResult(placed.number(), placed.publicToken(), placed.totalMinor(), placed.currency());
@@ -127,7 +127,7 @@ class StorefrontCheckoutController {
 
     @GetMapping("/orders/status")
     OrderConfirmation order(HttpServletRequest request, @RequestHeader("X-Order-Token") String token) {
-        return inTenant(storefront.resolve(request), () -> orders.confirmation(token));
+        return inTenant(storefront.resolvePublished(request), () -> orders.confirmation(token));
     }
 
     private <T> T inTenant(UUID tenant, java.util.function.Supplier<T> action) {

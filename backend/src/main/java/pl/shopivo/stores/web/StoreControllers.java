@@ -38,8 +38,16 @@ class StoreControllers {
     private final StoreProvisioning provisioning;
     private final RateLimiter rateLimiter;
     private final ShopivoProperties properties;
+    private final pl.shopivo.stores.StorefrontTenants storefront;
+    private final pl.shopivo.stores.StorePreviewTokens previews;
+    private final String storefrontUrlTemplate;
 
-    StoreControllers(Stores stores, StoreProvisioning provisioning, RateLimiter rateLimiter, ShopivoProperties properties) {
+    StoreControllers(Stores stores, StoreProvisioning provisioning, RateLimiter rateLimiter, ShopivoProperties properties,
+            pl.shopivo.stores.StorefrontTenants storefront, pl.shopivo.stores.StorePreviewTokens previews,
+            @org.springframework.beans.factory.annotation.Value("${shopivo.storefront-url-template:https://{host}}") String storefrontUrlTemplate) {
+        this.storefront = storefront;
+        this.previews = previews;
+        this.storefrontUrlTemplate = storefrontUrlTemplate;
         this.stores = stores;
         this.provisioning = provisioning;
         this.rateLimiter = rateLimiter;
@@ -126,5 +134,42 @@ class StoreControllers {
         return stores.updateSettings(new StoreSettingsView(r.legalCompanyName(), r.taxId(), r.addressLine1(),
                 r.addressLine2(), r.postalCode(), r.city(), r.countryCode(), r.phone(), r.orderEmail(),
                 r.pricesIncludeTax(), r.version()));
+    }
+
+    record Readiness(boolean ready, List<String> missing) {
+    }
+
+    record Preview(String token, String url) {
+    }
+
+    @GetMapping("/api/v1/tenants/{tenantId}/store/publish-readiness")
+    @PreAuthorize("@tenantAccess.can('STORE_READ')")
+    Readiness readiness(@PathVariable UUID tenantId) {
+        List<String> missing = stores.publishReadiness();
+        return new Readiness(missing.isEmpty(), missing);
+    }
+
+    @PostMapping("/api/v1/tenants/{tenantId}/store/publish")
+    @PreAuthorize("@tenantAccess.can('STORE_SETTINGS_WRITE')")
+    StoreView publish(@PathVariable UUID tenantId) {
+        StoreView view = stores.publish();
+        storefront.evict(tenantId);
+        return view;
+    }
+
+    @PostMapping("/api/v1/tenants/{tenantId}/store/unpublish")
+    @PreAuthorize("@tenantAccess.can('STORE_SETTINGS_WRITE')")
+    StoreView unpublish(@PathVariable UUID tenantId) {
+        StoreView view = stores.unpublish();
+        storefront.evict(tenantId);
+        return view;
+    }
+
+    /** Preview link for an unpublished store / draft theme (valid for 2 hours). */
+    @PostMapping("/api/v1/tenants/{tenantId}/store/preview-token")
+    @PreAuthorize("@tenantAccess.can('THEMES_WRITE')")
+    Preview preview(@PathVariable UUID tenantId) {
+        String token = previews.issue(tenantId);
+        return new Preview(token, storefrontUrlTemplate.replace("{host}", stores.current().primaryHostname()) + "/?podglad=" + token);
     }
 }

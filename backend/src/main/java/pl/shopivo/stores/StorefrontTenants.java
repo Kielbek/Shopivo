@@ -23,9 +23,15 @@ public class StorefrontTenants {
     private final RateLimiter rateLimiter;
     private final List<StorefrontAvailabilityPolicy> availability;
     private final List<UsageRecorder> usage;
+    private final Stores stores;
+    private final StorePreviewTokens previews;
+    private final com.github.benmanes.caffeine.cache.Cache<UUID, StoreStatus> statuses =
+            com.github.benmanes.caffeine.cache.Caffeine.newBuilder().expireAfterWrite(Duration.ofSeconds(30)).maximumSize(50_000).build();
 
     StorefrontTenants(StoreDomains domains, TenantMemberships tenants, RateLimiter rateLimiter,
-            List<StorefrontAvailabilityPolicy> availability, List<UsageRecorder> usage) {
+            List<StorefrontAvailabilityPolicy> availability, List<UsageRecorder> usage, Stores stores, StorePreviewTokens previews) {
+        this.stores = stores;
+        this.previews = previews;
         this.domains = domains;
         this.tenants = tenants;
         this.rateLimiter = rateLimiter;
@@ -43,5 +49,28 @@ public class StorefrontTenants {
         }
         usage.forEach(u -> u.record(tenantId, "storefront.requests", 1));
         return tenantId;
+    }
+
+    /**
+     * Like {@link #resolve} but only for a published store — or for someone holding a valid preview token
+     * ({@code X-Store-Preview}). Catalogue, cart and checkout use this; the store info endpoint does not.
+     */
+    public UUID resolvePublished(HttpServletRequest request) {
+        UUID tenantId = resolve(request);
+        if (statuses.get(tenantId, id -> pl.shopivo.shared.tenancy.TenantContext.callInTenant(id, () -> stores.current().status()))
+                != StoreStatus.PUBLISHED && !isPreview(request, tenantId)) {
+            throw new pl.shopivo.shared.error.ApiException(org.springframework.http.HttpStatus.NOT_FOUND, "STORE_NOT_PUBLISHED",
+                    "Sklep jest w przygotowaniu.");
+        }
+        return tenantId;
+    }
+
+    public boolean isPreview(HttpServletRequest request, UUID tenantId) {
+        return previews.isValid(request.getHeader("X-Store-Preview"), tenantId);
+    }
+
+    /** Called after publish/unpublish on this node (other nodes follow within 30 s). */
+    public void evict(UUID tenantId) {
+        statuses.invalidate(tenantId);
     }
 }

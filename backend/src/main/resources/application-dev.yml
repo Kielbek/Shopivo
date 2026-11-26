@@ -20,6 +20,8 @@ shopivo:
       # 32 zero-bytes key, base64 — DEV ONLY
       keys: "1:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
   public-api-url: http://localhost:8080
+  # Storefront dev server (npm run start:storefront) serves every store on <slug>.shopivo.localhost:4000.
+  storefront-url-template: "http://{host}:4000"
   payments:
     # Simulated operator: payment page auto-confirms and posts a signed notification back (local only).
     fake-gateway:

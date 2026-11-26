@@ -48,6 +48,7 @@ public class Products {
     static final int MAX_VARIANTS = 100;
     static final long MAX_PRICE = 100_000_000_00L;
     static final Set<Integer> VAT_RATES = Set.of(0, 500, 800, 2300);
+    public static final String IMAGE_OWNER = "PRODUCT";
 
     private final ProductRepository products;
     private final VariantRepository variants;
@@ -60,9 +61,12 @@ public class Products {
     private final JdbcTemplate jdbc;
     private final JsonMapper json;
     private final AuditLog auditLog;
+    private final pl.shopivo.media.Media media;
 
     Products(ProductRepository products, VariantRepository variants, Categories categories, Brands brands, Inventory inventory,
-            PriceHistory prices, Stores stores, List<ProductLimitPolicy> limits, JdbcTemplate jdbc, JsonMapper json, AuditLog auditLog) {
+            PriceHistory prices, Stores stores, List<ProductLimitPolicy> limits, JdbcTemplate jdbc, JsonMapper json, AuditLog auditLog,
+            pl.shopivo.media.Media media) {
+        this.media = media;
         this.products = products;
         this.variants = variants;
         this.categories = categories;
@@ -153,8 +157,17 @@ public class Products {
                             ProductStatus.valueOf(rs.getString("status")), ProductType.valueOf(rs.getString("type")),
                             rs.getInt("variant_count"), rs.getString("sku"), rs.getLong("min_price"), rs.getLong("max_price"),
                             rs.getString("currency"), stock == null ? null : ((Number) stock).intValue(), rs.getBoolean("low"),
-                            cats == null ? List.of() : List.of(cats.split("\\|")), rs.getTimestamp("updated_at").toInstant());
+                            cats == null ? List.of() : List.of(cats.split("\\|")),
+                            null,
+                            rs.getTimestamp("updated_at").toInstant());
                 }, pageArgs.toArray());
+        var images = media.list(IMAGE_OWNER, rows.stream().map(ProductRow::id).toList());
+        rows = rows.stream().map(r -> {
+            var list = images.get(r.id());
+            return list == null || list.isEmpty() ? r : new ProductRow(r.id(), r.name(), r.slug(), r.status(), r.type(), r.variantCount(),
+                    r.sku(), r.minPriceMinor(), r.maxPriceMinor(), r.currency(), r.stock(), r.lowStock(), r.categories(),
+                    list.getFirst().urls().get("w400"), r.updatedAt());
+        }).toList();
         return new PageImpl<>(rows, pageable, total == null ? 0 : total);
     }
 
@@ -233,7 +246,10 @@ public class Products {
                 case ACTIVATE -> p.changeStatus(ProductStatus.ACTIVE);
                 case DRAFT -> p.changeStatus(ProductStatus.DRAFT);
                 case ARCHIVE -> p.changeStatus(ProductStatus.ARCHIVED);
-                case DELETE -> products.delete(p);
+                case DELETE -> {
+                    media.deleteOwner(IMAGE_OWNER, p.getId());
+                    products.delete(p);
+                }
             }
         }
         auditLog.record(AuditEntry.tenant("catalog.product.bulk", tenant, "product", null)
@@ -244,6 +260,7 @@ public class Products {
     @Transactional
     public void delete(UUID id) {
         ProductEntity p = products.findById(id).orElseThrow(() -> new NotFoundException("Nie znaleziono produktu."));
+        media.deleteOwner(IMAGE_OWNER, id);
         products.delete(p);
         auditLog.record(AuditEntry.tenant("catalog.product.deleted", TenantContext.requireTenantId(), "product", id)
                 .with(Map.of("name", p.getName())));
@@ -260,6 +277,29 @@ public class Products {
                 src.type(), src.brand() == null ? null : src.brand().id(), src.vatRateBps(),
                 src.categories().stream().map(CategoryRef::id).toList(), src.seoTitle(), src.seoDescription(),
                 src.options().stream().map(o -> new OptionInput(o.name(), o.values())).toList(), vs, 0));
+    }
+
+    // ------------------------------------------------------------------------------------------------ images
+
+    @Transactional
+    public pl.shopivo.media.Media.ImageView addImage(UUID productId, byte[] data, String alt) {
+        products.findById(productId).orElseThrow(() -> new NotFoundException("Nie znaleziono produktu."));
+        var image = media.upload(IMAGE_OWNER, productId, data, alt);
+        auditLog.record(AuditEntry.tenant("catalog.product.image.added", TenantContext.requireTenantId(), "product", productId));
+        return image;
+    }
+
+    @Transactional
+    public void deleteImage(UUID productId, UUID imageId) {
+        products.findById(productId).orElseThrow(() -> new NotFoundException("Nie znaleziono produktu."));
+        media.delete(IMAGE_OWNER, productId, imageId);
+    }
+
+    @Transactional
+    public List<pl.shopivo.media.Media.ImageView> updateImages(UUID productId, List<UUID> order, Map<UUID, String> alts) {
+        products.findById(productId).orElseThrow(() -> new NotFoundException("Nie znaleziono produktu."));
+        media.update(IMAGE_OWNER, productId, order, alts);
+        return media.list(IMAGE_OWNER, List.of(productId)).getOrDefault(productId, List.of());
     }
 
     // ------------------------------------------------------------------------------------------------ export
@@ -460,7 +500,8 @@ public class Products {
                 """, (rs, i) -> new CategoryRef(rs.getObject(1, UUID.class), rs.getString(2)), TenantContext.requireTenantId(), p.getId());
         return new ProductView(p.getId(), p.getName(), p.getSlug(), p.getDescription(), p.getStatus(), p.getType(),
                 brands.find(p.getBrandId()).orElse(null), p.getVatRateBps(), cats, p.getSeoTitle(), p.getSeoDescription(),
-                options, variantViews, p.getPublishedAt(), p.getCreatedAt(), p.getUpdatedAt(), p.getVersion());
+                options, variantViews, media.list(IMAGE_OWNER, List.of(p.getId())).getOrDefault(p.getId(), List.of()),
+                p.getPublishedAt(), p.getCreatedAt(), p.getUpdatedAt(), p.getVersion());
     }
 
     private String uniqueSlug(String raw, UUID self, boolean explicit) {
