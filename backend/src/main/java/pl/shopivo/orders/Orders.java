@@ -110,6 +110,26 @@ public class Orders {
         return new PageImpl<>(rows, pageable, total == null ? 0 : total);
     }
 
+    /** Order number and product names of the given orders (for modules showing what an order contained). */
+    public record OrderLabel(long number, Map<UUID, String> productNames) {
+    }
+
+    @Transactional(readOnly = true)
+    public Map<UUID, OrderLabel> labels(java.util.Collection<UUID> orderIds) {
+        Map<UUID, OrderLabel> result = new java.util.HashMap<>();
+        if (orderIds.isEmpty()) return result;
+        UUID tenant = TenantContext.requireTenantId();
+        UUID[] ids = orderIds.toArray(UUID[]::new);
+        jdbc.query("select id, number from orders where tenant_id = ? and id = any(?)", rs -> {
+            result.put(rs.getObject(1, UUID.class), new OrderLabel(rs.getLong(2), new java.util.HashMap<>()));
+        }, tenant, ids);
+        jdbc.query("select order_id, product_id, name from order_items where tenant_id = ? and order_id = any(?) and product_id is not null", rs -> {
+            OrderLabel l = result.get(rs.getObject(1, UUID.class));
+            if (l != null) l.productNames().putIfAbsent(rs.getObject(2, UUID.class), rs.getString(3));
+        }, tenant, ids);
+        return result;
+    }
+
     /** Orders placed with this e-mail (case-insensitive) — for a customer account whose e-mail is verified. */
     @Transactional(readOnly = true)
     public List<OrderView> forEmail(String email, int limit) {

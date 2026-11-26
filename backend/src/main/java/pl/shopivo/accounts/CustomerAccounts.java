@@ -35,8 +35,9 @@ public class CustomerAccounts {
     static final Duration SESSION_TTL = Duration.ofDays(30);
     static final Duration VERIFY_TTL = Duration.ofHours(48);
     static final Duration RESET_TTL = Duration.ofHours(1);
-    static final int MAX_FAILED_LOGINS = 5;
-    static final Duration LOCK = Duration.ofMinutes(15);
+    /** Failed sign-ins allowed per e-mail address and store within {@link #LOGIN_WINDOW}. */
+    public static final int MAX_LOGIN_ATTEMPTS = 10;
+    public static final Duration LOGIN_WINDOW = Duration.ofMinutes(15);
     static final int MAX_ADDRESSES = 10;
     private static final Pattern EMAIL = Pattern.compile("^[^@\\s]{1,64}@[^@\\s]+\\.[^@\\s]{2,}$");
     private static final Pattern POSTAL = Pattern.compile("^\\d{2}-\\d{3}$");
@@ -143,18 +144,13 @@ public class CustomerAccounts {
         }
         Row a = found.get();
         UUID tenant = TenantContext.requireTenantId();
-        if (a.lockedUntil() != null && a.lockedUntil().isAfter(Instant.now())) {
-            throw new ApiException(HttpStatus.TOO_MANY_REQUESTS, "ACCOUNT_LOCKED", "Zbyt wiele nieudanych prób. Spróbuj ponownie za kilkanaście minut.");
-        }
+        // Brute force is limited per e-mail by the caller (same limit for existing and unknown addresses, so the
+        // response never reveals whether an account exists). Failures are only counted here for the audit trail.
         if (password == null || !encoder.matches(password, a.passwordHash())) {
-            jdbc.update("""
-                    update customer_accounts set failed_logins = failed_logins + 1,
-                        locked_until = case when failed_logins + 1 >= ? then ? else locked_until end
-                    where id = ? and tenant_id = ?
-                    """, MAX_FAILED_LOGINS, Timestamp.from(Instant.now().plus(LOCK)), a.id(), tenant);
+            jdbc.update("update customer_accounts set failed_logins = failed_logins + 1 where id = ? and tenant_id = ?", a.id(), tenant);
             throw invalidCredentials();
         }
-        jdbc.update("update customer_accounts set failed_logins = 0, locked_until = null where id = ? and tenant_id = ?", a.id(), tenant);
+        jdbc.update("update customer_accounts set failed_logins = 0 where id = ? and tenant_id = ?", a.id(), tenant);
         if (a.verifiedAt() == null) {
             // No new link from here: a fresh link always comes from a registration (which carries its own password).
             throw new ApiException(HttpStatus.FORBIDDEN, "EMAIL_NOT_VERIFIED",
@@ -312,7 +308,7 @@ public class CustomerAccounts {
 
     @Transactional(readOnly = true)
     public List<OrderView> orders(UUID accountId) {
-        return orders.forEmail(verifiedEmail(accountId), 100);
+        return orders.forEmail(verifiedEmail(accountId), 50);
     }
 
     @Transactional(readOnly = true)

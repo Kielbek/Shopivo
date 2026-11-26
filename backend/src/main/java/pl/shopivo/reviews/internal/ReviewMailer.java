@@ -60,7 +60,7 @@ class ReviewMailer {
             return token == null ? null : new Invite(token, order, stores.current());
         }));
         if (inv == null) return;
-        String link = urlTemplate.replace("{host}", inv.store().primaryHostname()) + "/opinia?t=" + inv.token();
+        String link = urlTemplate.replace("{host}", inv.store().primaryHostname()) + "/opinia#t=" + inv.token();
         send(inv.order().email(), "Jak oceniasz zakupy w sklepie " + inv.store().name() + "?", "Podziel się opinią",
                 List.of("Dziękujemy za zamówienie nr " + inv.order().number() + ". Będzie nam miło, jeśli ocenisz kupione produkty —"
                         + " Twoja opinia pomoże innym klientom.", "Link jest ważny przez 90 dni."),

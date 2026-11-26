@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, RESPONSE_INIT, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, RESPONSE_INIT, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Meta, Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { CartState } from './core/cart';
 import { CustomerSession } from './core/account';
+import { routeOf } from './core/link-token';
 import { StoreState } from './core/store-state';
 
 @Component({
@@ -57,7 +58,7 @@ import { StoreState } from './core/store-state';
               <a routerLink="/" class="truncate text-[20px] font-semibold tracking-tight">{{ s.name }}</a>
               <nav class="ml-6 hidden items-center gap-6 lg:flex" aria-label="Kategorie">
                 @if (s.menu.length) {
-                  @for (m of s.menu; track $index) {<a [routerLink]="m.path" class="text-[14px] font-medium hover:underline">{{ m.label }}</a>}
+                  @for (m of menuItems(); track $index) {<a [routerLink]="m.path" [queryParams]="m.query" class="text-[14px] font-medium hover:underline">{{ m.label }}</a>}
                 } @else {
                   @for (c of store.topCategories().slice(0, 6); track c.id) {
                     <a [routerLink]="['/kategoria', c.slug]" class="text-[14px] font-medium hover:underline">{{ c.name }}</a>
@@ -89,7 +90,7 @@ import { StoreState } from './core/store-state';
                   </form>
                   <nav aria-label="Kategorie" class="flex flex-col">
                     @if (s.menu.length) {
-                      @for (m of s.menu; track $index) {<a [routerLink]="m.path" class="py-2.5 font-medium">{{ m.label }}</a>}
+                      @for (m of menuItems(); track $index) {<a [routerLink]="m.path" [queryParams]="m.query" class="py-2.5 font-medium">{{ m.label }}</a>}
                     } @else {
                       <a routerLink="/produkty" class="py-2.5 font-medium">Wszystkie produkty</a>
                       @for (c of store.topCategories(); track c.id) {
@@ -152,6 +153,8 @@ export class App {
   protected readonly store = inject(StoreState);
   protected readonly cart = inject(CartState);
   protected readonly customer = inject(CustomerSession);
+  /** Menu items may carry a query (`/szukaj?q=…`): routerLink needs it separately, or it would be encoded into the path. */
+  protected readonly menuItems = computed(() => (this.store.store()?.menu ?? []).map((m) => ({ label: m.label, ...routeOf(m.path) })));
   private readonly router = inject(Router);
   private readonly response = inject(RESPONSE_INIT, { optional: true });
   private readonly title = inject(Title);

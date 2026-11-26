@@ -171,3 +171,25 @@ Znane, nienaprawione: CSP witryny nie ogranicza jeszcze `script-src` (wymaga non
 SSR — Faza 8); serwer SSR akceptuje każdy `Host` (domeny własne) — LB musi przepuszczać tylko domeny platformy i
 zweryfikowane domeny własne, a wywołania API z SSR idą wyłącznie na stały adres `SHOPIVO_API_URL` (brak SSRF przez
 `Host`); unieważnienie statusu publikacji na innych instancjach do 30 s.
+
+## 13. Przegląd Faz 4b–4e (2026-11-26) — ustalenia i poprawki
+
+| # | Ustalenie | Ryzyko | Poprawka | Test |
+|---|---|---|---|---|
+| 1 | Blokada konta klienta w bazie po 5 nieudanych logowaniach, komunikat `ACCOUNT_LOCKED` tylko dla istniejących kont | każdy mógł zablokować cudze konto; ujawnianie, które adresy mają konto | limit per sklep + skrót e-maila w Redisie (10/15 min), taki sam dla istniejących i nieistniejących adresów, kasowany po udanym logowaniu (jak logowanie do panelu) | `AccountsIT` |
+| 2 | Jednorazowe tokeny w linkach e-mail w parametrze `?t=` | token w logach LB/CDN/serwera i historii | token we fragmencie `#t=` (przeglądarka go nie wysyła), usuwany z paska adresu; stare linki `?t=` nadal działają | `link-token.spec.ts`, E2E |
+| 3 | Adresy e-mail w kluczach Redisa (limity rejestracji/resetu) | dane osobowe poza bazą | klucze ze skrótu SHA-256 adresu | — |
+| 4 | Moduł opinii czytał tabele zamówień własnym SQL | łamanie granic modułów (zmiany w zamówieniach psułyby opinie po cichu) | API `Orders.labels(...)` | `ReviewsIT` |
+| 5 | Niepotwierdzone rejestracje przechowywane bez końca | zbędne dane osobowe (RODO) | usuwane po 30 dniach (zadanie nocne) | — |
+| 6 | Historia zamówień konta ładowała do 100 zamówień pojedynczo | obciążenie bazy | 50 ostatnich | — |
+| 7 | Linki z parametrami (`/szukaj?q=…`) w menu i treści stron trafiały w całości do ścieżki routera | martwe linki | rozdzielenie ścieżki i parametrów | `link-token.spec.ts` |
+| 8 | (z E2E Fazy 4e) serwer SSR nie przekazywał `X-Captcha-Token`; reset widgetu po odświeżeniu koszyka | każde zamówienie odrzucane przy włączonej CAPTCHA | przekazywanie nagłówka, natychmiastowy reset | E2E |
+
+Zweryfikowane bez zmian: CORS wyłączony (nagłówek `X-Requested-With` skutecznie chroni API kont przed CSRF), ciasteczko
+sesji klienta HttpOnly/SameSite=Lax bez `Domain` (nie trafia do innych sklepów), serwer SSR przekazuje do API tylko to
+ciasteczko i tylko dla `/account/**`; wszystkie nowe tabele z RLS i jawnym `tenant_id`; tokeny (sesje, linki, zaproszenia
+do opinii) przechowywane jako skróty; aktywacja konta wymaga hasła z rejestracji; opinie tylko ze zweryfikowanego zakupu;
+treść stron bez `innerHTML`; przekierowania i menu tylko do ścieżek w sklepie.
+
+Znane, nienaprawione: zamówienia przypisane do konta po adresie e-mail (zamówienie złożone przez kogoś innego na ten sam
+adres będzie widoczne właścicielowi skrzynki — tak samo jak e-mail z potwierdzeniem); CSP witryny bez `script-src` (Faza 8).

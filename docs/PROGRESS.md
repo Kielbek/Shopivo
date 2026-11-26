@@ -9,7 +9,7 @@ Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 34/34 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
 | Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 70/70 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
-| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 51/51 ✔ (panel 40, admin 3, witryna 8) |
+| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 54/54 ✔ (panel 40, admin 3, witryna 11) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
 | `npm audit --omit=dev --audit-level=high` | | 0 podatności |
 | Ręczny przepływ E2E w Chromium (Playwright, skrypt poza repo) na pełnym stosie lokalnym | rejestracja → e-mail (Mailpit) → weryfikacja → logowanie → sklep → dane firmy (walidacja NIP) → zaproszenie → MFA (QR) → panel admina → blokada sprzedawcy w panelu admina | ✔ |
@@ -46,6 +46,12 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 | Ręczny przepływ E2E Fazy 4d (Playwright, poza repo) | rejestracja w sklepie (walidacja regulaminu) → e-mail (Mailpit) → aktywacja z hasłem (złe hasło odrzucone, token usunięty z adresu) → adres domyślny → checkout z danymi z konta → zamówienie widoczne na koncie → realizacja → opinia z konta („Do oceny”) → szczegóły zamówienia z numerem przesyłki → wylogowanie, złe hasło, logowanie → opinia w panelu; ciasteczko HttpOnly, SameSite=Lax, tylko domena sklepu; mobile bez poziomego przewijania | ✔ |
 
 | Ręczny przepływ E2E Fazy 4e (Playwright, poza repo; Cloudflare niedostępny z tego środowiska — skrypt widgetu podstawiony w przeglądarce, backend z Turnstile wskazującym na lokalny serwer weryfikacji) | menu w panelu (wybór kategorii, własny adres odrzucony dla zewnętrznego URL, zmiana nazwy, kolejność, zapis) → menu w nagłówku sklepu → checkout: brak potwierdzenia blokowany w przeglądarce, token bota odrzucony przez serwer (400), token człowieka → zamówienie; rejestracja z CAPTCHA → aktywacja → oznaczenie „Konto” w panelu Klienci | ✔ |
+
+## Przegląd Faz 4b–4e (2026-11-26) — naprawione
+Blokada kont klientów zastąpiona limitem per adres (bez możliwości blokowania cudzych kont i bez ujawniania, czy konto
+istnieje), tokeny w linkach e-mail przeniesione do fragmentu adresu (nie trafiają do logów), skróty e-maili w kluczach
+Redisa, opinie bez bezpośredniego SQL do tabel zamówień, usuwanie niepotwierdzonych rejestracji po 30 dniach, poprawne
+linki z parametrami w menu i treści. Szczegóły: `docs/SECURITY.md` §13.
 
 ## Faza 4e — CAPTCHA i menu sklepu (2026-11-26)
 

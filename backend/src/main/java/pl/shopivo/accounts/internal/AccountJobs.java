@@ -25,6 +25,8 @@ class AccountJobs {
         TenantContext.callAsSystem(() -> tx.execute(s -> {
             jdbc.update("delete from customer_sessions where expires_at < now()");
             jdbc.update("delete from customer_account_tokens where expires_at < now() - interval '7 days' or used_at < now() - interval '7 days'");
+            // Registrations nobody confirmed within 30 days (activation links last 48 h): personal data is not kept.
+            jdbc.update("delete from customer_accounts where email_verified_at is null and created_at < now() - interval '30 days'");
             return null;
         }));
     }

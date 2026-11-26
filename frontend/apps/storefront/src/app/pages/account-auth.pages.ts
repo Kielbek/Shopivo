@@ -4,19 +4,9 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CustomerSession, apiCode, apiMessage } from '../core/account';
+import { takeLinkToken } from '../core/link-token';
 import { Seo } from '../core/seo';
 import { StoreState } from '../core/store-state';
-
-/** Reads `?t=` once and removes it from the address bar (links from e-mails carry one-time secrets). */
-function takeToken(): string | null {
-  const url = new URL(window.location.href);
-  const token = url.searchParams.get('t');
-  if (token) {
-    url.searchParams.delete('t');
-    history.replaceState(history.state, '', url.pathname + url.search);
-  }
-  return token;
-}
 
 function noindex(title: string, path: string): void {
   inject(Seo).set({ title, path, noindex: true }, inject(StoreState).store()?.name ?? '');
@@ -177,7 +167,7 @@ export class RegisterPage {
 export class VerifyPage {
   private readonly session = inject(CustomerSession);
   private readonly router = inject(Router);
-  protected readonly token = takeToken();
+  protected readonly token = takeLinkToken();
   protected password = '';
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -276,7 +266,7 @@ export class ResetRequestPage {
 })
 export class ResetPage {
   private readonly session = inject(CustomerSession);
-  protected readonly token = takeToken();
+  protected readonly token = takeLinkToken();
   protected password = '';
   protected readonly busy = signal(false);
   protected readonly done = signal(false);

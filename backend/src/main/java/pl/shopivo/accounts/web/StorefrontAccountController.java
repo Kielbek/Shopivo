@@ -70,7 +70,7 @@ class StorefrontAccountController {
         UUID tenant = guard(request);
         rateLimiter.consume("acc-register:" + request.getRemoteAddr(), 10, Duration.ofMinutes(10));
         captcha.verify(request.getHeader("X-Captcha-Token"), request.getRemoteAddr());
-        if (body.email() != null) rateLimiter.consume("acc-register-email:" + tenant + ":" + body.email().strip().toLowerCase(Locale.ROOT), 3, Duration.ofHours(1));
+        if (body.email() != null) rateLimiter.consume("acc-register-email:" + tenant + ":" + emailHash(body.email()), 3, Duration.ofHours(1));
         run(tenant, () -> {
             accounts.register(new CustomerAccounts.Registration(body.email(), body.password(), body.firstName(), body.lastName(), body.termsAccepted()));
             return null;
@@ -98,7 +98,12 @@ class StorefrontAccountController {
     ResponseEntity<CustomerAccounts.Account> login(HttpServletRequest request, HttpServletResponse response, @RequestBody LoginRequest body) {
         UUID tenant = guard(request);
         rateLimiter.consume("acc-login:" + request.getRemoteAddr(), 30, Duration.ofMinutes(10));
+        // Per address (hashed): slows down guessing one customer's password from many IPs. Unknown addresses get the
+        // same limit, so a 429 says nothing about whether an account exists.
+        String emailKey = "acc-login-email:" + tenant + ":" + emailHash(body.email());
+        rateLimiter.consume(emailKey, CustomerAccounts.MAX_LOGIN_ATTEMPTS, CustomerAccounts.LOGIN_WINDOW);
         String session = run(tenant, () -> accounts.login(body.email(), body.password()));
+        rateLimiter.reset(emailKey);
         writeCookie(request, response, session);
         return noStore(run(tenant, () -> accounts.session(session).orElseThrow()));
     }
@@ -123,7 +128,7 @@ class StorefrontAccountController {
         UUID tenant = guard(request);
         rateLimiter.consume("acc-reset:" + request.getRemoteAddr(), 5, Duration.ofMinutes(10));
         captcha.verify(request.getHeader("X-Captcha-Token"), request.getRemoteAddr());
-        if (body.email() != null) rateLimiter.consume("acc-reset-email:" + tenant + ":" + body.email().strip().toLowerCase(Locale.ROOT), 3, Duration.ofHours(1));
+        if (body.email() != null) rateLimiter.consume("acc-reset-email:" + tenant + ":" + emailHash(body.email()), 3, Duration.ofHours(1));
         run(tenant, () -> {
             accounts.requestReset(body.email());
             return null;
@@ -277,6 +282,11 @@ class StorefrontAccountController {
     }
 
     // ------------------------------------------------------------------------------------------------ helpers
+
+    /** Rate-limit keys never contain the e-mail address itself (no personal data in Redis). */
+    private static String emailHash(String email) {
+        return pl.shopivo.shared.crypto.Tokens.sha256(email == null ? "" : email.strip().toLowerCase(Locale.ROOT));
+    }
 
     private UUID guard(HttpServletRequest request) {
         if (!"shopivo".equals(request.getHeader("X-Requested-With"))) {

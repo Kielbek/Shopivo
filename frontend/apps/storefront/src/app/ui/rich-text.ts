@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { parseRichText } from '../core/rich-text';
+import { routeOf } from '../core/link-token';
 
 /** Renders page/post bodies from parsed data (no innerHTML). */
 @Component({
@@ -12,7 +13,7 @@ import { parseRichText } from '../core/rich-text';
     <ng-template #inl let-items>
       @for (i of $any(items); track $index) {
         @if (i.br) {<br />}
-        @else if (i.route) {<a class="sf-link" [routerLink]="i.route">{{ i.text }}</a>}
+        @else if (i.route) {<a class="sf-link" [routerLink]="route(i.route).path" [queryParams]="route(i.route).query">{{ i.text }}</a>}
         @else if (i.href) {<a class="sf-link" [href]="i.href" target="_blank" rel="noopener nofollow">{{ i.text }}</a>}
         @else if (i.bold) {<strong class="font-semibold">{{ i.text }}</strong>}
         @else if (i.italic) {<em>{{ i.text }}</em>}
@@ -44,4 +45,5 @@ import { parseRichText } from '../core/rich-text';
 export class RichTextComponent {
   readonly source = input<string | null>('');
   protected readonly blocks = computed(() => parseRichText(this.source()));
+  protected readonly route = routeOf;
 }

@@ -45,7 +45,7 @@ class AccountMailer {
                 vars.put("lines", List.of("Cześć " + mail.firstName() + ", dziękujemy za założenie konta w sklepie " + store.name() + ".",
                         "Kliknij przycisk i wpisz hasło podane przy rejestracji. Link jest ważny 48 godzin.",
                         "Jeśli to nie Ty zakładałeś(-aś) konto, zignoruj tę wiadomość — bez Twojego potwierdzenia konto nie zostanie aktywowane."));
-                vars.put("actionUrl", base + "/konto/potwierdz?t=" + mail.token());
+                vars.put("actionUrl", base + "/konto/potwierdz#t=" + mail.token());
                 vars.put("actionLabel", "Potwierdź konto");
             }
             case ALREADY_REGISTERED -> {
@@ -61,7 +61,7 @@ class AccountMailer {
                 vars.put("heading", "Ustaw nowe hasło");
                 vars.put("lines", List.of("Otrzymaliśmy prośbę o zmianę hasła. Link jest ważny 1 godzinę i można go użyć raz.",
                         "Jeśli to nie Ty prosiłeś(-aś) o zmianę, zignoruj tę wiadomość — hasło pozostanie bez zmian."));
-                vars.put("actionUrl", base + "/konto/nowe-haslo?t=" + mail.token());
+                vars.put("actionUrl", base + "/konto/nowe-haslo#t=" + mail.token());
                 vars.put("actionLabel", "Ustaw nowe hasło");
             }
         }

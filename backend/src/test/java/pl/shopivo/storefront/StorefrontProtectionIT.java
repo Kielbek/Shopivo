@@ -103,7 +103,7 @@ class StorefrontProtectionIT extends IntegrationTest {
                 .isEqualTo("CAPTCHA_FAILED");
 
         // Panel: customers with a confirmed account are marked
-        String token = emails.awaitEmail(email, "Potwierdź konto").textBody().replaceAll("(?s).*potwierdz\\?t=([A-Za-z0-9_-]+).*", "$1");
+        String token = emails.awaitEmail(email, "Potwierdź konto").textBody().replaceAll("(?s).*potwierdz#t=([A-Za-z0-9_-]+).*", "$1");
         JsonNode customers = owner.get(base(t) + "/customers").json();
         assertThat(customers.get("items").get(0).get("accountCreatedAt").isNull()).isTrue();
         assertThat(sf("POST", host, "/account/verify", Map.of("X-Requested-With", "shopivo"), Map.of("token", token, "password", "Mocne-Haslo-Klienta-1"))
@@ -153,7 +153,7 @@ class StorefrontProtectionIT extends IntegrationTest {
                 Map.of("email", email, "password", "Mocne-Haslo-Klienta-2", "firstName", "Ewa", "lastName", "Stała", "termsAccepted", true));
         // Not confirmed yet → not marked
         assertThat(owner.get(base(t) + "/customers").json().get("items").get(0).get("accountCreatedAt").isNull()).isTrue();
-        String token = emails.awaitEmail(email, "Potwierdź konto").textBody().replaceAll("(?s).*potwierdz\\?t=([A-Za-z0-9_-]+).*", "$1");
+        String token = emails.awaitEmail(email, "Potwierdź konto").textBody().replaceAll("(?s).*potwierdz#t=([A-Za-z0-9_-]+).*", "$1");
         sf("POST", host, "/account/verify", Map.of("X-Requested-With", "shopivo"), Map.of("token", token, "password", "Mocne-Haslo-Klienta-2"));
         JsonNode customer = owner.get(base(t) + "/customers").json().get("items").get(0);
         assertThat(customer.get("accountCreatedAt").isNull()).isFalse();

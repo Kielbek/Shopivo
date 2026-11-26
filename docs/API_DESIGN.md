@@ -237,7 +237,7 @@ Publiczne, `Cache-Control: max-age=31536000, immutable`, `X-Content-Type-Options
 | GET | `/api/v1/storefront/review-invitation` | nagłówek `X-Review-Token` | Produkty zamówienia z zaproszenia; 404 zły token, 410 wygasły (90 dni); 60/10 min/IP |
 | POST | `/api/v1/storefront/reviews` | nagłówek `X-Review-Token` | `{productId, rating 1–5, body ≤ 2000, authorName ≤ 60}`; tylko produkty z zamówienia, jedna opinia na produkt w zamówieniu (409); 20/10 min/IP |
 
-Zaproszenie (jednorazowy token, w bazie skrót) wysyłane e-mailem po zmianie statusu zamówienia ze sklepu na „Zrealizowane”;
+Zaproszenie (jednorazowy token we fragmencie adresu `#t=`, w bazie skrót) wysyłane e-mailem po zmianie statusu zamówienia ze sklepu na „Zrealizowane”;
 sklep dostaje e-mail o opinii do moderacji.
 
 **Weryfikacja zakupu** (oba sposoby wystawienia opinii): zamówienie zrealizowane (`COMPLETED`) i opłacone (`PAID`) lub
@@ -254,7 +254,7 @@ zamówieniu (unikalny indeks).
 |---|---|---|
 | POST | `/register` | `{email, password, firstName, lastName, termsAccepted}` → zawsze 202 (nie ujawnia, czy konto istnieje); e-mail z linkiem lub „masz już konto”; 10/10 min/IP, 3/h/e-mail |
 | POST | `/verify` | `{token, password}` — link z e-maila **i** hasło z tej rejestracji → ciasteczko sesji (ochrona przed przejęciem konta zarejestrowanego na cudzy e-mail) |
-| POST | `/login`, `/logout` | Logowanie tylko po potwierdzeniu e-maila; jednakowa odpowiedź dla nieznanego e-maila i złego hasła; blokada 15 min po 5 nieudanych próbach; 30/10 min/IP |
+| POST | `/login`, `/logout` | Logowanie tylko po potwierdzeniu e-maila; jednakowa odpowiedź dla nieznanego e-maila i złego hasła; 10 prób / 15 min na adres e-mail w sklepie (jednakowo dla istniejących i nieistniejących), 30/10 min/IP |
 | POST | `/password-reset`, `/password-reset/confirm` | Zawsze 202; link jednorazowy ważny 1 h; po zmianie hasła wszystkie sesje kończą się |
 | GET/PATCH | `/me` | Dane konta (GET dla gościa → 204) |
 | POST | `/password`, `/delete` | Zmiana hasła (inne sesje wylogowane), usunięcie konta (wymaga hasła; zamówienia zostają w sklepie) |

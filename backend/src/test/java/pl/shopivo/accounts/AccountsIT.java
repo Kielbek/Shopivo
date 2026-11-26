@@ -99,7 +99,7 @@ class AccountsIT extends IntegrationTest {
 
     private String link(String email, String subject, String path) {
         String body = emails.awaitEmail(email, subject).textBody();
-        Matcher m = Pattern.compile(Pattern.quote(path) + "\\?t=([A-Za-z0-9_-]+)").matcher(body);
+        Matcher m = Pattern.compile(Pattern.quote(path) + "#t=([A-Za-z0-9_-]+)").matcher(body);
         assertThat(m.find()).as(body).isTrue();
         return m.group(1);
     }
@@ -221,10 +221,20 @@ class AccountsIT extends IntegrationTest {
                 .code()).isEqualTo("INVALID_TOKEN");
         assertThat(acc(HttpMethod.GET, s.host(), "/account/me", session, null).status()).isEqualTo(204);
 
-        // Lockout after repeated failures
-        for (int i = 0; i < 5; i++) acc(HttpMethod.POST, s.host(), "/account/login", null, Map.of("email", victim, "password", "zle-haslo-" + i));
+        // Brute force is slowed per address — identically for existing and unknown addresses (no account enumeration)
+        String nobody = uniqueEmail("nikt-nie-ma");
+        for (int i = 0; i < 10; i++) {
+            acc(HttpMethod.POST, s.host(), "/account/login", null, Map.of("email", victim, "password", "zle-haslo-" + i));
+            acc(HttpMethod.POST, s.host(), "/account/login", null, Map.of("email", nobody, "password", "zle-haslo-" + i));
+        }
         assertThat(acc(HttpMethod.POST, s.host(), "/account/login", null, Map.of("email", victim, "password", "Nowe-Haslo-Klientki-7")).code())
-                .isEqualTo("ACCOUNT_LOCKED");
+                .isEqualTo("RATE_LIMITED");
+        assertThat(acc(HttpMethod.POST, s.host(), "/account/login", null, Map.of("email", nobody, "password", "x")).code())
+                .isEqualTo("RATE_LIMITED");
+        // The limit is per store: the same address in another store is unaffected
+        Shop other = shop("acc-sec-b");
+        assertThat(acc(HttpMethod.POST, other.host(), "/account/login", null, Map.of("email", victim, "password", "x")).code())
+                .isEqualTo("INVALID_CREDENTIALS");
     }
 
     @Test

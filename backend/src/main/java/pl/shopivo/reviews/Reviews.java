@@ -245,12 +245,8 @@ public class Reviews {
         Long total = jdbc.queryForObject("select count(*) from product_reviews r" + where, Long.class, args.toArray());
         args.add(pageable.getPageSize());
         args.add(pageable.getOffset());
-        // Product name and order number come from the order's own snapshot (no cross-module joins on catalog tables).
-        List<ReviewView> items = jdbc.query("""
-                select r.*, o.number as order_number,
-                    (select oi.name from order_items oi where oi.order_id = r.order_id and oi.product_id = r.product_id limit 1) as product_name
-                from product_reviews r join orders o on o.id = r.order_id and o.tenant_id = r.tenant_id
-                """ + where + " order by r.created_at desc, r.id limit ? offset ?", (rs, i) -> view(rs), args.toArray());
+        List<ReviewView> items = labelled(jdbc.query("select r.* from product_reviews r" + where + " order by r.created_at desc, r.id limit ? offset ?",
+                (rs, i) -> view(rs), args.toArray()));
         return new PageImpl<>(items, pageable, total == null ? 0 : total);
     }
 
@@ -287,20 +283,25 @@ public class Reviews {
 
     @Transactional(readOnly = true)
     public ReviewView get(UUID id) {
-        return jdbc.query("""
-                select r.*, o.number as order_number,
-                    (select oi.name from order_items oi where oi.order_id = r.order_id and oi.product_id = r.product_id limit 1) as product_name
-                from product_reviews r join orders o on o.id = r.order_id and o.tenant_id = r.tenant_id
-                where r.id = ? and r.tenant_id = ?
-                """, (rs, i) -> view(rs), id, TenantContext.requireTenantId()).stream().findFirst()
-                .orElseThrow(() -> new NotFoundException("Nie znaleziono opinii."));
+        return labelled(jdbc.query("select * from product_reviews where id = ? and tenant_id = ?", (rs, i) -> view(rs), id,
+                TenantContext.requireTenantId())).stream().findFirst().orElseThrow(() -> new NotFoundException("Nie znaleziono opinii."));
     }
 
     // ------------------------------------------------------------------------------------------------ helpers
 
+    /** Product name and order number come from the orders module (the order's own snapshot), not from its tables. */
+    private List<ReviewView> labelled(List<ReviewView> reviews) {
+        Map<UUID, Orders.OrderLabel> labels = orders.labels(reviews.stream().map(ReviewView::orderId).collect(java.util.stream.Collectors.toSet()));
+        return reviews.stream().map(r -> {
+            Orders.OrderLabel l = labels.get(r.orderId());
+            return new ReviewView(r.id(), r.productId(), l == null ? null : l.productNames().get(r.productId()), r.orderId(),
+                    l == null ? 0 : l.number(), r.authorName(), r.rating(), r.body(), r.status(), r.reply(), r.repliedAt(), r.moderatedAt(), r.createdAt());
+        }).toList();
+    }
+
     private static ReviewView view(ResultSet rs) throws SQLException {
-        return new ReviewView(rs.getObject("id", UUID.class), rs.getObject("product_id", UUID.class), rs.getString("product_name"),
-                rs.getObject("order_id", UUID.class), rs.getLong("order_number"), rs.getString("author_name"), rs.getInt("rating"),
+        return new ReviewView(rs.getObject("id", UUID.class), rs.getObject("product_id", UUID.class), null,
+                rs.getObject("order_id", UUID.class), 0, rs.getString("author_name"), rs.getInt("rating"),
                 rs.getString("body"), Status.valueOf(rs.getString("status")), rs.getString("reply"), ts(rs, "replied_at"),
                 ts(rs, "moderated_at"), ts(rs, "created_at"));
     }

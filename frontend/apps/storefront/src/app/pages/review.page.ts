@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { Seo } from '../core/seo';
+import { takeLinkToken } from '../core/link-token';
 import { StoreState } from '../core/store-state';
 import { StorefrontApi } from '../storefront-api';
 
@@ -84,12 +85,7 @@ export class ReviewPage {
   protected readonly expired = computed(() => (this.invitation.error() as HttpErrorResponse | undefined)?.status === 410);
 
   constructor() {
-    const url = new URL(window.location.href);
-    this.token = url.searchParams.get('t');
-    if (this.token) {
-      url.searchParams.delete('t');
-      history.replaceState(history.state, '', url.pathname + url.search);
-    }
+    this.token = takeLinkToken();
     const store = inject(StoreState).store();
     inject(Seo).set({ title: 'Oceń zakupy', path: '/opinia', noindex: true }, store?.name ?? '');
     effect(() => {

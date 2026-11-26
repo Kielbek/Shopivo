@@ -83,7 +83,7 @@ class ReviewsIT extends IntegrationTest {
 
     private String tokenFromEmail(String email) {
         String body = emails.awaitEmail(email, "Jak oceniasz zakupy").textBody();
-        Matcher m = Pattern.compile("/opinia\\?t=([A-Za-z0-9_-]+)").matcher(body);
+        Matcher m = Pattern.compile("/opinia#t=([A-Za-z0-9_-]+)").matcher(body);
         assertThat(m.find()).as(body).isTrue();
         return m.group(1);
     }
