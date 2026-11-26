@@ -36,9 +36,11 @@ class OrderMailer {
     private final EmailSender sender;
     private final ShopivoProperties properties;
     private final TransactionTemplate tx;
+    private final org.springframework.beans.factory.ObjectProvider<pl.shopivo.orders.ShippingCarriers> carriers;
 
     OrderMailer(Orders orders, Stores stores, PaymentSettings payments, EmailTemplates templates, EmailSender sender,
-            ShopivoProperties properties, TransactionTemplate tx) {
+            ShopivoProperties properties, TransactionTemplate tx, org.springframework.beans.factory.ObjectProvider<pl.shopivo.orders.ShippingCarriers> carriers) {
+        this.carriers = carriers;
         this.orders = orders;
         this.stores = stores;
         this.payments = payments;
@@ -57,6 +59,9 @@ class OrderMailer {
         Data d = load(e.tenantId(), e.orderId());
         List<String> lines = new ArrayList<>();
         lines.add("Dziękujemy za zamówienie w sklepie " + d.store().name() + ". Poniżej jego podsumowanie.");
+        if (d.order().pickupPoint() != null) {
+            lines.add("Dostawa do paczkomatu " + d.order().pickupPoint().code() + ": " + d.order().pickupPoint().address() + ".");
+        }
         if (d.order().paymentMethod() == PaymentMethod.BANK_TRANSFER && d.payment().bankTransferEnabled()) {
             lines.add("Prosimy o przelew " + money(d.order().totalMinor()) + " na rachunek " + formatIban(d.payment().bankAccountNumber())
                     + " (odbiorca: " + d.payment().bankAccountHolder() + "), tytuł: „Zamówienie " + d.order().number() + "”. "
@@ -83,7 +88,14 @@ class OrderMailer {
         List<String> lines = new ArrayList<>();
         lines.add("Zamówienie nr " + d.order().number() + " zostało wysłane" + (d.order().shippingMethodName() == null ? "." : " (" + d.order().shippingMethodName() + ")."));
         if (d.order().trackingNumber() != null) lines.add("Numer przesyłki: " + d.order().trackingNumber());
-        send(d, d.order().email(), "Zamówienie nr " + d.order().number() + " zostało wysłane", "Twoja paczka jest w drodze", lines, false);
+        if (d.order().pickupPoint() != null) {
+            lines.add("Odbiór w paczkomacie " + d.order().pickupPoint().code() + " (" + d.order().pickupPoint().address() + ").");
+        }
+        String trackingUrl = d.order().shippingCarrier() == null || d.order().trackingNumber() == null ? null
+                : java.util.Optional.ofNullable(carriers.getIfAvailable())
+                        .flatMap(c -> c.trackingUrl(d.order().shippingCarrier(), d.order().trackingNumber())).orElse(null);
+        send(d, d.order().email(), "Zamówienie nr " + d.order().number() + " zostało wysłane", "Twoja paczka jest w drodze", lines, false,
+                trackingUrl, "Śledź przesyłkę");
     }
 
     @Async
@@ -104,7 +116,15 @@ class OrderMailer {
     }
 
     private void send(Data d, String to, String subject, String heading, List<String> lines, boolean withItems) {
+        send(d, to, subject, heading, lines, withItems, null, null);
+    }
+
+    private void send(Data d, String to, String subject, String heading, List<String> lines, boolean withItems, String actionUrl, String actionLabel) {
         Map<String, Object> vars = new HashMap<>();
+        if (actionUrl != null) {
+            vars.put("actionUrl", actionUrl);
+            vars.put("actionLabel", actionLabel);
+        }
         vars.put("subject", subject);
         vars.put("heading", heading);
         vars.put("lines", lines);

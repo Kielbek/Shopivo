@@ -15,6 +15,10 @@ shopivo:
   storage:
     type: local
     local-dir: ${java.io.tmpdir}/shopivo-test-media
+  shipping:
+    # Simulated carrier for local development and tests only (refused in production profiles).
+    fake-carrier:
+      enabled: true
   payments:
     fake-gateway:
       enabled: true

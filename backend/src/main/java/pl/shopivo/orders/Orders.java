@@ -203,7 +203,7 @@ public class Orders {
         var bank = o.paymentMethod() == PaymentMethod.BANK_TRANSFER && o.paymentStatus() == PaymentStatus.UNPAID
                 ? paymentSettings.current() : null;
         return new OrderConfirmation(o.number(), o.status(), o.paymentStatus(), o.paymentMethod(), o.items(), o.subtotalMinor(),
-                o.shippingMinor(), o.paymentFeeMinor(), o.totalMinor(), o.currency(), o.shippingMethodName(), bank, o.createdAt());
+                o.shippingMinor(), o.paymentFeeMinor(), o.totalMinor(), o.currency(), o.shippingMethodName(), bank, o.createdAt(), o.pickupPoint());
     }
 
     /** The order behind a customer's order token (confirmation page), or 404. */
@@ -213,6 +213,29 @@ public class Orders {
                 Tokens.sha256(token == null ? "" : token), TenantContext.requireTenantId());
         if (ids.isEmpty()) throw new NotFoundException("Nie znaleziono zamówienia.");
         return get(ids.getFirst());
+    }
+
+    /** A carrier shipment was created: stores the tracking number (the merchant still marks the order as shipped). */
+    @Transactional
+    public void recordShipment(UUID id, String carrierName, String trackingNumber) {
+        UUID tenant = TenantContext.requireTenantId();
+        jdbc.update("update orders set tracking_number = coalesce(?, tracking_number), updated_at = now(), version = version + 1 where id = ? and tenant_id = ?",
+                trackingNumber, id, tenant);
+        event(jdbc, tenant, id, "SHIPMENT", "Przesyłka " + carrierName + (trackingNumber == null ? " utworzona" : " nr " + trackingNumber), false, null);
+    }
+
+    /** The carrier reports the parcel delivered: a shipped order is completed (which also invites the customer to review). */
+    @Transactional
+    public void markDelivered(UUID id, String carrierName) {
+        UUID tenant = TenantContext.requireTenantId();
+        int changed = jdbc.update("""
+                update orders set status = 'COMPLETED', completed_at = now(), updated_at = now(), version = version + 1
+                where id = ? and tenant_id = ? and status = 'SHIPPED'
+                """, id, tenant);
+        if (changed == 1) {
+            event(jdbc, tenant, id, "STATUS", "Status: zrealizowane (doręczono — " + carrierName + ")", false, null);
+            events.publishEvent(new OrderEvents.OrderCompleted(tenant, id));
+        }
     }
 
     public enum OnlinePaymentOutcome { PAID, ALREADY_PAID, ORDER_CANCELED }
@@ -409,7 +432,9 @@ public class Orders {
                 rs.getLong("subtotal_minor"), rs.getLong("discount_minor"), rs.getLong("total_minor"), rs.getLong("tax_minor"),
                 rs.getString("currency"), rs.getString("customer_note"), rs.getString("tracking_number"), items, events,
                 ts(rs, "paid_at"), ts(rs, "shipped_at"), ts(rs, "completed_at"), ts(rs, "canceled_at"), rs.getString("cancel_reason"),
-                ts(rs, "terms_accepted_at"), rs.getObject("terms_revision_id", UUID.class), ts(rs, "created_at"), rs.getLong("version"));
+                ts(rs, "terms_accepted_at"), rs.getObject("terms_revision_id", UUID.class), ts(rs, "created_at"), rs.getLong("version"),
+                rs.getString("pickup_point_json") == null ? null : json.readValue(rs.getString("pickup_point_json"), OrderModel.PickupPoint.class),
+                rs.getString("shipping_carrier"));
     }
 
     private static Instant ts(ResultSet rs, String col) throws SQLException {

@@ -22,6 +22,10 @@ shopivo:
   public-api-url: http://localhost:8080
   # Storefront dev server (npm run start:storefront) serves every store on <slug>.shopivo.localhost:4000.
   storefront-url-template: "http://{host}:4000"
+  shipping:
+    # Simulated carrier for local development and tests only (refused in production profiles).
+    fake-carrier:
+      enabled: true
   payments:
     # Simulated operator: payment page auto-confirms and posts a signed notification back (local only).
     fake-gateway:

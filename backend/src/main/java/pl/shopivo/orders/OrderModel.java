@@ -29,7 +29,17 @@ public final class OrderModel {
     }
 
     public record ShippingMethodView(UUID id, String name, String description, ShippingType type, long priceMinor,
-            Long freeFromMinor, boolean active, int position, long version) {
+            Long freeFromMinor, boolean active, int position, long version, String carrier) {
+
+        /** Linked to a carrier's parcel lockers: the customer picks a point at checkout. */
+        @com.fasterxml.jackson.annotation.JsonProperty("requiresPickupPoint")
+        public boolean requiresPickupPoint() {
+            return carrier != null && type == ShippingType.PARCEL_LOCKER;
+        }
+    }
+
+    /** Parcel locker / pickup point chosen at checkout. */
+    public record PickupPoint(String carrier, String code, String name, String address) {
     }
 
     public record PaymentSettingsView(boolean bankTransferEnabled, String bankAccountHolder, String bankAccountNumber,
@@ -56,7 +66,7 @@ public final class OrderModel {
             long subtotalMinor, long discountMinor, long totalMinor, long taxMinor, String currency, String customerNote,
             String trackingNumber, List<OrderItemView> items, List<OrderEventView> events, Instant paidAt, Instant shippedAt,
             Instant completedAt, Instant canceledAt, String cancelReason, Instant termsAcceptedAt, UUID termsRevisionId,
-            Instant createdAt, long version) {
+            Instant createdAt, long version, PickupPoint pickupPoint, String shippingCarrier) {
     }
 
     public record OrderRow(UUID id, long number, OrderStatus status, PaymentStatus paymentStatus, PaymentMethod paymentMethod,
@@ -70,6 +80,6 @@ public final class OrderModel {
     /** Public confirmation for the customer (no internal notes). */
     public record OrderConfirmation(long number, OrderStatus status, PaymentStatus paymentStatus, PaymentMethod paymentMethod,
             List<OrderItemView> items, long subtotalMinor, long shippingMinor, long paymentFeeMinor, long totalMinor,
-            String currency, String shippingMethodName, PaymentSettingsView bankTransfer, Instant createdAt) {
+            String currency, String shippingMethodName, PaymentSettingsView bankTransfer, Instant createdAt, PickupPoint pickupPoint) {
     }
 }

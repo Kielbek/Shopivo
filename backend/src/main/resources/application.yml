@@ -162,6 +162,10 @@ shopivo:
       per-million-storefront-requests-minor: ${SHOPIVO_COST_PER_MILLION_REQUESTS_MINOR:200}
       per-order-minor: ${SHOPIVO_COST_PER_ORDER_MINOR:2}
       per-gb-storage-minor: ${SHOPIVO_COST_PER_GB_MINOR:10}
+  shipping:
+    # Simulated carrier for local development and tests only (refused in production profiles).
+    fake-carrier:
+      enabled: false
   payments:
     # Simulated operator for local development and tests only. Never enable in production.
     fake-gateway:
