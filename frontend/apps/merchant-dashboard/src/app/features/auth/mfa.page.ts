@@ -10,7 +10,7 @@ import { firstValueFrom } from 'rxjs';
   imports: [ReactiveFormsModule, AlertComponent, ButtonComponent, FieldComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Weryfikacja dwuetapowa</h1>
+    <h1 class="text-[30px] font-semibold leading-[38px] tracking-[-0.02em] text-ink">Weryfikacja dwuetapowa</h1>
     <p class="mt-1 text-[13px] text-ink-soft">
       Wpisz 6-cyfrowy kod z aplikacji uwierzytelniającej albo jeden z kodów zapasowych.
     </p>

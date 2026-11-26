@@ -177,24 +177,23 @@ const STEPS: Step[] = ['name', 'industry', 'company', 'orders'];
 
           @if (error(); as e) {<p class="mt-5 rounded-[10px] bg-danger-soft px-4 py-3 text-[13px] text-danger-ink" role="alert">{{ e }}</p>}
 
-          <div class="sticky bottom-0 -mx-4 mt-10 flex flex-wrap items-center gap-3 border-t border-line bg-canvas/95 px-4 py-3 backdrop-blur
+          <div class="sticky bottom-0 -mx-4 mt-10 flex items-center gap-3 border-t border-line bg-canvas/95 px-4 py-3 backdrop-blur
             sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none">
+            @if (index() > 0) {
+              <button sv-button type="button" variant="ghost" size="lg" (click)="go(-1)"><svg [lucideIcon]="icons.arrowLeft" />Wstecz</button>
+            }
+            <span class="flex-1"></span>
+            @if (step() === 'industry' && !industry()) {
+              <button type="button" class="px-2 text-[14px] text-ink-soft hover:text-ink" (click)="go(1)">Pomiń</button>
+            }
+            @if (step() === 'company') {
+              <button type="button" class="px-2 text-[14px] text-ink-soft hover:text-ink" (click)="skipCompany()">Uzupełnię później</button>
+            }
             <button sv-button type="submit" size="lg" class="min-w-36">
               {{ step() === 'orders' ? 'Utwórz sklep' : 'Dalej' }}<svg [lucideIcon]="icons.arrowRight" />
             </button>
-            @if (step() === 'industry' && !industry()) {
-              <button type="button" class="text-[14px] text-ink-soft hover:text-ink" (click)="go(1)">Pomiń</button>
-            }
-            @if (step() === 'company') {
-              <button type="button" class="text-[14px] text-ink-soft hover:text-ink" (click)="skipCompany()">Uzupełnię później</button>
-            }
-            <span class="flex-1"></span>
-            @if (index() > 0) {
-              <button type="button" class="inline-flex items-center gap-1.5 text-[14px] text-ink-soft hover:text-ink" (click)="go(-1)">
-                <svg [lucideIcon]="icons.arrowLeft" [size]="16" />Wstecz</button>
-            }
           </div>
-          <p class="mt-4 hidden text-[12px] text-ink-muted sm:block">Wskazówka: naciśnij Enter, aby przejść dalej.</p>
+          <p class="mt-4 hidden text-right text-[12px] text-ink-muted sm:block">Wskazówka: naciśnij Enter, aby przejść dalej.</p>
         </form>
       }
     </main>

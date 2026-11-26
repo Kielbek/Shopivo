@@ -9,7 +9,7 @@ Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 49/49 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
 | Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 73/73 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
-| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 69/69 ✔ (panel 55, admin 3, witryna 11) |
+| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 70/70 ✔ (panel 56, admin 3, witryna 11) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
 | `npm audit --omit=dev --audit-level=high` | | 0 podatności |
 | Ręczny przepływ E2E w Chromium (Playwright, skrypt poza repo) na pełnym stosie lokalnym | rejestracja → e-mail (Mailpit) → weryfikacja → logowanie → sklep → dane firmy (walidacja NIP) → zaproszenie → MFA (QR) → panel admina → blokada sprzedawcy w panelu admina | ✔ |
@@ -51,6 +51,10 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 
 ## Usprawnienia UX katalogu (2026-11-26)
 
+- **Logowanie i rejestracja** bez karty: spokojna strona z jedną kolumną, duży nagłówek, białe pola z obramowaniem,
+  przycisk Google na górze (gdy skonfigurowany), pokazywanie hasła (ikona oka) w logowaniu, rejestracji i resecie
+  hasła, bez powtarzania hasła, wskaźnik siły hasła. **Panel na całą szerokość** — bez ramki z marginesem na dużych
+  ekranach i bez wąskiego, wyśrodkowanego kontenera treści. W kreatorze „Wstecz” po lewej, „Dalej” po prawej.
 - **Kreator startowy** zamiast formularza w karcie: po pierwszym zalogowaniu 4 kroki na szarym tle, jedno pytanie na
   ekran, pasek postępu, „Dalej”/Enter, „Wstecz” (dane zostają): nazwa i adres sklepu (sprawdzanie dostępności) → branża
   (można pominąć) → dane firmy z walidacją NIP i kodu pocztowego (można „Uzupełnić później”) → e-mail do zamówień

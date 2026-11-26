@@ -2,9 +2,9 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, input, signal } fro
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ApiError, AuthApi, SessionStore, StoresApi } from '@shopivo/api-client';
-import { AlertComponent, ButtonComponent, FieldComponent, LoadingComponent, controlError } from '@shopivo/shared-ui';
+import { AlertComponent, ButtonComponent, FieldComponent, LoadingComponent, PasswordRevealComponent, controlError } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
-import { PASSWORD_MIN_LENGTH, matchingPasswords } from '../../shared/validators';
+import { PASSWORD_MIN_LENGTH } from '../../shared/validators';
 
 /** Link from the verification e-mail: /weryfikacja-email?token=… */
 @Component({
@@ -15,12 +15,12 @@ import { PASSWORD_MIN_LENGTH, matchingPasswords } from '../../shared/validators'
     @switch (state()) {
       @case ('loading') {<sv-loading label="Potwierdzamy adres e-mail…" />}
       @case ('done') {
-        <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Adres e-mail potwierdzony</h1>
+        <h1 class="text-[30px] font-semibold leading-[38px] tracking-[-0.02em] text-ink">Adres e-mail potwierdzony</h1>
         <p class="mt-2 text-[14px] text-ink-soft">Twoje konto jest aktywne. Zaloguj się, aby utworzyć sklep.</p>
         <a sv-button class="mt-6" size="lg" routerLink="/logowanie">Zaloguj się</a>
       }
       @case ('error') {
-        <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Nie udało się potwierdzić adresu</h1>
+        <h1 class="text-[30px] font-semibold leading-[38px] tracking-[-0.02em] text-ink">Nie udało się potwierdzić adresu</h1>
         <sv-alert tone="error" class="mt-4">{{ message() }}</sv-alert>
         <p class="mt-4 text-[13px] text-ink-soft">Zaloguj się — jeśli adres nie jest potwierdzony, wyślemy nowy link.</p>
         <a sv-button variant="secondary" class="mt-6" routerLink="/logowanie">Przejdź do logowania</a>
@@ -56,7 +56,7 @@ export class VerifyEmailPage implements OnInit {
   imports: [ReactiveFormsModule, RouterLink, AlertComponent, ButtonComponent, FieldComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Nie pamiętasz hasła?</h1>
+    <h1 class="text-[30px] font-semibold leading-[38px] tracking-[-0.02em] text-ink">Nie pamiętasz hasła?</h1>
     @if (sent()) {
       <p class="mt-2 text-[14px] text-ink-soft">
         Jeśli konto z tym adresem istnieje, wysłaliśmy na nie link do ustawienia nowego hasła. Link jest ważny przez 1 godzinę.
@@ -67,7 +67,7 @@ export class VerifyEmailPage implements OnInit {
       @if (error(); as e) {<sv-alert tone="error" class="mt-6">{{ e.message }}</sv-alert>}
       <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 space-y-4" novalidate>
         <sv-field label="Adres e-mail" for="email" [error]="emailError()">
-          <input id="email" type="email" class="sv-input" formControlName="email" autocomplete="email"
+          <input id="email" type="email" class="sv-input sv-input-outline" formControlName="email" autocomplete="email"
             [attr.aria-invalid]="!!emailError()" />
         </sv-field>
         <button sv-button type="submit" [block]="true" size="lg" [loading]="submitting()">Wyślij link</button>
@@ -108,10 +108,10 @@ export class ForgotPasswordPage {
 /** Link from the reset e-mail: /nowe-haslo?token=… */
 @Component({
   selector: 'sv-reset-password-page',
-  imports: [ReactiveFormsModule, RouterLink, AlertComponent, ButtonComponent, FieldComponent],
+  imports: [ReactiveFormsModule, RouterLink, AlertComponent, ButtonComponent, PasswordRevealComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Ustaw nowe hasło</h1>
+    <h1 class="text-[30px] font-semibold leading-[38px] tracking-[-0.02em] text-ink">Ustaw nowe hasło</h1>
     @if (done()) {
       <p class="mt-2 text-[14px] text-ink-soft">Hasło zostało zmienione, a wszystkie sesje wylogowane. Zaloguj się nowym hasłem.</p>
       <a sv-button class="mt-6" size="lg" routerLink="/logowanie">Zaloguj się</a>
@@ -125,14 +125,15 @@ export class ForgotPasswordPage {
         </sv-alert>
       }
       <form [formGroup]="form" (ngSubmit)="submit()" class="mt-6 space-y-4" novalidate>
-        <sv-field label="Nowe hasło" for="password" [error]="err('password')" hint="Co najmniej 10 znaków.">
-          <input id="password" type="password" class="sv-input" formControlName="password" autocomplete="new-password"
-            [attr.aria-invalid]="!!err('password')" />
-        </sv-field>
-        <sv-field label="Powtórz hasło" for="confirmPassword" [error]="err('confirmPassword')">
-          <input id="confirmPassword" type="password" class="sv-input" formControlName="confirmPassword"
-            autocomplete="new-password" [attr.aria-invalid]="!!err('confirmPassword')" />
-        </sv-field>
+        <div>
+          <label class="sv-label" for="password">Nowe hasło</label>
+          <div class="relative mt-1.5">
+            <input #pw id="password" type="password" class="sv-input sv-input-outline pr-12" formControlName="password" autocomplete="new-password"
+              [attr.aria-invalid]="!!err('password')" aria-describedby="password-help" />
+            <sv-password-reveal [input]="pw" />
+          </div>
+          <p id="password-help" class="mt-1.5 text-[12px]" [class]="err('password') ? 'text-danger-ink' : 'text-ink-muted'">{{ err('password') ?? 'Co najmniej 10 znaków. Najlepiej kilka losowych słów.' }}</p>
+        </div>
         <button sv-button type="submit" [block]="true" size="lg" [loading]="submitting()">Zapisz nowe hasło</button>
       </form>
     }
@@ -145,16 +146,12 @@ export class ResetPasswordPage {
   protected readonly done = signal(false);
   protected readonly error = signal<ApiError | null>(null);
   private readonly serverPasswordError = signal<string | null>(null);
-  protected readonly form = inject(NonNullableFormBuilder).group(
-    {
-      password: ['', [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH), Validators.maxLength(128)]],
-      confirmPassword: ['', Validators.required],
-    },
-    { validators: matchingPasswords() },
-  );
+  protected readonly form = inject(NonNullableFormBuilder).group({
+    password: ['', [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH), Validators.maxLength(128)]],
+  });
 
-  protected err(name: 'password' | 'confirmPassword'): string | null {
-    return controlError(this.form.controls[name], name === 'password' ? this.serverPasswordError() : null);
+  protected err(name: 'password'): string | null {
+    return controlError(this.form.controls[name], this.serverPasswordError());
   }
 
   async submit(): Promise<void> {
@@ -186,7 +183,7 @@ export class ResetPasswordPage {
   template: `
     <div class="mx-auto max-w-md px-4 py-16">
       @if (error(); as e) {
-        <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Nie udało się przyjąć zaproszenia</h1>
+        <h1 class="text-[30px] font-semibold leading-[38px] tracking-[-0.02em] text-ink">Nie udało się przyjąć zaproszenia</h1>
         <sv-alert tone="error" class="mt-4">{{ e.message }}</sv-alert>
         @if (e.code === 'INVITATION_EMAIL_MISMATCH') {
           <p class="mt-4 text-[13px] text-ink-soft">Jesteś zalogowany jako {{ session.user()?.email }}.</p>

@@ -84,6 +84,11 @@
       disabled:cursor-not-allowed disabled:bg-[#F7F8FA] disabled:text-ink-muted;
   }
 
+  /* Outlined variant for full-page forms (sign-in, onboarding): white field with a visible border. */
+  .sv-input-outline {
+    @apply h-11 border-line-strong bg-card text-[14.5px] hover:border-[#C9CFD9] hover:bg-card;
+  }
+
   textarea.sv-input {
     @apply h-auto py-2.5 leading-6;
   }

@@ -38,15 +38,15 @@ export interface NavSection {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <a href="#sv-main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-[8px] focus:bg-card focus:px-4 focus:py-2 focus:shadow">Przejdź do treści</a>
-    <div class="min-h-dvh bg-page 2xl:p-4">
-      <div class="flex min-h-dvh bg-card 2xl:min-h-[calc(100dvh-2rem)] 2xl:overflow-clip 2xl:rounded-[20px] 2xl:shadow-[0_1px_3px_rgba(37,43,59,0.06)]">
+    <div class="min-h-dvh bg-card">
+      <div class="flex min-h-dvh bg-card">
 
         <!-- Overlay fades with the drawer and follows the swipe. -->
         <div class="fixed inset-0 z-40 bg-[#252B3B]/30 transition-opacity duration-300 motion-reduce:transition-none lg:hidden"
           [class.pointer-events-none]="!drawerOpen()" [class.opacity-0]="!drawerOpen()" [class.!transition-none]="drawerDrag() !== null"
           [style.opacity]="drawerDrag() !== null ? overlayOpacity() : null" (click)="drawerOpen.set(false)" aria-hidden="true"></div>
         <!-- One sidebar element: off-canvas drawer below lg, sticky column from lg. -->
-        <aside #drawer class="fixed inset-y-0 left-0 z-50 flex touch-pan-y w-[280px] max-w-[85vw] shrink-0 flex-col bg-card shadow-[var(--shadow-pop)] transition-transform duration-300 ease-[cubic-bezier(0.2,0.9,0.25,1)] motion-reduce:transition-none lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:w-[264px] lg:max-w-none lg:translate-x-0 lg:shadow-none 2xl:top-4 2xl:h-[calc(100dvh-2rem)]"
+        <aside #drawer class="fixed inset-y-0 left-0 z-50 flex touch-pan-y w-[280px] max-w-[85vw] shrink-0 flex-col bg-card shadow-[var(--shadow-pop)] transition-transform duration-300 ease-[cubic-bezier(0.2,0.9,0.25,1)] motion-reduce:transition-none lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:w-[264px] lg:max-w-none lg:translate-x-0 lg:border-r lg:border-line lg:shadow-none"
           [class.-translate-x-full]="!drawerOpen()" [class.!transition-none]="drawerDrag() !== null"
           [style.transform]="drawerDrag() !== null ? 'translateX(' + -drawerDrag()! + 'px)' : null" [attr.aria-label]="navLabel()"
           [attr.inert]="drawerHidden() ? '' : null">
@@ -54,7 +54,7 @@ export interface NavSection {
         </aside>
 
         <div class="flex min-w-0 flex-1 flex-col bg-canvas">
-          <header class="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-line bg-card/95 px-4 backdrop-blur sm:px-6 2xl:top-4">
+          <header class="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-line bg-card/95 px-4 backdrop-blur sm:px-6">
             <button type="button" class="-ml-1 rounded-[8px] p-2 text-ink-soft hover:bg-hover lg:hidden" (click)="drawerOpen.set(true)"
               aria-label="Otwórz menu">
               <svg [lucideIcon]="icons.menu" [size]="20" />
@@ -90,7 +90,7 @@ export interface NavSection {
           </header>
 
           <main id="sv-main" class="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
-            <div class="mx-auto w-full max-w-[1320px]"><ng-content /></div>
+            <div class="w-full max-w-[1760px]"><ng-content /></div>
           </main>
         </div>
       </div>
