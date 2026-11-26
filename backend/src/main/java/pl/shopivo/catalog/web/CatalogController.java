@@ -191,6 +191,23 @@ class CatalogController {
         return categories.update(id, input);
     }
 
+    @PostMapping(value = "/categories/{id}/image", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("@tenantAccess.can('PRODUCTS_WRITE')")
+    CategoryView setCategoryImage(@PathVariable UUID tenantId, @PathVariable UUID id,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file) throws java.io.IOException {
+        if (file.getSize() > pl.shopivo.media.ImageProcessor.MAX_BYTES) {
+            throw new pl.shopivo.shared.error.BusinessRuleException("FILE_TOO_LARGE", "Zdjęcie może mieć najwyżej 10 MB.");
+        }
+        return categories.setImage(id, file.getBytes());
+    }
+
+    @DeleteMapping("/categories/{id}/image")
+    @PreAuthorize("@tenantAccess.can('PRODUCTS_WRITE')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    void removeCategoryImage(@PathVariable UUID tenantId, @PathVariable UUID id) {
+        categories.removeImage(id);
+    }
+
     @DeleteMapping("/categories/{id}")
     @PreAuthorize("@tenantAccess.can('PRODUCTS_WRITE')")
     @ResponseStatus(HttpStatus.NO_CONTENT)

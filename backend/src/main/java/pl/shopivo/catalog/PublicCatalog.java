@@ -44,7 +44,7 @@ public class PublicCatalog {
     }
 
     public record PublicCategory(UUID id, UUID parentId, String name, String slug, String description, int depth,
-            String seoTitle, String seoDescription) {
+            String seoTitle, String seoDescription, Map<String, String> image) {
     }
 
     public record Crumb(String name, String slug) {
@@ -71,20 +71,35 @@ public class PublicCatalog {
     @Transactional(readOnly = true)
     public List<PublicCategory> categories() {
         // A hidden category hides its whole subtree.
-        return jdbc.query("""
+        List<PublicCategory> list = jdbc.query("""
                 select c.* from categories c where c.tenant_id = ?
                   and not exists (select 1 from categories h where h.tenant_id = c.tenant_id and not h.visible and c.path like h.path || '%')
                 order by c.depth, c.position, lower(c.name)
                 """, (rs, i) -> new PublicCategory(rs.getObject("id", UUID.class), rs.getObject("parent_id", UUID.class),
                 rs.getString("name"), rs.getString("slug"), rs.getString("description"), rs.getInt("depth"), rs.getString("seo_title"),
-                rs.getString("seo_description")), TenantContext.requireTenantId());
+                rs.getString("seo_description"), null), TenantContext.requireTenantId());
+        Map<UUID, List<Media.ImageView>> images = media.list(Media.CATEGORY_OWNER, list.stream().map(PublicCategory::id).toList());
+        return list.stream().map(c -> {
+            List<Media.ImageView> img = images.get(c.id());
+            return img == null || img.isEmpty() ? c : new PublicCategory(c.id(), c.parentId(), c.name(), c.slug(), c.description(), c.depth(),
+                    c.seoTitle(), c.seoDescription(), img.getFirst().urls());
+        }).toList();
     }
 
     @Transactional(readOnly = true)
     public Page<ProductCard> products(String categorySlug, String query, Sort sort, Pageable pageable) {
+        return products(categorySlug, query, sort, false, pageable);
+    }
+
+    /** {@code onSale}: only products with a variant priced below its "before discount" price. */
+    @Transactional(readOnly = true)
+    public Page<ProductCard> products(String categorySlug, String query, Sort sort, boolean onSale, Pageable pageable) {
         UUID tenant = TenantContext.requireTenantId();
         StringBuilder where = new StringBuilder(" where p.tenant_id = ? and p.status = 'ACTIVE'");
         List<Object> args = new ArrayList<>(List.of(tenant));
+        if (onSale) {
+            where.append(" and exists (select 1 from product_variants sv where sv.product_id = p.id and sv.compare_at_minor is not null and sv.compare_at_minor > sv.price_minor)");
+        }
         if (categorySlug != null && !categorySlug.isBlank()) {
             String path = categories().stream().filter(c -> c.slug().equals(categorySlug)).findFirst()
                     .map(c -> jdbc.queryForObject("select path from categories where tenant_id = ? and id = ?", String.class, tenant, c.id()))

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { ProductImage, PublishReadiness, Store, ThemeResponse, ThemeState } from '@shopivo/shared-models';
+import { ProductImage, PublishReadiness, Store, ThemeResponse, ThemeState, ThemeSection } from '@shopivo/shared-models';
 import { Observable } from 'rxjs';
 
 /** Store publication, theme and product images (merchant panel). */
@@ -32,8 +32,8 @@ export class StorefrontAdminApi {
     return this.http.get<ThemeResponse>(`${this.base(t)}/theme`);
   }
 
-  saveTheme(t: string, code: string, settings: Record<string, string>, version: number): Observable<ThemeState> {
-    return this.http.put<ThemeState>(`${this.base(t)}/theme`, { code, settings, version });
+  saveTheme(t: string, code: string, settings: Record<string, string>, version: number, sections: ThemeSection[] | null = null): Observable<ThemeState> {
+    return this.http.put<ThemeState>(`${this.base(t)}/theme`, { code, settings, sections, version });
   }
 
   publishTheme(t: string): Observable<ThemeState> {

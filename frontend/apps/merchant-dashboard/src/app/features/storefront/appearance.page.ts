@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { LucideDynamicIcon } from '@lucide/angular';
 import { ApiError, CatalogApi, StorefrontAdminApi } from '@shopivo/api-client';
-import { ThemeField } from '@shopivo/shared-models';
+import { ThemeField, ThemeSection } from '@shopivo/shared-models';
 import {
   AlertComponent, BadgeComponent, ButtonComponent, CardComponent, DatePipe, FieldComponent, InfoTipComponent, LoadingComponent, SelectComponent,
   SelectOption, ToastService, icons,
@@ -80,7 +80,7 @@ export function contrast(a: string, b: string): number {
 
       <!-- current template -->
       <section class="sv-card mt-5 flex flex-col gap-5 p-5 sm:flex-row sm:items-center">
-        <div class="w-full shrink-0 overflow-hidden rounded-[10px] border border-line sm:w-56"><sv-theme-mock [settings]="settings()" [storeName]="storeName()" /></div>
+        <div class="w-full shrink-0 overflow-hidden rounded-[10px] border border-line sm:w-56"><sv-theme-mock [settings]="settings()" [sections]="sections()" [storeName]="storeName()" /></div>
         <div class="min-w-0 flex-1">
           <p class="text-[12px] font-medium uppercase tracking-wide text-ink-muted">Twój szablon</p>
           <p class="mt-0.5 flex flex-wrap items-center gap-2 text-[20px] font-semibold text-ink">{{ preset()?.name }}
@@ -167,8 +167,8 @@ export function contrast(a: string, b: string): number {
           </div>
           @if (previewMode() === 'live') {
             <div class="mt-4 grid grid-cols-[minmax(0,1fr)_28%] items-end gap-4 rounded-[14px] bg-[#E9ECF1] p-4">
-              <div class="overflow-hidden rounded-[8px] shadow-[0_6px_24px_rgba(15,23,42,0.12)]"><sv-theme-mock [settings]="settings()" [storeName]="storeName()" /></div>
-              <div class="overflow-hidden rounded-[14px] border-[4px] border-[#1f2430] shadow-lg"><sv-theme-mock [settings]="settings()" [storeName]="storeName()" [phone]="true" /></div>
+              <div class="overflow-hidden rounded-[8px] shadow-[0_6px_24px_rgba(15,23,42,0.12)]"><sv-theme-mock [settings]="settings()" [sections]="sections()" [storeName]="storeName()" /></div>
+              <div class="overflow-hidden rounded-[14px] border-[4px] border-[#1f2430] shadow-lg"><sv-theme-mock [settings]="settings()" [sections]="sections()" [storeName]="storeName()" [phone]="true" /></div>
             </div>
           } @else {
             @if (dirty()) {<sv-alert tone="info" class="mt-4">Masz niezapisane zmiany — <button type="button" class="sv-link" (click)="save()">zapisz szkic</button>, aby zobaczyć je w sklepie.</sv-alert>}
@@ -202,6 +202,7 @@ export class AppearancePage {
   private readonly previewNonce = signal(0);
   protected readonly code = signal('');
   protected readonly settings = signal<Record<string, string>>({});
+  protected readonly sections = signal<ThemeSection[]>([]);
   protected readonly dirty = signal(false);
   protected readonly saving = signal(false);
   protected readonly publishing = signal(false);
@@ -241,6 +242,7 @@ export class AppearancePage {
       }
       this.code.set(d.state.draft.code);
       this.settings.set({ ...d.state.draft.settings });
+      this.sections.set(d.state.draft.sections ?? []);
       this.version = d.state.version;
       this.dirty.set(false);
     });
@@ -259,7 +261,7 @@ export class AppearancePage {
     this.saving.set(true);
     this.error.set(null);
     try {
-      const state = await firstValueFrom(this.api.saveTheme(this.ctx.tenantId(), this.code(), this.settings(), this.version));
+      const state = await firstValueFrom(this.api.saveTheme(this.ctx.tenantId(), this.code(), this.settings(), this.version, this.sections()));
       this.version = state.version;
       this.data.update((d) => (d ? { ...d, state } : d));
       this.previewNonce.update((n) => n + 1);

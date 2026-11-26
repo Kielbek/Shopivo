@@ -12,7 +12,7 @@ public final class CatalogViews {
     }
 
     public record CategoryView(UUID id, UUID parentId, String name, String slug, String description, int position, int depth,
-            boolean visible, String seoTitle, String seoDescription, long productCount, long version) {
+            boolean visible, String seoTitle, String seoDescription, long productCount, long version, java.util.Map<String, String> image) {
     }
 
     public record CategoryRef(UUID id, String name) {

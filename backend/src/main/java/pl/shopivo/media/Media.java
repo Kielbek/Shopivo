@@ -25,6 +25,17 @@ public class Media {
 
     private static final Logger log = LoggerFactory.getLogger(Media.class);
     public static final int MAX_PER_OWNER = 10;
+    /** Store-wide library of images used by the storefront theme (banners, logo, image with text). */
+    public static final String THEME_OWNER = "THEME";
+    public static final String CATEGORY_OWNER = "CATEGORY";
+
+    static int limit(String ownerType) {
+        return switch (ownerType) {
+            case THEME_OWNER -> 40;
+            case CATEGORY_OWNER -> 1;
+            default -> MAX_PER_OWNER;
+        };
+    }
 
     private final JdbcTemplate jdbc;
     private final ObjectStorage storage;
@@ -102,8 +113,10 @@ public class Media {
         Integer count = jdbc.queryForObject("select count(*) from media_assets where tenant_id = ? and owner_type = ? and owner_id = ?",
                 Integer.class, tenant, ownerType, ownerId);
         int n = count == null ? 0 : count;
-        if (n >= MAX_PER_OWNER) {
-            throw new BusinessRuleException("TOO_MANY_IMAGES", "Produkt może mieć najwyżej " + MAX_PER_OWNER + " zdjęć.");
+        int max = limit(ownerType);
+        if (n >= max) {
+            throw new BusinessRuleException("TOO_MANY_IMAGES", max == 1 ? "Można dodać jedno zdjęcie — usuń obecne, aby dodać nowe."
+                    : "Można dodać najwyżej " + max + " zdjęć.");
         }
         return n;
     }

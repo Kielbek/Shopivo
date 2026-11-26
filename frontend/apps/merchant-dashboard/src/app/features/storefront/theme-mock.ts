@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ThemeSection } from '@shopivo/shared-models';
 import { fontStack, onColor, radiusOf } from './theme-meta';
 
 /**
@@ -28,20 +29,20 @@ import { fontStack, onColor, radiusOf } from './theme-meta';
         </span>
       </div>
       <!-- hero -->
-      @switch (s['heroLayout']) {
+      @switch (hero()['layout'] === 'image' ? 'banner' : hero()['layout']) {
         @case ('banner') {
           <div class="mx-[6%] mt-[4%] flex flex-col justify-center px-[6%] py-[7%]" [style.background]="s['primary']" [style.color]="on(s['primary'])" [style.border-radius]="radius()">
             <span class="font-semibold leading-tight" [style.font-size.px]="phone() ? 11 : 13">{{ title() }}</span>
-            <span class="mt-1 text-[7px] opacity-80">{{ s['heroSubtitle'] }}</span>
-            <span class="mt-2 w-fit px-2 py-1 text-[7px] font-semibold" [style.background]="s['background']" [style.color]="s['text']" [style.border-radius]="radius()">{{ s['heroCta'] || 'Zobacz' }}</span>
+            <span class="mt-1 text-[7px] opacity-80">{{ hero()['subheading'] }}</span>
+            <span class="mt-2 w-fit px-2 py-1 text-[7px] font-semibold" [style.background]="s['background']" [style.color]="s['text']" [style.border-radius]="radius()">{{ hero()['cta'] || 'Zobacz' }}</span>
           </div>
         }
         @case ('split') {
           <div class="mx-[6%] mt-[4%] grid items-center gap-[4%]" [class]="phone() ? 'grid-cols-1' : 'grid-cols-2'">
             <div>
               <span class="block font-semibold leading-tight" [style.font-size.px]="phone() ? 11 : 13">{{ title() }}</span>
-              <span class="mt-1 block text-[7px] opacity-70">{{ s['heroSubtitle'] }}</span>
-              <span class="mt-2 inline-block px-2 py-1 text-[7px] font-semibold" [style.background]="s['primary']" [style.color]="on(s['primary'])" [style.border-radius]="radius()">{{ s['heroCta'] || 'Zobacz' }}</span>
+              <span class="mt-1 block text-[7px] opacity-70">{{ hero()['subheading'] }}</span>
+              <span class="mt-2 inline-block px-2 py-1 text-[7px] font-semibold" [style.background]="s['primary']" [style.color]="on(s['primary'])" [style.border-radius]="radius()">{{ hero()['cta'] || 'Zobacz' }}</span>
             </div>
             <div class="grid grid-cols-2 gap-1">
               <span class="aspect-[3/4]" [style.background]="s['accent']" [style.border-radius]="radius()" style="opacity:.55"></span>
@@ -52,8 +53,8 @@ import { fontStack, onColor, radiusOf } from './theme-meta';
         @default {
           <div class="mx-[6%] mt-[4%] flex flex-col items-center px-[6%] py-[6%] text-center" [style.background]="s['surface']" [style.border-radius]="radius()">
             <span class="font-semibold leading-tight" [style.font-size.px]="phone() ? 11 : 13">{{ title() }}</span>
-            <span class="mt-1 text-[7px] opacity-70">{{ s['heroSubtitle'] }}</span>
-            <span class="mt-2 px-2 py-1 text-[7px] font-semibold" [style.background]="s['primary']" [style.color]="on(s['primary'])" [style.border-radius]="radius()">{{ s['heroCta'] || 'Zobacz' }}</span>
+            <span class="mt-1 text-[7px] opacity-70">{{ hero()['subheading'] }}</span>
+            <span class="mt-2 px-2 py-1 text-[7px] font-semibold" [style.background]="s['primary']" [style.color]="on(s['primary'])" [style.border-radius]="radius()">{{ hero()['cta'] || 'Zobacz' }}</span>
           </div>
         }
       }
@@ -74,12 +75,22 @@ import { fontStack, onColor, radiusOf } from './theme-meta';
 })
 export class ThemeMockComponent {
   readonly settings = input.required<Record<string, string>>();
+  readonly sections = input<ThemeSection[] | null>(null);
+  /** The first enabled banner section (falls back to the old flat settings). */
+  protected readonly hero = computed<Record<string, string>>(() => {
+    const h = (this.sections() ?? []).find((s) => s.type === 'hero' && s.enabled)?.data;
+    const s = this.settings();
+    return {
+      layout: h?.['layout'] ?? s['heroLayout'] ?? 'centered', heading: h?.['heading'] ?? s['heroTitle'] ?? '',
+      subheading: h?.['subheading'] ?? s['heroSubtitle'] ?? '', cta: h?.['cta'] ?? s['heroCta'] ?? '',
+    };
+  });
   readonly storeName = input('');
   readonly phone = input(false);
 
   protected readonly font = computed(() => fontStack(this.settings()['font']));
   protected readonly radius = computed(() => radiusOf(this.settings()['radius'], 0.45));
-  protected readonly title = computed(() => this.settings()['heroTitle'] || this.storeName() || 'Witaj w sklepie');
+  protected readonly title = computed(() => this.hero()['heading'] || this.storeName() || 'Witaj w sklepie');
   protected readonly cards = computed(() => (this.phone() ? [1, 2, 3, 4] : [1, 2, 3, 4]));
   protected readonly line = computed(() => (onColor(this.settings()['background']) === '#fff' ? 'rgba(255,255,255,.18)' : 'rgba(0,0,0,.10)'));
 

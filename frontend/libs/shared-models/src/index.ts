@@ -399,11 +399,16 @@ export const PAYMENT_METHOD_LABELS: Record<OrderPaymentMethod, string> = { BANK_
 export const SHIPPING_TYPE_LABELS: Record<ShippingType, string> = { COURIER: 'Kurier', PARCEL_LOCKER: 'Paczkomat / automat', POST: 'Poczta', PICKUP: 'Odbiór osobisty', DIGITAL: 'Dostawa elektroniczna' };
 
 // ---------------------------------------------------------------- storefront & themes (Phase 4)
-export interface ThemeField { key: string; label: string; type: 'COLOR' | 'SELECT' | 'TEXT'; options: string[] | null; maxLength: number; group: string; }
-export interface ThemePreset { code: string; name: string; description: string; defaults: Record<string, string>; }
-export interface ThemeConfig { code: string; settings: Record<string, string>; }
+export interface ThemeField { key: string; label: string; type: 'COLOR' | 'SELECT' | 'TEXT' | 'IMAGE' | 'URL'; options: string[] | null; maxLength: number; group: string; }
+export type SectionPropKind = 'TEXT' | 'TEXTAREA' | 'SELECT' | 'LINK' | 'IMAGE' | 'CATEGORY' | 'CATEGORIES' | 'ITEMS' | 'TOGGLE';
+export interface SectionProp { key: string; label: string; kind: SectionPropKind; options: string[] | null; max: number; itemProps: SectionProp[] | null; help: string | null; }
+export interface SectionType { type: string; name: string; description: string; props: SectionProp[]; }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface ThemeSection { id: string; type: string; enabled: boolean; data: Record<string, any>; }
+export interface ThemePreset { code: string; name: string; description: string; defaults: Record<string, string>; sections: ThemeSection[]; }
+export interface ThemeConfig { code: string; settings: Record<string, string>; sections: ThemeSection[]; }
 export interface ThemeState { draft: ThemeConfig; published: ThemeConfig | null; publishedAt: string | null; unpublishedChanges: boolean; version: number; }
-export interface ThemeResponse { presets: ThemePreset[]; fields: ThemeField[]; state: ThemeState; }
+export interface ThemeResponse { presets: ThemePreset[]; fields: ThemeField[]; sectionTypes: SectionType[]; state: ThemeState; }
 export interface PublishReadiness { ready: boolean; missing: string[]; }
 export interface ProductImage { id: string; alt: string | null; width: number; height: number; position: number; urls: Record<string, string>; }
 

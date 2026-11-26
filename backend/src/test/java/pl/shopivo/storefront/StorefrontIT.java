@@ -186,7 +186,12 @@ class StorefrontIT extends IntegrationTest {
         assertThat(json(sf(host, "/store", null)).get("theme").get("code").asString()).isEqualTo("ELECTRONICS");
 
         owner.post(base(t) + "/theme/publish", Map.of());
-        assertThat(json(sf(host, "/store", null)).get("theme").get("settings").get("heroTitle").asString()).isEqualTo("Złoto i srebro");
+        // The old single-banner setting lands in the hero section; the storefront gets the sections and theme images
+        JsonNode published = json(sf(host, "/store", null));
+        assertThat(published.get("theme").get("sections").get(0).get("type").asString()).isEqualTo("hero");
+        assertThat(published.get("theme").get("sections").get(0).get("data").get("heading").asString()).isEqualTo("Złoto i srebro");
+        assertThat(published.get("theme").get("settings").has("heroTitle")).isFalse();
+        assertThat(published.get("themeImages").isObject()).isTrue();
 
         // A token of one store does not open another
         ApiClient other = registeredUser(uniqueEmail("theme-b"));

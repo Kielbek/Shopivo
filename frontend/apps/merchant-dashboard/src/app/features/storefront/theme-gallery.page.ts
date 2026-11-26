@@ -12,7 +12,12 @@ import { STYLE_LABELS, ThemeStyle, metaOf } from './theme-meta';
 import { ThemeMockComponent } from './theme-mock';
 
 /** Texts the merchant may have written; kept when switching templates (colours and layout come from the new one). */
-const CONTENT_KEYS = ['heroTitle', 'heroSubtitle', 'heroCta', 'heroCategory', 'announcement', 'footerNote'];
+const CONTENT_KEYS = ['announcement', 'footerNote', 'logoImage', 'instagram', 'facebook', 'tiktok', 'youtube'];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
+  return Object.fromEntries(keys.filter((k) => data[k]).map((k) => [k, data[k]]));
+}
 
 /**
  * Template gallery: every template is free. Filters by industry and style, the store's own industry first, a details
@@ -84,10 +89,10 @@ const CONTENT_KEYS = ['heroTitle', 'heroSubtitle', 'heroCta', 'heroCategory', 'a
                   <button type="button" class="relative block bg-canvas p-5 pb-0 text-left" [attr.aria-label]="'Szczegóły szablonu ' + p.name" (click)="details.set(p)">
                     <div class="relative mx-auto max-w-[92%]">
                       <div class="overflow-hidden rounded-t-[10px] shadow-[0_6px_24px_rgba(15,23,42,0.12)] transition-transform group-hover:-translate-y-1">
-                        <sv-theme-mock [settings]="p.defaults" [storeName]="storeName()" />
+                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" />
                       </div>
                       <div class="absolute -bottom-0 -right-3 w-[24%] overflow-hidden rounded-t-[12px] border-[3px] border-b-0 border-[#1f2430] shadow-lg transition-transform group-hover:-translate-y-2">
-                        <sv-theme-mock [settings]="p.defaults" [storeName]="storeName()" [phone]="true" />
+                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [phone]="true" />
                       </div>
                     </div>
                     @if (isCurrent(p)) {<span class="absolute left-3 top-3"><sv-badge tone="info">Twój szablon</sv-badge></span>}
@@ -126,7 +131,7 @@ const CONTENT_KEYS = ['heroTitle', 'heroSubtitle', 'heroCta', 'heroCategory', 'a
     <sv-dialog [heading]="details()?.name ?? ''" [open]="!!details()" (closed)="details.set(null)">
       @if (details(); as p) {
         @let meta = metaFor(p.code);
-        <div class="overflow-hidden rounded-[12px] border border-line"><sv-theme-mock [settings]="p.defaults" [storeName]="storeName()" /></div>
+        <div class="overflow-hidden rounded-[12px] border border-line"><sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" /></div>
         <p class="mt-4 text-[14px] text-ink-soft">{{ p.description }}</p>
         <dl class="mt-4 grid gap-3 text-[13px] sm:grid-cols-2">
           <div><dt class="font-medium text-ink">Najlepiej sprawdzi się w</dt><dd class="mt-1 text-ink-soft">{{ industryNames(meta.industries) }}</dd></div>
@@ -207,14 +212,20 @@ export class ThemeGalleryPage {
     this.choosing.set(p.code);
     try {
       const next = { ...p.defaults };
+      let sections = p.sections;
       if (d.state.version >= 0) {
-        const previousDefaults = d.presets.find((x) => x.code === d.state.draft.code)?.defaults ?? {};
         for (const k of CONTENT_KEYS) {
           const v = d.state.draft.settings[k];
-          if (v && v !== previousDefaults[k]) next[k] = v;
+          if (v) next[k] = v;
+        }
+        // The merchant's banner texts and image move to the new template's banner.
+        const oldHero = d.state.draft.sections?.find((s) => s.type === 'hero');
+        if (oldHero) {
+          sections = p.sections.map((s) => (s.type === 'hero'
+            ? { ...s, data: { ...s.data, ...pick(oldHero.data, ['heading', 'subheading', 'cta', 'link', 'image']) } } : s));
         }
       }
-      await firstValueFrom(this.api.saveTheme(this.ctx.tenantId(), p.code, next, d.state.version));
+      await firstValueFrom(this.api.saveTheme(this.ctx.tenantId(), p.code, next, d.state.version, sections));
       this.toast.success(`Wybrano szablon „${p.name}”. Dopasuj go i opublikuj, gdy będzie gotowy.`);
       await this.router.navigate(['/sklep', this.ctx.tenantId(), 'wyglad']);
     } catch (e) {

@@ -30,7 +30,11 @@ public class Categories {
     private final AuditLog auditLog;
     private final pl.shopivo.content.Redirects redirects;
 
-    Categories(CategoryRepository repository, JdbcTemplate jdbc, AuditLog auditLog, pl.shopivo.content.Redirects redirects) {
+    private final pl.shopivo.media.Media media;
+
+    Categories(CategoryRepository repository, JdbcTemplate jdbc, AuditLog auditLog, pl.shopivo.content.Redirects redirects,
+            pl.shopivo.media.Media media) {
+        this.media = media;
         this.redirects = redirects;
         this.repository = repository;
         this.jdbc = jdbc;
@@ -49,8 +53,9 @@ public class Categories {
                 rs -> {
                     counts.put(rs.getObject(1, UUID.class), rs.getLong(2));
                 }, TenantContext.requireTenantId());
-        return repository.findAllByOrderByDepthAscPositionAscNameAsc().stream()
-                .map(c -> view(c, counts.getOrDefault(c.getId(), 0L))).toList();
+        List<CategoryEntity> all = repository.findAllByOrderByDepthAscPositionAscNameAsc();
+        Map<UUID, List<pl.shopivo.media.Media.ImageView>> images = media.list(pl.shopivo.media.Media.CATEGORY_OWNER, all.stream().map(CategoryEntity::getId).toList());
+        return all.stream().map(c -> view(c, counts.getOrDefault(c.getId(), 0L), first(images.get(c.getId())))).toList();
     }
 
     @Transactional
@@ -69,7 +74,7 @@ public class Categories {
         c.placeUnder(parent, in.position() != null ? in.position() : (int) repository.countByParentId(parent == null ? null : parent.getId()));
         repository.save(c);
         auditLog.record(AuditEntry.tenant("catalog.category.created", TenantContext.requireTenantId(), "category", c.getId()));
-        return view(c, 0);
+        return view(c, 0, first(media.list(pl.shopivo.media.Media.CATEGORY_OWNER, List.of(c.getId())).get(c.getId())));
     }
 
     @Transactional
@@ -89,7 +94,7 @@ public class Categories {
             c.setPosition(in.position());
         }
         auditLog.record(AuditEntry.tenant("catalog.category.updated", TenantContext.requireTenantId(), "category", id));
-        return view(c, 0);
+        return view(c, 0, first(media.list(pl.shopivo.media.Media.CATEGORY_OWNER, List.of(c.getId())).get(c.getId())));
     }
 
     @Transactional
@@ -98,6 +103,7 @@ public class Categories {
         if (repository.existsByParentId(id)) {
             throw new BusinessRuleException("CATEGORY_HAS_CHILDREN", "Najpierw usuń lub przenieś podkategorie.");
         }
+        media.deleteOwner(pl.shopivo.media.Media.CATEGORY_OWNER, id);
         repository.delete(c);
         auditLog.record(AuditEntry.tenant("catalog.category.deleted", TenantContext.requireTenantId(), "category", id));
     }
@@ -156,8 +162,36 @@ public class Categories {
         return s == null || s.isBlank() ? null : s.trim();
     }
 
-    static CategoryView view(CategoryEntity c, long productCount) {
+    static CategoryView view(CategoryEntity c, long productCount, Map<String, String> image) {
         return new CategoryView(c.getId(), c.getParentId(), c.getName(), c.getSlug(), c.getDescription(), c.getPosition(),
-                c.getDepth(), c.isVisible(), c.getSeoTitle(), c.getSeoDescription(), productCount, c.getVersion());
+                c.getDepth(), c.isVisible(), c.getSeoTitle(), c.getSeoDescription(), productCount, c.getVersion(), image);
+    }
+
+    private static Map<String, String> first(List<pl.shopivo.media.Media.ImageView> list) {
+        return list == null || list.isEmpty() ? null : list.getFirst().urls();
+    }
+
+    /** One picture per category (tiles on the home page and category pages); a new upload replaces the old one. */
+    public CategoryView setImage(UUID id, byte[] data) {
+        UUID tenant = TenantContext.requireTenantId();
+        get(id);
+        for (var old : media.list(pl.shopivo.media.Media.CATEGORY_OWNER, List.of(id)).getOrDefault(id, List.of())) {
+            media.delete(pl.shopivo.media.Media.CATEGORY_OWNER, id, old.id());
+        }
+        media.upload(pl.shopivo.media.Media.CATEGORY_OWNER, id, data, null, () -> lockCategory(id));
+        auditLog.record(AuditEntry.tenant("catalog.category.image.set", tenant, "category", id));
+        return list().stream().filter(c -> c.id().equals(id)).findFirst().orElseThrow();
+    }
+
+    @Transactional
+    public void removeImage(UUID id) {
+        lockCategory(id);
+        media.deleteOwner(pl.shopivo.media.Media.CATEGORY_OWNER, id);
+    }
+
+    private void lockCategory(UUID id) {
+        List<UUID> locked = jdbc.query("select id from categories where tenant_id = ? and id = ? for update", (rs, i) -> rs.getObject(1, UUID.class),
+                TenantContext.requireTenantId(), id);
+        if (locked.isEmpty()) throw new pl.shopivo.shared.error.NotFoundException();
     }
 }

@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.time.Duration;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,9 +58,12 @@ class StorefrontController {
     private final TransactionTemplate tx;
     private final String urlTemplate;
 
+    private final pl.shopivo.themes.ThemeImages themeImages;
+
     StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, PublicContent content, Redirects redirects, Navigation navigation, Reviews reviews,
             RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha, TransactionTemplate tx,
-            @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate) {
+            @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate, pl.shopivo.themes.ThemeImages themeImages) {
+        this.themeImages = themeImages;
         this.storefront = storefront;
         this.stores = stores;
         this.themes = themes;
@@ -80,7 +84,8 @@ class StorefrontController {
 
     record PublicStore(String name, StoreStatus status, boolean open, boolean preview, String locale, String currency,
             String hostname, Themes.ThemeConfig theme, Seller seller, List<PublicCatalog.PublicCategory> categories,
-            List<PublicContent.Link> footerLinks, boolean blog, List<Navigation.Item> menu, String captchaSiteKey) {
+            List<PublicContent.Link> footerLinks, boolean blog, List<Navigation.Item> menu, String captchaSiteKey,
+            Map<String, Map<String, String>> themeImages) {
     }
 
     @GetMapping("/store")
@@ -101,7 +106,7 @@ class StorefrontController {
             return new PublicStore(s.name(), s.status(), open, preview, s.defaultLocale(), s.defaultCurrency(), s.primaryHostname(),
                     themes.storefront(preview), seller, open ? catalog.categories() : List.of(),
                     open ? content.footerLinks() : List.of(), open && content.hasPosts(), open ? navigation.menu() : List.of(),
-                    captcha.siteKey());
+                    captcha.siteKey(), themeImages.urls());
         });
         return cached(body, preview);
     }
@@ -116,11 +121,17 @@ class StorefrontController {
     ResponseEntity<PageResponse<PublicCatalog.ProductCard>> products(HttpServletRequest request,
             @RequestParam(required = false) String kategoria, @RequestParam(required = false) String q,
             @RequestParam(required = false) PublicCatalog.Sort sort, @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "24") int size) {
+            @RequestParam(defaultValue = "24") int size, @RequestParam(defaultValue = "false") boolean promocje) {
         UUID tenant = storefront.resolvePublished(request);
-        var result = inTenant(tenant, () -> PageResponse.of(catalog.products(kategoria, q, sort,
+        var result = inTenant(tenant, () -> PageResponse.of(catalog.products(kategoria, q, sort, promocje,
                 PageRequest.of(Math.clamp(page, 0, 500), Math.clamp(size, 1, 48))), c -> c));
         return cached(result, storefront.isPreview(request, tenant));
+    }
+
+    @GetMapping("/reviews/latest")
+    ResponseEntity<List<pl.shopivo.reviews.Reviews.FeaturedReview>> latestReviews(HttpServletRequest request) {
+        UUID tenant = storefront.resolvePublished(request);
+        return cached(inTenant(tenant, () -> reviews.latest(6)), storefront.isPreview(request, tenant));
     }
 
     @GetMapping("/products/{slug}")

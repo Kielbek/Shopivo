@@ -227,6 +227,22 @@ public class Reviews {
         return new PageImpl<>(items, pageable, total == null ? 0 : total);
     }
 
+    /** A highlighted review on the home page: who, how many stars, what and about which product. */
+    public record FeaturedReview(String authorName, int rating, String body, Instant createdAt, String productName, String productSlug) {
+    }
+
+    /** The newest approved reviews with text across the store (home-page section). */
+    @Transactional(readOnly = true)
+    public List<FeaturedReview> latest(int limit) {
+        return jdbc.query("""
+                select r.author_name, r.rating, r.body, r.created_at, p.name, p.slug from product_reviews r
+                join products p on p.id = r.product_id and p.tenant_id = r.tenant_id and p.status = 'ACTIVE'
+                where r.tenant_id = ? and r.status = 'APPROVED' and r.body is not null and length(r.body) > 0
+                order by r.rating desc, r.created_at desc limit ?
+                """, (rs, i) -> new FeaturedReview(rs.getString(1), rs.getInt(2), rs.getString(3), ts(rs, "created_at"), rs.getString(5),
+                rs.getString(6)), TenantContext.requireTenantId(), Math.clamp(limit, 1, 12));
+    }
+
     // ------------------------------------------------------------------------------------------------ moderation
 
     public record ReviewView(UUID id, UUID productId, String productName, UUID orderId, long orderNumber, String authorName, int rating,
