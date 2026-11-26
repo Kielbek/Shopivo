@@ -285,12 +285,29 @@ zamówieniu (unikalny indeks).
 
 Metoda `ONLINE` w `/storefront/checkout/options` (gdy włączona); nieopłacone zamówienia ONLINE anulowane po 24 h.
 
-## 13. Kolejne fazy (zarys)
-- Faza 5b: wysyłka (InPost, DPD) — etykiety, śledzenie; zwroty płatności przez API operatorów
+## 13. Faza 5b — wysyłka (zaimplementowane)
+
+| Metoda | Ścieżka | Uprawnienie / autoryzacja | Opis |
+|---|---|---|---|
+| GET | `/tenants/{t}/carriers` | `STORE_READ` | Dostępni przewoźnicy (pola danych, obsługiwane rodzaje dostawy) i konta sklepu — **bez wartości sekretów** (`filled`) |
+| PUT | `/tenants/{t}/carriers/{carrier}` | `STORE_SETTINGS_WRITE` | `{credentials, sandbox, version}`; puste pola = bez zmian; zmiana wyłącza konto do ponownego testu |
+| POST | `/tenants/{t}/carriers/{carrier}/test`, `/enabled` | `STORE_SETTINGS_WRITE` | Test połączenia; włączenie tylko po udanym teście |
+| GET | `/tenants/{t}/orders/{id}/shipments` | `ORDERS_READ` | Przesyłki zamówienia (status, numer, link śledzenia, błąd) |
+| POST | `/tenants/{t}/orders/{id}/shipments` | `ORDERS_WRITE` | `{template \| weightGrams+wymiary, sendingMethod}` → 201; jedna aktywna przesyłka na zamówienie (409 `SHIPMENT_EXISTS`), `INVALID_PARCEL`, `SHIPMENT_FAILED` z komunikatem przewoźnika; pobranie = kwota nieopłaconego zamówienia COD |
+| POST | `/tenants/{t}/shipments/{id}/refresh` | `ORDERS_WRITE` | Stan u przewoźnika (numer przesyłki, status; doręczenie → zamówienie zrealizowane) |
+| GET | `/tenants/{t}/shipments/{id}/label` | `ORDERS_READ` | Etykieta PDF (`application/pdf`, sprawdzany nagłówek `%PDF-`) |
+| GET | `/storefront/pickup-points?metoda={shippingMethodId}&q=` | publiczne (host sklepu) | Paczkomaty przewoźnika powiązanego z metodą (kod pocztowy / miasto / kod punktu), cache |
+
+`/storefront/checkout/options`: metoda ma `carrier` i `requiresPickupPoint`; `CheckoutInput.pickupPointCode` jest wymagany
+dla takiej metody (`PICKUP_POINT_REQUIRED`) i sprawdzany u przewoźnika. `ShippingInput.carrier` w panelu
+(`CARRIER_NOT_CONNECTED`, `CARRIER_UNSUPPORTED`). Śledzenie: zadanie co 30 min (ShedLock).
+
+## 14. Kolejne fazy (zarys)
+- Faza 5c: DPD; zwroty płatności przez API operatorów
 - `/api/v1/webhooks/payments/{provider}/{tenantId}`,
   `/api/v1/webhooks/shipping/{provider}/{tenantId}` (Fazy 2, 5)
 
-## 14. Limity zapytań
+## 15. Limity zapytań
 Redis, okno stałe per klucz:
 | Zakres | Klucz | Limit |
 |---|---|---|

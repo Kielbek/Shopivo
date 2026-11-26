@@ -54,6 +54,12 @@ Baza lokalna: skrypt `docker/postgres/init/01-roles.sql` tworzy role `shopivo_ow
 | `SHOPIVO_TRIAL_PLAN` | nie | kod planu okresu próbnego (domyślnie `BUSINESS`) |
 | `SHOPIVO_COST_*` | nie | model kosztów do raportu rentowności (grosze): `BASE_MINOR`, `PER_MILLION_REQUESTS_MINOR`, `PER_ORDER_MINOR`, `PER_GB_MINOR` |
 
+Poświadczenia przewoźników (InPost ShipX) wpisuje sprzedawca w panelu (Wysyłka → Przewoźnicy); są szyfrowane tym
+samym kluczem. Adresy API InPost można nadpisać (`shopivo.shipping.inpost.api-url`, `sandbox-api-url`, `points-url`,
+`sandbox-points-url`; domyślnie produkcyjne i sandboxowe adresy ShipX / Points). Wychodzący ruch do
+`api-shipx-pl.easypack24.net` i `api-pl-points.easypack24.net` (oraz `sandbox-…`) musi być dozwolony. Symulator
+przewoźnika (`shopivo.shipping.fake-carrier.enabled`) — tylko lokalnie/w testach; w `prod`/`staging` blokuje start.
+
 Poświadczenia operatorów płatności (Przelewy24 / PayU / Tpay) **nie są** zmiennymi środowiskowymi — administrator
 wpisuje je w panelu (Rozliczenia → Operatorzy płatności); są szyfrowane kluczem `SHOPIVO_ENCRYPTION_KEYS`.
 Symulator płatności (`shopivo.payments.fake-gateway.enabled`) działa tylko lokalnie/w testach; aplikacja odmawia

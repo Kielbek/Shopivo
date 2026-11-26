@@ -14,7 +14,7 @@ export interface OrderCustomerInput {
 
 export interface ShippingInput {
   name: string; description: string | null; type: ShippingType; priceMinor: number; freeFromMinor: number | null; active: boolean;
-  position: number | null; version: number;
+  position: number | null; version: number; carrier: string | null;
 }
 
 /** Orders, customers, shipping and payment settings of one store. */

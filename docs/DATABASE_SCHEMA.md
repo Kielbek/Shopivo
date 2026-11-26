@@ -209,6 +209,15 @@ Blokady zadań cyklicznych.
 | `order_payments` | Próby płatności (id = identyfikator dla operatora), kwota, waluta, status `PENDING/PAID/FAILED`, identyfikator u operatora |
 | `store_payment_events` | Powiadomienia operatora (unikalny `event_key` w sklepie — idempotencja) z wynikiem (`PAID`, `AMOUNT_MISMATCH`, `UNKNOWN_PAYMENT`…) |
 
+## 5g. Tabele — Faza 5b (migracja V13; z RLS)
+
+| Tabela / zmiana | Opis |
+|---|---|
+| `shipping_methods.carrier` | Powiązany przewoźnik (np. `inpost`) albo `NULL` |
+| `orders.pickup_point_json`, `orders.shipping_carrier` | Wybrany paczkomat (kopia z chwili zamówienia: kod, nazwa, adres) i przewoźnik metody |
+| `store_carrier_accounts` | Konto sklepu u przewoźnika (PK `tenant_id` + `carrier_id`): `credentials_enc` (AES-GCM, AAD = sklep + przewoźnik), `sandbox`, `enabled`, `verified_at` |
+| `shipments` | Przesyłki: `external_id`, `tracking_number`, `status` (`PENDING`…`DELIVERED`/`FAILED`/`CANCELED`), `carrier_status`, `parcel_json`, `last_checked_at`, `error` |
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |

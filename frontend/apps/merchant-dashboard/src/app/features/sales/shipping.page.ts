@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { LucideDynamicIcon } from '@lucide/angular';
@@ -10,16 +10,17 @@ import {
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
+import { CarrierAccountsComponent } from './carrier-accounts';
 
-interface Form { id: string | null; name: string; description: string; type: ShippingType; price: string; freeFrom: string; active: boolean; version: number; }
+interface Form { id: string | null; name: string; description: string; type: ShippingType; price: string; freeFrom: string; active: boolean; version: number; carrier: string; }
 
 @Component({
   selector: 'sv-shipping-page',
   imports: [FormsModule, LucideDynamicIcon, PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent, AlertComponent,
-    LoadingComponent, EmptyStateComponent, DialogComponent, FieldComponent, SelectComponent, MoneyPipe],
+    LoadingComponent, EmptyStateComponent, DialogComponent, FieldComponent, SelectComponent, MoneyPipe, CarrierAccountsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <sv-page-header title="Wysyłka" description="Sposoby dostawy widoczne przy zamówieniu. Ceny brutto; integracje z przewoźnikami pojawią się w module integracji.">
+    <sv-page-header title="Wysyłka" description="Sposoby dostawy widoczne przy zamówieniu. Ceny brutto. Sposób dostawy możesz powiązać z przewoźnikiem — wtedy klient wybiera paczkomat, a Ty tworzysz przesyłkę z zamówienia.">
       @if (canWrite) {<button sv-button (click)="open(null)"><svg [lucideIcon]="icons.plus" />Dodaj sposób dostawy</button>}
     </sv-page-header>
     <sv-card class="mt-6" [flush]="true">
@@ -36,7 +37,7 @@ interface Form { id: string | null; name: string; description: string; type: Shi
               <span class="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-canvas text-ink-soft"><svg [lucideIcon]="icons.shipping" [size]="18" /></span>
               <div class="min-w-0 flex-1">
                 <p class="font-medium text-ink">{{ m.name }} @if (!m.active) {<sv-badge class="ml-1">Wyłączona</sv-badge>}</p>
-                <p class="text-[12px] text-ink-muted">{{ typeLabels[m.type] }}@if (m.freeFromMinor !== null) { · darmowa od {{ m.freeFromMinor | svMoney }}}@if (m.description) { · {{ m.description }}}</p>
+                <p class="text-[12px] text-ink-muted">{{ typeLabels[m.type] }}@if (m.carrier) { · {{ carrierName(m.carrier) }}}@if (m.freeFromMinor !== null) { · darmowa od {{ m.freeFromMinor | svMoney }}}@if (m.description) { · {{ m.description }}}</p>
               </div>
               <span class="font-medium tabular-nums text-ink">{{ m.priceMinor === 0 ? 'Bezpłatna' : (m.priceMinor | svMoney) }}</span>
               @if (canWrite) {
@@ -60,6 +61,12 @@ interface Form { id: string | null; name: string; description: string; type: Shi
           <sv-field label="Cena (brutto)" for="s-price"><input id="s-price" name="price" class="sv-input" inputmode="decimal" placeholder="0,00" [(ngModel)]="f.price" /></sv-field>
           <sv-field label="Darmowa od kwoty zamówienia" for="s-free" [optional]="true"><input id="s-free" name="free" class="sv-input" inputmode="decimal" [(ngModel)]="f.freeFrom" /></sv-field>
           <sv-field label="Opis" for="s-desc" [optional]="true"><input id="s-desc" name="desc" class="sv-input" maxlength="300" placeholder="np. 1–2 dni robocze" [(ngModel)]="f.description" /></sv-field>
+          @if (f.type === 'COURIER' || f.type === 'PARCEL_LOCKER') {
+            <sv-field label="Przewoźnik" for="s-carrier" class="sm:col-span-2"
+              [hint]="carrierOptions(f.type).length > 1 ? 'Powiązanie pozwala tworzyć przesyłki i etykiety z poziomu zamówienia.' : 'Włącz przewoźnika w sekcji „Przewoźnicy” poniżej, aby powiązać go z tą metodą.'">
+              <sv-select inputId="s-carrier" name="carrier" [options]="carrierOptions(f.type)" [(ngModel)]="f.carrier" ariaLabel="Przewoźnik" />
+            </sv-field>
+          }
           <label class="flex items-center gap-2.5 text-[13px] text-ink sm:col-span-2"><input type="checkbox" role="switch" class="sv-switch" name="active" [(ngModel)]="f.active" />Dostępna przy zamówieniu</label>
         </form>
       }
@@ -68,6 +75,8 @@ interface Form { id: string | null; name: string; description: string; type: Shi
         <button sv-button type="submit" form="ship-form" [loading]="saving()">Zapisz</button>
       </ng-container>
     </sv-dialog>
+
+    <sv-carrier-accounts (changed)="methods.reload()" />
   `,
 })
 export class ShippingPage {
@@ -83,12 +92,25 @@ export class ShippingPage {
   protected readonly form = signal<Form | null>(null);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
+  private readonly carriers = viewChild(CarrierAccountsComponent);
+
+  protected carrierOptions(type: ShippingType): SelectOption[] {
+    const enabled = this.carriers()?.enabledFor(type) ?? [];
+    const current = this.form()?.carrier;
+    const opts: SelectOption[] = [{ value: '', label: 'Bez integracji' }, ...enabled.map((c) => ({ value: c.id, label: c.name }))];
+    if (current && !enabled.some((c) => c.id === current)) opts.push({ value: current, label: this.carrierName(current) + ' (wyłączony)' });
+    return opts;
+  }
+
+  protected carrierName(id: string): string {
+    return this.carriers()?.nameOf(id) ?? id;
+  }
 
   protected open(m: ShippingMethod | null): void {
     this.error.set(null);
     this.form.set(m ? { id: m.id, name: m.name, description: m.description ?? '', type: m.type, price: moneyInput(m.priceMinor),
-      freeFrom: moneyInput(m.freeFromMinor), active: m.active, version: m.version }
-      : { id: null, name: '', description: '', type: 'COURIER', price: '', freeFrom: '', active: true, version: 0 });
+      freeFrom: moneyInput(m.freeFromMinor), active: m.active, version: m.version, carrier: m.carrier ?? '' }
+      : { id: null, name: '', description: '', type: 'COURIER', price: '', freeFrom: '', active: true, version: 0, carrier: '' });
   }
 
   protected async save(): Promise<void> {
@@ -102,7 +124,8 @@ export class ShippingPage {
     }
     this.saving.set(true);
     const input = { name: f.name.trim(), description: f.description.trim() || null, type: f.type, priceMinor: price, freeFromMinor: free,
-      active: f.active, position: null, version: f.version };
+      active: f.active, position: null, version: f.version,
+      carrier: (f.type === 'COURIER' || f.type === 'PARCEL_LOCKER') && f.carrier ? f.carrier : null };
     try {
       await firstValueFrom(f.id ? this.api.updateShipping(this.ctx.tenantId(), f.id, input) : this.api.createShipping(this.ctx.tenantId(), input));
       this.toast.success('Zapisano sposób dostawy.');

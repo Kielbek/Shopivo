@@ -47,6 +47,7 @@ import { ORDER_TOKEN_KEY } from './checkout.page';
             <p class="mt-3 text-[13px] text-sf-muted">Nieopłacone zamówienie zostanie anulowane po {{ b.unpaidCancelDays }} dniach.</p>
           </section>
         }
+        @if (o.pickupPoint; as pp) {<p class="mt-4 text-[14px]">Dostawa do paczkomatu <strong class="font-semibold">{{ pp.code }}</strong> — {{ pp.address }}</p>}
         <ul class="mt-6 divide-y divide-sf-line border-y border-sf-line text-[14px]">
           @for (i of o.items; track $index) {
             <li class="flex justify-between gap-3 py-3"><span>{{ i.quantity }} × {{ i.name }}@if (i.variantTitle) { ({{ i.variantTitle }})}</span><span class="tabular-nums">{{ fmt(i.lineTotalMinor, o.currency) }}</span></li>

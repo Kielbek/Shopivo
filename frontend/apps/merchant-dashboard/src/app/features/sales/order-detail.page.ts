@@ -13,13 +13,14 @@ import { Observable, firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 import { ORDER_TONE, PAYMENT_TONE } from './order-tones';
 import { RichPreviewComponent } from '../content/rich-preview';
+import { OrderShipmentsComponent } from './order-shipments';
 
 type Pending = { kind: 'ship' } | { kind: 'cancel' } | null;
 
 @Component({
   selector: 'sv-order-detail-page',
   imports: [FormsModule, RouterLink, LucideDynamicIcon, CardComponent, BadgeComponent, ButtonComponent, AlertComponent, FieldComponent,
-    LoadingComponent, DialogComponent, DatePipe, MoneyPipe, RichPreviewComponent],
+    LoadingComponent, DialogComponent, DatePipe, MoneyPipe, RichPreviewComponent, OrderShipmentsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (order.isLoading() && !order.value()) {
@@ -138,12 +139,22 @@ type Pending = { kind: 'ship' } | { kind: 'cancel' } | null;
               </p>
             }
           </sv-card>
-          @if (o.shippingAddress; as a) {
+          @if (o.shippingAddress || o.pickupPoint) {
             <sv-card heading="Dostawa">
-              <address class="whitespace-pre-line text-[13px] not-italic leading-5 text-ink-soft">{{ lines(a) }}</address>
+              @if (o.pickupPoint; as p) {
+                <p class="text-[13px] font-medium text-ink">Paczkomat {{ p.code }}</p>
+                <p class="text-[13px] text-ink-soft">{{ p.address }}</p>
+                @if (p.name && p.name !== p.code) {<p class="text-[12px] text-ink-muted">{{ p.name }}</p>}
+              }
+              @if (o.shippingAddress; as a) {
+                <address class="whitespace-pre-line text-[13px] not-italic leading-5 text-ink-soft" [class.mt-2]="!!o.pickupPoint">{{ lines(a) }}</address>
+              }
               @if (o.shippingMethodName) {<p class="mt-2 text-[13px] text-ink">{{ o.shippingMethodName }}</p>}
               @if (o.trackingNumber) {<p class="text-[13px] text-ink-soft">Nr przesyłki: <span class="font-medium text-ink">{{ o.trackingNumber }}</span></p>}
             </sv-card>
+          }
+          @if (o.shippingCarrier) {
+            <sv-order-shipments [order]="o" (changed)="order.reload()" />
           }
           <sv-card heading="Płatność">
             <p class="text-[13px] text-ink">{{ methodLabels[o.paymentMethod] }}</p>

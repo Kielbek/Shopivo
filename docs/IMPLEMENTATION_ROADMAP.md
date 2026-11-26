@@ -74,7 +74,7 @@ Infrastruktura
 ## Faza 5 — płatności i wysyłka sprzedawców
 - [x] Szyfrowane poświadczenia, test połączenia, statusy integracji (5a — płatności)
 - [x] Płatności online sklepów: Przelewy24, PayU, Tpay (konto sprzedawcy), webhooki, idempotencja (5a) · [ ] zwroty przez API, test na sandboxach
-- [ ] Wysyłka: InPost (Paczkomaty + kurier), DPD, DHL — etykiety, śledzenie
+- [x] Wysyłka InPost (Paczkomaty + kurier, konto sprzedawcy): wybór paczkomatu w checkoucie, przesyłki, etykiety, śledzenie, automatyczna realizacja po doręczeniu (5b) · [ ] test na sandboxie ShipX · [ ] DPD, DHL (5c)
 - [ ] Fakturownia, BaseLinker, Allegro (zakres do ustalenia)
 
 ## Faza 6 — domeny i infrastruktura chmurowa

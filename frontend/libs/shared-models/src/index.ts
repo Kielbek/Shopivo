@@ -368,6 +368,7 @@ export interface Order {
   paymentFeeMinor: number; subtotalMinor: number; discountMinor: number; totalMinor: number; taxMinor: number; currency: string;
   customerNote: string | null; trackingNumber: string | null; items: OrderItem[]; events: OrderEvent[]; paidAt: string | null;
   shippedAt: string | null; completedAt: string | null; canceledAt: string | null; cancelReason: string | null; termsAcceptedAt: string | null; termsRevisionId: string | null; createdAt: string; version: number;
+  pickupPoint: { carrier: string; code: string; name: string; address: string } | null; shippingCarrier: string | null;
 }
 export interface OrderRow {
   id: string; number: number; status: OrderStatus; paymentStatus: OrderPaymentStatus; paymentMethod: OrderPaymentMethod;
@@ -375,7 +376,7 @@ export interface OrderRow {
 }
 export interface OrderStats { newOrders: number; processing: number; unpaid: number; ordersToday: number; revenueTodayMinor: number; revenue30dMinor: number; orders30d: number; currency: string; }
 export interface DailySales { day: string; orders: number; revenueMinor: number; }
-export interface ShippingMethod { id: string; name: string; description: string | null; type: ShippingType; priceMinor: number; freeFromMinor: number | null; active: boolean; position: number; version: number; }
+export interface ShippingMethod { id: string; name: string; description: string | null; type: ShippingType; priceMinor: number; freeFromMinor: number | null; active: boolean; position: number; version: number; carrier: string | null; requiresPickupPoint: boolean; }
 export interface StorePaymentSettings { bankTransferEnabled: boolean; bankAccountHolder: string | null; bankAccountNumber: string | null; bankName: string | null; codEnabled: boolean; codFeeMinor: number; unpaidCancelDays: number; version: number; }
 export interface Customer {
   id: string; email: string; firstName: string | null; lastName: string | null; phone: string | null; acceptsMarketing: boolean;
@@ -436,3 +437,18 @@ export interface OnlinePaymentsState {
   providerId: string; providerName: string; sandbox: boolean; enabled: boolean; verifiedAt: string | null; filled: Record<string, boolean>; version: number;
 }
 export interface OnlinePaymentsOverview { operators: OperatorDescriptor[]; current: OnlinePaymentsState | null; }
+
+// ------------------------------------------------------------------------------------------------ carriers and shipments
+export interface CarrierDescriptor { id: string; name: string; description: string; credentials: OperatorCredentialField[]; services: ShippingType[]; docsUrl: string | null; }
+export interface CarrierAccount { carrierId: string; carrierName: string; sandbox: boolean; enabled: boolean; verifiedAt: string | null; filled: Record<string, boolean>; version: number; }
+export interface CarriersOverview { carriers: CarrierDescriptor[]; accounts: CarrierAccount[]; }
+export type ShipmentStatus = 'PENDING' | 'READY' | 'IN_TRANSIT' | 'READY_FOR_PICKUP' | 'DELIVERED' | 'RETURNED' | 'FAILED' | 'CANCELED';
+export const SHIPMENT_STATUS_LABELS: Record<ShipmentStatus, string> = {
+  PENDING: 'Tworzenie u przewoźnika', READY: 'Gotowa do nadania', IN_TRANSIT: 'W drodze', READY_FOR_PICKUP: 'Czeka na odbiór',
+  DELIVERED: 'Doręczona', RETURNED: 'Zwrócona do nadawcy', FAILED: 'Błąd', CANCELED: 'Anulowana',
+};
+export interface Shipment {
+  id: string; carrierId: string; service: string; trackingNumber: string | null; trackingUrl: string | null; status: ShipmentStatus;
+  carrierStatus: string | null; labelAvailable: boolean; error: string | null; createdAt: string; deliveredAt: string | null; sandbox: boolean;
+}
+export interface ShipmentInput { template: string | null; weightGrams: number | null; lengthMm: number | null; widthMm: number | null; heightMm: number | null; sendingMethod: 'PARCEL_LOCKER' | 'COURIER_PICKUP'; }

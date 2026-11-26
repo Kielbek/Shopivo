@@ -200,6 +200,14 @@ dostępowe sklepu są szyfrowane AES-GCM z danymi powiązanymi „sklep + operat
 Adres powiadomień zawiera identyfikator sklepu wyłącznie po to, by wybrać klucz weryfikujący podpis — powiadomienie jest
 wiarygodne tylko dzięki podpisowi. Moduł `orders` zna płatności online wyłącznie przez SPI `OnlinePayments`.
 
+### ADR-021: Wysyłka przez konta przewoźników sprzedawcy (Faza 5b)
+Sprzedawca łączy **własne** konto przewoźnika (InPost ShipX: token + ID organizacji) — umowa, cennik i rozliczenia są
+między nim a przewoźnikiem. Moduł `shipping` ma interfejs `CarrierAdapter` (test połączenia, utworzenie przesyłki,
+etykieta, śledzenie, wyszukiwanie punktów); `orders` zna go tylko przez SPI `ShippingCarriers` (włączeni przewoźnicy,
+weryfikacja paczkomatu, link śledzenia). Paczkomat jest sprawdzany u przewoźnika przy składaniu zamówienia i kopiowany
+do zamówienia. Wywołania przewoźnika są poza transakcjami bazy; jedna aktywna przesyłka na zamówienie (blokada
+doradcza). Śledzenie: zadanie co 30 min; doręczenie kończy wysłane zamówienie (i wysyła zaproszenie do opinii).
+
 ### ADR-017: Publikacja sklepu (Faza 4a)
 Sklep startuje jako szkic. Publikacja wymaga kompletu danych sprzedawcy wymaganych przy sprzedaży na odległość (firma,
 NIP, adres, e-mail), aktywnego produktu, sposobu dostawy i metody płatności — moduły zgłaszają braki przez SPI
@@ -229,6 +237,7 @@ produkty lub zamówienia (SPI `CurrencyChangeGuard`).
 | `themes` | Rejestr pól i presetów, szkic/publikacja motywu | — |
 | `storefront` | Publiczne API witryny (BFF): konfiguracja sklepu, katalog, sitemap, robots | stores, themes, catalog |
 | `storepayments` | Płatności online sklepów z kontem sprzedawcy u operatora: szyfrowane dane, próby płatności, powiadomienia (SPI `OnlinePayments` z `orders`) | orders, payments, stores |
+| `shipping` | Konta przewoźników (szyfrowane), adaptery (InPost ShipX; symulator dev/test), paczkomaty, przesyłki, etykiety, śledzenie (SPI `ShippingCarriers` z `orders`) | orders, stores |
 | `shared.captcha` | Weryfikacja CAPTCHA (Turnstile; wyłączona tylko lokalnie i w testach) | — |
 | `accounts` | Konta klientów sklepu: rejestracja z potwierdzeniem, sesje w ciasteczku na domenie sklepu, historia zamówień, adresy, opinie z konta | orders, reviews, stores, email |
 | `reviews` | Opinie od zweryfikowanych kupujących: zaproszenia po realizacji zamówienia, moderacja, odpowiedzi, podsumowania | orders, email, stores |

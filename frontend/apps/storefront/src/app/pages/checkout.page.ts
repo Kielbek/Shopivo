@@ -9,6 +9,7 @@ import { Seo } from '../core/seo';
 import { StoreState } from '../core/store-state';
 import { CustomerSession } from '../core/account';
 import { CaptchaComponent } from '../ui/captcha';
+import { PickupPointComponent } from '../ui/pickup-point';
 import { StorefrontApi } from '../storefront-api';
 
 export const ORDER_TOKEN_KEY = 'shopivo.lastOrder';
@@ -16,7 +17,7 @@ export const ORDER_TOKEN_KEY = 'shopivo.lastOrder';
 /** Guest checkout. All validation is repeated on the server; the form only helps the customer. */
 @Component({
   selector: 'sf-checkout',
-  imports: [FormsModule, RouterLink, CaptchaComponent],
+  imports: [FormsModule, RouterLink, CaptchaComponent, PickupPointComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="sf-container py-8">
@@ -62,6 +63,9 @@ export const ORDER_TOKEN_KEY = 'shopivo.lastOrder';
                       <span class="flex-1"><span class="font-medium">{{ m.name }}</span>@if (m.description) {<span class="block text-[13px] text-sf-muted">{{ m.description }}</span>}</span>
                       <span class="font-medium tabular-nums">{{ shippingPrice(m.priceMinor, m.freeFromMinor) === 0 ? 'Gratis' : fmt(shippingPrice(m.priceMinor, m.freeFromMinor)) }}</span>
                     </label>
+                    @if (m.requiresPickupPoint && f.shippingMethodId === m.id) {
+                      <sf-pickup-point [methodId]="m.id" [(code)]="pickupPoint" />
+                    }
                   } @empty {<p class="text-sf-muted">Brak dostępnych sposobów dostawy.</p>}
                 </div>
               </fieldset>
@@ -142,6 +146,7 @@ export class CheckoutPage {
   private readonly touched = signal(false);
   protected readonly customer = inject(CustomerSession);
   protected readonly prefilled = signal(false);
+  protected readonly pickupPoint = signal('');
   protected readonly siteKey = computed(() => this.store.store()?.captchaSiteKey ?? null);
   protected captchaToken: string | null = null;
   private readonly captcha = viewChild<CaptchaComponent>('captcha');
@@ -237,6 +242,11 @@ export class CheckoutPage {
       this.error.set('Wybierz sposób dostawy.');
       return;
     }
+    const method = this.opts()?.shippingMethods.find((m) => m.id === this.f.shippingMethodId);
+    if (method?.requiresPickupPoint && !this.pickupPoint()) {
+      this.error.set('Wybierz paczkomat.');
+      return;
+    }
     if (!this.f.paymentMethod) {
       this.error.set('Wybierz metodę płatności.');
       return;
@@ -258,6 +268,7 @@ export class CheckoutPage {
         billing: f.invoice ? { invoice: true, companyName: f.company.trim(), taxId: f.nip.trim(), address: null } : null,
         shippingMethodId: this.needsShipping() ? f.shippingMethodId : null, paymentMethod: f.paymentMethod as 'BANK_TRANSFER' | 'COD' | 'ONLINE',
         customerNote: f.note.trim() || null, termsAccepted: f.terms, marketingConsent: f.marketing,
+        pickupPointCode: method?.requiresPickupPoint ? this.pickupPoint() : null,
       }, this.takeCaptchaToken()));
       try {
         sessionStorage.setItem(ORDER_TOKEN_KEY, result.orderToken);
