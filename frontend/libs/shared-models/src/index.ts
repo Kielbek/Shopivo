@@ -324,12 +324,13 @@ export interface ProductVariant {
 export interface Product {
   id: string; name: string; slug: string; description: string | null; status: ProductStatus; type: ProductType;
   brand: Brand | null; vatRateBps: number; categories: { id: string; name: string }[]; seoTitle: string | null;
-  seoDescription: string | null; options: ProductOption[]; variants: ProductVariant[]; publishedAt: string | null;
+  seoDescription: string | null; options: ProductOption[]; variants: ProductVariant[]; images: ProductImage[]; publishedAt: string | null;
   createdAt: string; updatedAt: string; version: number;
 }
 export interface ProductRow {
   id: string; name: string; slug: string; status: ProductStatus; type: ProductType; variantCount: number; sku: string | null;
-  minPriceMinor: number; maxPriceMinor: number; currency: string; stock: number | null; lowStock: boolean; categories: string[]; updatedAt: string;
+  minPriceMinor: number; maxPriceMinor: number; currency: string; stock: number | null; lowStock: boolean; categories: string[];
+  thumbnailUrl: string | null; updatedAt: string;
 }
 export interface InventoryRow {
   variantId: string; productId: string; productName: string; variantTitle: string; sku: string | null; productStatus: ProductStatus;
@@ -385,3 +386,12 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = { NEW: 'Nowe', P
 export const PAYMENT_STATUS_LABELS: Record<OrderPaymentStatus, string> = { UNPAID: 'Nieopłacone', PAID: 'Opłacone', REFUNDED: 'Zwrócone' };
 export const PAYMENT_METHOD_LABELS: Record<OrderPaymentMethod, string> = { BANK_TRANSFER: 'Przelew tradycyjny', COD: 'Za pobraniem', MANUAL: 'Inna (ręcznie)' };
 export const SHIPPING_TYPE_LABELS: Record<ShippingType, string> = { COURIER: 'Kurier', PARCEL_LOCKER: 'Paczkomat / automat', POST: 'Poczta', PICKUP: 'Odbiór osobisty', DIGITAL: 'Dostawa elektroniczna' };
+
+// ---------------------------------------------------------------- storefront & themes (Phase 4)
+export interface ThemeField { key: string; label: string; type: 'COLOR' | 'SELECT' | 'TEXT'; options: string[] | null; maxLength: number; group: string; }
+export interface ThemePreset { code: string; name: string; description: string; defaults: Record<string, string>; }
+export interface ThemeConfig { code: string; settings: Record<string, string>; }
+export interface ThemeState { draft: ThemeConfig; published: ThemeConfig | null; publishedAt: string | null; unpublishedChanges: boolean; version: number; }
+export interface ThemeResponse { presets: ThemePreset[]; fields: ThemeField[]; state: ThemeState; }
+export interface PublishReadiness { ready: boolean; missing: string[]; }
+export interface ProductImage { id: string; alt: string | null; width: number; height: number; position: number; urls: Record<string, string>; }

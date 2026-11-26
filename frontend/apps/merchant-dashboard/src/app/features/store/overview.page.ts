@@ -5,11 +5,12 @@ import { LucideDynamicIcon } from '@lucide/angular';
 import { CatalogApi, OrdersApi, SessionStore, TenantApi } from '@shopivo/api-client';
 import { ORDER_STATUS_LABELS } from '@shopivo/shared-models';
 import {
-  BadgeComponent, CardComponent, ChartSeries, DatePipe, EmptyStateComponent, LineChartComponent, MoneyPipe,
+  CardComponent, ChartSeries, DatePipe, EmptyStateComponent, LineChartComponent, MoneyPipe,
   StatCardComponent, formatMoney, icons, plural,
 } from '@shopivo/shared-ui';
 import { of } from 'rxjs';
 import { StoreContext } from './store-context';
+import { StorePublicationComponent } from '../storefront/store-publication';
 
 interface ChecklistItem {
   label: string;
@@ -22,7 +23,7 @@ const DAY = new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'short' })
 /** Store overview: real sales, order and stock figures (widgets are hidden from roles without access). */
 @Component({
   selector: 'sv-overview-page',
-  imports: [RouterLink, LucideDynamicIcon, BadgeComponent, StatCardComponent, CardComponent, LineChartComponent, EmptyStateComponent,
+  imports: [RouterLink, LucideDynamicIcon, StorePublicationComponent, StatCardComponent, CardComponent, LineChartComponent, EmptyStateComponent,
     DatePipe, MoneyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -31,14 +32,9 @@ const DAY = new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'short' })
         <h1 class="text-[22px] font-semibold tracking-[-0.01em] text-ink">Przegląd</h1>
         <p class="mt-1 text-[13px] text-ink-muted">Witaj, {{ firstName() }}! · <time [attr.datetime]="isoToday">{{ today }}</time></p>
       </div>
-      @if (ctx.store(); as store) {
-        <div class="flex min-w-0 items-center gap-2.5 rounded-[var(--radius-control)] border border-line bg-card px-3 py-2 text-[13px]">
-          <svg [lucideIcon]="icons.domains" [size]="16" class="shrink-0 text-ink-muted" />
-          <span class="truncate font-medium text-ink">{{ store.primaryHostname }}</span>
-          <sv-badge [tone]="store.status === 'PUBLISHED' ? 'success' : 'warning'">{{ store.status === 'PUBLISHED' ? 'Opublikowany' : 'Szkic' }}</sv-badge>
-        </div>
-      }
     </div>
+
+    <sv-store-publication />
 
     @if (!setupDone()) {
       <section class="sv-card mt-6 p-5" aria-labelledby="setup-title">

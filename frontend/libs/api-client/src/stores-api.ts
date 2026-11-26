@@ -19,8 +19,8 @@ export interface StoreUpdate {
 export class StoresApi {
   private readonly http = inject(HttpClient);
 
-  config(): Observable<{ platformDomain: string }> {
-    return this.http.get<{ platformDomain: string }>('/api/v1/stores/config');
+  config(): Observable<{ platformDomain: string; storefrontUrlTemplate: string }> {
+    return this.http.get<{ platformDomain: string; storefrontUrlTemplate: string }>('/api/v1/stores/config');
   }
 
   myStores(): Observable<MyStore[]> {

@@ -40,7 +40,12 @@ Baza lokalna: skrypt `docker/postgres/init/01-roles.sql` tworzy role `shopivo_ow
 | `SHOPIVO_REQUIRE_STAFF_MFA` | nie | domyślnie `true` — administratorzy platformy muszą mieć MFA |
 | `SHOPIVO_LOG_FORMAT` | nie | `ecs` / `logstash` — logi JSON z `traceId`, `userId`, `tenantId` (MDC) |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | nie | włącza logowanie Google |
-| `SHOPIVO_S3_*` | Faza 4 | endpoint, bucket, klucze, URL CDN |
+| `SHOPIVO_STORAGE_TYPE` | tak (Faza 4) | `s3` w produkcji (`local` — tylko dev/test, w `prod`/`staging` aplikacja nie wystartuje) |
+| `SHOPIVO_S3_ENDPOINT` / `SHOPIVO_S3_REGION` / `SHOPIVO_S3_BUCKET` | tak (Faza 4) | np. R2: `https://<konto>.r2.cloudflarestorage.com`, region `auto`; pusty endpoint = AWS S3 |
+| `SHOPIVO_S3_ACCESS_KEY` / `SHOPIVO_S3_SECRET_KEY` | tak (Faza 4) | klucze z uprawnieniem tylko do tego bucketu (Put/Get/Delete) |
+| `SHOPIVO_S3_PATH_STYLE` | nie | `true` dla MinIO |
+| `SHOPIVO_STORAGE_LOCAL_DIR` | nie | katalog plików w trybie `local` |
+| `SHOPIVO_STOREFRONT_URL_TEMPLATE` | nie | publiczny adres witryny, domyślnie `https://{host}` (sitemap, robots, link „Otwórz sklep”, podgląd); lokalnie `http://{host}:4000` |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID` | Faza 6 | domeny własne (Cloudflare for SaaS) |
 | `SHOPIVO_PUBLIC_API_URL` | tak (Faza 2) | publiczny adres API widziany przez operatorów płatności (adres powiadomień `…/api/v1/webhooks/billing/<operator>`); domyślnie `SHOPIVO_APP_URL` |
 | `SHOPIVO_TRIAL_PLAN` | nie | kod planu okresu próbnego (domyślnie `BUSINESS`) |

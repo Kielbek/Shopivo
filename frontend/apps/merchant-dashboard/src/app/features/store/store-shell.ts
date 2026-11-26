@@ -41,7 +41,7 @@ const NAV: { title?: string; items: MerchantNavItem[] }[] = [
   {
     title: 'Sklep internetowy',
     items: [
-      { label: 'Wygląd sklepu', icon: 'appearance', soon: true },
+      { label: 'Wygląd sklepu', icon: 'appearance', path: 'wyglad', permission: 'STORE_READ' },
       { label: 'Strony i blog', icon: 'pages', soon: true },
       { label: 'Domeny', icon: 'domains', soon: true },
     ],

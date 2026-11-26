@@ -100,10 +100,18 @@ type BulkAction = 'ACTIVATE' | 'DRAFT' | 'ARCHIVE' | 'DELETE';
                       [checked]="selected().has(p.id)" (change)="toggle(p.id, $any($event.target).checked)" /></td>
                   }
                   <td>
+                    <div class="flex items-center gap-3">
+                    <span class="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-canvas text-ink-muted">
+                      @if (p.thumbnailUrl) {<img [src]="p.thumbnailUrl" alt="" class="size-full object-cover" loading="lazy" />}
+                      @else {<svg [lucideIcon]="icons.image" [size]="16" />}
+                    </span>
+                    <div class="min-w-0">
                     <a [routerLink]="[p.id]" class="font-medium text-ink hover:text-primary-strong" (click)="$event.stopPropagation()">{{ p.name }}</a>
                     <p class="text-[12px] text-ink-muted">
                       {{ p.variantCount > 1 ? p.variantCount + ' wariantów' : (p.sku || 'Bez SKU') }}@if (p.type === 'DIGITAL') { · cyfrowy}
                     </p>
+                    </div>
+                    </div>
                   </td>
                   <td><sv-badge [tone]="statusTone[p.status]">{{ statusLabels[p.status] }}</sv-badge></td>
                   <td class="whitespace-nowrap text-right tabular-nums">

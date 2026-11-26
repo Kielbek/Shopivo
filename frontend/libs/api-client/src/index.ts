@@ -6,5 +6,6 @@ export * from './admin-api';
 export * from './billing-api';
 export * from './catalog-api';
 export * from './orders-api';
+export * from './storefront-admin-api';
 export * from './session-store';
 export * from './guards';

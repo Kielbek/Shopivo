@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { LucideDynamicIcon } from '@lucide/angular';
 import { ApiError, CatalogApi, ProductInput, VariantInput } from '@shopivo/api-client';
-import { PRODUCT_STATUS_LABELS, Product, ProductStatus, ProductType, VAT_RATES } from '@shopivo/shared-models';
+import { PRODUCT_STATUS_LABELS, Product, ProductImage, ProductStatus, ProductType, VAT_RATES } from '@shopivo/shared-models';
+import { ProductImagesComponent } from './product-images';
 import {
   AlertComponent, BadgeComponent, ButtonComponent, CardComponent, DialogComponent, FieldComponent, LoadingComponent, MoneyPipe,
   SelectComponent, SelectOption, ToastService, icons, moneyInput, parseMoney,
@@ -42,7 +43,7 @@ function emptyVariant(): VariantRow {
 @Component({
   selector: 'sv-product-edit-page',
   imports: [FormsModule, RouterLink, LucideDynamicIcon, CardComponent, BadgeComponent, ButtonComponent, AlertComponent,
-    FieldComponent, LoadingComponent, SelectComponent, DialogComponent, MoneyPipe],
+    FieldComponent, LoadingComponent, SelectComponent, DialogComponent, MoneyPipe, ProductImagesComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (loading()) {
@@ -86,6 +87,12 @@ function emptyVariant(): VariantRow {
                 </sv-field>
               </div>
             </sv-card>
+
+            @if (!isNew()) {
+              <sv-product-images [tenantId]="ctx.tenantId()" [productId]="productId()!" [canWrite]="canWrite" [(images)]="images" />
+            } @else {
+              <sv-card heading="Zdjęcia"><p class="text-[13px] text-ink-muted">Zdjęcia dodasz po zapisaniu produktu.</p></sv-card>
+            }
 
             @if (!hasOptions()) {
               @let v = variants()[0];
@@ -324,6 +331,7 @@ export class ProductEditPage implements OnInit {
   protected readonly options = signal<OptionRow[]>([]);
   protected readonly variants = signal<VariantRow[]>([emptyVariant()]);
   protected readonly categoryIds = signal(new Set<string>());
+  protected readonly images = signal<ProductImage[]>([]);
   protected readonly combinations = signal(1);
 
   protected readonly categories = rxResource({ params: () => this.ctx.tenantId(), stream: ({ params }) => this.api.categories(params) });
@@ -372,6 +380,7 @@ export class ProductEditPage implements OnInit {
     this.height = first?.heightMm ?? null;
     this.options.set(p.options.map((o) => ({ name: o.name, values: o.values.join(', ') })));
     this.categoryIds.set(new Set(p.categories.map((c) => c.id)));
+    this.images.set(p.images ?? []);
     this.variants.set(p.variants.map((v) => ({
       id: v.id, key: keyOf(v.optionValues), optionValues: v.optionValues, title: v.title || 'Domyślny',
       price: moneyInput(v.priceMinor), compareAt: moneyInput(v.compareAtMinor), cost: moneyInput(v.costMinor), sku: v.sku ?? '',

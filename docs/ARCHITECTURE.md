@@ -119,8 +119,10 @@ cache HTTP odpowiedzi storefrontu, w przyszłości CDN) działa niezależnie od 
 Jeden proces Node (Angular SSR) obsługuje wszystkie sklepy. Sklep rozpoznawany po nagłówku `Host`.
 SSR wywołuje backend `/api/v1/storefront/**`, przekazując `X-Forwarded-Host`. Backend ufa temu nagłówkowi
 **tylko** z zaufanych adresów proxy (konfiguracja `server.forward-headers-strategy` + lista zaufanych sieci).
-Motywy to biblioteka komponentów (`libs/theme-engine` + `themes/*`) wybierana dynamicznie w runtime
-(lazy-loaded), z konfiguracją sekcji w JSON walidowaną schematem — nowy motyw nie zmienia silnika.
+Motywy: patrz ADR-016 (zrealizowane jako presety ustawień jednego układu). Serwer SSR (`apps/storefront/src/server.ts`)
+proksuje `/api/v1/storefront/**`, `/api/v1/media/**`, `/sitemap.xml` i `/robots.txt` do backendu, ustawia nagłówki
+bezpieczeństwa (CSP) i zwraca prawdziwe kody HTTP (404 dla nieznanego sklepu/produktu/kategorii, 503 gdy backend nie
+odpowiada). Koszyk, checkout i potwierdzenie renderowane są tylko w przeglądarce (dane per klient).
 
 ### ADR-007: Domeny — wildcard + Cloudflare for SaaS
 Subdomeny platformy: rekord `*.shopivo.pl` → origin storefrontu; nowa subdomena działa natychmiast po zapisie
@@ -153,11 +155,31 @@ Konfiguracja: `SHOPIVO_PLATFORM_DOMAIN` = domena witryn. Decyzja właściciela �
 Klucze Redis zawsze z prefiksem `t:{tenantId}:`; globalne z `g:`. Rozpoznawanie domeny → dzierżawa: cache
 dwupoziomowy (lokalny Caffeine 30 s + Redis) z unieważnianiem zdarzeniem przy zmianie domeny.
 
-### ADR-011: Pliki
-S3-compatible (np. Cloudflare R2 / AWS S3 / GCS w trybie S3). Klucze obiektów:
-`tenants/{tenantId}/{kategoria}/{uuid}/{wariant}.{ext}`. Upload przez backend lub presigned URL po walidacji
-typu (sygnatura pliku, nie rozszerzenie) i limitu. Warianty obrazów (WebP/AVIF, miniatury) generowane
-asynchronicznie. Serwowanie przez CDN. Kontrola własności: rekord `media_assets` z `tenant_id`.
+### ADR-011: Pliki (zaimplementowane w Fazie 4a)
+Interfejs `ObjectStorage` z dwiema implementacjami: S3 (AWS SDK v2 — AWS S3, Cloudflare R2, MinIO) i katalog lokalny
+(tylko dev/test — aplikacja odmawia startu z `local` w profilach `prod`/`production`/`staging`). Klucze:
+`t/{tenantId}/{assetId}/{orig|w400|w1200}.jpg`. Upload przez backend: typ rozpoznawany po sygnaturze (JPEG/PNG),
+wymiary sprawdzane z nagłówka **przed** dekodowaniem (maks. 8000 px / 40 MP — ochrona przed „bombami”), warianty
+JPEG 400 i 1200 px generowane synchronicznie (ImageIO). Pliki z magazynu usuwane dopiero po zatwierdzeniu transakcji
+(a nowe — po jej wycofaniu). Limit miejsca z planu (`storage.max_mb`) przez SPI `MediaQuotaPolicy`. Serwowanie przez
+backend z `immutable` (gotowe pod CDN). WebP/AVIF i asynchroniczne przetwarzanie — później.
+
+### ADR-016: Motywy jako presety + ustawienia (Faza 4a)
+Zamiast osobnych bibliotek komponentów na motyw (pierwotny pomysł z ADR-006) motyw = zestaw wartości dla jednego,
+dobrze przetestowanego układu witryny: kolory, krój pisma, zaokrąglenia, układ strony głównej, styl kart, teksty.
+`ThemeRegistry` (backend) jest jedynym źródłem pól i 8 presetów (Fashion, Beauty, Electronics, Toys, Home, Sports,
+Automotive, Jewelry) i waliduje każdą wartość (kolory `#RRGGBB`, listy dozwolonych opcji, długości) — do CSS
+trafiają wyłącznie zwalidowane wartości jako zmienne `--sf-*`. Szkic i wersja opublikowana są rozdzielone; podgląd
+szkicu przez krótkotrwały token HMAC (`X-Store-Preview`, 2 h) — odpowiedzi podglądu nie są cache'owane. Kroje pisma
+wyłącznie systemowe (bez zewnętrznych serwerów czcionek: szybkość, RODO). Nowe układy sekcji można dodać w
+przyszłości jako kolejne pola rejestru bez zmiany kontraktu API.
+
+### ADR-017: Publikacja sklepu (Faza 4a)
+Sklep startuje jako szkic. Publikacja wymaga kompletu danych sprzedawcy wymaganych przy sprzedaży na odległość (firma,
+NIP, adres, e-mail), aktywnego produktu, sposobu dostawy i metody płatności — moduły zgłaszają braki przez SPI
+`StorePublishCheck`, więc `stores` nie zależy od `catalog`/`orders`. Nieopublikowany sklep: strona „w przygotowaniu”,
+`noindex`, `robots.txt` blokuje wszystko, koszyk/checkout → 404. Zmiana waluty jest blokowana, gdy istnieją
+produkty lub zamówienia (SPI `CurrencyChangeGuard`).
 
 ## 3. Moduły backendu
 
@@ -177,7 +199,10 @@ asynchronicznie. Serwowanie przez CDN. Kontrola własności: rekord `media_asset
 | `orders` | Koszyk, checkout, zamówienia, sposoby dostawy, płatności offline, e-maile, zadania | catalog, customers, stores |
 | `payments`, `shipping`, `integrations` | Adaptery operatorów, poświadczenia, webhooki | — |
 | `discounts`, `marketing`, `reviews` | Promocje, newsletter, porzucone koszyki, opinie | — |
-| `themes`, `content`, `seo`, `media` | Motywy, CMS/blog, SEO/sitemapy, pliki | — |
+| `media` | Pliki (S3/lokalnie), przetwarzanie zdjęć, limity miejsca (SPI `MediaQuotaPolicy`) | — |
+| `themes` | Rejestr pól i presetów, szkic/publikacja motywu | — |
+| `storefront` | Publiczne API witryny (BFF): konfiguracja sklepu, katalog, sitemap, robots | stores, themes, catalog |
+| `content`, `seo` | CMS/blog, przekierowania (Faza 4b) | — |
 | `notifications`, `email` | Powiadomienia, szablony, wysyłka | — |
 | `analytics`, `ai`, `support`, `admin`, `audit` | Statystyki, AI, zgłoszenia, panel admina, dziennik audytu | — |
 

@@ -159,13 +159,22 @@ Blokady zadań cyklicznych.
 | `order_items` | Migawka nazwy/SKU/ceny/VAT; `reserved_qty` |
 | `order_events` | Historia i notatki — tylko INSERT dla aplikacji |
 
+## 5a. Tabele — Faza 4a (migracje V6–V7; z RLS)
+
+| Tabela / zmiana | Opis |
+|---|---|
+| `stores.published_at` | Data publikacji sklepu (status `PUBLISHED`) |
+| `media_assets` | Zdjęcia: `owner_type` (`PRODUCT`), `owner_id`, `storage_key` (unikalny prefiks `t/{tenant}/{id}/`), wymiary, `total_bytes` (wszystkie warianty — do limitu planu), `alt`, `position` |
+| `store_themes` | Klucz `tenant_id`; `draft_json`, `published_json` (walidowane przez `ThemeRegistry`), `published_at`, `version` (optymistyczna blokada) |
+| indeksy V6 | `orders_unpaid_transfer_idx` (częściowy, auto-anulowanie), `carts_updated_idx` (czyszczenie koszyków) |
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |
 |---|---|
 | 2 (pozostałe) | `billing_invoices` (faktury VAT/KSeF — Q-06), `tenant_billing_profiles` (dane do faktury) |
-| 3 (pozostałe) | `product_images` (z modułem plików, Faza 4), `customer_addresses` i konta klientów (Faza 4), `returns`, `complaints`, `discounts`, `discount_usage`, `wishlists` |
-| 4 | `themes` (globalne), `theme_configurations` (draft/published, JSON), `pages`, `blog_posts`, `navigation_menus`, `seo_redirects`, `reviews`, `media_assets`, `media_variants` |
+| 3 (pozostałe) | `returns`, `complaints`, `discounts`, `discount_usage`, `wishlists` |
+| 4b | `pages`, `blog_posts`, `navigation_menus`, `seo_redirects`, `reviews`, konta klientów (`customer_accounts`, `customer_addresses`) |
 | 5 | `integrations`, `integration_credentials` (szyfrowane), `payments`, `payment_transactions`, `refunds`, `shipments`, `shipment_events`, `shipping_methods`, `shipping_zones` |
 | 6 | rozszerzenia `store_domains`, `domain_checks` |
 | 7 | `newsletter_subscribers`, `abandoned_carts`, `marketing_settings`, `analytics_daily` (agregaty), `ai_usage`, `ai_jobs` |

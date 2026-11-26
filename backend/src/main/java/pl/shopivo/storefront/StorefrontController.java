@@ -7,6 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
@@ -40,13 +41,16 @@ class StorefrontController {
     private final Themes themes;
     private final PublicCatalog catalog;
     private final TransactionTemplate tx;
+    private final String urlTemplate;
 
-    StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, TransactionTemplate tx) {
+    StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, TransactionTemplate tx,
+            @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate) {
         this.storefront = storefront;
         this.stores = stores;
         this.themes = themes;
         this.catalog = catalog;
         this.tx = tx;
+        this.urlTemplate = urlTemplate;
     }
 
     /** Seller identification shown in the footer (required for distance selling in Poland). */
@@ -127,9 +131,12 @@ class StorefrontController {
         return ResponseEntity.ok().cacheControl(CacheControl.maxAge(Duration.ofHours(1)).cachePublic()).body(body);
     }
 
-    private static String base(HttpServletRequest request) {
-        return request.getScheme() + "://" + request.getServerName()
-                + (request.getServerPort() == 80 || request.getServerPort() == 443 ? "" : ":" + request.getServerPort());
+    /**
+     * Public origin of the store. Built from the configured template (https in production) and the host the tenant was
+     * resolved from, never from the request scheme/port, which reflect the internal hop behind the SSR server or proxy.
+     */
+    private String base(HttpServletRequest request) {
+        return urlTemplate.replace("{host}", request.getServerName().toLowerCase(java.util.Locale.ROOT));
     }
 
     /** Short public caching for shared CDNs; previews (draft data) are never cached. */

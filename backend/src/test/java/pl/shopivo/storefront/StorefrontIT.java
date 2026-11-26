@@ -144,7 +144,7 @@ class StorefrontIT extends IntegrationTest {
         assertThat(json(sf(host, "/products/kubek-glina", null)).get("variants").get(0).get("priceMinor").asLong()).isEqualTo(7257);
 
         String sitemap = sf(host, "/sitemap.xml", null).getContentAsString();
-        assertThat(sitemap).contains("/produkt/kubek-glina").contains("/kategoria/kubki").doesNotContain("szkic-wazon");
+        assertThat(sitemap).contains("<loc>https://" + host + "/produkt/kubek-glina</loc>").contains("/kategoria/kubki").doesNotContain("szkic-wazon");
         assertThat(sf(host, "/robots.txt", null).getContentAsString()).contains("Sitemap:").contains("Disallow: /koszyk");
 
         // Deleting the image removes the files

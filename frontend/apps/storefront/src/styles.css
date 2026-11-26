@@ -1,9 +1,81 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+/*
+ * Theme engine: every visual decision comes from CSS custom properties set by the store's theme
+ * (StoreState.cssVars). Defaults below = the "Electronics" preset, used only until the store config arrives.
+ */
+:root {
+  --sf-primary: #2563eb;
+  --sf-on-primary: #ffffff;
+  --sf-accent: #0ea5e9;
+  --sf-bg: #f8fafc;
+  --sf-surface: #ffffff;
+  --sf-text: #0f172a;
+  --sf-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --sf-radius: 10px;
 }
 
+/* Derived colours: utilities inline these, so they follow the theme vars set on the app root. Component rules below
+   must repeat the color-mix() rather than reference --color-sf-*, which would resolve against :root defaults. */
+@theme inline {
+  --color-sf-primary: var(--sf-primary);
+  --color-sf-on-primary: var(--sf-on-primary);
+  --color-sf-accent: var(--sf-accent);
+  --color-sf-bg: var(--sf-bg);
+  --color-sf-surface: var(--sf-surface);
+  --color-sf-text: var(--sf-text);
+  --color-sf-muted: color-mix(in srgb, var(--sf-text) 64%, var(--sf-bg));
+  --color-sf-line: color-mix(in srgb, var(--sf-text) 12%, var(--sf-bg));
+  --color-sf-soft: color-mix(in srgb, var(--sf-primary) 8%, var(--sf-bg));
+  --color-sf-danger: #b42318;
+  --color-sf-success: #087443;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
 body {
-  @apply bg-white text-zinc-900 font-sans antialiased;
+  margin: 0;
+  background: var(--sf-bg);
+  color: var(--sf-text);
+  font-family: var(--sf-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .sf-container { @apply mx-auto w-full max-w-[1240px] px-4 sm:px-6; }
+  .sf-btn {
+    @apply inline-flex h-11 items-center justify-center gap-2 px-5 text-[15px] font-semibold transition
+      focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-55;
+    background: var(--sf-primary);
+    color: var(--sf-on-primary);
+    border-radius: var(--sf-radius);
+    outline-color: var(--sf-primary);
+  }
+  .sf-btn:hover:not(:disabled) { filter: brightness(0.92); }
+  .sf-btn-outline {
+    @apply inline-flex h-11 items-center justify-center gap-2 border px-5 text-[15px] font-semibold transition
+      focus-visible:outline-2 focus-visible:outline-offset-2;
+    border-color: color-mix(in srgb, var(--sf-text) 12%, var(--sf-bg));
+    border-radius: var(--sf-radius);
+    color: var(--sf-text);
+    background: var(--sf-surface);
+  }
+  .sf-btn-outline:hover { border-color: var(--sf-text); }
+  .sf-input {
+    @apply block h-11 w-full border px-3.5 text-[15px] outline-none transition;
+    border-color: color-mix(in srgb, var(--sf-text) 12%, var(--sf-bg));
+    border-radius: min(var(--sf-radius), 12px);
+    background: var(--sf-surface);
+    color: var(--sf-text);
+  }
+  .sf-input:focus { border-color: var(--sf-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sf-primary) 18%, transparent); }
+  .sf-input[aria-invalid="true"] { border-color: var(--color-sf-danger); }
+  .sf-label { @apply mb-1.5 block text-[13px] font-medium; }
+  .sf-panel { background: var(--sf-surface); border-radius: var(--sf-radius); border: 1px solid color-mix(in srgb, var(--sf-text) 12%, var(--sf-bg)); }
+  .sf-card-plain { }
+  .sf-card-bordered { border: 1px solid color-mix(in srgb, var(--sf-text) 12%, var(--sf-bg)); background: var(--sf-surface); border-radius: var(--sf-radius); }
+  .sf-card-shadow { background: var(--sf-surface); border-radius: var(--sf-radius); box-shadow: 0 6px 24px rgba(15, 23, 42, 0.08); }
+  .sf-media { border-radius: var(--sf-radius); background: color-mix(in srgb, var(--sf-primary) 8%, var(--sf-bg)); overflow: hidden; }
+  .sf-link { color: var(--sf-primary); text-decoration: underline; text-underline-offset: 2px; }
+  .sf-check { @apply size-[18px] shrink-0; accent-color: var(--sf-primary); }
 }

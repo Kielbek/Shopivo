@@ -82,12 +82,12 @@ class StoreControllers {
             long version) {
     }
 
-    record PlatformConfig(String platformDomain) {
+    record PlatformConfig(String platformDomain, String storefrontUrlTemplate) {
     }
 
     @GetMapping("/api/v1/stores/config")
     PlatformConfig config() {
-        return new PlatformConfig(properties.platformDomain());
+        return new PlatformConfig(properties.platformDomain(), storefrontUrlTemplate);
     }
 
     @GetMapping("/api/v1/stores")

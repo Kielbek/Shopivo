@@ -33,7 +33,7 @@ Frontend
 - [x] Panel sprzedawcy: logowanie, rejestracja, weryfikacja, reset hasła, MFA, onboarding sklepu,
       powłoka panelu, ustawienia sklepu, zespół, konto i sesje
 - [x] Panel admina: logowanie, przegląd, sklepy, użytkownicy
-- [~] Storefront: szkielet SSR z rozpoznawaniem sklepu po hoście (pełna implementacja — Faza 4)
+- [x] Storefront: szkielet SSR z rozpoznawaniem sklepu po hoście (rozbudowany w Fazie 4a)
 Infrastruktura
 - [x] Docker Compose (Postgres, Redis, Mailpit, MinIO), Dockerfile backendu
 - [x] GitHub Actions CI
@@ -52,7 +52,7 @@ Infrastruktura
 
 ## Faza 3 — silnik e-commerce
 - [x] Produkty (szkic/aktywny/archiwum, fizyczne/cyfrowe), warianty i opcje, marki, SKU/EAN, wymiary, SEO
-- [ ] Zdjęcia produktów — wraz z modułem plików (Faza 4)
+- [x] Zdjęcia produktów (Faza 4a)
 - [x] Kategorie (drzewo), magazyn + ruchy, niskie stany
 - [x] Eksport CSV, akcje masowe · [ ] Import CSV
 - [x] Klienci sklepu (rejestr z zamówień), zgody, eksport zgód · [ ] konta klientów i adresy (Faza 4 — storefront)
@@ -62,13 +62,14 @@ Infrastruktura
 - [x] Testy cyklu zamówienia, izolacji i współbieżności
 
 ## Faza 4 — storefront i motywy
-- [ ] Routing po hoście (SSR), cache konfiguracji sklepu
-- [ ] Silnik motywów (kontrakt, rejestr sekcji, schematy JSON), konfiguracja draft/publish, podgląd
-- [ ] 8 motywów: Fashion, Beauty, Electronics, Toys, Home, Sports, Automotive, Jewelry
-- [ ] Strony: główna, katalog, produkt, koszyk, checkout, konto klienta, CMS, blog
-- [ ] SEO: meta, canonical, sitemap per sklep, robots.txt, JSON-LD (Product, Breadcrumb, Organization), OG, przekierowania
-- [ ] Media: upload S3, warianty obrazów, CDN, limity
-- [ ] Opinie produktów
+- [x] Routing po hoście (SSR), cache konfiguracji sklepu (4a)
+- [x] Silnik motywów: rejestr pól i presetów (ADR-016), szkic/publikacja, podgląd tokenem (4a)
+- [x] 8 motywów: Fashion, Beauty, Electronics, Toys, Home, Sports, Automotive, Jewelry (4a)
+- [x] Publikacja sklepu z listą braków (4a)
+- [x] Strony: główna, katalog, kategoria, wyszukiwarka, produkt, koszyk, checkout, potwierdzenie (4a) · [ ] konto klienta, CMS (regulamin!), blog (4b)
+- [x] SEO: meta, canonical, sitemap per sklep, robots.txt, JSON-LD (Product, Breadcrumb, Organization), OG (4a) · [ ] przekierowania (4b)
+- [x] Media: upload S3, warianty obrazów, limity (4a) · [ ] CDN (Faza 6), WebP/AVIF, EXIF
+- [ ] Opinie produktów, CAPTCHA w checkoucie (4b)
 
 ## Faza 5 — płatności i wysyłka sprzedawców
 - [ ] Szyfrowane poświadczenia, test połączenia, statusy integracji

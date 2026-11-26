@@ -1,14 +1,15 @@
 # Shopivo — postęp prac
 
-Ostatnia aktualizacja: 2026-11-25 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3** (z ograniczeniami opisanymi niżej).
+Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a** (z ograniczeniami opisanymi niżej). W toku: Faza 4b.
 
 ## Wyniki testów (rzeczywiście uruchomione)
 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
-| Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 35/35 ✔ |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 58/58 ✔ |
-| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 45/45 ✔ |
+| Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 27/27 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 61/61 ✔ |
+| Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
+| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 48/48 ✔ (panel 40, admin 3, witryna 5) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
 | `npm audit --omit=dev --audit-level=high` | | 0 podatności |
 | Ręczny przepływ E2E w Chromium (Playwright, skrypt poza repo) na pełnym stosie lokalnym | rejestracja → e-mail (Mailpit) → weryfikacja → logowanie → sklep → dane firmy (walidacja NIP) → zaproszenie → MFA (QR) → panel admina → blokada sprzedawcy w panelu admina | ✔ |
@@ -18,6 +19,25 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 | Ręczny przepływ E2E Fazy 2 (Playwright, poza repo) | admin konfiguruje i aktywuje operatora (symulator) → sprzedawca na okresie próbnym wybiera Starter → przekierowanie → podpisane powiadomienie → plan aktywny, płatność „Opłacona”; widok mobilny bez poziomego przewijania; strony admina (subskrypcje, plany, kupony, zużycie, MRR) | ✔ |
 
 | Ręczny przepływ E2E Fazy 3 (Playwright, poza repo) | kategorie i marka → produkt z 3 wariantami w edytorze → obniżka z Omnibusem → korekta magazynu i historia → wysyłka i płatności w ustawieniach → zamówienie przez API storefrontu → opłacenie, wysyłka z numerem, notatka → zamówienie ręczne → karta klienta; widoki mobilne bez poziomego przewijania, 0 błędów konsoli | ✔ |
+
+| Ręczny przepływ E2E Fazy 4a (Playwright, poza repo) | sprzedawca: produkty, kategorie, dostawa, przelew → 2 zdjęcia przez edytor produktu → „Wygląd sklepu”: preset Home, teksty, zapis szkicu → podgląd w nowej karcie (baner podglądu, szkic widoczny) → publikacja motywu → publikacja sklepu z karty na Przeglądzie; klient na `http://<sklep>.shopivo.localhost:4000`: strona główna → kategoria (Omnibus) → produkt (wariant niedostępny, wybór wariantu, galeria) → koszyk → checkout (walidacja, regulamin) → potwierdzenie z danymi do przelewu; SSR: tytuł, opis, canonical, OG, JSON-LD Product/BreadcrumbList, 404 dla nieznanego produktu/kategorii/sklepu, sitemap, robots; iPhone 13 bez poziomego przewijania; 0 błędów konsoli | ✔ |
+
+## Faza 4a — witryna sklepu i motywy (2026-11-26)
+
+- **Pliki** (`media`): S3 (AWS/R2/MinIO) lub katalog lokalny (dev), zdjęcia produktów JPEG/PNG ≤ 10 MB, warianty
+  400/1200 px, ochrona przed „bombami” obrazów, limit miejsca z planu, maks. 10 zdjęć na produkt.
+- **Motywy** (`themes`): 8 presetów, ustawienia kolorów/kroju/zaokrągleń/układu/tekstów, szkic → podgląd (token 2 h)
+  → publikacja; walidacja wszystkich wartości po stronie serwera.
+- **Publikacja sklepu**: lista braków (dane sprzedawcy, produkt, dostawa, płatność), wyłączenie sklepu, blokada koszyka i
+  checkoutu dla nieopublikowanego sklepu, blokada zmiany waluty po pierwszym produkcie/zamówieniu.
+- **Witryna (Angular SSR)**: strona główna (3 układy), katalog/kategorie/wyszukiwarka z sortowaniem i stronicowaniem,
+  karta produktu (galeria, warianty, dostępność, Omnibus), koszyk, checkout, potwierdzenie; stopka z danymi sprzedawcy;
+  SEO (meta, canonical, OG, JSON-LD, sitemap, robots, prawdziwe kody 404/503), CSP.
+- **Panel**: „Wygląd sklepu”, karta publikacji na Przeglądzie, zdjęcia w edytorze produktu, miniatury na liście produktów.
+- Błędy znalezione w E2E i naprawione: kolory pochodne motywu (tło miniatur, obramowania) brały wartości domyślne
+  zamiast motywu; krój pisma motywu nie był stosowany; nieistniejący produkt zwracał 200 zamiast 404 (odczyt zasobu w
+  stanie błędu przerywał SSR); adresy w sitemap/robots budowane z wewnętrznego żądania (zły schemat/port) — teraz z
+  `shopivo.storefront-url-template`.
 
 ## Faza 3 — silnik e-commerce (2026-11-26)
 
@@ -131,13 +151,17 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
   aktualizuje się w ciągu 30 s. Model kosztów w raporcie rentowności to wartości szacunkowe do kalibracji.
 - **Faza 2:** limity produktów, plików i AI są zdefiniowane, ale egzekwowane będą wraz z tymi modułami (Fazy 3–7);
   licznik zamówień ruszy z modułem zamówień.
-- **Faza 3:** checkout działa tylko przez API — interfejs sklepu dla klientów powstaje w Fazie 4. Sklep w stanie „Szkic”
-  przyjmuje zamówienia przez API; blokada do czasu publikacji zostanie dodana razem z publikacją sklepu (Faza 4).
-- **Faza 3:** brak zdjęć produktów, importu CSV, rabatów, zwrotów/reklamacji i kont klientów (zaplanowane w kolejnych fazach).
+- **Faza 3:** brak importu CSV, rabatów, zwrotów/reklamacji i kont klientów (zaplanowane w kolejnych fazach).
+- **Faza 4a:** brak treści regulaminu i polityki prywatności w witrynie — checkbox w checkoucie nie linkuje jeszcze do
+  regulaminu (strony CMS w Fazie 4b; treści wymagają prawnika, Q-08). **Nie publikować prawdziwych sklepów przed 4b.**
+- **Faza 4a:** brak kont klientów, opinii, stron CMS/bloga, przekierowań SEO i CAPTCHA w checkoucie (limit 10/10 min/IP).
+- **Faza 4a:** zdjęcia: orientacja EXIF nie jest uwzględniana (zdjęcia z telefonu mogą być obrócone), brak WebP/AVIF,
+  przetwarzanie synchroniczne; pliki serwowane przez backend (CDN — Faza 6). Adapter S3 sprawdzony na emulatorze (moto),
+  nie na prawdziwym R2/S3.
+- **Faza 4a:** JSON-LD `Organization` jest tylko na stronie głównej; motywy różnią się ustawieniami, nie strukturą sekcji (ADR-016).
 - **Faza 3:** VAT od dostawy i opłaty za pobranie liczony stawką 23% (uproszczenie, patrz ADR-015).
 - Lokalnie operatora trzeba raz skonfigurować w panelu admina (Rozliczenia → Operatorzy płatności → Symulator, dowolny sekret).
 - Panel sprzedawcy nie ma jeszcze modułów produktów, zamówień itd. — nawigacja pokazuje wyłącznie działające sekcje.
-- `storefront` to szkielet SSR (bez motywów/katalogu) — Faza 4.
 - Dane dev: konto `admin@shopivo.local` / `Platforma!Lokalna-2026` tworzone **tylko** przy profilu `dev` lub zmiennych `SHOPIVO_BOOTSTRAP_*`.
 - Regulamin/polityka prywatności — tylko checkbox akceptacji z wersją; treści wymagają prawnika (Q-08).
 - Login CSRF: brak tokenu przed logowaniem jest akceptowalny (endpoint wymaga tokenu, który SPA pobiera); pełna
@@ -149,4 +173,7 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - Obrazy Docker Hub bywały limitowane (429) w środowisku deweloperskim — w CI nie jest to problem.
 
 ## Następny krok
-**Faza 4 — storefront i motywy**: publiczne strony sklepu (SSR) korzystające z gotowego API koszyka i checkoutu, katalog dla klientów, zdjęcia produktów (pliki), konta klientów, publikacja sklepu. Przed produkcją nadal: Q-06 (faktury/KSeF), test adapterów na sandboxach operatorów, cennik (Q-05).
+**Faza 4b**: konta klientów (rejestracja, logowanie, historia zamówień, adresy), strony CMS (regulamin, polityka
+prywatności, zwroty — podlinkowane w checkoucie i stopce), blog, opinie produktów, przekierowania 301, CAPTCHA w
+checkoucie, orientacja EXIF. Przed produkcją nadal: Q-06 (faktury/KSeF), test adapterów na sandboxach operatorów,
+cennik (Q-05), treści prawne (Q-08).

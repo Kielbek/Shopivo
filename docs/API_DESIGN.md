@@ -173,12 +173,43 @@ Warianty zwracają `lowestPrice30dMinor` — najniższą cenę z 30 dni przed bi
 | POST | `/checkout` | Nagłówek `X-Cart-Token`; walidacja (e-mail, kod pocztowy, NIP, regulamin), rezerwacja stanów → `{number, orderToken, totalMinor}`; limit 10 / 10 min / IP |
 | GET | `/orders/status` | Nagłówek `X-Order-Token` — potwierdzenie dla klienta (z danymi do przelewu) |
 
-## 7. Kolejne fazy (zarys)
-- `/api/v1/storefront/catalog|products/{slug}|account|sitemap.xml` (Faza 4)
+Koszyk i checkout działają tylko dla **opublikowanego** sklepu (inaczej 404 `STORE_NOT_PUBLISHED`), chyba że żądanie
+ma ważny nagłówek podglądu `X-Store-Preview`.
+
+## 7. Faza 4a — witryna sklepu, motywy, zdjęcia (zaimplementowane)
+
+### Witryna `/api/v1/storefront` (publiczne, sklep z `Host`, cache `public, max-age=30`, `Vary: X-Store-Preview`)
+| Metoda | Ścieżka | Opis |
+|---|---|---|
+| GET | `/store` | Nazwa, status, `open`, opublikowany motyw (lub szkic w podglądzie, wtedy `no-store`), dane sprzedawcy (firma, NIP, adres, e-mail, telefon), drzewo widocznych kategorii |
+| GET | `/categories` | Widoczne kategorie (ukryte poddrzewa pominięte) |
+| GET | `/products?kategoria&q&sort=NEWEST\|PRICE_ASC\|PRICE_DESC\|NAME&page&size≤48` | Tylko produkty `ACTIVE`; cena najtańszego wariantu, cena przed obniżką i najniższa z 30 dni (Omnibus), `available` |
+| GET | `/products/{slug}` | Warianty z `available`/`lowStock` (bez dokładnych stanów), zdjęcia, okruszki |
+| GET | `/sitemap.xml`, `/robots.txt` | Adresy z `shopivo.storefront-url-template`; nieopublikowany sklep → `Disallow: /` |
+
+Nagłówek `X-Store-Preview: <token>` (HMAC, ważny 2 h, przypisany do sklepu) pokazuje szkic motywu i nieopublikowany sklep.
+
+### Panel `/api/v1/tenants/{tenantId}`
+| Metoda | Ścieżka | Uprawnienie | Opis |
+|---|---|---|---|
+| GET | `/store/publish-readiness` | `STORE_READ` | `{ready, missing[]}` — dane firmy, NIP, adres, e-mail, aktywny produkt, dostawa, płatność |
+| POST | `/store/publish`, `/store/unpublish` | `STORE_SETTINGS_WRITE` | Publikacja (422 `PUBLISH_NOT_READY` z listą braków) / wyłączenie |
+| POST | `/store/preview-token` | `THEMES_WRITE` | `{url}` z tokenem podglądu |
+| GET/PUT | `/theme` | `STORE_READ` / `THEMES_WRITE` | Stan motywu (szkic, opublikowany, presety, pola); zapis szkicu z `version` (409 przy konflikcie) |
+| POST | `/theme/publish` | `THEMES_WRITE` | Publikacja szkicu |
+| POST (multipart `file`, `alt`) | `/products/{id}/images` | `PRODUCTS_WRITE` | JPEG/PNG ≤ 10 MB, ≤ 10 zdjęć na produkt, limit miejsca z planu (402) |
+| PUT | `/products/{id}/images` | `PRODUCTS_WRITE` | Kolejność i teksty alternatywne |
+| DELETE | `/products/{id}/images/{imageId}` | `PRODUCTS_WRITE` | Usunięcie (pliki kasowane po zatwierdzeniu transakcji) |
+
+### Pliki `/api/v1/media/{tenantId}/{imageId}/{w400|w1200}.jpg`
+Publiczne, `Cache-Control: max-age=31536000, immutable`, `X-Content-Type-Options: nosniff`.
+
+## 8. Kolejne fazy (zarys)
+- `/api/v1/storefront/account|pages|blog|reviews` (Faza 4b)
 - `/api/v1/webhooks/payments/{provider}/{tenantId}`,
   `/api/v1/webhooks/shipping/{provider}/{tenantId}` (Fazy 2, 5)
 
-## 8. Limity zapytań
+## 9. Limity zapytań
 Redis, okno stałe per klucz:
 | Zakres | Klucz | Limit |
 |---|---|---|
@@ -191,6 +222,6 @@ Redis, okno stałe per klucz:
 | Checkout | IP | 10 / 10 min |
 | Płatność za subskrypcję | użytkownik | 10 / 10 min |
 
-Rozmiar ciała żądania: maks. 1 MB dla `/api/**`, 64 KB dla webhooków (413 `PAYLOAD_TOO_LARGE`).
+Rozmiar ciała żądania: maks. 1 MB dla `/api/**`, 11 MB dla uploadu zdjęć produktu, 64 KB dla webhooków (413 `PAYLOAD_TOO_LARGE`).
 Sklep z wygasłą subskrypcją (tylko do odczytu) może nadal: opłacić subskrypcję (`/subscription/**`) i obsługiwać
 złożone zamówienia (`/orders/{id}/status|paid|refunded|notes`); pozostałe zapisy → 402 `SUBSCRIPTION_INACTIVE`.

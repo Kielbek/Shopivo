@@ -13,20 +13,30 @@ app.disable('x-powered-by');
 app.set('trust proxy', process.env['SHOPIVO_TRUST_PROXY'] ?? 'loopback');
 const angularApp = new AngularNodeAppEngine();
 
-/** Browser-side storefront API calls (same origin) are proxied to the backend. Read-only for now. */
-app.get('/api/v1/storefront/{*path}', async (req, res, next) => {
+const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type', 'x-cart-token', 'x-order-token', 'x-store-preview'];
+const FORWARDED_RESPONSE_HEADERS = ['content-type', 'cache-control', 'vary', 'retry-after'];
+
+/** Proxies one request to the backend with the visitor's host and IP (the backend resolves the store from the host). */
+async function proxy(req: express.Request, res: express.Response, next: express.NextFunction, path: string, body?: Buffer) {
   try {
-    const upstream = await fetch(apiOrigin + req.originalUrl, {
-      headers: {
-        accept: 'application/json',
-        'x-forwarded-host': req.hostname,
-        'x-forwarded-proto': req.protocol,
-        'x-forwarded-for': req.ip ?? '',
-      },
-      signal: AbortSignal.timeout(10_000),
+    const headers: Record<string, string> = {
+      'x-forwarded-host': req.hostname,
+      'x-forwarded-proto': req.protocol,
+      'x-forwarded-for': req.ip ?? '',
+    };
+    for (const h of FORWARDED_REQUEST_HEADERS) {
+      const v = req.headers[h];
+      if (typeof v === 'string') headers[h] = v;
+    }
+    const upstream = await fetch(apiOrigin + path, {
+      method: req.method,
+      headers,
+      body: body && body.length ? new Uint8Array(body) : undefined,
+      redirect: 'manual',
+      signal: AbortSignal.timeout(15_000),
     });
     res.status(upstream.status);
-    for (const header of ['content-type', 'cache-control']) {
+    for (const header of FORWARDED_RESPONSE_HEADERS) {
       const value = upstream.headers.get(header);
       if (value) res.setHeader(header, value);
     }
@@ -34,6 +44,31 @@ app.get('/api/v1/storefront/{*path}', async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+}
+
+// Storefront API (cart and checkout included). Bodies are small JSON documents — anything larger is refused here.
+app.all('/api/v1/storefront/{*path}', express.raw({ type: () => true, limit: '64kb' }), (req, res, next) => {
+  if (!['GET', 'POST', 'PATCH'].includes(req.method)) {
+    res.status(405).end();
+    return;
+  }
+  void proxy(req, res, next, req.originalUrl, Buffer.isBuffer(req.body) ? req.body : undefined);
+});
+
+// Product images (immutable, long-cached; a CDN in front caches them at the edge).
+app.get('/api/v1/media/{*path}', (req, res, next) => void proxy(req, res, next, req.originalUrl));
+
+// Per-store sitemap and robots.txt.
+app.get('/sitemap.xml', (req, res, next) => void proxy(req, res, next, '/api/v1/storefront/sitemap.xml'));
+app.get('/robots.txt', (req, res, next) => void proxy(req, res, next, '/api/v1/storefront/robots.txt'));
+
+// Baseline security headers for every page.
+app.use((_req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader('Content-Security-Policy', "frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'");
+  next();
 });
 
 app.use(express.static(browserDistFolder, { maxAge: '1y', index: false, redirect: false }));
