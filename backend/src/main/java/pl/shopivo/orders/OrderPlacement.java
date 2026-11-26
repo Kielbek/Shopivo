@@ -60,10 +60,12 @@ public class OrderPlacement {
     private final List<UsageRecorder> usage;
     private final ApplicationEventPublisher events;
     private final JsonMapper json;
+    private final pl.shopivo.content.LegalDocuments legal;
 
     OrderPlacement(JdbcTemplate jdbc, CatalogLookup catalog, Inventory inventory, ShippingMethods shippingMethods,
             PaymentSettings paymentSettings, Customers customers, Carts carts, Stores stores, List<UsageRecorder> usage,
-            ApplicationEventPublisher events, JsonMapper json) {
+            ApplicationEventPublisher events, JsonMapper json, pl.shopivo.content.LegalDocuments legal) {
+        this.legal = legal;
         this.jdbc = jdbc;
         this.catalog = catalog;
         this.inventory = inventory;
@@ -204,12 +206,13 @@ public class OrderPlacement {
                 insert into orders (id, tenant_id, number, public_token_hash, source, status, payment_status, payment_method, customer_id,
                     email, phone, first_name, last_name, shipping_address_json, billing_json, shipping_method_id, shipping_method_name,
                     shipping_minor, payment_fee_minor, subtotal_minor, total_minor, tax_minor, currency, customer_note, terms_accepted_at,
-                    created_at, updated_at)
-                values (?, ?, ?, ?, ?, 'NEW', 'UNPAID', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    terms_revision_id, created_at, updated_at)
+                values (?, ?, ?, ?, ?, 'NEW', 'UNPAID', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, orderId, tenant, number, Tokens.sha256(token), source.name(), payment.name(), customerId, email, phone, firstName,
                 lastName, address == null ? null : json.writeValueAsString(address), billing == null ? null : json.writeValueAsString(billing),
                 method == null ? null : method.id(), method == null ? null : method.name(), shipping, fee, subtotal, total, tax, currency,
-                note, storefront ? Timestamp.from(now) : null, Timestamp.from(now), Timestamp.from(now));
+                note, storefront ? Timestamp.from(now) : null,
+                storefront ? legal.currentRevision(pl.shopivo.content.LegalKey.TERMS).orElse(null) : null, Timestamp.from(now), Timestamp.from(now));
         jdbc.batchUpdate("""
                 insert into order_items (id, tenant_id, order_id, product_id, variant_id, name, variant_title, sku, quantity,
                     unit_price_minor, vat_rate_bps, line_total_minor, reserved_qty, position)

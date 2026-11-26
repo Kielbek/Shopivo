@@ -21,6 +21,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.HtmlUtils;
 import pl.shopivo.catalog.PublicCatalog;
+import pl.shopivo.content.ContentKind;
+import pl.shopivo.content.PublicContent;
+import pl.shopivo.content.Redirects;
 import pl.shopivo.shared.error.NotFoundException;
 import pl.shopivo.shared.tenancy.TenantContext;
 import pl.shopivo.shared.web.PageResponse;
@@ -40,15 +43,19 @@ class StorefrontController {
     private final Stores stores;
     private final Themes themes;
     private final PublicCatalog catalog;
+    private final PublicContent content;
+    private final Redirects redirects;
     private final TransactionTemplate tx;
     private final String urlTemplate;
 
-    StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, TransactionTemplate tx,
+    StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, PublicContent content, Redirects redirects, TransactionTemplate tx,
             @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate) {
         this.storefront = storefront;
         this.stores = stores;
         this.themes = themes;
         this.catalog = catalog;
+        this.content = content;
+        this.redirects = redirects;
         this.tx = tx;
         this.urlTemplate = urlTemplate;
     }
@@ -58,7 +65,8 @@ class StorefrontController {
     }
 
     record PublicStore(String name, StoreStatus status, boolean open, boolean preview, String locale, String currency,
-            String hostname, Themes.ThemeConfig theme, Seller seller, List<PublicCatalog.PublicCategory> categories) {
+            String hostname, Themes.ThemeConfig theme, Seller seller, List<PublicCatalog.PublicCategory> categories,
+            List<PublicContent.Link> footerLinks, boolean blog) {
     }
 
     @GetMapping("/store")
@@ -77,7 +85,8 @@ class StorefrontController {
             Seller seller = !open ? null : new Seller(st.legalCompanyName(), st.taxId(), address,
                     st.orderEmail() != null ? st.orderEmail() : s.contactEmail(), st.phone());
             return new PublicStore(s.name(), s.status(), open, preview, s.defaultLocale(), s.defaultCurrency(), s.primaryHostname(),
-                    themes.storefront(preview), seller, open ? catalog.categories() : List.of());
+                    themes.storefront(preview), seller, open ? catalog.categories() : List.of(),
+                    open ? content.footerLinks() : List.of(), open && content.hasPosts());
         });
         return cached(body, preview);
     }
@@ -106,13 +115,55 @@ class StorefrontController {
         return cached(inTenant(tenant, () -> catalog.product(slug)), storefront.isPreview(request, tenant));
     }
 
+    @GetMapping("/pages/{slug}")
+    ResponseEntity<PublicContent.PublicEntry> page(HttpServletRequest request, @PathVariable String slug) {
+        UUID tenant = storefront.resolvePublished(request);
+        boolean preview = storefront.isPreview(request, tenant);
+        return cached(inTenant(tenant, () -> content.entry(ContentKind.PAGE, slug, preview)), preview);
+    }
+
+    @GetMapping("/posts")
+    ResponseEntity<PageResponse<PublicContent.PostCard>> posts(HttpServletRequest request, @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "12") int size) {
+        UUID tenant = storefront.resolvePublished(request);
+        var result = inTenant(tenant, () -> PageResponse.of(content.posts(PageRequest.of(Math.clamp(page, 0, 500), Math.clamp(size, 1, 48))), c -> c));
+        return cached(result, storefront.isPreview(request, tenant));
+    }
+
+    @GetMapping("/posts/{slug}")
+    ResponseEntity<PublicContent.PublicEntry> post(HttpServletRequest request, @PathVariable String slug) {
+        UUID tenant = storefront.resolvePublished(request);
+        boolean preview = storefront.isPreview(request, tenant);
+        return cached(inTenant(tenant, () -> content.entry(ContentKind.POST, slug, preview)), preview);
+    }
+
+    record RedirectTarget(String location) {
+    }
+
+    /** 301 target for a path the storefront could not find (asked by the SSR server only after a 404). */
+    @GetMapping("/redirect")
+    ResponseEntity<RedirectTarget> redirect(HttpServletRequest request, @RequestParam String path) {
+        UUID tenant = storefront.resolvePublished(request);
+        return inTenant(tenant, () -> redirects.resolve(path)).map(to -> cached(new RedirectTarget(to), false))
+                .orElseThrow(NotFoundException::new);
+    }
+
     @GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
     ResponseEntity<String> sitemap(HttpServletRequest request) {
         UUID tenant = storefront.resolvePublished(request);
         String base = base(request);
         StringBuilder xml = new StringBuilder("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
         xml.append("  <url><loc>").append(HtmlUtils.htmlEscape(base + "/")).append("</loc></url>\n");
-        for (var e : inTenant(tenant, catalog::sitemap)) {
+        record Entry(String path, java.time.Instant lastModified) {
+        }
+        List<Entry> entries = new java.util.ArrayList<>();
+        inTenant(tenant, () -> {
+            catalog.sitemap().forEach(e -> entries.add(new Entry(e.path(), e.lastModified())));
+            content.sitemap().forEach(e -> entries.add(new Entry(e.path(), e.lastModified())));
+            if (content.hasPosts()) entries.add(new Entry("/blog", null));
+            return null;
+        });
+        for (var e : entries) {
             xml.append("  <url><loc>").append(HtmlUtils.htmlEscape(base + e.path())).append("</loc>");
             if (e.lastModified() != null) xml.append("<lastmod>").append(DateTimeFormatter.ISO_INSTANT.format(e.lastModified())).append("</lastmod>");
             xml.append("</url>\n");

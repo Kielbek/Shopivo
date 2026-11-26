@@ -3,6 +3,7 @@ package pl.shopivo.media;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -77,11 +78,16 @@ public class ImageProcessor {
         String format = sniff(data);
         if (format == null) throw new BusinessRuleException("UNSUPPORTED_IMAGE", "Obsługiwane formaty: JPEG i PNG.");
         BufferedImage image = decode(data, format);
+        // Phone photos are stored sideways with an EXIF orientation flag; variants are written upright (and without EXIF).
+        int orientation = "jpeg".equals(format) ? exifOrientation(data) : 1;
+        boolean swap = orientation >= 5;
+        int width = swap ? image.getHeight() : image.getWidth();
+        int height = swap ? image.getWidth() : image.getHeight();
         Map<Integer, byte[]> variants = new LinkedHashMap<>();
-        for (int width : WIDTHS) {
-            variants.put(width, jpeg(resize(image, width)));
+        for (int w : WIDTHS) {
+            variants.put(w, jpeg(resize(image, w, orientation)));
         }
-        return new Processed(format, image.getWidth(), image.getHeight(), variants);
+        return new Processed(format, width, height, variants);
     }
 
     static String sniff(byte[] d) {
@@ -115,10 +121,74 @@ public class ImageProcessor {
         }
     }
 
-    /** Scales down to {@code width} (never up), flattening transparency onto white. */
-    private static BufferedImage resize(BufferedImage src, int width) {
-        int w = Math.min(width, src.getWidth());
-        int h = Math.max(1, (int) Math.round(src.getHeight() * (w / (double) src.getWidth())));
+    /**
+     * EXIF orientation (1–8) of a JPEG, read from the APP1 segment's first IFD; 1 when absent or malformed. Every read is
+     * bounds-checked — the bytes are untrusted.
+     */
+    static int exifOrientation(byte[] d) {
+        int i = 2;
+        while (i + 4 <= d.length && (d[i] & 0xFF) == 0xFF) {
+            int marker = d[i + 1] & 0xFF;
+            if (marker == 0xDA || marker == 0xD9) break;
+            int len = u16(d, i + 2, true);
+            if (len < 2 || i + 2 + len > d.length) break;
+            if (marker == 0xE1 && len >= 16 && d[i + 4] == 'E' && d[i + 5] == 'x' && d[i + 6] == 'i' && d[i + 7] == 'f'
+                    && d[i + 8] == 0 && d[i + 9] == 0) {
+                int tiff = i + 10;
+                int end = i + 2 + len;
+                boolean big;
+                if (d[tiff] == 'M' && d[tiff + 1] == 'M') big = true;
+                else if (d[tiff] == 'I' && d[tiff + 1] == 'I') big = false;
+                else return 1;
+                long ifd = u32(d, tiff + 4, big);
+                if (ifd < 8 || tiff + ifd + 2 > end) return 1;
+                int pos = (int) (tiff + ifd);
+                int count = u16(d, pos, big);
+                for (int e = 0; e < count && e < 200; e++) {
+                    int entry = pos + 2 + e * 12;
+                    if (entry + 12 > end) return 1;
+                    if (u16(d, entry, big) == 0x0112) {
+                        int v = u16(d, entry + 8, big);
+                        return v >= 1 && v <= 8 ? v : 1;
+                    }
+                }
+                return 1;
+            }
+            i += 2 + len;
+        }
+        return 1;
+    }
+
+    private static int u16(byte[] d, int o, boolean big) {
+        return big ? ((d[o] & 0xFF) << 8) | (d[o + 1] & 0xFF) : ((d[o + 1] & 0xFF) << 8) | (d[o] & 0xFF);
+    }
+
+    private static long u32(byte[] d, int o, boolean big) {
+        if (o + 4 > d.length) return -1;
+        return big ? ((long) u16(d, o, true) << 16) | u16(d, o + 2, true) : ((long) u16(d, o + 2, false) << 16) | u16(d, o, false);
+    }
+
+    /** Maps source pixels to the upright image for an EXIF orientation (source size w × h). */
+    static AffineTransform orientationTransform(int orientation, int w, int h) {
+        return switch (orientation) {
+            case 2 -> new AffineTransform(-1, 0, 0, 1, w, 0);
+            case 3 -> new AffineTransform(-1, 0, 0, -1, w, h);
+            case 4 -> new AffineTransform(1, 0, 0, -1, 0, h);
+            case 5 -> new AffineTransform(0, 1, 1, 0, 0, 0);
+            case 6 -> new AffineTransform(0, 1, -1, 0, h, 0);
+            case 7 -> new AffineTransform(0, -1, -1, 0, h, w);
+            case 8 -> new AffineTransform(0, -1, 1, 0, 0, w);
+            default -> new AffineTransform();
+        };
+    }
+
+    /** Scales down to {@code width} (never up), upright, flattening transparency onto white. */
+    private static BufferedImage resize(BufferedImage src, int width, int orientation) {
+        boolean swap = orientation >= 5;
+        int ow = swap ? src.getHeight() : src.getWidth();
+        int oh = swap ? src.getWidth() : src.getHeight();
+        int w = Math.min(width, ow);
+        int h = Math.max(1, (int) Math.round(oh * (w / (double) ow)));
         BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = out.createGraphics();
         try {
@@ -127,7 +197,9 @@ public class ImageProcessor {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.setColor(Color.WHITE);
             g.fillRect(0, 0, w, h);
-            g.drawImage(src, 0, 0, w, h, null);
+            AffineTransform t = AffineTransform.getScaleInstance(w / (double) ow, h / (double) oh);
+            t.concatenate(orientationTransform(orientation, src.getWidth(), src.getHeight()));
+            g.drawImage(src, t, null);
         } finally {
             g.dispose();
         }

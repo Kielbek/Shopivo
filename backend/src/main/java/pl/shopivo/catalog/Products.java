@@ -62,10 +62,12 @@ public class Products {
     private final JsonMapper json;
     private final AuditLog auditLog;
     private final pl.shopivo.media.Media media;
+    private final pl.shopivo.content.Redirects redirects;
 
     Products(ProductRepository products, VariantRepository variants, Categories categories, Brands brands, Inventory inventory,
             PriceHistory prices, Stores stores, List<ProductLimitPolicy> limits, JdbcTemplate jdbc, JsonMapper json, AuditLog auditLog,
-            pl.shopivo.media.Media media) {
+            pl.shopivo.media.Media media, pl.shopivo.content.Redirects redirects) {
+        this.redirects = redirects;
         this.media = media;
         this.products = products;
         this.variants = variants;
@@ -219,6 +221,10 @@ public class Products {
             UUID tenant = TenantContext.requireTenantId();
             long count = products.countByStatusNot(ProductStatus.ARCHIVED);
             limits.forEach(l -> l.checkCanAddProduct(tenant, count));
+        }
+        if (!slug.equals(p.getSlug()) && p.getStatus() == ProductStatus.ACTIVE) {
+            // Old product links (search engines, shared links) keep working.
+            redirects.pathChanged("/produkt/" + p.getSlug(), "/produkt/" + slug);
         }
         apply(p, in, name, slug);
         p.changeStatus(status);

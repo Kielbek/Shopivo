@@ -55,7 +55,8 @@ public final class OrderModel {
             Address shippingAddress, Billing billing, String shippingMethodName, long shippingMinor, long paymentFeeMinor,
             long subtotalMinor, long discountMinor, long totalMinor, long taxMinor, String currency, String customerNote,
             String trackingNumber, List<OrderItemView> items, List<OrderEventView> events, Instant paidAt, Instant shippedAt,
-            Instant completedAt, Instant canceledAt, String cancelReason, Instant createdAt, long version) {
+            Instant completedAt, Instant canceledAt, String cancelReason, Instant termsAcceptedAt, UUID termsRevisionId,
+            Instant createdAt, long version) {
     }
 
     public record OrderRow(UUID id, long number, OrderStatus status, PaymentStatus paymentStatus, PaymentMethod paymentMethod,

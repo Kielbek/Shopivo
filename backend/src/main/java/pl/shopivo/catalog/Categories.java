@@ -28,8 +28,10 @@ public class Categories {
     private final CategoryRepository repository;
     private final JdbcTemplate jdbc;
     private final AuditLog auditLog;
+    private final pl.shopivo.content.Redirects redirects;
 
-    Categories(CategoryRepository repository, JdbcTemplate jdbc, AuditLog auditLog) {
+    Categories(CategoryRepository repository, JdbcTemplate jdbc, AuditLog auditLog, pl.shopivo.content.Redirects redirects) {
+        this.redirects = redirects;
         this.repository = repository;
         this.jdbc = jdbc;
         this.auditLog = auditLog;
@@ -78,6 +80,7 @@ public class Categories {
         }
         String name = requireName(in.name());
         String slug = in.slug() == null || in.slug().isBlank() ? c.getSlug() : uniqueSlug(in.slug(), id, true);
+        if (!slug.equals(c.getSlug())) redirects.pathChanged("/kategoria/" + c.getSlug(), "/kategoria/" + slug);
         c.update(name, slug, blank(in.description()), in.visible(), blank(in.seoTitle()), blank(in.seoDescription()));
         UUID newParent = in.parentId();
         if (!java.util.Objects.equals(newParent, c.getParentId())) {

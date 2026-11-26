@@ -338,7 +338,7 @@ public class Orders {
                 rs.getLong("subtotal_minor"), rs.getLong("discount_minor"), rs.getLong("total_minor"), rs.getLong("tax_minor"),
                 rs.getString("currency"), rs.getString("customer_note"), rs.getString("tracking_number"), items, events,
                 ts(rs, "paid_at"), ts(rs, "shipped_at"), ts(rs, "completed_at"), ts(rs, "canceled_at"), rs.getString("cancel_reason"),
-                ts(rs, "created_at"), rs.getLong("version"));
+                ts(rs, "terms_accepted_at"), rs.getObject("terms_revision_id", UUID.class), ts(rs, "created_at"), rs.getLong("version"));
     }
 
     private static Instant ts(ResultSet rs, String col) throws SQLException {

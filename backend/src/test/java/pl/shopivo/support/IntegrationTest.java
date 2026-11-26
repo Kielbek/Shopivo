@@ -118,8 +118,24 @@ public abstract class IntegrationTest {
                 "taxId", "5260001246", "addressLine1", "ul. Testowa 1", "postalCode", "00-001", "city", "Warszawa", "countryCode", "PL",
                 "orderEmail", "zamowienia@example.com", "pricesIncludeTax", true, "version", settings.get("version").asLong()));
         assertThat(saved.status()).as(saved.body()).isEqualTo(200);
+        publishLegalPages(owner, tenant);
         var published = owner.post("/api/v1/tenants/" + tenant + "/store/publish", Map.of());
         assertThat(published.status()).as(published.body()).isEqualTo(200);
+    }
+
+    /** Creates the terms and privacy policy from the templates and publishes them (placeholders replaced). */
+    protected void publishLegalPages(ApiClient owner, String tenant) {
+        for (String key : java.util.List.of("TERMS", "PRIVACY")) {
+            var created = owner.post("/api/v1/tenants/" + tenant + "/content/legal/" + key, Map.of());
+            if (created.status() == 409) continue;
+            assertThat(created.status()).as(created.body()).isEqualTo(201);
+            var page = created.json();
+            String body = page.get("body").asString().replaceAll("\\[uzupełnij[^\\]]*\\]", "1 grudnia 2026 r.");
+            var updated = owner.put("/api/v1/tenants/" + tenant + "/content/" + page.get("id").asString(), Map.of("kind", "PAGE",
+                    "title", page.get("title").asString(), "body", body, "status", "PUBLISHED", "showInFooter", true,
+                    "version", page.get("version").asLong()));
+            assertThat(updated.status()).as(updated.body()).isEqualTo(200);
+        }
     }
 
     protected static String uniqueSlug(String prefix) {

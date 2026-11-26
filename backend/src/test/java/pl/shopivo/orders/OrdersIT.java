@@ -172,6 +172,11 @@ class OrdersIT extends IntegrationTest {
         String orderId = list.get("items").get(0).get("id").asString();
         JsonNode order = s.owner().get(base(s.tenant()) + "/orders/" + orderId).json();
         assertThat(order.get("billing").get("taxId").asString()).isEqualTo("5260001246");
+        // The exact terms the customer accepted are recorded with the order
+        assertThat(order.get("termsAcceptedAt").isNull()).isFalse();
+        var terms = s.owner().get(base(s.tenant()) + "/content/revisions/" + order.get("termsRevisionId").asString());
+        assertThat(terms.status()).as(terms.body()).isEqualTo(200);
+        assertThat(terms.json().get("body").asString()).contains("Prawo odstąpienia od umowy");
         assertThat(order.get("taxMinor").asLong()).isEqualTo(Math.round(24000 * 23 / 123.0) + Math.round(2990 * 23 / 123.0) + Math.round(1599 * 23 / 123.0));
         long version = order.get("version").asLong();
         assertThat(s.owner().post(base(s.tenant()) + "/orders/" + orderId + "/status", Map.of("status", "COMPLETED", "version", version)).code())
