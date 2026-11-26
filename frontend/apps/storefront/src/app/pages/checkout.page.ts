@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal, viewChild } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -8,6 +8,7 @@ import { money } from '../core/format';
 import { Seo } from '../core/seo';
 import { StoreState } from '../core/store-state';
 import { CustomerSession } from '../core/account';
+import { CaptchaComponent } from '../ui/captcha';
 import { StorefrontApi } from '../storefront-api';
 
 export const ORDER_TOKEN_KEY = 'shopivo.lastOrder';
@@ -15,7 +16,7 @@ export const ORDER_TOKEN_KEY = 'shopivo.lastOrder';
 /** Guest checkout. All validation is repeated on the server; the form only helps the customer. */
 @Component({
   selector: 'sf-checkout',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, CaptchaComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="sf-container py-8">
@@ -116,6 +117,7 @@ export const ORDER_TOKEN_KEY = 'shopivo.lastOrder';
                 <span>Chcę otrzymywać informacje o nowościach i promocjach e-mailem (zgodę możesz wycofać w każdej chwili).</span></label>
             </div>
             @if (error(); as e) {<p class="mt-4 text-[14px] text-sf-danger" role="alert">{{ e }}</p>}
+            @if (siteKey(); as key) {<div class="mt-5"><sf-captcha #captcha [siteKey]="key" (token)="captchaToken = $event" /></div>}
             <button type="submit" class="sf-btn mt-5 w-full" [disabled]="submitting()">{{ submitting() ? 'Składanie zamówienia…' : 'Zamawiam i płacę' }}</button>
             <p class="mt-3 text-center text-[12px] text-sf-muted">Kliknięcie oznacza zamówienie z obowiązkiem zapłaty.</p>
           </aside>
@@ -140,6 +142,15 @@ export class CheckoutPage {
   private readonly touched = signal(false);
   protected readonly customer = inject(CustomerSession);
   protected readonly prefilled = signal(false);
+  protected readonly siteKey = computed(() => this.store.store()?.captchaSiteKey ?? null);
+  protected captchaToken: string | null = null;
+  private readonly captcha = viewChild<CaptchaComponent>('captcha');
+
+  private takeCaptchaToken(): string | null {
+    const t = this.captchaToken;
+    this.captchaToken = null;
+    return t;
+  }
   protected f = { email: '', phone: '', firstName: '', lastName: '', line1: '', postalCode: '', city: '', shippingMethodId: '',
     paymentMethod: '' as '' | 'BANK_TRANSFER' | 'COD', invoice: false, company: '', nip: '', note: '', terms: false, marketing: false };
 
@@ -232,6 +243,10 @@ export class CheckoutPage {
     }
     const token = this.cart.currentToken();
     if (!token) return;
+    if (this.siteKey() && !this.captchaToken) {
+      this.error.set('Potwierdź, że nie jesteś robotem (pole nad przyciskiem).');
+      return;
+    }
     const f = this.f;
     this.submitting.set(true);
     this.error.set(null);
@@ -243,7 +258,7 @@ export class CheckoutPage {
         billing: f.invoice ? { invoice: true, companyName: f.company.trim(), taxId: f.nip.trim(), address: null } : null,
         shippingMethodId: this.needsShipping() ? f.shippingMethodId : null, paymentMethod: f.paymentMethod as 'BANK_TRANSFER' | 'COD',
         customerNote: f.note.trim() || null, termsAccepted: f.terms, marketingConsent: f.marketing,
-      }));
+      }, this.takeCaptchaToken()));
       try {
         sessionStorage.setItem(ORDER_TOKEN_KEY, result.orderToken);
       } catch {
@@ -252,6 +267,8 @@ export class CheckoutPage {
       this.cart.clear();
       await this.router.navigate(['/zamowienie/potwierdzenie']);
     } catch (e: unknown) {
+      // Tokens are single-use: a new check is needed for the next attempt (reset before anything else is awaited).
+      this.captcha()?.reset();
       this.error.set((e as { error?: { detail?: string } }).error?.detail ?? 'Nie udało się złożyć zamówienia. Spróbuj ponownie.');
       await this.cart.refresh();
     } finally {

@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal, viewChild } from '@angular/core';
+import { CaptchaComponent } from '../ui/captcha';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -75,7 +76,7 @@ export class LoginPage {
 
 @Component({
   selector: 'sf-register',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, CaptchaComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="${SHELL}">
@@ -97,6 +98,7 @@ export class LoginPage {
             <p id="r-pass-hint" class="mt-1 text-[12px] text-sf-muted">Co najmniej 10 znaków. Najlepiej kilka słów.</p></div>
           <label class="flex items-start gap-2.5 text-[13px]"><input type="checkbox" class="sf-check mt-0.5" name="terms" [(ngModel)]="terms" />
             <span>Akceptuję @if (termsPath(); as p) {<a class="sf-link" [href]="p" target="_blank" rel="noopener">regulamin sklepu</a>} @else {regulamin sklepu}.</span></label>
+          @if (siteKey(); as key) {<sf-captcha #captcha [siteKey]="key" (token)="captchaToken = $event" />}
           @if (error(); as e) {<p class="text-[14px] text-sf-danger" role="alert">{{ e }}</p>}
           <button type="submit" class="sf-btn w-full" [disabled]="busy()">Załóż konto</button>
         </form>
@@ -117,6 +119,9 @@ export class RegisterPage {
   protected readonly done = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly termsPath = computed(() => this.store.store()?.footerLinks.find((l) => l.systemKey === 'TERMS')?.path ?? null);
+  protected readonly siteKey = computed(() => this.store.store()?.captchaSiteKey ?? null);
+  protected captchaToken: string | null = null;
+  private readonly captcha = viewChild<CaptchaComponent>('captcha');
 
   constructor() {
     noindex('Załóż konto', '/konto/rejestracja');
@@ -128,13 +133,18 @@ export class RegisterPage {
       this.error.set('Zaakceptuj regulamin sklepu.');
       return;
     }
+    if (this.siteKey() && !this.captchaToken) {
+      this.error.set('Potwierdź, że nie jesteś robotem.');
+      return;
+    }
     this.busy.set(true);
     try {
       await firstValueFrom(this.session.register({ email: this.email.trim(), password: this.password, firstName: this.firstName.trim(),
-        lastName: this.lastName.trim(), termsAccepted: this.terms }));
+        lastName: this.lastName.trim(), termsAccepted: this.terms }, this.captchaToken));
       this.done.set(true);
     } catch (e) {
       this.error.set(apiMessage(e));
+      this.captcha()?.reset();
     } finally {
       this.busy.set(false);
     }
@@ -192,7 +202,7 @@ export class VerifyPage {
 
 @Component({
   selector: 'sf-reset-request',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, CaptchaComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="${SHELL}">
@@ -202,6 +212,7 @@ export class VerifyPage {
       } @else {
         <form class="mt-6 space-y-4" (ngSubmit)="submit()">
           <div><label class="sf-label" for="rr-email">E-mail</label><input id="rr-email" name="email" type="email" autocomplete="email" class="sf-input" [(ngModel)]="email" /></div>
+          @if (siteKey(); as key) {<sf-captcha #captcha [siteKey]="key" (token)="captchaToken = $event" />}
           @if (error(); as e) {<p class="text-[14px] text-sf-danger" role="alert">{{ e }}</p>}
           <button type="submit" class="sf-btn w-full" [disabled]="busy()">Wyślij link</button>
         </form>
@@ -212,6 +223,10 @@ export class VerifyPage {
 })
 export class ResetRequestPage {
   private readonly session = inject(CustomerSession);
+  private readonly store = inject(StoreState);
+  protected readonly siteKey = computed(() => this.store.store()?.captchaSiteKey ?? null);
+  protected captchaToken: string | null = null;
+  private readonly captcha = viewChild<CaptchaComponent>('captcha');
   protected email = '';
   protected readonly busy = signal(false);
   protected readonly sent = signal(false);
@@ -225,10 +240,11 @@ export class ResetRequestPage {
     this.busy.set(true);
     this.error.set(null);
     try {
-      await firstValueFrom(this.session.requestReset(this.email.trim()));
+      await firstValueFrom(this.session.requestReset(this.email.trim(), this.captchaToken));
       this.sent.set(true);
     } catch (e) {
       this.error.set(apiMessage(e));
+      this.captcha()?.reset();
     } finally {
       this.busy.set(false);
     }

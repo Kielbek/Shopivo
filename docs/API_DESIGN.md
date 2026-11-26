@@ -263,12 +263,21 @@ zamówieniu (unikalny indeks).
 | GET | `/reviews/pending` | Produkty z własnych zweryfikowanych zakupów bez opinii |
 | POST | `/reviews` | `{orderNumber, productId, rating, body}` — tylko z własnego zamówienia spełniającego weryfikację zakupu |
 
-## 11. Kolejne fazy (zarys)
-- CAPTCHA w checkoucie i rejestracji, menu nawigacji
+## 11. Faza 4e — CAPTCHA i menu (zaimplementowane)
+
+- **CAPTCHA** (Cloudflare Turnstile): `POST /storefront/checkout`, `/account/register`, `/account/password-reset` wymagają
+  nagłówka `X-Captcha-Token` (400 `CAPTCHA_FAILED`). Klucz witryny w `/storefront/store` → `captchaSiteKey`
+  (`null` = wyłączona: tylko lokalnie/testy). Niedostępność Cloudflare nie blokuje zamówień (log ostrzegawczy; limity na IP nadal działają).
+- **Menu**: `GET /tenants/{t}/navigation` (`STORE_READ`), `PUT` (`CONTENT_WRITE`, `{items: [{label ≤ 40, path}], version}`;
+  do 12 pozycji, tylko ścieżki w sklepie, 409 przy konflikcie; pusta lista = domyślne kategorie); w witrynie `/store` → `menu`.
+- **Klienci**: `accountCreatedAt` w `/customers` i `/customers/{id}` — data założenia potwierdzonego konta w sklepie.
+
+## 12. Kolejne fazy (zarys)
+- Faza 5: płatności i wysyłka sprzedawców
 - `/api/v1/webhooks/payments/{provider}/{tenantId}`,
   `/api/v1/webhooks/shipping/{provider}/{tenantId}` (Fazy 2, 5)
 
-## 12. Limity zapytań
+## 13. Limity zapytań
 Redis, okno stałe per klucz:
 | Zakres | Klucz | Limit |
 |---|---|---|

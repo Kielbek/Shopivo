@@ -220,6 +220,7 @@ produkty lub zamówienia (SPI `CurrencyChangeGuard`).
 | `media` | Pliki (S3/lokalnie), przetwarzanie zdjęć, limity miejsca (SPI `MediaQuotaPolicy`) | — |
 | `themes` | Rejestr pól i presetów, szkic/publikacja motywu | — |
 | `storefront` | Publiczne API witryny (BFF): konfiguracja sklepu, katalog, sitemap, robots | stores, themes, catalog |
+| `shared.captcha` | Weryfikacja CAPTCHA (Turnstile; wyłączona tylko lokalnie i w testach) | — |
 | `accounts` | Konta klientów sklepu: rejestracja z potwierdzeniem, sesje w ciasteczku na domenie sklepu, historia zamówień, adresy, opinie z konta | orders, reviews, stores, email |
 | `reviews` | Opinie od zweryfikowanych kupujących: zaproszenia po realizacji zamówienia, moderacja, odpowiedzi, podsumowania | orders, email, stores |
 | `content` | Strony, blog, dokumenty prawne (wzory, wersje), przekierowania 301 (SPI `StorePublishCheck`) | stores |

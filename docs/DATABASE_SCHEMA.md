@@ -194,13 +194,18 @@ Blokady zadań cyklicznych.
 | `customer_addresses` | Zapisane adresy (do 10), domyślny |
 | indeks `orders_email_lower_idx` | Historia zamówień konta po e-mailu |
 
+## 5e. Tabele — Faza 4e (migracja V11; z RLS)
+
+| Tabela | Opis |
+|---|---|
+| `store_navigation` | Menu nagłówka sklepu: `items_json` (etykieta + ścieżka w sklepie), `version` |
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |
 |---|---|
 | 2 (pozostałe) | `billing_invoices` (faktury VAT/KSeF — Q-06), `tenant_billing_profiles` (dane do faktury) |
 | 3 (pozostałe) | `returns`, `complaints`, `discounts`, `discount_usage`, `wishlists` |
-| 4e | `navigation_menus` |
 | 5 | `integrations`, `integration_credentials` (szyfrowane), `payments`, `payment_transactions`, `refunds`, `shipments`, `shipment_events`, `shipping_methods`, `shipping_zones` |
 | 6 | rozszerzenia `store_domains`, `domain_checks` |
 | 7 | `newsletter_subscribers`, `abandoned_carts`, `marketing_settings`, `analytics_daily` (agregaty), `ai_usage`, `ai_jobs` |

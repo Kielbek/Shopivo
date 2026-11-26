@@ -8,7 +8,7 @@ export interface PublicCategory { id: string; parentId: string | null; name: str
 export interface PublicStore {
   name: string; status: 'DRAFT' | 'PUBLISHED' | 'SUSPENDED'; open: boolean; preview: boolean; locale: string; currency: string;
   hostname: string; theme: ThemeConfig; seller: Seller | null; categories: PublicCategory[];
-  footerLinks: FooterLink[]; blog: boolean;
+  footerLinks: FooterLink[]; blog: boolean; menu: { label: string; path: string }[]; captchaSiteKey: string | null;
 }
 export type LegalKey = 'TERMS' | 'PRIVACY' | 'RETURNS' | 'SHIPPING';
 export interface FooterLink { title: string; path: string; systemKey: LegalKey | null; }
@@ -124,8 +124,10 @@ export class StorefrontApi {
     return this.http.get<CheckoutOptions>(`${this.base}/checkout/options`);
   }
 
-  checkout(token: string, input: CheckoutInput): Observable<CheckoutResult> {
-    return this.http.post<CheckoutResult>(`${this.base}/checkout`, input, { headers: cartHeader(token) });
+  checkout(token: string, input: CheckoutInput, captcha: string | null): Observable<CheckoutResult> {
+    let headers = cartHeader(token);
+    if (captcha) headers = headers.set('X-Captcha-Token', captcha);
+    return this.http.post<CheckoutResult>(`${this.base}/checkout`, input, { headers });
   }
 
   orderStatus(orderToken: string): Observable<OrderConfirmation> {

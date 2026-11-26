@@ -380,6 +380,8 @@ export interface StorePaymentSettings { bankTransferEnabled: boolean; bankAccoun
 export interface Customer {
   id: string; email: string; firstName: string | null; lastName: string | null; phone: string | null; acceptsMarketing: boolean;
   marketingConsentAt: string | null; note: string | null; ordersCount: number; totalSpentMinor: number; lastOrderAt: string | null; createdAt: string; version: number;
+  /** Set when the customer has a confirmed account in the store. */
+  accountCreatedAt: string | null;
 }
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = { NEW: 'Nowe', PROCESSING: 'W realizacji', SHIPPED: 'Wysłane', COMPLETED: 'Zrealizowane', CANCELED: 'Anulowane' };
@@ -422,3 +424,7 @@ export interface Review {
   id: string; productId: string; productName: string | null; orderId: string; orderNumber: number; authorName: string; rating: number;
   body: string | null; status: ReviewStatus; reply: string | null; repliedAt: string | null; moderatedAt: string | null; createdAt: string;
 }
+
+// ------------------------------------------------------------------------------------------------ navigation
+export interface NavigationItem { label: string; path: string; }
+export interface NavigationMenu { items: NavigationItem[]; custom: boolean; version: number; }

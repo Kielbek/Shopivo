@@ -11,7 +11,7 @@ import {
   LucidePalette, LucidePlus, LucideReceipt, LucideSearch, LucideSettings, LucideShield, LucideShieldCheck,
   LucideShoppingBag, LucideStore, LucideTrendingUp, LucideTruck, LucideUser, LucideUserPlus, LucideUsers, LucideWallet,
   LucideX, LucideShoppingCart, LucideBox, LucideCircleDollarSign, LucideEllipsis, LucideImage, LucideDownload, LucideCopy,
-  LucideArrowLeft, LucideArrowRight, LucideStar, LucideExternalLink, LucideEye, LucideFolderPlus, LucideTrash2, LucideHistory, LucidePencil,
+  LucideArrowLeft, LucideArrowRight, LucideStar, LucideChevronUp, LucideExternalLink, LucideEye, LucideFolderPlus, LucideTrash2, LucideHistory, LucidePencil,
 } from '@lucide/angular';
 
 export const icons = {
@@ -75,6 +75,7 @@ export const icons = {
   arrowLeft: LucideArrowLeft,
   arrowRight: LucideArrowRight,
   star: LucideStar,
+  moveUp: LucideChevronUp,
   external: LucideExternalLink,
   eye: LucideEye,
   folderPlus: LucideFolderPlus,

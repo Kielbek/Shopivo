@@ -56,10 +56,14 @@ import { StoreState } from './core/store-state';
               </button>
               <a routerLink="/" class="truncate text-[20px] font-semibold tracking-tight">{{ s.name }}</a>
               <nav class="ml-6 hidden items-center gap-6 lg:flex" aria-label="Kategorie">
-                @for (c of store.topCategories().slice(0, 6); track c.id) {
-                  <a [routerLink]="['/kategoria', c.slug]" class="text-[14px] font-medium hover:underline">{{ c.name }}</a>
+                @if (s.menu.length) {
+                  @for (m of s.menu; track $index) {<a [routerLink]="m.path" class="text-[14px] font-medium hover:underline">{{ m.label }}</a>}
+                } @else {
+                  @for (c of store.topCategories().slice(0, 6); track c.id) {
+                    <a [routerLink]="['/kategoria', c.slug]" class="text-[14px] font-medium hover:underline">{{ c.name }}</a>
+                  }
+                  @if (s.blog) {<a routerLink="/blog" class="text-[14px] font-medium hover:underline">Blog</a>}
                 }
-                @if (s.blog) {<a routerLink="/blog" class="text-[14px] font-medium hover:underline">Blog</a>}
               </nav>
               <form class="ml-auto hidden md:block" role="search" (ngSubmit)="search()">
                 <label class="sr-only" for="sf-search">Szukaj produktów</label>
@@ -84,11 +88,15 @@ import { StoreState } from './core/store-state';
                     <input id="sf-search-m" name="qm" type="search" class="sf-input" placeholder="Szukaj produktów…" [(ngModel)]="query" />
                   </form>
                   <nav aria-label="Kategorie" class="flex flex-col">
-                    <a routerLink="/produkty" class="py-2.5 font-medium">Wszystkie produkty</a>
-                    @for (c of store.topCategories(); track c.id) {
-                      <a [routerLink]="['/kategoria', c.slug]" class="py-2.5 font-medium">{{ c.name }}</a>
+                    @if (s.menu.length) {
+                      @for (m of s.menu; track $index) {<a [routerLink]="m.path" class="py-2.5 font-medium">{{ m.label }}</a>}
+                    } @else {
+                      <a routerLink="/produkty" class="py-2.5 font-medium">Wszystkie produkty</a>
+                      @for (c of store.topCategories(); track c.id) {
+                        <a [routerLink]="['/kategoria', c.slug]" class="py-2.5 font-medium">{{ c.name }}</a>
+                      }
+                      @if (s.blog) {<a routerLink="/blog" class="py-2.5 font-medium">Blog</a>}
                     }
-                    @if (s.blog) {<a routerLink="/blog" class="py-2.5 font-medium">Blog</a>}
                   </nav>
                 </div>
               </div>

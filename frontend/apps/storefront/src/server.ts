@@ -13,7 +13,7 @@ app.disable('x-powered-by');
 app.set('trust proxy', process.env['SHOPIVO_TRUST_PROXY'] ?? 'loopback');
 const angularApp = new AngularNodeAppEngine();
 
-const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type', 'x-cart-token', 'x-order-token', 'x-review-token', 'x-store-preview', 'x-requested-with'];
+const FORWARDED_REQUEST_HEADERS = ['accept', 'content-type', 'x-cart-token', 'x-order-token', 'x-review-token', 'x-store-preview', 'x-requested-with', 'x-captcha-token'];
 /** The only cookie the storefront API ever sees: the customer session (HttpOnly, host-only). */
 const CUSTOMER_COOKIE = 'shopivo_customer';
 const FORWARDED_RESPONSE_HEADERS = ['content-type', 'cache-control', 'vary', 'retry-after'];

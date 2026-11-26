@@ -65,12 +65,12 @@ export class CustomerSession {
     this.account.set(null);
   }
 
-  register(input: { email: string; password: string; firstName: string; lastName: string; termsAccepted: boolean }): Observable<void> {
-    return this.http.post<void>(`${BASE}/register`, input);
+  register(input: { email: string; password: string; firstName: string; lastName: string; termsAccepted: boolean }, captcha: string | null): Observable<void> {
+    return this.http.post<void>(`${BASE}/register`, input, { headers: captchaHeader(captcha) });
   }
 
-  requestReset(email: string): Observable<void> {
-    return this.http.post<void>(`${BASE}/password-reset`, { email });
+  requestReset(email: string, captcha: string | null): Observable<void> {
+    return this.http.post<void>(`${BASE}/password-reset`, { email }, { headers: captchaHeader(captcha) });
   }
 
   confirmReset(token: string, password: string): Observable<void> {
@@ -116,6 +116,10 @@ export class CustomerSession {
   review(input: { orderNumber: number; productId: string; rating: number; body: string | null; authorName: string | null }): Observable<void> {
     return this.http.post<void>(`${BASE}/reviews`, input);
   }
+}
+
+function captchaHeader(token: string | null): Record<string, string> {
+  return token ? { 'X-Captcha-Token': token } : {};
 }
 
 /** Polish message from an API error (Problem Details `detail`). */

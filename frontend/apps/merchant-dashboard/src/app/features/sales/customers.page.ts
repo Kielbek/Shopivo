@@ -53,7 +53,7 @@ import { ORDER_TONE } from './order-tones';
               @for (c of rows.value()!.items; track c.id) {
                 <tr class="cursor-pointer hover:bg-hover" (click)="open(c)">
                   <td><div class="flex items-center gap-3"><sv-avatar [name]="name(c)" />
-                    <div class="min-w-0"><p class="truncate font-medium text-ink">{{ name(c) }}</p><p class="truncate text-[12px] text-ink-muted">{{ c.email }}</p></div></div></td>
+                    <div class="min-w-0"><p class="flex items-center gap-1.5 truncate font-medium text-ink">{{ name(c) }}@if (c.accountCreatedAt) {<sv-badge tone="info">Konto</sv-badge>}</p><p class="truncate text-[12px] text-ink-muted">{{ c.email }}</p></div></div></td>
                   <td class="text-right tabular-nums">{{ c.ordersCount }}</td>
                   <td class="text-right tabular-nums">{{ c.totalSpentMinor | svMoney }}</td>
                   <td class="whitespace-nowrap text-ink-muted">{{ c.lastOrderAt | svDate: 'relative' }}</td>
@@ -80,6 +80,7 @@ import { ORDER_TONE } from './order-tones';
             <div><dt class="text-ink-muted">E-mail</dt><dd class="break-all text-ink">{{ c.email }}</dd></div>
             <div><dt class="text-ink-muted">Telefon</dt><dd class="text-ink">{{ c.phone || '—' }}</dd></div>
             <div><dt class="text-ink-muted">Klient od</dt><dd class="text-ink">{{ c.createdAt | svDate: 'date' }}</dd></div>
+            <div><dt class="text-ink-muted">Konto w sklepie</dt><dd class="text-ink">{{ c.accountCreatedAt ? 'tak, od ' : 'nie' }}{{ c.accountCreatedAt ? (c.accountCreatedAt | svDate: 'date') : '' }}</dd></div>
             <div><dt class="text-ink-muted">Zgoda marketingowa</dt><dd class="text-ink">{{ c.acceptsMarketing ? 'od ' : 'brak' }}{{ c.acceptsMarketing ? (c.marketingConsentAt | svDate: 'date') : '' }}</dd></div>
           </dl>
           <section>

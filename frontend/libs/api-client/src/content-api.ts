@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {
-  ContentEntry, ContentInput, ContentKind, ContentRevision, ContentSummary, LegalKey, LegalStatus, Page, Redirect,
+  ContentEntry, ContentInput, ContentKind, ContentRevision, ContentSummary, LegalKey, LegalStatus, NavigationItem, NavigationMenu, Page, Redirect,
 } from '@shopivo/shared-models';
 import { Observable } from 'rxjs';
 
@@ -46,6 +46,14 @@ export class ContentApi {
 
   revision(t: string, revisionId: string): Observable<ContentRevision> {
     return this.http.get<ContentRevision>(`${this.base(t)}/content/revisions/${encodeURIComponent(revisionId)}`);
+  }
+
+  navigation(t: string): Observable<NavigationMenu> {
+    return this.http.get<NavigationMenu>(`${this.base(t)}/navigation`);
+  }
+
+  saveNavigation(t: string, items: NavigationItem[], version: number): Observable<NavigationMenu> {
+    return this.http.put<NavigationMenu>(`${this.base(t)}/navigation`, { items, version });
   }
 
   redirects(t: string): Observable<Redirect[]> {

@@ -69,7 +69,7 @@ Infrastruktura
 - [x] Strony: główna, katalog, kategoria, wyszukiwarka, produkt, koszyk, checkout, potwierdzenie (4a) · [x] strony CMS z dokumentami prawnymi, blog (4b) · [x] konto klienta (4d)
 - [x] SEO: meta, canonical, sitemap per sklep, robots.txt, JSON-LD (Product, Breadcrumb, Organization), OG (4a) · [x] przekierowania 301 (4b)
 - [x] Media: upload S3, warianty obrazów, limity (4a) · [x] EXIF (4b) · [ ] CDN (Faza 6), WebP/AVIF
-- [x] Opinie produktów od zweryfikowanych kupujących, moderacja (4c) · [x] konta klientów (4d) · [ ] CAPTCHA, menu nawigacji (4e)
+- [x] Opinie produktów od zweryfikowanych kupujących, moderacja (4c) · [x] konta klientów (4d) · [x] CAPTCHA, menu nawigacji (4e)
 
 ## Faza 5 — płatności i wysyłka sprzedawców
 - [ ] Szyfrowane poświadczenia, test połączenia, statusy integracji

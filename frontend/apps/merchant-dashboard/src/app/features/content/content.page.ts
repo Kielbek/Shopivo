@@ -12,18 +12,19 @@ import {
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
+import { NavigationEditorComponent } from './navigation-editor';
 
-type Tab = 'strony' | 'blog' | 'przekierowania';
+type Tab = 'strony' | 'blog' | 'menu' | 'przekierowania';
 
 /** Pages (with the legal documents checklist), blog posts and redirects. */
 @Component({
   selector: 'sv-content-page',
   imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, LucideDynamicIcon, PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent,
-    AlertComponent, LoadingComponent, EmptyStateComponent, TabsComponent, FieldComponent],
+    AlertComponent, LoadingComponent, EmptyStateComponent, TabsComponent, FieldComponent, NavigationEditorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <sv-page-header title="Strony i blog" description="Regulamin, polityka prywatności i inne strony informacyjne, wpisy na blogu oraz przekierowania starych adresów.">
-      @if (canWrite && tab() !== 'przekierowania') {
+    <sv-page-header title="Strony i blog" description="Regulamin, polityka prywatności i inne strony informacyjne, wpisy na blogu, menu sklepu oraz przekierowania starych adresów.">
+      @if (canWrite && (tab() === 'strony' || tab() === 'blog')) {
         <a sv-button [routerLink]="['nowa']" [queryParams]="{ rodzaj: tab() === 'blog' ? 'POST' : 'PAGE' }">
           <svg [lucideIcon]="icons.plus" />{{ tab() === 'blog' ? 'Nowy wpis' : 'Nowa strona' }}
         </a>
@@ -72,6 +73,8 @@ type Tab = 'strony' | 'blog' | 'przekierowania';
       <div role="tabpanel" id="panel-blog" aria-labelledby="tab-blog">
         <sv-card class="mt-5" [flush]="true"><ng-container *ngTemplateOutlet="list" /></sv-card>
       </div>
+    } @else if (tab() === 'menu') {
+      <div role="tabpanel" id="panel-menu" aria-labelledby="tab-menu"><sv-navigation-editor /></div>
     } @else {
       <div role="tabpanel" id="panel-przekierowania" aria-labelledby="tab-przekierowania">
         <sv-card class="mt-5" heading="Przekierowania 301" subheading="Gdy klient lub wyszukiwarka wejdzie na nieistniejący adres, zostanie przeniesiony pod nowy. Zmiana adresu produktu, kategorii, strony lub wpisu dodaje przekierowanie automatycznie.">
@@ -145,7 +148,7 @@ export class ContentPage {
   protected readonly icons = icons;
   protected readonly canWrite = this.ctx.can('CONTENT_WRITE');
   protected readonly canSeo = this.ctx.can('SEO_WRITE');
-  protected readonly tabs: TabOption[] = [{ id: 'strony', label: 'Strony' }, { id: 'blog', label: 'Blog' }, { id: 'przekierowania', label: 'Przekierowania' }];
+  protected readonly tabs: TabOption[] = [{ id: 'strony', label: 'Strony' }, { id: 'blog', label: 'Blog' }, { id: 'menu', label: 'Menu' }, { id: 'przekierowania', label: 'Przekierowania' }];
 
   protected readonly tab = signal<Tab>((this.route.snapshot.queryParamMap.get('zakladka') as Tab) || 'strony');
   protected readonly query = signal('');
