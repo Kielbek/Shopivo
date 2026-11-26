@@ -115,8 +115,9 @@ class ShippingIT extends IntegrationTest {
         assertThat(order.get("trackingNumber").asString()).isEqualTo(s.get("trackingNumber").asString());
 
         // Merchant ships; tracking follows the parcel and completes the order when delivered
-        owner.post(base(t) + "/orders/" + orderId + "/status", Map.of("status", "SHIPPED", "trackingNumber", order.get("trackingNumber").asString(),
-                "version", order.get("version").asLong()));
+        // Shipping without retyping the number keeps the carrier's tracking number
+        owner.post(base(t) + "/orders/" + orderId + "/status", Map.of("status", "SHIPPED", "version", order.get("version").asLong()));
+        assertThat(owner.get(base(t) + "/orders/" + orderId).json().get("trackingNumber").asString()).isEqualTo(s.get("trackingNumber").asString());
         assertThat(emails.awaitEmail(c.get("email").toString(), "zostało wysłane").htmlBody()).contains("Śledź przesyłkę").contains(point);
         // First check (manual refresh): in transit — the order stays shipped
         assertThat(owner.post(base(t) + "/shipments/" + shipmentId + "/refresh", Map.of()).json().get("status").asString()).isEqualTo("IN_TRANSIT");

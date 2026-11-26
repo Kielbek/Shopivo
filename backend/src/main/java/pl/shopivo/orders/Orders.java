@@ -282,7 +282,7 @@ public class Orders {
                 jdbc.update("update order_items set reserved_qty = 0 where order_id = ? and tenant_id = ?", id, tenant);
                 String tracking = trackingNumber == null || trackingNumber.isBlank() ? null : trackingNumber.trim();
                 if (tracking != null && tracking.length() > 80) throw new BusinessRuleException("TOO_LONG", "Numer przesyłki jest za długi.");
-                jdbc.update("update orders set status = 'SHIPPED', tracking_number = ?, shipped_at = now(), updated_at = now(), version = version + 1 where id = ?",
+                jdbc.update("update orders set status = 'SHIPPED', tracking_number = coalesce(?, tracking_number), shipped_at = now(), updated_at = now(), version = version + 1 where id = ?",
                         tracking, id);
                 event(jdbc, tenant, id, "STATUS", "Status: wysłane" + (tracking == null ? "" : " (przesyłka " + tracking + ")"), false, actor);
                 events.publishEvent(new OrderEvents.OrderShipped(tenant, id));
