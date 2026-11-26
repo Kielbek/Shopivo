@@ -349,3 +349,39 @@ export const MOVEMENT_REASON_LABELS: Record<MovementReason, string> = {
 export const VAT_RATES: { bps: number; label: string }[] = [
   { bps: 2300, label: '23%' }, { bps: 800, label: '8%' }, { bps: 500, label: '5%' }, { bps: 0, label: '0%' },
 ];
+
+// ---------------------------------------------------------------- orders & customers (Phase 3)
+export type OrderStatus = 'NEW' | 'PROCESSING' | 'SHIPPED' | 'COMPLETED' | 'CANCELED';
+export type OrderPaymentStatus = 'UNPAID' | 'PAID' | 'REFUNDED';
+export type OrderPaymentMethod = 'BANK_TRANSFER' | 'COD' | 'MANUAL';
+export type ShippingType = 'COURIER' | 'PARCEL_LOCKER' | 'POST' | 'PICKUP' | 'DIGITAL';
+
+export interface OrderAddress { name: string; company: string | null; line1: string; line2: string | null; postalCode: string; city: string; countryCode: string; phone: string | null; }
+export interface OrderBilling { invoice: boolean; companyName: string; taxId: string; address: OrderAddress | null; }
+export interface OrderItem { id: string; productId: string | null; variantId: string | null; name: string; variantTitle: string | null; sku: string | null; quantity: number; unitPriceMinor: number; vatRateBps: number; lineTotalMinor: number; }
+export interface OrderEvent { type: string; message: string; internal: boolean; actorName: string | null; createdAt: string; }
+export interface Order {
+  id: string; number: number; source: 'STOREFRONT' | 'PANEL'; status: OrderStatus; paymentStatus: OrderPaymentStatus;
+  paymentMethod: OrderPaymentMethod; customerId: string | null; email: string; phone: string | null; firstName: string; lastName: string;
+  shippingAddress: OrderAddress | null; billing: OrderBilling | null; shippingMethodName: string | null; shippingMinor: number;
+  paymentFeeMinor: number; subtotalMinor: number; discountMinor: number; totalMinor: number; taxMinor: number; currency: string;
+  customerNote: string | null; trackingNumber: string | null; items: OrderItem[]; events: OrderEvent[]; paidAt: string | null;
+  shippedAt: string | null; completedAt: string | null; canceledAt: string | null; cancelReason: string | null; createdAt: string; version: number;
+}
+export interface OrderRow {
+  id: string; number: number; status: OrderStatus; paymentStatus: OrderPaymentStatus; paymentMethod: OrderPaymentMethod;
+  customerName: string; email: string; itemCount: number; totalMinor: number; currency: string; createdAt: string;
+}
+export interface OrderStats { newOrders: number; processing: number; unpaid: number; ordersToday: number; revenueTodayMinor: number; revenue30dMinor: number; orders30d: number; currency: string; }
+export interface DailySales { day: string; orders: number; revenueMinor: number; }
+export interface ShippingMethod { id: string; name: string; description: string | null; type: ShippingType; priceMinor: number; freeFromMinor: number | null; active: boolean; position: number; version: number; }
+export interface StorePaymentSettings { bankTransferEnabled: boolean; bankAccountHolder: string | null; bankAccountNumber: string | null; bankName: string | null; codEnabled: boolean; codFeeMinor: number; unpaidCancelDays: number; version: number; }
+export interface Customer {
+  id: string; email: string; firstName: string | null; lastName: string | null; phone: string | null; acceptsMarketing: boolean;
+  marketingConsentAt: string | null; note: string | null; ordersCount: number; totalSpentMinor: number; lastOrderAt: string | null; createdAt: string; version: number;
+}
+
+export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = { NEW: 'Nowe', PROCESSING: 'W realizacji', SHIPPED: 'Wysłane', COMPLETED: 'Zrealizowane', CANCELED: 'Anulowane' };
+export const PAYMENT_STATUS_LABELS: Record<OrderPaymentStatus, string> = { UNPAID: 'Nieopłacone', PAID: 'Opłacone', REFUNDED: 'Zwrócone' };
+export const PAYMENT_METHOD_LABELS: Record<OrderPaymentMethod, string> = { BANK_TRANSFER: 'Przelew tradycyjny', COD: 'Za pobraniem', MANUAL: 'Inna (ręcznie)' };
+export const SHIPPING_TYPE_LABELS: Record<ShippingType, string> = { COURIER: 'Kurier', PARCEL_LOCKER: 'Paczkomat / automat', POST: 'Poczta', PICKUP: 'Odbiór osobisty', DIGITAL: 'Dostawa elektroniczna' };

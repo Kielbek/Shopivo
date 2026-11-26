@@ -5,5 +5,6 @@ export * from './stores-api';
 export * from './admin-api';
 export * from './billing-api';
 export * from './catalog-api';
+export * from './orders-api';
 export * from './session-store';
 export * from './guards';

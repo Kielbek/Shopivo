@@ -83,3 +83,19 @@ export function parseMoney(value: string | number | null | undefined): number | 
 export function moneyInput(minor: number | null | undefined): string {
   return minor === null || minor === undefined ? '' : (minor / 100).toFixed(2).replace('.', ',');
 }
+
+/** Triggers a browser download of a blob. */
+export function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/** Polish plural: plural(1, 'zamówienie', 'zamówienia', 'zamówień') → "1 zamówienie", 3 → "3 zamówienia", 5 → "5 zamówień". */
+export function plural(n: number, one: string, few: string, many: string): string {
+  const word = n === 1 ? one : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? few : many;
+  return `${n} ${word}`;
+}

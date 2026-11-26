@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { rxResource } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { LucideDynamicIcon } from '@lucide/angular';
-import { SessionStore, TenantApi } from '@shopivo/api-client';
+import { CatalogApi, OrdersApi, SessionStore, TenantApi } from '@shopivo/api-client';
+import { ORDER_STATUS_LABELS } from '@shopivo/shared-models';
 import {
-  BadgeComponent, CardComponent, ChartSeries, DonutChartComponent, DonutSegment, EmptyStateComponent, LineChartComponent,
-  StatCardComponent, icons,
+  BadgeComponent, CardComponent, ChartSeries, DatePipe, EmptyStateComponent, LineChartComponent, MoneyPipe,
+  StatCardComponent, formatMoney, icons, plural,
 } from '@shopivo/shared-ui';
 import { of } from 'rxjs';
 import { StoreContext } from './store-context';
@@ -16,16 +17,13 @@ interface ChecklistItem {
   link: string | unknown[];
 }
 
-const MONTHS = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', 'Paź', 'Lis', 'Gru'];
+const DAY = new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'short' });
 
-/**
- * Store overview. Sales KPIs, charts and order/product lists are bound to the sales module (roadmap phase 3);
- * until it delivers data the widgets render explicit empty states — no sample numbers are shown.
- */
+/** Store overview: real sales, order and stock figures (widgets are hidden from roles without access). */
 @Component({
   selector: 'sv-overview-page',
-  imports: [RouterLink, LucideDynamicIcon, BadgeComponent, StatCardComponent, CardComponent, LineChartComponent, DonutChartComponent,
-    EmptyStateComponent],
+  imports: [RouterLink, LucideDynamicIcon, BadgeComponent, StatCardComponent, CardComponent, LineChartComponent, EmptyStateComponent,
+    DatePipe, MoneyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -74,42 +72,71 @@ const MONTHS = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', '
     }
 
     <div class="mt-6 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
-      <sv-stat-card label="Sprzedaż" icon="cart" tone="coral" [value]="null" caption="Brak danych" />
-      <sv-stat-card label="Zamówienia" icon="bag" tone="violet" [value]="null" caption="Brak danych" />
-      <sv-stat-card label="Produkty" icon="box" tone="orange" [value]="null" caption="Brak danych" />
-      <sv-stat-card label="Przychód" icon="dollar" tone="blue" [value]="null" caption="Brak danych" />
+      <sv-stat-card label="Sprzedaż dziś" icon="cart" tone="coral" [value]="money(orderStats.value()?.revenueTodayMinor)"
+        [caption]="orderStats.value() ? ordersWord(orderStats.value()!.ordersToday) : ''" />
+      <sv-stat-card label="Do realizacji" icon="bag" tone="violet" [value]="count(toFulfil())" caption="Nowe i w realizacji" />
+      <sv-stat-card label="Produkty" icon="box" tone="orange" [value]="count(catalogStats.value()?.activeProducts)"
+        [caption]="catalogStats.value() ? catalogStats.value()!.lowStockVariants + ' z niskim stanem' : ''" />
+      <sv-stat-card label="Przychód 30 dni" icon="dollar" tone="blue" [value]="money(orderStats.value()?.revenue30dMinor)"
+        [caption]="orderStats.value() ? ordersWord(orderStats.value()!.orders30d) : ''" />
     </div>
 
     <div class="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-      <sv-card heading="Analiza sprzedaży">
-        <div card-actions class="flex items-center gap-4 text-[12px] text-ink-muted">
-          @for (s of salesLegend; track s.name) {
-            <span class="flex items-center gap-1.5"><span class="size-2 rounded-full" [style.background]="s.color"></span>{{ s.name }}</span>
-          }
-        </div>
-        <sv-line-chart [labels]="months" [series]="sales" [height]="300" ariaLabel="Przychód i liczba zamówień w ostatnich 12 miesiącach">
-          <p class="text-[12px] text-ink-muted">Brak sprzedaży w tym okresie</p>
-        </sv-line-chart>
+      <sv-card heading="Sprzedaż" subheading="Ostatnie 30 dni, kwoty brutto">
+        @if (canOrders) {
+          <sv-line-chart [labels]="labels()" [series]="series()" [height]="300" [format]="moneyAxis" ariaLabel="Przychód dzienny z ostatnich 30 dni">
+            <p class="text-[12px] text-ink-muted">Brak sprzedaży w tym okresie</p>
+          </sv-line-chart>
+        } @else {
+          <p class="text-[13px] text-ink-muted">Brak uprawnień do danych sprzedaży.</p>
+        }
       </sv-card>
 
-      <sv-card heading="Ostatnie zamówienia">
-        <sv-empty-state icon="orders" title="Brak zamówień" />
+      <sv-card heading="Ostatnie zamówienia" [flush]="true">
+        @if (!recent.value()?.items?.length) {
+          <sv-empty-state icon="orders" title="Brak zamówień" />
+        } @else {
+          <ul class="px-5">
+            @for (o of recent.value()!.items; track o.id) {
+              <li class="border-b border-line last:border-b-0">
+                <a class="flex items-center gap-3 py-3" [routerLink]="['/sklep', ctx.tenantId(), 'zamowienia', o.id]">
+                  <span class="min-w-0 flex-1">
+                    <span class="block truncate text-[13px] font-medium text-ink">#{{ o.number }} · {{ o.customerName }}</span>
+                    <span class="text-[12px] text-ink-muted">{{ statusLabels[o.status] }} · {{ o.createdAt | svDate: 'relative' }}</span>
+                  </span>
+                  <span class="shrink-0 text-[13px] font-medium tabular-nums text-ink">{{ o.totalMinor | svMoney }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+          <div class="border-t border-line py-3 text-center">
+            <a [routerLink]="['/sklep', ctx.tenantId(), 'zamowienia']" class="text-[13px] font-medium text-ink-soft hover:text-ink">Wszystkie zamówienia</a>
+          </div>
+        }
       </sv-card>
     </div>
 
-    <div class="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-      <sv-card heading="Najlepiej sprzedające się produkty" [flush]="true">
-        <div class="overflow-x-auto px-5 pb-2">
-          <table class="sv-table min-w-[520px]">
-            <thead><tr><th scope="col">Produkt</th><th scope="col">Status</th><th scope="col">Sprzedaż</th><th scope="col">Przychód</th></tr></thead>
-          </table>
-        </div>
-        <sv-empty-state icon="products" title="Brak sprzedanych produktów" />
-      </sv-card>
-
-      <sv-card heading="Zyski miesięczne">
-        <sv-donut-chart [segments]="profitSplit" centerLabel="Razem" ariaLabel="Struktura zysku w bieżącym miesiącu" />
-
+    <div class="mt-4">
+      <sv-card heading="Do uzupełnienia w magazynie" [flush]="true">
+        @if (!lowStock.value()?.items?.length) {
+          <sv-empty-state icon="inventory" title="Stany w porządku" description="Warianty poniżej progu niskiego stanu pojawią się tutaj." />
+        } @else {
+          <div class="overflow-x-auto px-5 pb-2">
+            <table class="sv-table min-w-[520px]">
+              <thead><tr><th scope="col">Produkt</th><th scope="col">SKU</th><th scope="col" class="text-right">Dostępne</th></tr></thead>
+              <tbody>
+                @for (r of lowStock.value()!.items; track r.variantId) {
+                  <tr>
+                    <td><a class="font-medium text-ink hover:text-primary-strong" [routerLink]="['/sklep', ctx.tenantId(), 'produkty', r.productId]">{{ r.productName }}</a>
+                      @if (r.variantTitle) {<span class="text-ink-muted"> · {{ r.variantTitle }}</span>}</td>
+                    <td class="text-ink-soft">{{ r.sku || '—' }}</td>
+                    <td class="text-right font-medium tabular-nums" [class.text-danger-ink]="r.available <= 0">{{ r.available }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
       </sv-card>
     </div>
   `,
@@ -117,20 +144,60 @@ const MONTHS = ['Sty', 'Lut', 'Mar', 'Kwi', 'Maj', 'Cze', 'Lip', 'Sie', 'Wrz', '
 export class OverviewPage {
   protected readonly ctx = inject(StoreContext);
   private readonly api = inject(TenantApi);
+  private readonly ordersApi = inject(OrdersApi);
+  private readonly catalogApi = inject(CatalogApi);
   private readonly session = inject(SessionStore);
   protected readonly icons = icons;
 
   protected readonly today = new Intl.DateTimeFormat('pl-PL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
     .format(new Date());
   protected readonly isoToday = new Date().toISOString().slice(0, 10);
-  protected readonly months = lastTwelveMonths();
-  /** Series are filled from the sales API once it exists (phase 3). */
-  protected readonly sales: ChartSeries[] = [];
-  protected readonly salesLegend = [
-    { name: 'Przychód', color: '#36CFA5' },
-    { name: 'Zamówienia', color: '#5B8DEF' },
-  ];
-  protected readonly profitSplit: DonutSegment[] = [];
+  protected readonly statusLabels = ORDER_STATUS_LABELS;
+  protected readonly canOrders = this.ctx.can('ORDERS_READ');
+  protected readonly canProducts = this.ctx.can('PRODUCTS_READ');
+
+  protected readonly orderStats = rxResource({
+    params: () => (this.canOrders ? this.ctx.tenantId() : undefined),
+    stream: ({ params }) => this.ordersApi.stats(params),
+  });
+  protected readonly daily = rxResource({
+    params: () => (this.canOrders ? this.ctx.tenantId() : undefined),
+    stream: ({ params }) => this.ordersApi.daily(params, 30),
+  });
+  protected readonly recent = rxResource({
+    params: () => (this.canOrders ? this.ctx.tenantId() : undefined),
+    stream: ({ params }) => this.ordersApi.orders(params, { page: 0, size: 6 }),
+  });
+  protected readonly catalogStats = rxResource({
+    params: () => (this.canProducts ? this.ctx.tenantId() : undefined),
+    stream: ({ params }) => this.catalogApi.stats(params),
+  });
+  protected readonly lowStock = rxResource({
+    params: () => (this.canProducts ? this.ctx.tenantId() : undefined),
+    stream: ({ params }) => this.catalogApi.inventory(params, '', true, 0, 8),
+  });
+  protected readonly labels = computed(() => (this.daily.value() ?? []).map((d) => DAY.format(new Date(d.day + 'T12:00:00'))));
+  protected readonly series = computed<ChartSeries[]>(() => {
+    const d = this.daily.value() ?? [];
+    return d.some((x) => x.revenueMinor > 0) ? [{ name: 'Przychód', color: '#36CFA5', values: d.map((x) => x.revenueMinor / 100) }] : [];
+  });
+  protected readonly toFulfil = computed(() => {
+    const s = this.orderStats.value();
+    return s ? s.newOrders + s.processing : undefined;
+  });
+  protected readonly moneyAxis = (v: number) => `${Math.round(v).toLocaleString('pl-PL')} zł`;
+
+  protected money(v: number | undefined): string | null {
+    return v === undefined ? null : formatMoney(v);
+  }
+
+  protected ordersWord(n: number): string {
+    return plural(n, 'zamówienie', 'zamówienia', 'zamówień');
+  }
+
+  protected count(v: number | undefined): string | null {
+    return v === undefined ? null : String(v);
+  }
 
   protected readonly firstName = computed(() => this.session.user()?.firstName ?? '');
 
@@ -152,6 +219,7 @@ export class OverviewPage {
     const base = ['/sklep', this.ctx.tenantId()];
     const items: ChecklistItem[] = [
       { label: 'Uzupełnij dane firmy', done: !!s?.legalCompanyName && !!s?.taxId && !!s?.addressLine1, link: [...base, 'ustawienia'] },
+      { label: 'Dodaj pierwszy produkt', done: (this.catalogStats.value()?.products ?? 0) > 0, link: [...base, 'produkty', 'nowy'] },
       { label: 'Włącz weryfikację dwuetapową', done: !!this.session.user()?.mfaEnabled, link: '/konto' },
     ];
     if (this.ctx.can('TEAM_MANAGE')) {
@@ -165,9 +233,4 @@ export class OverviewPage {
   });
   protected readonly doneCount = computed(() => this.checklist().filter((i) => i.done).length);
   protected readonly setupDone = computed(() => !this.settings.isLoading() && this.doneCount() === this.checklist().length);
-}
-
-function lastTwelveMonths(): string[] {
-  const now = new Date();
-  return Array.from({ length: 12 }, (_, i) => MONTHS[(now.getMonth() - 11 + i + 12) % 12]);
 }

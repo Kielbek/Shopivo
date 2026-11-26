@@ -23,11 +23,11 @@ const NAV: { title?: string; items: MerchantNavItem[] }[] = [
   {
     title: 'Sprzedaż',
     items: [
-      { label: 'Zamówienia', icon: 'orders', soon: true },
+      { label: 'Zamówienia', icon: 'orders', path: 'zamowienia', permission: 'ORDERS_READ' },
       { label: 'Produkty', icon: 'products', path: 'produkty', permission: 'PRODUCTS_READ' },
       { label: 'Kategorie i marki', icon: 'categories', path: 'kategorie', permission: 'PRODUCTS_READ' },
       { label: 'Magazyn', icon: 'inventory', path: 'magazyn', permission: 'PRODUCTS_READ' },
-      { label: 'Klienci', icon: 'users', soon: true },
+      { label: 'Klienci', icon: 'users', path: 'klienci', permission: 'CUSTOMERS_READ' },
     ],
   },
   {
@@ -49,8 +49,8 @@ const NAV: { title?: string; items: MerchantNavItem[] }[] = [
   {
     title: 'Konfiguracja',
     items: [
-      { label: 'Płatności', icon: 'payments', soon: true },
-      { label: 'Wysyłka', icon: 'shipping', soon: true },
+      { label: 'Płatności', icon: 'payments', path: 'platnosci', permission: 'STORE_READ' },
+      { label: 'Wysyłka', icon: 'shipping', path: 'wysylka', permission: 'ORDERS_READ' },
       { label: 'Integracje', icon: 'integrations', soon: true },
       { label: 'Subskrypcja', icon: 'wallet', path: 'subskrypcja', permission: 'STORE_READ' },
     ],
