@@ -10,6 +10,8 @@ import {
   LoadingComponent, PageHeaderComponent, SelectComponent, SelectOption, ToastService, icons, plural, slugify,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ART_BACKGROUNDS, ART_MOTIFS, ArtBackground, ArtMotif, artSvg, renderArtPng, suggestBackground, suggestMotif } from './category-art';
 import { StoreContext } from '../store/store-context';
 import { buildTree } from './category-tree';
 import { SeoPanelComponent } from './seo-panel';
@@ -48,6 +50,9 @@ interface CategoryForm {
 
     <div class="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]" [class.items-start]="!bothEmpty()">
       <sv-card heading="Kategorie" [flush]="true">
+        @if (canWrite && withoutImage().length) {
+          <button card-actions sv-button variant="tonal" size="sm" (click)="bulkOpen.set(true)"><svg [lucideIcon]="icons.image" />Grafiki dla kategorii</button>
+        }
         @if (categories.isLoading() && !categories.value()) {
           <sv-loading />
         } @else if (categories.error()) {
@@ -137,6 +142,24 @@ interface CategoryForm {
       </sv-card>
     </div>
 
+    <sv-dialog heading="Gotowe grafiki dla kategorii" [open]="bulkOpen()" (closed)="bulkBusy() || bulkOpen.set(false)">
+      <p class="text-[13.5px] text-ink-soft">Dobierzemy grafikę do nazwy każdej kategorii bez zdjęcia ({{ withoutImage().length }}). Pojawią się w sekcji „Kategorie” na stronie
+        głównej sklepu. Każdą możesz potem zmienić w edycji kategorii.</p>
+      <ul class="mt-4 grid max-h-[46vh] grid-cols-3 gap-3 overflow-y-auto sm:grid-cols-4">
+        @for (c of withoutImage(); track c.id) {
+          <li class="min-w-0">
+            <span class="block overflow-hidden rounded-[10px] border border-line" [innerHTML]="artPreview(suggest(c.name), suggestBg(c.name))"></span>
+            <p class="mt-1 truncate text-[12px] text-ink" [title]="c.name">{{ c.name }}</p>
+          </li>
+        }
+      </ul>
+      @if (bulkBusy()) {<p class="mt-3 text-[12.5px] text-ink-muted" aria-live="polite">Dodano {{ bulkDone() }} z {{ bulkTotal() }}…</p>}
+      <ng-container dialog-actions>
+        <button sv-button variant="secondary" type="button" [disabled]="bulkBusy()" (click)="bulkOpen.set(false)">Anuluj</button>
+        <button sv-button type="button" [loading]="bulkBusy()" (click)="bulkArt()">Dodaj grafiki</button>
+      </ng-container>
+    </sv-dialog>
+
     <sv-dialog [heading]="form()?.id ? 'Edytuj kategorię' : 'Nowa kategoria'" [open]="!!form()" (closed)="close()">
       @if (form(); as f) {
         <form id="category-form" class="space-y-4" (ngSubmit)="save()">
@@ -161,6 +184,8 @@ interface CategoryForm {
                   <div class="flex flex-wrap gap-x-3 gap-y-1">
                     <button type="button" class="text-[13px] font-medium text-primary-strong hover:underline disabled:opacity-50" [disabled]="imageBusy()" (click)="imageFile.click()">
                       {{ formImage() ? 'Zmień zdjęcie' : 'Dodaj zdjęcie' }}</button>
+                    <button type="button" class="text-[13px] font-medium text-primary-strong hover:underline disabled:opacity-50" [disabled]="imageBusy()" (click)="toggleArt(f.name)">
+                      {{ artOpen() ? 'Ukryj gotowe grafiki' : 'Gotowa grafika' }}</button>
                     @if (formImage()) {
                       <button type="button" class="text-[13px] text-ink-muted hover:text-danger-ink disabled:opacity-50" [disabled]="imageBusy()" (click)="removeImage(f.id)">Usuń</button>
                     }
@@ -169,6 +194,33 @@ interface CategoryForm {
                 </div>
                 <input #imageFile type="file" class="sr-only" tabindex="-1" aria-hidden="true" accept="image/jpeg,image/png" (change)="pickImage($event, f.id)" />
               </div>
+              @if (artOpen()) {
+                <div class="mt-2 rounded-[12px] border border-line p-3" role="group" aria-label="Gotowe grafiki">
+                  <div class="flex gap-3">
+                    <span class="block w-24 shrink-0 self-start overflow-hidden rounded-[10px] border border-line leading-[0]" [innerHTML]="artPreview(artMotif(), artBg())"></span>
+                    <div class="min-w-0 flex-1">
+                      <p class="text-[13px] font-medium text-ink">{{ artMotif().label }}</p>
+                      <p class="mt-0.5 text-[12px] text-ink-muted">Płaska grafika w stylu Shopivo, w formacie kafelka kategorii (4:5). Zapiszemy ją jako zdjęcie kategorii — możesz ją później zmienić.</p>
+                      <div class="mt-2 flex flex-wrap gap-1.5" role="radiogroup" aria-label="Kolor tła">
+                        @for (bg of backgrounds; track bg.id) {
+                          <button type="button" role="radio" class="size-7 rounded-full border-2 transition-transform hover:scale-110" [style.background]="bg.color"
+                            [class]="artBg().id === bg.id ? 'border-ink' : 'border-white shadow-[0_0_0_1px_var(--color-line)]'" [attr.aria-checked]="artBg().id === bg.id"
+                            [attr.aria-label]="'Tło: ' + bg.label" (click)="artBg.set(bg)"></button>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  <div class="mt-3 grid max-h-56 grid-cols-6 gap-1.5 overflow-y-auto pr-1 sm:grid-cols-8" role="radiogroup" aria-label="Motyw">
+                    @for (m of motifs; track m.id) {
+                      <button type="button" role="radio" class="overflow-hidden rounded-[8px] border-2 transition-colors" [class]="artMotif().id === m.id ? 'border-ink' : 'border-transparent hover:border-line-strong'"
+                        [attr.aria-checked]="artMotif().id === m.id" [attr.aria-label]="m.label" [title]="m.label" (click)="artMotif.set(m)" [innerHTML]="artPreview(m, artBg())"></button>
+                    }
+                  </div>
+                  <div class="mt-3 flex justify-end">
+                    <button sv-button size="sm" type="button" [loading]="imageBusy()" (click)="useArt(f.id)">Użyj grafiki</button>
+                  </div>
+                </div>
+              }
             } @else {
               <p class="mt-1 text-[12px] text-ink-muted">Zdjęcie dodasz po zapisaniu kategorii.</p>
             }
@@ -208,6 +260,18 @@ export class CategoriesPage {
   protected readonly error = signal<string | null>(null);
   protected brandName = '';
   protected readonly formImage = signal<string | null>(null);
+  private readonly sanitizer = inject(DomSanitizer);
+  protected readonly motifs = ART_MOTIFS;
+  protected readonly backgrounds = ART_BACKGROUNDS;
+  protected readonly artOpen = signal(false);
+  protected readonly artMotif = signal<ArtMotif>(ART_MOTIFS.at(-1)!);
+  protected readonly artBg = signal<ArtBackground>(ART_BACKGROUNDS[0]!);
+  protected readonly bulkOpen = signal(false);
+  protected readonly bulkBusy = signal(false);
+  protected readonly bulkDone = signal(0);
+  protected readonly bulkTotal = signal(0);
+  private readonly previews = new Map<string, SafeHtml>();
+  protected readonly withoutImage = computed(() => (this.categories.value() ?? []).filter((c) => !c.image));
   protected readonly imageBusy = signal(false);
   protected readonly imageOver = signal(false);
 
@@ -319,8 +383,70 @@ export class CategoriesPage {
     return n === 1 ? '1 produkt' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? `${n} produkty` : `${n} produktów`;
   }
 
+  /** Our own constant SVG (no user input) — safe to render as HTML. */
+  protected artPreview(m: ArtMotif, bg: ArtBackground): SafeHtml {
+    const key = m.id + ':' + bg.id;
+    let html = this.previews.get(key);
+    if (!html) {
+      html = this.sanitizer.bypassSecurityTrustHtml(artSvg(m, bg).replace('width="400" height="500"', 'width="100%" style="display:block"'));
+      this.previews.set(key, html);
+    }
+    return html;
+  }
+
+  protected suggest(name: string): ArtMotif {
+    return suggestMotif(name);
+  }
+
+  protected suggestBg(name: string): ArtBackground {
+    return suggestBackground(name);
+  }
+
+  protected toggleArt(name: string): void {
+    if (!this.artOpen()) {
+      const m = suggestMotif(name);
+      this.artMotif.set(m);
+      this.artBg.set(suggestBackground(name));
+    }
+    this.artOpen.update((v) => !v);
+  }
+
+  protected async useArt(id: string): Promise<void> {
+    try {
+      const file = await renderArtPng(this.artMotif(), this.artBg(), `kategoria-${this.artMotif().id}.png`);
+      await this.uploadImage(id, file);
+      this.artOpen.set(false);
+    } catch (e) {
+      this.toast.error(e instanceof Error ? e.message : 'Nie udało się dodać grafiki.');
+    }
+  }
+
+  protected async bulkArt(): Promise<void> {
+    const list = this.withoutImage();
+    this.bulkBusy.set(true);
+    this.bulkDone.set(0);
+    this.bulkTotal.set(list.length);
+    let failed = 0;
+    for (const c of list) {
+      try {
+        const m = suggestMotif(c.name);
+        const file = await renderArtPng(m, suggestBackground(c.name), `kategoria-${m.id}.png`);
+        await firstValueFrom(this.api.setCategoryImage(this.ctx.tenantId(), c.id, file));
+        this.bulkDone.update((n) => n + 1);
+      } catch {
+        failed++;
+      }
+    }
+    this.bulkBusy.set(false);
+    this.bulkOpen.set(false);
+    this.categories.reload();
+    if (failed) this.toast.error(`Dodano ${this.bulkDone()} grafik, ${failed} nie udało się dodać — spróbuj ponownie.`);
+    else this.toast.success(`Dodano grafiki do ${this.bulkDone()} kategorii.`);
+  }
+
   protected open(c: Category | null, parentId: string | null): void {
     this.error.set(null);
+    this.artOpen.set(false);
     this.formImage.set(c?.image?.['w400'] ?? null);
     this.form.set(c
       ? { id: c.id, name: c.name, slug: c.slug, description: c.description ?? '', parentId: c.parentId ?? '', visible: c.visible,

@@ -113,3 +113,12 @@ proste kształty, zielenie marki (`#36AE2C`, `#1E7F4F`, `#41C336`) z ciepłym ak
 jako przesunięty szary kształt (`#DDE0DA`). Dostępne: `customers`, `products`, `brands`, `orders`, `returns`, `reviews`, `newsletter`,
 `pages`, `categories`, `inventory`, `store`. Używaj przez `<sv-empty-state illustration="…">` tylko dla stanu „jeszcze nic
 tu nie ma” — dla „brak wyników” zostaje mała ikona. Ilustracje są dekoracyjne (`aria-hidden`).
+
+## Gotowe grafiki kategorii
+
+`apps/merchant-dashboard/src/app/features/catalog/category-art.ts` — 33 płaskie motywy (odzież, obuwie, elektronika, dom,
+ogród, sport, zwierzęta, żywność, prezenty, narzędzia, motoryzacja, wyprzedaż, nowości…) na 6 pastelowych tłach. Motyw jest
+dobierany po nazwie kategorii (wyrażenia w `match`), tło — stabilnie po nazwie. Grafika (4:5, jak kafelki kategorii w sklepie)
+jest rysowana w przeglądarce do PNG 1000×1250 i wysyłana zwykłym uploadem zdjęcia kategorii, więc sklep dostaje te same
+warianty rozmiarów co przy zdjęciu. Render przez `data:` URL — CSP panelu nie dopuszcza `blob:` w `img-src`.
+W panelu: „Gotowa grafika” w edycji kategorii i „Grafiki dla kategorii” (wszystkie kategorie bez zdjęcia naraz).
