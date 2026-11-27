@@ -1,5 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { LucideDynamicIcon } from '@lucide/angular';
@@ -11,23 +10,24 @@ import {
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
+import { CarrierAccountsComponent } from './carrier-accounts';
 
 interface Form { id: string | null; name: string; description: string; type: ShippingType; price: string; freeFrom: string; active: boolean; version: number; carrier: string; }
 
 @Component({
   selector: 'sv-shipping-page',
-  imports: [FormsModule, LucideDynamicIcon, PageHeaderComponent, ButtonComponent, AlertComponent,
-    LoadingComponent, DialogComponent, FieldComponent, SelectComponent, MoneyPipe, RouterLink],
+  imports: [FormsModule, CarrierAccountsComponent, LucideDynamicIcon, PageHeaderComponent, ButtonComponent, AlertComponent,
+    LoadingComponent, DialogComponent, FieldComponent, SelectComponent, MoneyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <sv-page-header title="Wysyłka i dostawa" description="Sposoby dostawy, które klient widzi przy zamówieniu." />
+    <sv-page-header title="Wysyłka i dostawa" description="Przewoźnicy i sposoby dostawy, które klient widzi przy zamówieniu." />
+    <sv-carrier-accounts [connected]="polaczono() ?? null" [connectError]="blad() ?? null" (methodsChanged)="methods.reload(); carrierData.reload()" />
 
     <section class="mt-7" aria-labelledby="ship-methods">
       <div class="mb-3 flex items-end justify-between gap-3">
         <div>
           <h2 id="ship-methods" class="text-[14.5px] font-semibold text-ink">Sposoby dostawy</h2>
-          <p class="mt-0.5 text-[13px] text-ink-soft">Ceny brutto. Sposób powiązany z przewoźnikiem pozwala klientowi wybrać paczkomat, a Tobie utworzyć przesyłkę z zamówienia —
-            konto przewoźnika podłączysz w <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'integracje']">Integracjach</a>.</p>
+          <p class="mt-0.5 text-[13px] text-ink-soft">Ceny brutto. Kurierzy zaznaczeni wyżej pojawiają się tu sami; możesz też dodać własny sposób, np. odbiór osobisty.</p>
         </div>
         @if (canWrite && methods.value()?.length) {<button sv-button variant="tonal" size="sm" (click)="open(null)"><svg [lucideIcon]="icons.plus" />Dodaj</button>}
       </div>
@@ -74,7 +74,7 @@ interface Form { id: string | null; name: string; description: string; type: Shi
           <sv-field label="Opis" for="s-desc" [optional]="true"><input id="s-desc" name="desc" class="sv-input" maxlength="300" placeholder="np. 1–2 dni robocze" [(ngModel)]="f.description" /></sv-field>
           @if (f.type === 'COURIER' || f.type === 'PARCEL_LOCKER') {
             <sv-field label="Przewoźnik" for="s-carrier" class="sm:col-span-2"
-              [hint]="carrierOptions(f.type).length > 1 ? 'Powiązanie pozwala tworzyć przesyłki i etykiety z poziomu zamówienia.' : 'Podłącz i włącz przewoźnika w Ustawieniach → Integracje, aby powiązać go z tą metodą.'">
+              [hint]="carrierOptions(f.type).length > 1 ? 'Powiązanie pozwala tworzyć przesyłki i etykiety z poziomu zamówienia.' : 'Połącz przewoźnika wyżej na tej stronie, aby powiązać go z tą metodą.'">
               <sv-select inputId="s-carrier" name="carrier" [options]="carrierOptions(f.type)" [(ngModel)]="f.carrier" ariaLabel="Przewoźnik" />
             </sv-field>
           }
@@ -91,6 +91,9 @@ interface Form { id: string | null; name: string; description: string; type: Shi
 })
 export class ShippingPage {
   protected readonly ctx = inject(StoreContext);
+  /** `?polaczono=<carrier>` / `?blad=…` — back from a carrier's sign-in. */
+  readonly polaczono = input<string>();
+  readonly blad = input<string>();
   private readonly api = inject(OrdersApi);
   private readonly shipping = inject(ShippingApi);
   private readonly toast = inject(ToastService);
@@ -104,12 +107,25 @@ export class ShippingPage {
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
   /** Carrier accounts are managed in Settings → Integrations; here only to link a method with an enabled carrier. */
-  private readonly carrierData = rxResource({ params: () => this.ctx.tenantId(), stream: ({ params }) => this.shipping.carriers(params) });
+  protected readonly carrierData = rxResource({ params: () => this.ctx.tenantId(), stream: ({ params }) => this.shipping.carriers(params) });
+
+  /** Single carriers by id; aggregators per ticked service ("apaczka:21" → "DPD Classic (Apaczka)"). */
+  private linkable(type: ShippingType | null): { id: string; name: string }[] {
+    const d = this.carrierData.value();
+    const out: { id: string; name: string }[] = [];
+    for (const c of d?.carriers ?? []) {
+      const acc = d?.accounts.find((a) => a.carrierId === c.id);
+      if (c.aggregator) {
+        for (const s of acc?.services ?? []) if (!type || s.types.includes(type)) out.push({ id: `${c.id}:${s.id}`, name: `${s.name} (${c.name})` });
+      } else if (acc?.enabled && (!type || c.services.includes(type))) {
+        out.push({ id: c.id, name: c.name });
+      }
+    }
+    return out;
+  }
 
   protected carrierOptions(type: ShippingType): SelectOption[] {
-    const d = this.carrierData.value();
-    const enabled = (d?.carriers ?? []).filter((c) => c.services.includes(type) && d?.accounts.some((a) => a.carrierId === c.id && a.enabled))
-      .map((c) => ({ id: c.id, name: c.name }));
+    const enabled = this.linkable(type);
     const current = this.form()?.carrier;
     const opts: SelectOption[] = [{ value: '', label: 'Bez integracji' }, ...enabled.map((c) => ({ value: c.id, label: c.name }))];
     if (current && !enabled.some((c) => c.id === current)) opts.push({ value: current, label: this.carrierName(current) + ' (wyłączony)' });
@@ -117,7 +133,7 @@ export class ShippingPage {
   }
 
   protected carrierName(id: string): string {
-    return this.carrierData.value()?.carriers.find((c) => c.id === id)?.name ?? id;
+    return this.linkable(null).find((c) => c.id === id)?.name ?? this.carrierData.value()?.carriers.find((c) => c.id === id.split(':')[0])?.name ?? id;
   }
 
   protected open(m: ShippingMethod | null): void {

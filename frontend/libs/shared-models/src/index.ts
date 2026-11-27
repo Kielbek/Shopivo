@@ -467,15 +467,36 @@ export interface NavigationMenu { items: NavigationItem[]; custom: boolean; vers
 
 // ------------------------------------------------------------------------------------------------ online payments (store's operator)
 export interface OperatorCredentialField { key: string; label: string; secret: boolean; hint: string | null; }
-export interface OperatorDescriptor { id: string; name: string; description: string; credentials: OperatorCredentialField[]; docsUrl: string | null; }
+export interface OperatorDescriptor { id: string; name: string; description: string; credentials: OperatorCredentialField[]; docsUrl: string | null; /** Connected through a hosted onboarding (Stripe) — no keys typed in. */ connect?: boolean; /** The platform has what the operator needs. */ available?: boolean; }
 export interface OnlinePaymentsState {
   providerId: string; providerName: string; sandbox: boolean; enabled: boolean; verifiedAt: string | null; filled: Record<string, boolean>; version: number;
 }
 export interface OnlinePaymentsOverview { operators: OperatorDescriptor[]; current: OnlinePaymentsState | null; }
 
 // ------------------------------------------------------------------------------------------------ carriers and shipments
-export interface CarrierDescriptor { id: string; name: string; description: string; credentials: OperatorCredentialField[]; services: ShippingType[]; docsUrl: string | null; }
-export interface CarrierAccount { carrierId: string; carrierName: string; sandbox: boolean; enabled: boolean; verifiedAt: string | null; filled: Record<string, boolean>; version: number; }
+export interface CarrierDescriptor {
+  id: string; name: string; description: string; credentials: OperatorCredentialField[]; services: ShippingType[]; docsUrl: string | null;
+  /** One account, many couriers (Furgonetka, Apaczka): the store ticks the services it uses. */
+  aggregator: boolean;
+  /** Connected by signing in at the carrier (OAuth). */
+  oauth: boolean;
+  /** The platform has what the carrier needs (e.g. Shopivo's OAuth app). */
+  available: boolean;
+}
+/** A courier service on an aggregator account; `courier` is a carrier code (inpost, dpd, dhl, gls, ups, poczta, orlen, fedex…). */
+export interface CarrierService { id: string; name: string; courier: string | null; types: ShippingType[]; }
+export interface CarrierAccount {
+  carrierId: string; carrierName: string; sandbox: boolean; enabled: boolean; verifiedAt: string | null; filled: Record<string, boolean>; version: number;
+  services: CarrierService[];
+}
+export interface CarrierServiceLinkedMethod { id: string; type: ShippingType; name: string; priceMinor: number; freeFromMinor: number | null; active: boolean; }
+export interface CarrierServiceView { service: CarrierService; methods: CarrierServiceLinkedMethod[]; }
+export interface CarrierServiceChoice { serviceId: string; type: ShippingType; name: string | null; priceMinor: number; freeFromMinor: number | null; }
+/** Stripe Connect status of the store (platform readiness + the connected account as Stripe reports it). */
+export interface StripeConnectStatus {
+  platformConfigured: boolean; testMode: boolean; connected: boolean; chargesEnabled: boolean; payoutsEnabled: boolean; detailsSubmitted: boolean;
+  requirementsDue: number; disabledReason: string | null;
+}
 export interface CarriersOverview { carriers: CarrierDescriptor[]; accounts: CarrierAccount[]; }
 export type ShipmentStatus = 'PENDING' | 'READY' | 'IN_TRANSIT' | 'READY_FOR_PICKUP' | 'DELIVERED' | 'RETURNED' | 'FAILED' | 'CANCELED';
 export const SHIPMENT_STATUS_LABELS: Record<ShipmentStatus, string> = {

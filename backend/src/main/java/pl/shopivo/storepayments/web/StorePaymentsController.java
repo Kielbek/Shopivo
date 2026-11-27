@@ -24,6 +24,7 @@ import pl.shopivo.payments.PaymentGatewayModels.NotificationAck;
 import pl.shopivo.shared.ratelimit.RateLimiter;
 import pl.shopivo.storepayments.StorePaymentNotifications;
 import pl.shopivo.storepayments.StorePaymentProviders;
+import pl.shopivo.storepayments.StoreStripeConnect;
 
 @RestController
 @Tag(name = "Store payments")
@@ -31,12 +32,44 @@ class StorePaymentsController {
 
     private final StorePaymentProviders providers;
     private final StorePaymentNotifications notifications;
+    private final StoreStripeConnect stripe;
     private final RateLimiter rateLimiter;
 
-    StorePaymentsController(StorePaymentProviders providers, StorePaymentNotifications notifications, RateLimiter rateLimiter) {
+    StorePaymentsController(StorePaymentProviders providers, StorePaymentNotifications notifications, StoreStripeConnect stripe,
+            RateLimiter rateLimiter) {
         this.providers = providers;
         this.notifications = notifications;
+        this.stripe = stripe;
         this.rateLimiter = rateLimiter;
+    }
+
+    @GetMapping("/api/v1/tenants/{tenantId}/online-payments/stripe")
+    @PreAuthorize("@tenantAccess.can('STORE_READ')")
+    StoreStripeConnect.StripeStatus stripeStatus(@PathVariable UUID tenantId) {
+        return stripe.status();
+    }
+
+    /** Creates the connected account if needed and returns Stripe's hosted onboarding link. */
+    @PostMapping("/api/v1/tenants/{tenantId}/online-payments/stripe/connect")
+    @PreAuthorize("@tenantAccess.can('STORE_SETTINGS_WRITE')")
+    StoreStripeConnect.OnboardingLink stripeConnect(@PathVariable UUID tenantId) {
+        return stripe.start();
+    }
+
+    @PostMapping("/api/v1/tenants/{tenantId}/online-payments/stripe/refresh")
+    @PreAuthorize("@tenantAccess.can('STORE_SETTINGS_WRITE')")
+    StoreStripeConnect.StripeStatus stripeRefresh(@PathVariable UUID tenantId) {
+        return stripe.refresh();
+    }
+
+    /** Stripe Connect platform webhook (one endpoint for all stores; authenticity = Stripe-Signature with the platform secret). */
+    @PostMapping("/api/v1/webhooks/stripe-connect")
+    ResponseEntity<String> stripeWebhook(@RequestBody(required = false) String body, HttpServletRequest request) {
+        rateLimiter.consume("stripe-webhook:" + request.getRemoteAddr(), 1200, java.time.Duration.ofMinutes(1));
+        Map<String, String> headers = Collections.list(request.getHeaderNames()).stream()
+                .collect(Collectors.toMap(h -> h.toLowerCase(Locale.ROOT), request::getHeader, (a, b) -> a));
+        stripe.receive(new InboundNotification(body == null ? "" : body, headers, request.getContentType()));
+        return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body("");
     }
 
     @GetMapping("/api/v1/tenants/{tenantId}/online-payments")

@@ -7,7 +7,7 @@ Ostatnia aktualizacja: 2026-11-27 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 49/49 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 81/81 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 85/85 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
 | Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 74/74 ✔ (panel 60, admin 3, witryna 11) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
@@ -183,6 +183,15 @@ linki z parametrami w menu i treści. Szczegóły: `docs/SECURITY.md` §13.
 - Panel: oznaczenie klientów z potwierdzonym kontem (lista i karta klienta).
 - Błędy znalezione w E2E i naprawione: serwer SSR nie przekazywał nagłówka `X-Captcha-Token` (test integracyjny trafiał
   bezpośrednio w API); widget był resetowany dopiero po odświeżeniu koszyka, co mogło skasować ponowne potwierdzenie.
+
+## Integracje płatności i kurierów (2026-11-27)
+
+- Stripe Connect (kreator Stripe zamiast kluczy, direct charges, webhook platformy), Furgonetka (logowanie OAuth) i Apaczka
+  (podpis HMAC) jako agregatory — sprzedawca zaznacza kurierów i ceny, powstają gotowe sposoby dostawy. Szczegóły:
+  `docs/INTEGRATIONS.md`; loga: `docs/BRAND_ASSETS.md`. Migracje V21–V22.
+- Testy: `StripeConnectIT`, `CourierAggregatorsIT` (lokalne zamienniki API); E2E w panelu na lokalnym zamienniku:
+  Stripe (połącz → weryfikacja → włącz), Apaczka (klucze → kurierzy → 2 sposoby dostawy), Furgonetka (logowanie → powrót).
+- **Nie sprawdzone na prawdziwych API** (brak kluczy sandbox) — wymagane przed produkcją.
 
 ## Klienci w panelu (2026-11-27)
 

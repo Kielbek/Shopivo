@@ -12,9 +12,9 @@ import { OnlinePaymentsComponent } from './online-payments';
   imports: [PageHeaderComponent, CarrierAccountsComponent, OnlinePaymentsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <sv-page-header title="Integracje" description="Konta u przewoźników i operatorów płatności. Dane dostępowe zapisujemy zaszyfrowane i nigdy ich nie pokazujemy." />
-    <sv-carrier-accounts />
+    <sv-page-header title="Integracje" description="Połączenia z operatorami płatności i przewoźnikami. Dane dostępowe zapisujemy zaszyfrowane i nigdy ich nie pokazujemy." />
     <sv-online-payments />
+    <sv-carrier-accounts />
   `,
 })
 export class IntegrationsPage {}

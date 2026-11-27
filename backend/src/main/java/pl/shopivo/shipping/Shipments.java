@@ -49,7 +49,11 @@ public class Shipments {
     private final JsonMapper json;
     private final AuditLog auditLog;
 
-    Shipments(CarrierAccounts accounts, Orders orders, JdbcTemplate jdbc, TransactionTemplate tx, JsonMapper json, AuditLog auditLog) {
+    private final pl.shopivo.stores.Stores stores;
+
+    Shipments(CarrierAccounts accounts, Orders orders, JdbcTemplate jdbc, TransactionTemplate tx, JsonMapper json, AuditLog auditLog,
+            pl.shopivo.stores.Stores stores) {
+        this.stores = stores;
         this.accounts = accounts;
         this.orders = orders;
         this.jdbc = jdbc;
@@ -102,7 +106,8 @@ public class Shipments {
                 order.phone() != null ? order.phone() : address == null ? null : address.phone(), address == null ? null : address.line1(),
                 address == null ? null : address.postalCode(), address == null ? null : address.city(), address == null ? "PL" : address.countryCode()),
                 locker ? order.pickupPoint().code() : null, parcel, "Zamówienie " + order.number(), cod, order.currency(),
-                in.sendingMethod() == null ? SendingMethod.PARCEL_LOCKER : in.sendingMethod());
+                in.sendingMethod() == null ? SendingMethod.PARCEL_LOCKER : in.sendingMethod(),
+                active.service() == null ? null : active.service().id(), tx.execute(s -> sender()));
         CarrierShipment created;
         try {
             created = active.adapter().createShipment(active.context(), request);
@@ -124,7 +129,7 @@ public class Shipments {
                 .orElseThrow(() -> new BusinessRuleException("CARRIER_DISABLED", "Konto przewoźnika jest wyłączone."));
         CarrierShipment state;
         try {
-            state = r.trackingNumber() != null ? active.adapter().track(active.context(), r.trackingNumber())
+            state = r.trackingNumber() != null ? active.adapter().track(active.context(), r.externalId(), r.trackingNumber())
                     : active.adapter().shipment(active.context(), r.externalId());
         } catch (CarrierException e) {
             throw new BusinessRuleException("CARRIER_ERROR", e.getMessage());
@@ -145,6 +150,16 @@ public class Shipments {
         } catch (CarrierException e) {
             throw new BusinessRuleException("CARRIER_ERROR", e.getMessage());
         }
+    }
+
+    /** The store as the sender: company data from Settings → Company (null fields stay null — adapters ask for them). */
+    private CarrierModels.Sender sender() {
+        var st = stores.current();
+        var s = stores.currentSettings();
+        String email = s.orderEmail() != null ? s.orderEmail() : st.contactEmail();
+        return new CarrierModels.Sender(s.legalCompanyName() != null ? s.legalCompanyName() : st.name(), s.legalCompanyName(), email, s.phone(),
+                s.addressLine2() == null ? s.addressLine1() : s.addressLine1() == null ? null : s.addressLine1() + " " + s.addressLine2(),
+                s.postalCode(), s.city(), s.countryCode() == null ? "PL" : s.countryCode());
     }
 
     // ------------------------------------------------------------------------------------------------ tracking job

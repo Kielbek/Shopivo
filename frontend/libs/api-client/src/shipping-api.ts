@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { CarrierAccount, CarriersOverview, Shipment, ShipmentInput } from '@shopivo/shared-models';
+import { CarrierAccount, CarrierServiceChoice, CarrierServiceView, CarriersOverview, Shipment, ShipmentInput } from '@shopivo/shared-models';
 import { Observable } from 'rxjs';
 
 /** Carrier accounts (secrets write-only) and shipments of orders. */
@@ -26,6 +26,20 @@ export class ShippingApi {
 
   enableCarrier(t: string, carrier: string, enabled: boolean): Observable<CarrierAccount> {
     return this.http.post<CarrierAccount>(`${this.base(t)}/carriers/${encodeURIComponent(carrier)}/enabled`, { enabled });
+  }
+
+  /** Sign in at the carrier (OAuth): returns the carrier's page. */
+  connectCarrier(t: string, carrier: string, sandbox: boolean): Observable<{ url: string }> {
+    return this.http.post<{ url: string }>(`${this.base(t)}/carriers/${encodeURIComponent(carrier)}/connect`, { sandbox });
+  }
+
+  carrierServices(t: string, carrier: string): Observable<CarrierServiceView[]> {
+    return this.http.get<CarrierServiceView[]>(`${this.base(t)}/carriers/${encodeURIComponent(carrier)}/services`);
+  }
+
+  /** Ticked services become ready shipping methods (unticked ones are switched off). */
+  saveCarrierServices(t: string, carrier: string, services: CarrierServiceChoice[]): Observable<CarrierServiceView[]> {
+    return this.http.put<CarrierServiceView[]>(`${this.base(t)}/carriers/${encodeURIComponent(carrier)}/services`, { services });
   }
 
   shipments(t: string, orderId: string): Observable<Shipment[]> {

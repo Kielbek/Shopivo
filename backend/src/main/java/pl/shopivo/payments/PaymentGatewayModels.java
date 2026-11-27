@@ -13,9 +13,16 @@ public final class PaymentGatewayModels {
     public record CredentialField(String key, String label, boolean secret, String hint) {
     }
 
-    /** Operator description for configuration screens. */
+    /**
+     * Operator description for configuration screens. {@code connect} = the store connects through a hosted onboarding
+     * (no keys typed in); {@code available} = the platform has everything the operator needs (e.g. its own Stripe key).
+     */
     public record GatewayDescriptor(String id, String name, String description, List<CredentialField> credentials,
-            String docsUrl) {
+            String docsUrl, boolean connect, boolean available) {
+
+        public GatewayDescriptor(String id, String name, String description, List<CredentialField> credentials, String docsUrl) {
+            this(id, name, description, credentials, docsUrl, false, true);
+        }
     }
 
     /** Credentials and environment of one configured account (platform or merchant). */

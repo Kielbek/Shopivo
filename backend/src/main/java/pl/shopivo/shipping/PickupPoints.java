@@ -35,7 +35,7 @@ public class PickupPoints implements ShippingCarriers {
         String q = query == null ? "" : query.strip().toLowerCase(Locale.ROOT);
         if (q.length() < 2 || q.length() > 60) return List.of();
         try {
-            return searches.get(carrier + ":" + active.sandbox() + ":" + q, k -> active.adapter().searchPoints(active.sandbox(), q));
+            return searches.get(carrier + ":" + active.sandbox() + ":" + q, k -> active.adapter().searchPoints(active.context(), active.service(), q));
         } catch (CarrierException e) {
             throw new BusinessRuleException("POINTS_UNAVAILABLE", "Nie udało się wyszukać paczkomatów. Spróbuj ponownie lub wpisz kod paczkomatu.");
         }
@@ -48,7 +48,7 @@ public class PickupPoints implements ShippingCarriers {
 
     @Override
     public boolean supports(String carrier, ShippingType type) {
-        return accounts.adapterOf(carrier).map(a -> a.descriptor().services().contains(type)).orElse(false);
+        return accounts.supports(carrier, type);
     }
 
     @Override
@@ -62,7 +62,7 @@ public class PickupPoints implements ShippingCarriers {
                 .orElseThrow(() -> new BusinessRuleException("SHIPPING_UNAVAILABLE", "Wybrany sposób dostawy jest niedostępny."));
         Point p;
         try {
-            p = active.adapter().point(active.sandbox(), code)
+            p = active.adapter().point(active.context(), active.service(), code)
                     .orElseThrow(() -> new BusinessRuleException("PICKUP_POINT_UNKNOWN", "Nie znaleziono paczkomatu " + code + "."));
         } catch (CarrierException e) {
             throw new BusinessRuleException("POINTS_UNAVAILABLE", e.getMessage());

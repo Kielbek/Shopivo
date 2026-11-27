@@ -81,6 +81,42 @@ class ShippingController {
         return accounts.setEnabled(carrier, request.enabled());
     }
 
+    /** Courier services on an aggregator account (live) and the store's shipping methods for them. */
+    @GetMapping("/api/v1/tenants/{tenantId}/carriers/{carrier}/services")
+    @PreAuthorize("@tenantAccess.can('STORE_READ')")
+    List<CarrierAccounts.ServiceView> services(@PathVariable UUID tenantId, @PathVariable String carrier) {
+        return accounts.services(carrier);
+    }
+
+    record ServicesRequest(List<CarrierAccounts.ServiceChoice> services) {
+    }
+
+    /** Ticks services: each becomes a ready shipping method in the store (unticked ones are switched off). */
+    @PutMapping("/api/v1/tenants/{tenantId}/carriers/{carrier}/services")
+    @PreAuthorize("@tenantAccess.can('STORE_SETTINGS_WRITE')")
+    List<CarrierAccounts.ServiceView> saveServices(@PathVariable UUID tenantId, @PathVariable String carrier, @RequestBody ServicesRequest request) {
+        return accounts.saveServices(carrier, request.services());
+    }
+
+    record ConnectRequest(boolean sandbox) {
+    }
+
+    /** Sign in at the carrier (OAuth): returns the carrier's page to send the merchant to. */
+    @PostMapping("/api/v1/tenants/{tenantId}/carriers/{carrier}/connect")
+    @PreAuthorize("@tenantAccess.can('STORE_SETTINGS_WRITE')")
+    CarrierAccounts.ConnectLink connect(@PathVariable UUID tenantId, @PathVariable String carrier, @RequestBody ConnectRequest request) {
+        return accounts.connect(carrier, request.sandbox());
+    }
+
+    /** The carrier's redirect after sign-in (no session needed: the single-use state identifies the store). */
+    @GetMapping("/api/v1/oauth/carriers/{carrier}/callback")
+    ResponseEntity<Void> oauthCallback(@PathVariable String carrier, @RequestParam(required = false) String state,
+            @RequestParam(required = false) String code, @RequestParam(required = false) String error, HttpServletRequest request) {
+        rateLimiter.consume("carrier-oauth:" + request.getRemoteAddr(), 30, Duration.ofMinutes(1));
+        return ResponseEntity.status(302).header(HttpHeaders.LOCATION, accounts.callback(carrier, state, code, error))
+                .cacheControl(CacheControl.noStore()).build();
+    }
+
     // ------------------------------------------------------------------------------------------------ shipments
 
     @GetMapping("/api/v1/tenants/{tenantId}/orders/{orderId}/shipments")

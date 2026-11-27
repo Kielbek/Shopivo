@@ -72,6 +72,9 @@ public class StorePaymentProviders {
     public ProviderState save(SaveInput in) {
         PaymentGateway gateway = gateways.find(in.providerId() == null ? "" : in.providerId())
                 .orElseThrow(() -> new BusinessRuleException("UNKNOWN_OPERATOR", "Wybierz operatora płatności."));
+        if (gateway.descriptor().connect()) {
+            throw new BusinessRuleException("USE_CONNECT", gateway.descriptor().name() + " podłączasz przyciskiem „Połącz” — bez wpisywania kluczy.");
+        }
         UUID tenant = TenantContext.requireTenantId();
         Optional<Stored> current = stored();
         long expected = current.map(Stored::version).orElse(-1L);
@@ -91,7 +94,8 @@ public class StorePaymentProviders {
                 insert into store_payment_providers (tenant_id, provider_id, credentials_enc, sandbox, enabled)
                 values (?, ?, ?, ?, false)
                 on conflict (tenant_id) do update set provider_id = excluded.provider_id, credentials_enc = excluded.credentials_enc,
-                    sandbox = excluded.sandbox, enabled = false, verified_at = null, updated_at = now(), version = store_payment_providers.version + 1
+                    sandbox = excluded.sandbox, enabled = false, verified_at = null, external_account_id = null, updated_at = now(),
+                    version = store_payment_providers.version + 1
                 """, tenant, gateway.id(), encrypted, in.sandbox());
         auditLog.record(AuditEntry.tenant("store.payments.provider.saved", tenant, "payment_provider", null)
                 .with(Map.of("provider", gateway.id(), "sandbox", in.sandbox())));

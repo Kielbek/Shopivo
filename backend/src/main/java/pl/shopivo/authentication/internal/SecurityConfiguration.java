@@ -112,6 +112,7 @@ class SecurityConfiguration {
                         .requestMatchers("/api/v1/auth/login/mfa").hasRole("MFA_PENDING")
                         .requestMatchers("/api/v1/auth/me", "/api/v1/auth/logout").authenticated()
                         .requestMatchers("/api/v1/storefront/**", "/api/v1/webhooks/**").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/oauth/carriers/*/callback").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/media/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/plans").permitAll()
                         .requestMatchers("/api/docs/**", "/api/swagger-ui/**", "/api/swagger-ui.html").permitAll()

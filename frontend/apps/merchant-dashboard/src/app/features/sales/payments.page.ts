@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ApiError, OrdersApi } from '@shopivo/api-client';
@@ -7,16 +7,18 @@ import {
   parseMoney,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
-import { RouterLink } from '@angular/router';
 import { StoreContext } from '../store/store-context';
+import { OnlinePaymentsComponent } from './online-payments';
 
-/** Offline payment methods. Online operators (Przelewy24, PayU, Tpay) are connected in the integrations phase. */
+/** Payment methods: online operators (Stripe Connect, Przelewy24, PayU, Tpay) and offline ones (bank transfer, cash on delivery). */
 @Component({
   selector: 'sv-payments-page',
-  imports: [FormsModule, RouterLink, PageHeaderComponent, SectionComponent, FieldComponent, ButtonComponent, AlertComponent, LoadingComponent],
+  imports: [FormsModule, OnlinePaymentsComponent, PageHeaderComponent, SectionComponent, FieldComponent, ButtonComponent, AlertComponent, LoadingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <sv-page-header title="Płatności" description="Metody płatności dostępne dla Twoich klientów." />
+    <sv-online-payments [stripeReturn]="stripe() ?? null" />
+    <h2 class="mt-9 text-[14.5px] font-semibold text-ink">Płatności tradycyjne</h2>
     @if (settings.isLoading() && !settings.value()) {
       <sv-loading variant="form" />
     } @else {
@@ -43,12 +45,12 @@ import { StoreContext } from '../store/store-context';
         }
       </form>
     }
-    <p class="mt-7 text-[13px] text-ink-soft">Płatności online (BLIK, karty, szybkie przelewy) włączysz po podłączeniu operatora w
-      <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'integracje']">Integracjach</a>.</p>
   `,
 })
 export class PaymentsPage {
   protected readonly ctx = inject(StoreContext);
+  /** `?stripe=powrot|odswiez` — back from Stripe's onboarding. */
+  readonly stripe = input<string>();
   private readonly api = inject(OrdersApi);
   private readonly toast = inject(ToastService);
   protected readonly canWrite = this.ctx.can('STORE_SETTINGS_WRITE');

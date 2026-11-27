@@ -41,8 +41,31 @@ public abstract class IntegrationTest {
     @Autowired
     protected StringRedisTemplate redis;
 
+    /** Shared local Stripe API stand-in (one per JVM, like the containers). */
+    protected static final FakeStripe STRIPE;
+    /** Shared local Apaczka / Furgonetka API stand-ins. */
+    protected static final FakeCouriers COURIERS;
+
+    static {
+        try {
+            STRIPE = new FakeStripe();
+            COURIERS = new FakeCouriers();
+        } catch (java.io.IOException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     @DynamicPropertySource
     static void containers(DynamicPropertyRegistry registry) {
+        registry.add("shopivo.stripe.api-base", STRIPE::url);
+        registry.add("shopivo.stripe.secret-key", () -> FakeStripe.SECRET_KEY);
+        registry.add("shopivo.stripe.connect-webhook-secret", () -> FakeStripe.WEBHOOK_SECRET);
+        registry.add("shopivo.apaczka.api-url", () -> COURIERS.url() + "/apaczka/api/v2/");
+        registry.add("shopivo.apaczka.sandbox-api-url", () -> COURIERS.url() + "/apaczka/api/v2/");
+        registry.add("shopivo.furgonetka.api-url", () -> COURIERS.url() + "/furgonetka");
+        registry.add("shopivo.furgonetka.sandbox-api-url", () -> COURIERS.url() + "/furgonetka");
+        registry.add("shopivo.furgonetka.client-id", () -> FakeCouriers.FURGONETKA_CLIENT_ID);
+        registry.add("shopivo.furgonetka.client-secret", () -> FakeCouriers.FURGONETKA_CLIENT_SECRET);
         var pg = TestContainers.POSTGRES;
         registry.add("spring.datasource.url", pg::getJdbcUrl);
         registry.add("spring.datasource.username", () -> "shopivo_app");
