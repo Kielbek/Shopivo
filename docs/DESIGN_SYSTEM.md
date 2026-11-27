@@ -116,9 +116,16 @@ tu nie ma” — dla „brak wyników” zostaje mała ikona. Ilustracje są dek
 
 ## Gotowe grafiki kategorii
 
-`apps/merchant-dashboard/src/app/features/catalog/category-art.ts` — 33 płaskie motywy (odzież, obuwie, elektronika, dom,
+`apps/merchant-dashboard/src/app/features/catalog/category-art.ts` — płaskie motywy (obecnie 46) (odzież, obuwie, elektronika, dom,
 ogród, sport, zwierzęta, żywność, prezenty, narzędzia, motoryzacja, wyprzedaż, nowości…) na 6 pastelowych tłach. Motyw jest
 dobierany po nazwie kategorii (wyrażenia w `match`), tło — stabilnie po nazwie. Grafika (4:5, jak kafelki kategorii w sklepie)
 jest rysowana w przeglądarce do PNG 1000×1250 i wysyłana zwykłym uploadem zdjęcia kategorii, więc sklep dostaje te same
 warianty rozmiarów co przy zdjęciu. Render przez `data:` URL — CSP panelu nie dopuszcza `blob:` w `img-src`.
 W panelu: „Gotowa grafika” w edycji kategorii i „Grafiki dla kategorii” (wszystkie kategorie bez zdjęcia naraz).
+
+## Grafiki branż sklepu
+
+Wybór branży (`sv-industry-picker` — tworzenie sklepu i Ustawienia → Branża) pokazuje kafelki z grafikami z tego samego
+zestawu motywów (`INDUSTRY_ART` w `industry-picker.ts`, kwadratowy kadr `artSquareSvg`). Do branż dorysowane motywy:
+budowlany, chemia, muzyka, gry wideo, hobby, rękodzieło, medyczny, eko, produkty cyfrowe, biuro, turystyka, spożywczy,
+papiernicze — są też dostępne jako grafiki kategorii (46 motywów). Test pilnuje, że każda branża ma istniejący motyw.

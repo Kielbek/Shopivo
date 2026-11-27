@@ -27,3 +27,21 @@ describe('category art', () => {
     }
   });
 });
+
+describe('industry graphics', () => {
+  it('every store industry has an existing motif', async () => {
+    const { INDUSTRIES } = await import('./industries');
+    const { industryArtId } = await import('../store/industry-picker');
+    const ids = new Set(ART_MOTIFS.map((m) => m.id));
+    for (const i of INDUSTRIES) expect(ids.has(industryArtId(i.id)), i.id).toBe(true);
+    expect(ids.size).toBe(ART_MOTIFS.length);
+  });
+
+  it('new motifs are found by category names too', () => {
+    expect(suggestMotif('Gry wideo').id).toBe('gamepad');
+    expect(suggestMotif('Zabawki i gry').id).toBe('toys');
+    expect(suggestMotif('Farby i lakiery').id).toBe('paint');
+    expect(suggestMotif('Artykuły szkolne').id).toBe('pencil');
+    expect(suggestMotif('Namioty').id).toBe('tent');
+  });
+});

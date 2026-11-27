@@ -103,7 +103,7 @@ export const ART_MOTIFS: ArtMotif[] = [
       <path d="M156 116l6 18 18 6-18 6-6 18-6-18-18-6 18-6z" fill="${O}"/><path d="M50 128l5 14 14 5-14 5-5 14-5-14-14-5 14-5z" fill="${GD}"/>`,
   },
   {
-    id: 'kids', label: 'Dla dzieci', match: /dzie|niemowl|baby|maluch|przedszkol|szkoln/i,
+    id: 'kids', label: 'Dla dzieci', match: /dzie|niemowl|baby|maluch|przedszkol/i,
     svg: `<ellipse cx="100" cy="176" rx="54" ry="7" fill="${SH}"/>
       <circle cx="66" cy="46" r="16" fill="${OD}"/><circle cx="134" cy="46" r="16" fill="${OD}"/><circle cx="66" cy="46" r="7" fill="#F6C98A"/><circle cx="134" cy="46" r="7" fill="#F6C98A"/>
       <ellipse cx="100" cy="132" rx="46" ry="42" fill="${O}"/><ellipse cx="100" cy="138" rx="24" ry="22" fill="#F6C98A"/>
@@ -111,7 +111,7 @@ export const ART_MOTIFS: ArtMotif[] = [
       <circle cx="86" cy="64" r="4" fill="${K}"/><circle cx="114" cy="64" r="4" fill="${K}"/><ellipse cx="100" cy="80" rx="6" ry="4.5" fill="${K}"/>`,
   },
   {
-    id: 'toys', label: 'Zabawki i gry', match: /zabaw|klock|gry|gra |puzzl|planszów|konsol/i,
+    id: 'toys', label: 'Zabawki i gry', match: /zabaw|klock|puzzl|plansz|pluszak/i,
     svg: `<ellipse cx="100" cy="174" rx="66" ry="7" fill="${SH}"/>
       <rect x="40" y="114" width="56" height="56" rx="8" fill="${B}"/><rect x="104" y="114" width="56" height="56" rx="8" fill="${C}"/><rect x="72" y="54" width="56" height="56" rx="8" fill="${G}"/>
       <path d="M58 128h20v28H58zM122 132l10 24h-20z" fill="${W}" fill-opacity=".85"/><circle cx="100" cy="82" r="12" fill="${W}" fill-opacity=".85"/>`,
@@ -210,7 +210,7 @@ export const ART_MOTIFS: ArtMotif[] = [
       <path d="M92 132l-10-10a7 7 0 0 1 10-9 7 7 0 0 1 10 9z" fill="${W}"/>`,
   },
   {
-    id: 'books', label: 'Książki i biuro', match: /książ|ksiaz|papier|biur|zeszyt|długopis|dlugopis|notes|kalendar|szkoł|szkol/i,
+    id: 'books', label: 'Książki i biuro', match: /książ|ksiaz|księgarn|ksiegarn|literat|komiks|kalendar|notes/i,
     svg: `<ellipse cx="100" cy="176" rx="64" ry="7" fill="${SH}"/>
       <rect x="40" y="140" width="120" height="30" rx="4" fill="${B}"/><rect x="50" y="112" width="110" height="28" rx="4" fill="${O}"/><rect x="34" y="84" width="112" height="28" rx="4" fill="${G}"/>
       <path d="M46 98h88M60 126h88M50 155h100" stroke="${W}" stroke-opacity=".55" stroke-width="3" stroke-linecap="round"/>
@@ -260,6 +260,104 @@ export const ART_MOTIFS: ArtMotif[] = [
       <rect x="164" y="104" width="10" height="8" rx="3" fill="${O}"/>`,
   },
   {
+    id: 'paint', label: 'Budowlany', match: /budowl|farb|materiał|material|instalac|płytk|plytk|cement/i,
+    svg: `<ellipse cx="96" cy="176" rx="60" ry="7" fill="${SH}"/>
+      <path d="M50 70h92l-8 100H58z" fill="${B}"/><ellipse cx="96" cy="70" rx="46" ry="12" fill="${BD}"/><ellipse cx="96" cy="70" rx="38" ry="8" fill="${G}"/>
+      <path d="M58 72a40 34 0 0 1 76 0" fill="none" stroke="#B9BDB6" stroke-width="5"/><rect x="66" y="104" width="60" height="30" rx="5" fill="${W}"/><rect x="74" y="114" width="44" height="5" rx="2.5" fill="${G}"/>
+      <g transform="rotate(30 150 70)"><rect x="140" y="20" width="22" height="40" rx="4" fill="${O}"/><rect x="146" y="58" width="10" height="52" rx="4" fill="${OD}"/></g>
+      <path d="M128 76q4 14 0 22" fill="none" stroke="${G}" stroke-width="7" stroke-linecap="round"/>`,
+  },
+  {
+    id: 'spray', label: 'Chemia i sprzątanie', match: /chemi|sprząt|sprzat|środk|srodk|detergent|przemysł|przemysl|agd/i,
+    svg: `<ellipse cx="100" cy="178" rx="58" ry="7" fill="${SH}"/>
+      <path d="M78 64h40l8 22v82a6 6 0 0 1-6 6H76a6 6 0 0 1-6-6V86z" fill="${G}"/><rect x="80" y="104" width="38" height="36" rx="5" fill="${W}"/>
+      <path d="M90 118l7 7 12-14" fill="none" stroke="${G}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M84 64V46h28l20 8-6 10h-14v0z" fill="${K}"/><path d="M132 54h12" stroke="${K}" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="154" cy="44" r="4" fill="#9CC9F0"/><circle cx="160" cy="58" r="3" fill="#9CC9F0"/><circle cx="150" cy="30" r="3" fill="#9CC9F0"/>
+      <rect x="130" y="120" width="30" height="50" rx="8" fill="${O}"/><rect x="138" y="108" width="14" height="14" rx="3" fill="${OD}"/>`,
+  },
+  {
+    id: 'guitar', label: 'Muzyka', match: /muzycz|instrument|gitar|pianin|perkus|nuty/i,
+    svg: `<ellipse cx="96" cy="178" rx="48" ry="6" fill="${SH}"/>
+      <g transform="rotate(32 100 100)"><rect x="93" y="8" width="14" height="96" rx="3" fill="${OD}"/><rect x="88" y="2" width="24" height="18" rx="4" fill="${K}"/>
+      <path d="M100 96c-26 0-40 14-36 30 2 8 8 10 8 16 0 6-12 10-10 22 4 22 34 26 38 26s34-4 38-26c2-12-10-16-10-22 0-6 6-8 8-16 4-16-10-30-36-30z" fill="${C}"/>
+      <circle cx="100" cy="140" r="12" fill="${K}"/><rect x="88" y="168" width="24" height="6" rx="3" fill="${K}"/>
+      <path d="M97 20v150M103 20v150" stroke="${W}" stroke-opacity=".7" stroke-width="1.2"/></g>`,
+  },
+  {
+    id: 'gamepad', label: 'Gry wideo', match: /\bgry\b|konsol|gamepad|gaming|playstation|xbox|nintendo/i,
+    svg: `<ellipse cx="100" cy="160" rx="72" ry="7" fill="${SH}"/>
+      <path d="M58 70h84c22 0 34 16 38 40l6 30c3 16-14 24-26 12l-18-20H58l-18 20c-12 12-29 4-26-12l6-30c4-24 16-40 38-40z" fill="${K}"/>
+      <rect x="54" y="92" width="30" height="10" rx="3" fill="${W}"/><rect x="64" y="82" width="10" height="30" rx="3" fill="${W}"/>
+      <circle cx="136" cy="88" r="7" fill="${G}"/><circle cx="152" cy="102" r="7" fill="${C}"/><circle cx="120" cy="102" r="7" fill="${O}"/><circle cx="136" cy="116" r="7" fill="${B}"/>`,
+  },
+  {
+    id: 'palette', label: 'Hobby i plastyka', match: /hobby|plastyk|modelar|farby artyst|malars|kolekc|rysun/i,
+    svg: `<ellipse cx="100" cy="176" rx="62" ry="7" fill="${SH}"/>
+      <path d="M100 30c-44 0-72 30-72 66 0 34 26 60 58 60 14 0 16-10 12-20s2-20 16-18c22 2 58-2 58-34 0-30-30-54-72-54z" fill="#F6E3C6"/>
+      <circle cx="68" cy="82" r="11" fill="${C}"/><circle cx="96" cy="60" r="11" fill="${O}"/><circle cx="130" cy="66" r="11" fill="${G}"/><circle cx="60" cy="116" r="11" fill="${B}"/>
+      <circle cx="126" cy="104" r="9" fill="#F7F7F4"/>
+      <g transform="rotate(-38 150 140)"><rect x="146" y="70" width="8" height="80" rx="4" fill="${OD}"/><path d="M144 150h12l-2 18h-8z" fill="${K}"/></g>`,
+  },
+  {
+    id: 'yarn', label: 'Rękodzieło', match: /rękodz|rekodz|handmade|włócz|wlocz|szyc|dzierg|ręczn|reczn|craft/i,
+    svg: `<ellipse cx="100" cy="176" rx="56" ry="7" fill="${SH}"/>
+      <circle cx="96" cy="112" r="56" fill="${C}"/>
+      <path d="M48 90c30 10 70 6 96-12M42 116c40 12 80 8 108-12M52 146c30 6 62 2 86-14M74 62c-8 30-6 70 10 102M110 58c10 34 8 72-4 108" fill="none" stroke="${CD}" stroke-width="4" stroke-linecap="round"/>
+      <path d="M150 130q24 6 22 30" fill="none" stroke="${C}" stroke-width="5" stroke-linecap="round"/>
+      <path d="M132 20l26 80M150 16l18 82" stroke="#B9BDB6" stroke-width="5" stroke-linecap="round"/>`,
+  },
+  {
+    id: 'firstaid', label: 'Medyczny', match: /medycz|apte|zdrow|ortoped|rehabil|opatrun|suplement|witamin/i,
+    svg: `<ellipse cx="100" cy="176" rx="64" ry="7" fill="${SH}"/>
+      <path d="M78 56v-10a8 8 0 0 1 8-8h28a8 8 0 0 1 8 8v10" fill="none" stroke="${K}" stroke-width="8"/>
+      <rect x="36" y="56" width="128" height="112" rx="14" fill="${W}"/><rect x="36" y="56" width="128" height="22" rx="11" fill="${C}"/>
+      <rect x="86" y="90" width="28" height="64" rx="5" fill="${C}"/><rect x="68" y="108" width="64" height="28" rx="5" fill="${C}"/>`,
+  },
+  {
+    id: 'eco', label: 'Eko i zero waste', match: /ekolog|zero waste|bio\b|naturaln|organic/i,
+    svg: `<ellipse cx="100" cy="178" rx="50" ry="7" fill="${SH}"/>
+      <rect x="62" y="70" width="76" height="104" rx="14" fill="#CFEFD0"/><rect x="66" y="56" width="68" height="18" rx="5" fill="${OD}"/>
+      <path d="M100 150c-22-8-28-30-16-50 10 14 26 20 26 40" fill="${G}"/><path d="M100 150c20-10 26-32 12-52-10 14-24 22-22 42" fill="${GD}"/>
+      <path d="M100 150v16" stroke="${GD}" stroke-width="4" stroke-linecap="round"/>`,
+  },
+  {
+    id: 'digital', label: 'Produkty cyfrowe', match: /cyfrow|e-?book|kurs|szablon|plik|licenc|oprogram|digital/i,
+    svg: `<ellipse cx="100" cy="178" rx="56" ry="7" fill="${SH}"/>
+      <path d="M52 24h64l32 32v112a8 8 0 0 1-8 8H52a8 8 0 0 1-8-8V32a8 8 0 0 1 8-8z" fill="${W}"/><path d="M116 24v24a8 8 0 0 0 8 8h24z" fill="#DADDD6"/>
+      <rect x="60" y="48" width="40" height="6" rx="3" fill="#B9BDB6"/><rect x="60" y="62" width="56" height="5" rx="2.5" fill="#DADDD6"/>
+      <circle cx="96" cy="124" r="32" fill="${G}"/><path d="M96 104v32M82 124l14 14 14-14" fill="none" stroke="${W}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`,
+  },
+  {
+    id: 'briefcase', label: 'Biuro', match: /biur|office|teczk|segreg/i,
+    svg: `<ellipse cx="100" cy="174" rx="70" ry="7" fill="${SH}"/>
+      <path d="M78 64v-12a8 8 0 0 1 8-8h28a8 8 0 0 1 8 8v12" fill="none" stroke="${K}" stroke-width="8"/>
+      <rect x="30" y="62" width="140" height="106" rx="12" fill="${OD}"/><path d="M30 74a12 12 0 0 1 12-12h116a12 12 0 0 1 12 12v32H30z" fill="${O}"/>
+      <rect x="88" y="98" width="24" height="18" rx="4" fill="${K}"/>`,
+  },
+  {
+    id: 'tent', label: 'Turystyka', match: /turyst|namiot|camping|kemping|górsk|gorsk|outdoor|wędrów|wedrow/i,
+    svg: `<ellipse cx="100" cy="170" rx="80" ry="7" fill="${SH}"/>
+      <path d="M100 34l70 132H30z" fill="${G}"/><path d="M100 34l70 132h-28z" fill="${GD}"/><path d="M100 96l26 70H74z" fill="${K}"/>
+      <path d="M100 34V20M92 22l8-6" stroke="${K}" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="154" cy="40" r="12" fill="${O}"/>`,
+  },
+  {
+    id: 'basket', label: 'Sklep spożywczy', match: /spożyw|spozyw|delikates|napoj|warzyw|pieczyw|nabiał|nabial|market/i,
+    svg: `<ellipse cx="100" cy="176" rx="66" ry="7" fill="${SH}"/>
+      <circle cx="74" cy="80" r="18" fill="${C}"/><circle cx="104" cy="70" r="20" fill="${O}"/><rect x="118" y="44" width="18" height="46" rx="6" fill="${G}"/><rect x="122" y="36" width="10" height="10" rx="2" fill="${GD}"/>
+      <path d="M30 92h140l-14 76a8 8 0 0 1-8 6H52a8 8 0 0 1-8-6z" fill="${OD}"/><rect x="26" y="86" width="148" height="14" rx="5" fill="${O}"/>
+      <path d="M70 112v44M100 112v44M130 112v44" stroke="${O}" stroke-width="6" stroke-linecap="round"/>`,
+  },
+  {
+    id: 'pencil', label: 'Papiernicze', match: /papiern|zeszyt|przybor|kredk|ołów|olow|szkoln/i,
+    svg: `<ellipse cx="100" cy="178" rx="62" ry="7" fill="${SH}"/>
+      <rect x="42" y="36" width="92" height="132" rx="8" fill="${B}"/><rect x="54" y="36" width="80" height="132" rx="4" fill="${W}"/>
+      <path d="M66 70h54M66 88h54M66 106h40M66 124h50" stroke="#DADDD6" stroke-width="4" stroke-linecap="round"/>
+      <path d="M42 50h12M42 76h12M42 102h12M42 128h12M42 154h12" stroke="${BD}" stroke-width="4"/>
+      <g transform="rotate(24 150 100)"><rect x="140" y="30" width="20" height="110" rx="3" fill="${O}"/><path d="M140 140h20l-10 22z" fill="#F6D29C"/><path d="M146 154h8l-4 8z" fill="${K}"/><rect x="140" y="24" width="20" height="12" rx="3" fill="${C}"/></g>`,
+  },
+  {
     id: 'shop', label: 'Ogólna', match: /$^/,
     svg: `<ellipse cx="100" cy="176" rx="56" ry="7" fill="${SH}"/>
       <path d="M76 62v-12a24 24 0 0 1 48 0v12" fill="none" stroke="${OD}" stroke-width="7" stroke-linecap="round"/>
@@ -278,6 +376,11 @@ export function suggestBackground(name: string): ArtBackground {
   let h = 0;
   for (const ch of name.toLowerCase()) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return ART_BACKGROUNDS[h % ART_BACKGROUNDS.length]!;
+}
+
+/** Square crop of the graphic (centre of the 4:5 tile) — for pickers and small thumbnails. */
+export function artSquareSvg(motif: ArtMotif, background: ArtBackground): string {
+  return artSvg(motif, background).replace('width="400" height="500" viewBox="0 0 400 500"', 'width="100%" viewBox="0 50 400 400" style="display:block"');
 }
 
 /** Full graphic as SVG (4:5 like the storefront tiles, motif centred so a square crop also works). */
