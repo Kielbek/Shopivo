@@ -19,3 +19,5 @@ export * from './lib/gestures';
 export * from './lib/info-tip';
 export * from './lib/password-reveal';
 export * from './lib/back-icon';
+export * from './lib/nav-icon';
+export * from './lib/tooltip';

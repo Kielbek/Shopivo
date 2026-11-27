@@ -8,7 +8,7 @@ import { LucideDynamicIcon } from '@lucide/angular';
 import { ApiError, CatalogApi, ContentApi, StorefrontAdminApi } from '@shopivo/api-client';
 import { ProductImage, SectionType, ThemeField, ThemeSection } from '@shopivo/shared-models';
 import {
-  AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, IconName, LogoComponent, SelectComponent, SelectOption, ToastOutletComponent, ToastService, icons,
+  AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, IconName, LogoComponent, NavIconComponent, TooltipDirective, SelectComponent, SelectOption, ToastOutletComponent, ToastService, icons,
 } from '@shopivo/shared-ui';
 import { BackIconComponent } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
@@ -46,7 +46,7 @@ function newId(type: string): string {
  */
 @Component({
   selector: 'sv-theme-editor-page',
-  imports: [BackIconComponent, RouterLink, LucideDynamicIcon, LogoComponent, AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, SelectComponent,
+  imports: [BackIconComponent, RouterLink, LucideDynamicIcon, LogoComponent, NavIconComponent, TooltipDirective, AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, SelectComponent,
     ToastOutletComponent, ImagePickerComponent, PropFormComponent],
   providers: [StoreContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,18 +59,18 @@ function newId(type: string): string {
       <ul class="flex flex-1 flex-col items-center gap-1 pt-2">
         @for (r of rail; track r.label) {
           <li>
-            <a [routerLink]="['/sklep', tenantId(), ...r.path]" [attr.title]="r.label" [attr.aria-label]="r.label" (click)="go($event, r.path)"
+            <a [routerLink]="['/sklep', tenantId(), ...r.path]" [svTooltip]="r.label" [attr.aria-label]="r.label" (click)="go($event, r.path)"
               [attr.aria-current]="r.current ? 'page' : null"
               class="flex size-10 items-center justify-center rounded-[10px] transition-colors"
               [class]="r.current ? 'bg-nav-active text-nav-active-text' : 'text-nav-muted hover:bg-nav-hover hover:text-nav-strong'">
-              <svg [lucideIcon]="icons[r.icon]" [size]="18" [strokeWidth]="1.75" /></a>
+              <sv-nav-icon [name]="r.icon" [active]="!!r.current" [size]="19" /></a>
           </li>
         }
       </ul>
       <div class="flex w-full justify-center border-t border-nav-line pb-3 pt-3">
-        <a [routerLink]="['/sklep', tenantId(), 'ustawienia']" title="Ustawienia" aria-label="Ustawienia" (click)="go($event, ['ustawienia'])"
+        <a [routerLink]="['/sklep', tenantId(), 'ustawienia']" svTooltip="Ustawienia" aria-label="Ustawienia" (click)="go($event, ['ustawienia'])"
           class="flex size-10 items-center justify-center rounded-[10px] text-nav-muted hover:bg-nav-hover hover:text-nav-strong">
-          <svg [lucideIcon]="icons.settings" [size]="18" [strokeWidth]="1.75" /></a>
+          <sv-nav-icon name="settings" [size]="19" /></a>
       </div>
     </nav>
     <div class="flex min-w-0 flex-1 flex-col overflow-hidden bg-canvas lg:my-2.5 lg:mr-2.5 lg:rounded-[18px]">

@@ -2,8 +2,8 @@
  * Shopivo design system — administration interfaces (merchant dashboard, platform admin).
  * Public storefront themes are intentionally NOT based on these tokens.
  *
- * Night & neon: a black navigation frame (like the reference admin), a neon-green accent for the active item and the
- * one key action, black default buttons, and a calm warm-grey work surface.
+ * Night frame, white page: a black navigation column with a neon active item, a white work surface with thin borders
+ * and lighter type (like the reference admin), neon only for the one key action and the logo dot, black buttons.
  * Contrast rules (WCAG AA):
  *  - neon (#B5F23D) is a FILL colour only — always with night (#0F1210) text on it, never as text on white;
  *  - green text/links use primary-strong (#2E6B0F, 6.4:1 on white); primary (#4C9A1B) is for icons and borders;
@@ -13,6 +13,10 @@
 
 @theme {
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Lighter than the Tailwind defaults: a calmer, thinner admin. */
+  --font-weight-medium: 480;
+  --font-weight-semibold: 560;
+  --font-weight-bold: 640;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   /* Frame */
@@ -42,8 +46,8 @@
   --color-neon-soft: #F2FCDF;
 
   /* Work surface */
-  --color-page: #F2F3F0;
-  --color-canvas: #F2F3F0;
+  --color-page: #FFFFFF;
+  --color-canvas: #F4F4F2;
   --color-card: #FFFFFF;
   --color-hover: #F4F5F2;
 
@@ -84,7 +88,7 @@
   --radius-card: 16px;
   --radius-control: 10px;
 
-  --shadow-card: 0 1px 0 rgba(15, 18, 16, 0.04), 0 1px 3px rgba(15, 18, 16, 0.04);
+  --shadow-card: 0 1px 0 rgba(15, 18, 16, 0.03);
   --shadow-pop: 0 16px 40px -12px rgba(15, 18, 16, 0.22), 0 2px 6px rgba(15, 18, 16, 0.06);
 }
 
@@ -117,9 +121,9 @@
 @layer components {
   /* Filled controls (reference language): grey fill, no visible border until hover/focus. */
   .sv-input {
-    @apply block h-10 w-full rounded-[10px] border border-transparent bg-[#F2F3F0] px-3.5 text-[13.5px] text-ink
+    @apply block h-9 w-full rounded-[10px] border border-[#D9DCD5] bg-card px-3 text-[13.5px] text-ink
       placeholder:text-[#A2A79F] transition-[background-color,border-color,box-shadow] duration-150
-      hover:bg-[#ECEDE9] focus:border-primary focus:bg-card focus:outline-none focus:ring-[3px] focus:ring-primary-ring
+      hover:border-[#BFC3BB] focus:border-ink focus:outline-none focus:ring-[3px] focus:ring-ink/[0.07]
       disabled:cursor-not-allowed disabled:bg-[#F7F7F5] disabled:text-ink-muted;
   }
 
@@ -229,7 +233,7 @@
   }
 
   .sv-table th {
-    @apply bg-canvas px-5 py-3 text-[12px] font-medium text-ink-muted first:rounded-l-[var(--radius-control)]
+    @apply bg-[#F6F6F4] px-5 py-3 text-[12px] font-medium text-ink-muted first:rounded-l-[var(--radius-control)]
       last:rounded-r-[var(--radius-control)];
   }
 
@@ -322,6 +326,28 @@
     }
   }
 }
+
+/* Tooltip (svTooltip directive): dark pill beside the element. */
+.sv-tooltip {
+  position: fixed;
+  z-index: 100;
+  pointer-events: none;
+  white-space: nowrap;
+  padding: 6px 11px;
+  border-radius: 9px;
+  background: #2A2E2B;
+  color: #FFFFFF;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.2;
+  box-shadow: 0 8px 20px -6px rgba(15, 18, 16, 0.45), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 140ms ease-out, transform 160ms cubic-bezier(0.2, 0.9, 0.25, 1);
+}
+.sv-tooltip[data-side="bottom"] { transform: translateY(-4px); }
+.sv-tooltip.is-open { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .sv-tooltip { transition: none; } }
 
 @keyframes sv-pop-in {
   from { opacity: 0; transform: translateY(-4px); }

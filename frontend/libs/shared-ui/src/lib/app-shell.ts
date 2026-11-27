@@ -11,6 +11,8 @@ import { LogoComponent } from './brand';
 import { attachSwipeToDismiss } from './gestures';
 import { IconName, icons } from './icons';
 import { ToastOutletComponent } from './toast';
+import { NavIconComponent } from './nav-icon';
+import { TooltipDirective } from './tooltip';
 
 export interface NavItem {
   label: string;
@@ -36,11 +38,11 @@ export interface NavSection {
  */
 @Component({
   selector: 'sv-app-shell',
-  imports: [NgTemplateOutlet, RouterLink, RouterLinkActive, LucideDynamicIcon, LogoComponent, ToastOutletComponent],
+  imports: [NavIconComponent, TooltipDirective, NgTemplateOutlet, RouterLink, RouterLinkActive, LucideDynamicIcon, LogoComponent, ToastOutletComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <a href="#sv-main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-[8px] focus:bg-card focus:px-4 focus:py-2 focus:shadow">Przejdź do treści</a>
-    <div class="flex min-h-dvh bg-canvas lg:h-dvh lg:min-h-0 lg:overflow-hidden lg:[background:var(--nav-bg)]">
+    <div class="flex min-h-dvh bg-card lg:h-dvh lg:min-h-0 lg:overflow-hidden lg:[background:var(--nav-bg)]">
 
       <!-- Overlay fades with the drawer and follows the swipe. -->
       <div class="fixed inset-0 z-40 bg-night/50 transition-opacity duration-300 motion-reduce:transition-none lg:hidden"
@@ -62,8 +64,8 @@ export interface NavSection {
         </aside>
       }
 
-      <div #panel class="flex min-w-0 flex-1 flex-col bg-canvas lg:my-2.5 lg:mr-2.5 lg:overflow-y-auto lg:rounded-[18px] lg:shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
-        <header class="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-card/90 px-4 backdrop-blur sm:px-6 lg:px-8">
+      <div #panel class="flex min-w-0 flex-1 flex-col bg-card lg:my-2.5 lg:mr-2.5 lg:overflow-y-auto lg:rounded-[18px]">
+        <header class="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-card/95 px-4 backdrop-blur sm:px-6 lg:px-8">
           <button type="button" class="-ml-1 rounded-[8px] p-2 text-ink-soft hover:bg-hover lg:hidden" (click)="drawerOpen.set(true)"
             aria-label="Otwórz menu">
             <svg [lucideIcon]="icons.menu" [size]="20" />
@@ -161,11 +163,11 @@ export interface NavSection {
         @if (it.link && !it.soon) {
           <a [routerLink]="it.link" routerLinkActive #rla="routerLinkActive"
             [routerLinkActiveOptions]="{ exact: !!it.exact }" [attr.aria-current]="rla.isActive || it.active ? 'page' : null"
-            [attr.title]="rail() ? it.label : null"
+            [svTooltip]="rail() ? it.label : null"
             class="group flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] transition-colors"
             [class.lg:justify-center]="rail()" [class.lg:px-0]="rail()"
-            [class]="(rla.isActive || it.active) ? 'bg-nav-active font-semibold text-nav-active-text' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
-            <svg [lucideIcon]="icons[it.icon]" [size]="18" [strokeWidth]="1.75"
+            [class]="(rla.isActive || it.active) ? 'bg-nav-active font-medium text-nav-active-text' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
+            <sv-nav-icon [name]="it.icon" [active]="rla.isActive || !!it.active" [size]="19"
               [class]="(rla.isActive || it.active) ? 'text-nav-active-text' : 'text-nav-muted group-hover:text-nav-strong'" />
             <span class="min-w-0 flex-1 truncate" [class.lg:sr-only]="rail()">{{ it.label }}</span>
           </a>
@@ -173,7 +175,7 @@ export interface NavSection {
           <span class="flex h-9 cursor-default items-center gap-3 rounded-[10px] px-3 text-[13.5px]"
             [class]="'text-nav-muted/60'"
             aria-disabled="true" [attr.title]="it.label + ' — moduł w przygotowaniu'">
-            <svg [lucideIcon]="icons[it.icon]" [size]="18" [strokeWidth]="1.75" class="text-nav-muted/50" />
+            <sv-nav-icon [name]="it.icon" [size]="19" class="text-nav-muted/50" />
             <span class="min-w-0 flex-1 truncate whitespace-nowrap">{{ it.label }}<span class="sr-only"> (wkrótce)</span></span>
             <span class="rounded-full border px-1.5 text-[10px]" class="border-nav-line text-nav-muted" aria-hidden="true">wkrótce</span>
           </span>

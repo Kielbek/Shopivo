@@ -45,6 +45,11 @@ Logo: sam napis „shopıvo” w kroju Inter (bez sygnetu), kropka nad „ı” 
 w zwiniętej nawigacji skrót „s.”. Ikona aplikacji (favicon, apple-touch, PWA): czarny kwadrat, białe „s”, neonowa
 kropka — `public/favicon.svg|.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `manifest.webmanifest`.
 
+Ikony nawigacji: Phosphor (MIT, `lib/nav-icon-paths.ts` generowane z `@phosphor-icons/core` 2.1.1) — kontur w
+spoczynku, wypełnienie dla aktywnej pozycji (`sv-nav-icon`); pozostałe ikony interfejsu: Lucide. W zwiniętej nawigacji
+nazwy pokazuje dymek `svTooltip` (renderowany na `<body>`, więc nie ucina go przewijana lista). Treść stron jest biała,
+karty z cienką ramką bez cienia, pola białe z ramką, lżejsze wagi kroju (medium 480, semibold 560).
+
 ## Komponenty
 
 | Komponent | Selektor | Uwagi |

@@ -25,8 +25,8 @@ export class LogoComponent {
   readonly tone = input<'dark' | 'light'>('dark');
   /** Compact "s." (collapsed navigation). */
   readonly mark = input(false);
-  /** Neon reads on the night frame; on light pages a deeper green keeps the dot visible. */
+  /** The deeper neon reads on white and on black alike. */
   protected dotClass(): string {
-    return this.tone() === 'light' ? 'bg-neon' : 'bg-primary';
+    return 'bg-neon-deep';
   }
 }

@@ -7,7 +7,7 @@ import { SessionStore, StoresApi } from '@shopivo/api-client';
 import { STORE_ROLE_LABELS, StorePermission } from '@shopivo/shared-models';
 import {
   AlertComponent, AppShellComponent, AvatarComponent, BadgeComponent, ButtonComponent, LoadingComponent, LogoComponent,
-  MenuComponent, MenuItemComponent, NavItem, NavSection, icons,
+  MenuComponent, MenuItemComponent, NavIconComponent, NavItem, NavSection, icons,
 } from '@shopivo/shared-ui';
 import { BackIconComponent } from '@shopivo/shared-ui';
 import { SubscriptionBanner } from './subscription-banner';
@@ -80,7 +80,7 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
 
 @Component({
   selector: 'sv-store-shell',
-  imports: [BackIconComponent, RouterOutlet, RouterLink, RouterLinkActive, LucideDynamicIcon, AppShellComponent, LoadingComponent, AlertComponent, ButtonComponent,
+  imports: [BackIconComponent, NavIconComponent, RouterOutlet, RouterLink, RouterLinkActive, LucideDynamicIcon, AppShellComponent, LoadingComponent, AlertComponent, ButtonComponent,
     MenuComponent, MenuItemComponent, AvatarComponent, BadgeComponent, LogoComponent, SubscriptionBanner],
   providers: [StoreContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -116,11 +116,11 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
                     <a [routerLink]="it.link" routerLinkActive #rla="routerLinkActive" [routerLinkActiveOptions]="{ exact: !!it.exact }"
                       [attr.aria-current]="rla.isActive ? 'page' : null"
                       class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] transition-colors"
-                      [class]="rla.isActive ? 'bg-nav-active font-semibold text-nav-active-text' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
-                      <svg [lucideIcon]="icons[it.icon]" [size]="17" [strokeWidth]="1.75" [class]="rla.isActive ? 'text-nav-active-text' : 'text-nav-muted'" />{{ it.label }}</a>
+                      [class]="rla.isActive ? 'bg-nav-active font-medium text-nav-active-text' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
+                      <sv-nav-icon [name]="it.icon" [active]="rla.isActive" [size]="18" [class]="rla.isActive ? 'text-nav-active-text' : 'text-nav-muted'" />{{ it.label }}</a>
                   } @else {
                     <span class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] text-nav-muted/60" aria-disabled="true">
-                      <svg [lucideIcon]="icons[it.icon]" [size]="17" [strokeWidth]="1.75" class="text-nav-muted/50" />
+                      <sv-nav-icon [name]="it.icon" [size]="18" class="text-nav-muted/50" />
                       <span class="flex-1">{{ it.label }}<span class="sr-only"> (wkrótce)</span></span>
                       <span class="rounded-full border border-nav-line px-1.5 text-[10px] text-nav-muted" aria-hidden="true">wkrótce</span></span>
                   }
