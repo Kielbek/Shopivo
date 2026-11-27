@@ -80,9 +80,13 @@ interface CategoryForm {
                 } @else {
                   <span class="size-6 shrink-0"></span>
                 }
-                <span class="flex size-8 shrink-0 items-center justify-center rounded-[8px]" [class]="n.depth === 0 ? 'bg-primary-soft text-primary' : 'bg-canvas text-ink-muted'">
-                  <svg [lucideIcon]="n.childCount ? icons.categories : icons.tag" [size]="15" />
-                </span>
+                @if (c.image?.['w400']; as thumb) {
+                  <img [src]="thumb" alt="" class="size-8 shrink-0 rounded-[8px] object-cover" loading="lazy" />
+                } @else {
+                  <span class="flex size-8 shrink-0 items-center justify-center rounded-[8px]" [class]="n.depth === 0 ? 'bg-primary-soft text-primary' : 'bg-canvas text-ink-muted'">
+                    <svg [lucideIcon]="n.childCount ? icons.categories : icons.tag" [size]="15" />
+                  </span>
+                }
                 <div class="min-w-0 flex-1">
                   <p class="truncate text-[13px] text-ink" [class.font-semibold]="n.depth === 0" [class.font-medium]="n.depth > 0">{{ c.name }}
                     @if (!c.visible) {<sv-badge class="ml-1.5">Ukryta</sv-badge>}
@@ -141,6 +145,33 @@ interface CategoryForm {
             <sv-select inputId="c-parent" name="parent" [options]="parentOptions()" [(ngModel)]="f.parentId" ariaLabel="Kategoria nadrzędna" />
           </sv-field>
           <sv-field label="Opis" for="c-desc" [optional]="true"><textarea id="c-desc" name="desc" class="sv-input min-h-20 py-2.5" maxlength="2000" [(ngModel)]="f.description"></textarea></sv-field>
+          <div>
+            <p class="sv-label">Zdjęcie kategorii <span class="font-normal text-ink-muted">(opcjonalne)</span></p>
+            @if (f.id) {
+              <div class="mt-1.5 flex items-center gap-3 rounded-[10px] border-2 border-dashed p-2 transition-colors"
+                [class]="imageOver() ? 'border-primary bg-primary-soft' : 'border-line'"
+                (dragover)="$event.preventDefault(); imageOver.set(true)" (dragleave)="imageOver.set(false)" (drop)="dropImage($event, f.id)">
+                <span class="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-[8px] bg-canvas text-ink-muted">
+                  @if (imageBusy()) {<span class="sv-shimmer block size-full"></span>}
+                  @else if (formImage(); as img) {<img [src]="img" alt="" class="size-full object-cover" />}
+                  @else {<svg [lucideIcon]="icons.image" [size]="20" />}
+                </span>
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap gap-x-3 gap-y-1">
+                    <button type="button" class="text-[13px] font-medium text-primary-strong hover:underline disabled:opacity-50" [disabled]="imageBusy()" (click)="imageFile.click()">
+                      {{ formImage() ? 'Zmień zdjęcie' : 'Dodaj zdjęcie' }}</button>
+                    @if (formImage()) {
+                      <button type="button" class="text-[13px] text-ink-muted hover:text-danger-ink disabled:opacity-50" [disabled]="imageBusy()" (click)="removeImage(f.id)">Usuń</button>
+                    }
+                  </div>
+                  <p class="mt-0.5 text-[12px] text-ink-muted">Pokazuje się w sekcji „Kategorie” na stronie głównej sklepu. Przeciągnij plik albo wybierz z dysku — JPEG lub PNG, najlepiej kwadrat min. 800 px.</p>
+                </div>
+                <input #imageFile type="file" class="sr-only" tabindex="-1" aria-hidden="true" accept="image/jpeg,image/png" (change)="pickImage($event, f.id)" />
+              </div>
+            } @else {
+              <p class="mt-1 text-[12px] text-ink-muted">Zdjęcie dodasz po zapisaniu kategorii.</p>
+            }
+          </div>
           <label class="flex items-center gap-2.5 text-[13px] text-ink"><input type="checkbox" role="switch" class="sv-switch" name="visible" [(ngModel)]="f.visible" />Widoczna w sklepie</label>
           <sv-seo-panel idPrefix="c" kind="category" pathPrefix="/kategoria/" [name]="f.name" [text]="f.description" [storeName]="ctx.store()?.name ?? ''"
             [host]="ctx.store()?.primaryHostname ?? ''" [(slug)]="f.slug" [(title)]="f.seoTitle" [(description)]="f.seoDescription" />
@@ -175,6 +206,9 @@ export class CategoriesPage {
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
   protected brandName = '';
+  protected readonly formImage = signal<string | null>(null);
+  protected readonly imageBusy = signal(false);
+  protected readonly imageOver = signal(false);
 
   protected readonly plural = plural;
   protected readonly nodes = computed(() => buildTree(this.categories.value() ?? []));
@@ -284,6 +318,7 @@ export class CategoriesPage {
 
   protected open(c: Category | null, parentId: string | null): void {
     this.error.set(null);
+    this.formImage.set(c?.image?.['w400'] ?? null);
     this.form.set(c
       ? { id: c.id, name: c.name, slug: c.slug, description: c.description ?? '', parentId: c.parentId ?? '', visible: c.visible,
           seoTitle: c.seoTitle ?? '', seoDescription: c.seoDescription ?? '', version: c.version }
@@ -315,6 +350,48 @@ export class CategoriesPage {
       this.error.set(ApiError.from(e).message);
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  protected pickImage(e: Event, id: string): void {
+    const el = e.target as HTMLInputElement;
+    const file = el.files?.[0];
+    el.value = '';
+    if (file) void this.uploadImage(id, file);
+  }
+
+  protected dropImage(e: DragEvent, id: string): void {
+    e.preventDefault();
+    this.imageOver.set(false);
+    const file = e.dataTransfer?.files?.[0];
+    if (file) void this.uploadImage(id, file);
+  }
+
+  private async uploadImage(id: string, file: File): Promise<void> {
+    if (!['image/jpeg', 'image/png'].includes(file.type)) { this.toast.error('Dozwolone są pliki JPEG i PNG.'); return; }
+    if (file.size > 10 * 1024 * 1024) { this.toast.error('Plik jest większy niż 10 MB.'); return; }
+    this.imageBusy.set(true);
+    try {
+      const c = await firstValueFrom(this.api.setCategoryImage(this.ctx.tenantId(), id, file));
+      this.formImage.set(c.image?.['w400'] ?? null);
+      this.categories.reload();
+    } catch (e) {
+      this.toast.error(ApiError.from(e).message);
+    } finally {
+      this.imageBusy.set(false);
+    }
+  }
+
+  protected async removeImage(id: string): Promise<void> {
+    this.imageBusy.set(true);
+    try {
+      await firstValueFrom(this.api.removeCategoryImage(this.ctx.tenantId(), id));
+      this.formImage.set(null);
+      this.categories.reload();
+    } catch (e) {
+      this.toast.error(ApiError.from(e).message);
+    } finally {
+      this.imageBusy.set(false);
     }
   }
 

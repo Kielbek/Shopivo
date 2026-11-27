@@ -215,6 +215,16 @@ paczki, domyślny typ produktu) żyje w panelu (`features/catalog/industries.ts`
 wymagają migracji ani wdrożenia backendu. Kategorie startowe są tworzone zwykłym API kategorii (te same uprawnienia,
 walidacja i audyt).
 
+### ADR-023: Sekcje strony głównej i edytor z podglądem na żywo
+Rozszerza ADR-016: motyw = ustawienia + uporządkowana lista sekcji (`SectionRegistry`: baner, zalety, kategorie,
+produkty, zdjęcie z tekstem, FAQ, newsletter, opinie, tekst, blog). Każdy typ ma schemat pól (tekst, wybór, link,
+zdjęcie, kategoria/e, powtarzalne elementy), z którego panel generuje formularz, a backend waliduje każdą wartość — do
+witryny trafiają tylko zwalidowane dane renderowane wiązaniami Angulara (bez HTML). Edytor w panelu to osobny ekran
+pełnoekranowy; podgląd to prawdziwa witryna w `<iframe>` (link podglądu), której szkic jest podmieniany przez
+`postMessage` bez zapisu — witryna przyjmuje wiadomości tylko z adresu panelu podanego przez backend i tylko od ramki
+nadrzędnej. Zapis szkicu i publikacja działają jak dotąd (wersjonowanie, 409 przy konflikcie). Stare pola banera są
+automatycznie przenoszone do sekcji „Baner” przy odczycie.
+
 ### ADR-017: Publikacja sklepu (Faza 4a)
 Sklep startuje jako szkic. Publikacja wymaga kompletu danych sprzedawcy wymaganych przy sprzedaży na odległość (firma,
 NIP, adres, e-mail), aktywnego produktu, sposobu dostawy i metody płatności — moduły zgłaszają braki przez SPI

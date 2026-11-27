@@ -44,6 +44,7 @@ export const routes: Routes = [
       { path: 'produkty/:productId', title: 'Produkt', loadComponent: () => import('./features/catalog/product-edit.page').then((m) => m.ProductEditPage) },
       { path: 'kategorie', title: 'Kategorie i marki', loadComponent: () => import('./features/catalog/categories.page').then((m) => m.CategoriesPage) },
       { path: 'magazyn', title: 'Magazyn', loadComponent: () => import('./features/catalog/inventory.page').then((m) => m.InventoryPage) },
+      { path: 'newsletter', title: 'Newsletter', loadComponent: () => import('./features/sales/newsletter.page').then((m) => m.NewsletterPage) },
       { path: 'opinie', title: 'Opinie', loadComponent: () => import('./features/reviews/reviews.page').then((m) => m.ReviewsPage) },
       { path: 'tresci', title: 'Strony i blog', loadComponent: () => import('./features/content/content.page').then((m) => m.ContentPage) },
       { path: 'tresci/nowa', title: 'Nowa strona', loadComponent: () => import('./features/content/content-edit.page').then((m) => m.ContentEditPage) },

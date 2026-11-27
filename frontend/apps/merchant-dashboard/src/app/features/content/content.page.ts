@@ -14,6 +14,7 @@ import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 import { NavigationEditorComponent } from './navigation-editor';
 import { LegalDocumentsComponent } from './legal-documents';
+import { StarterPagesComponent } from './starter-pages';
 
 type Tab = 'strony' | 'blog' | 'menu' | 'przekierowania';
 
@@ -21,7 +22,7 @@ type Tab = 'strony' | 'blog' | 'menu' | 'przekierowania';
 @Component({
   selector: 'sv-content-page',
   imports: [FormsModule, RouterLink, DatePipe, NgTemplateOutlet, LucideDynamicIcon, PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent,
-    AlertComponent, LoadingComponent, EmptyStateComponent, TabsComponent, FieldComponent, NavigationEditorComponent, LegalDocumentsComponent],
+    AlertComponent, LoadingComponent, EmptyStateComponent, TabsComponent, FieldComponent, NavigationEditorComponent, LegalDocumentsComponent, StarterPagesComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <sv-page-header title="Strony i blog" description="Regulamin, polityka prywatności i inne strony informacyjne, wpisy na blogu, menu sklepu oraz przekierowania starych adresów.">
@@ -38,6 +39,7 @@ type Tab = 'strony' | 'blog' | 'menu' | 'przekierowania';
       <div role="tabpanel" id="panel-strony" aria-labelledby="tab-strony">
         <sv-legal-documents />
         <sv-card class="mt-5" [flush]="true" heading="Pozostałe strony" subheading="O nas, kontakt, FAQ i inne strony informacyjne. Kliknij stronę, aby ją edytować.">
+          @if (canWrite) {<sv-starter-pages />}
           <ng-container *ngTemplateOutlet="list" />
         </sv-card>
       </div>

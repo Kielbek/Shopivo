@@ -471,3 +471,10 @@ export interface Shipment {
   carrierStatus: string | null; labelAvailable: boolean; error: string | null; createdAt: string; deliveredAt: string | null; sandbox: boolean;
 }
 export interface ShipmentInput { template: string | null; weightGrams: number | null; lengthMm: number | null; widthMm: number | null; heightMm: number | null; sendingMethod: 'PARCEL_LOCKER' | 'COURIER_PICKUP'; }
+
+export type NewsletterStatus = 'PENDING' | 'CONFIRMED' | 'UNSUBSCRIBED';
+
+export interface NewsletterSubscriber {
+  id: string; email: string; status: NewsletterStatus; source: string | null;
+  createdAt: string; confirmedAt: string | null; unsubscribedAt: string | null;
+}

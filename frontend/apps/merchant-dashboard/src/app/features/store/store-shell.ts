@@ -35,6 +35,7 @@ const NAV: { title?: string; items: MerchantNavItem[] }[] = [
     title: 'Rozwój',
     items: [
       { label: 'Analityka', icon: 'analytics', soon: true },
+      { label: 'Newsletter', icon: 'mail', path: 'newsletter', permission: 'CUSTOMERS_READ' },
       { label: 'Marketing', icon: 'marketing', soon: true },
       { label: 'Rabaty', icon: 'discount', soon: true },
     ],

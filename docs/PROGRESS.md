@@ -1,6 +1,6 @@
 # Shopivo — postęp prac
 
-Ostatnia aktualizacja: 2026-11-26 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a**, **Faza 4b**, **Faza 4c — opinie**, **Faza 4d — konta klientów**, **Faza 4e — CAPTCHA i menu**, **Faza 5a — płatności online**, **Faza 5b — wysyłka InPost**, **usprawnienia UX katalogu** (z ograniczeniami opisanymi niżej).
+Ostatnia aktualizacja: 2026-11-27 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a**, **Faza 4b**, **Faza 4c — opinie**, **Faza 4d — konta klientów**, **Faza 4e — CAPTCHA i menu**, **Faza 5a — płatności online**, **Faza 5b — wysyłka InPost**, **usprawnienia UX katalogu**, **silnik wyglądu i newsletter** (z ograniczeniami opisanymi niżej).
 
 ## Wyniki testów (rzeczywiście uruchomione)
 
@@ -131,6 +131,27 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   `unsafe-inline`. Sprawdzone pełnymi scenariuszami E2E (sklep, treści, konta) — 0 naruszeń w konsoli.
 - **Zdarzenia (outbox)**: ponowienia z rosnącą przerwą (5 min → maks. 6 h), najwyżej 10 prób; potem zdarzenie zostaje
   jako „martwe” i jest raportowane w logu raz dziennie; zakończone publikacje usuwane po 30 dniach (test `EventRedeliveryTest`).
+
+## Silnik wyglądu sklepu i edytor (2026-11-27)
+
+- **Sekcje strony głównej** (10 typów, maks. 20): baner (3 układy, zdjęcie), zalety, kategorie ze zdjęciami, listy
+  produktów (nowości / promocje / kategoria / wybrane), zdjęcie z tekstem, FAQ (z JSON-LD `FAQPage`), newsletter,
+  opinie klientów, tekst, wpisy z bloga. Każdy szablon ma własny domyślny układ sekcji.
+- **Nagłówek i stopka:** logo, styl (klasyczny/wyśrodkowany), przyklejony nagłówek, wyszukiwarka, pasek ogłoszeń;
+  nawigacja w telefonie jako menu boczne albo dolny pasek; newsletter i media społecznościowe w stopce.
+- **Edytor wyglądu** (pełny ekran, bez menu panelu): osobne widoki — lista sekcji, edycja sekcji, dodawanie sekcji,
+  nagłówek, stopka, kolory, typografia; przeciąganie kolejności, ukrywanie, podgląd na żywo w 3 rozmiarach urządzeń,
+  biblioteka zdjęć (przeciągnij i upuść), ostrzeżenie przed wyjściem bez zapisu, publikacja. „Wygląd sklepu” to teraz
+  przegląd szablonu z wejściem do edytora i galerii.
+- **Zdjęcia kategorii** w oknie edycji kategorii (przycisk lub przeciągnięcie) i miniatury w drzewie.
+- **Newsletter:** double opt-in, potwierdzenie i wypis linkiem, lista w panelu (Rozwój → Newsletter) z licznikami,
+  wyszukiwaniem, usuwaniem i eksportem potwierdzonych adresów do CSV.
+- **Strony startowe:** „O nas”, „Kontakt”, „Najczęstsze pytania” — jednym kliknięciem jako szkic wypełniony danymi firmy.
+- Testy: `ThemeSectionsIT`, `NewsletterIT`; ręczne E2E (Playwright, poza repo): edycja banera z podglądem na żywo,
+  wgranie zdjęcia, dodanie FAQ, dolny pasek w telefonie, zapis; zdjęcie kategorii (dodanie/usunięcie), lista
+  newslettera, utworzenie strony „Kontakt” — 0 błędów konsoli.
+- Naprawione w trakcie: brak typów `THEME`/`CATEGORY` w ograniczeniu `media_assets` (409) → V16; wiązanie klasy banera
+  nadpisywało odstępy; pasek edytora nie mieścił się na telefonie.
 
 ## Przegląd Faz 4b–4e (2026-11-26) — naprawione
 Blokada kont klientów zastąpiona limitem per adres (bez możliwości blokowania cudzych kont i bez ujawniania, czy konto
@@ -305,8 +326,11 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - **Faza 5a:** adaptery Przelewy24 / PayU / Tpay sprawdzone tylko na atrapach HTTP i symulatorze — **przed produkcją
   konieczny test na sandboxach operatorów** (wymaga kont testowych). Zwroty wykonuje sprzedawca w panelu operatora (zwrot
   przez API — Faza 5b). Brak raportu płatności w panelu (widoczne w historii zamówienia).
-- **Szablony:** 8 szablonów na jednym silniku (różnią się ustawieniami, nie strukturą sekcji — ADR-016); miniatury w
-  galerii są rysowane, nie są zrzutami prawdziwego sklepu.
+- **Szablony:** 8 szablonów na jednym silniku (ADR-016, ADR-023); miniatury w galerii są rysowane, nie są zrzutami
+  prawdziwego sklepu.
+- **Edytor wyglądu:** sekcje tylko na stronie głównej (strony kategorii/produktu mają stały układ); brak cofania zmian
+  (undo) poza „odrzuć niezapisane”; newsletter zbiera adresy, ale wysyłka kampanii jest poza zakresem (eksport CSV
+  do zewnętrznego narzędzia); zdjęcia motywu nie mają pola tekstu alternatywnego (dekoracyjne, `alt=""`).
 - **Dokumenty prawne:** odświeżenie ze wzoru zastępuje całą treść (bez scalania ręcznych zmian — panel ostrzega);
   podgląd w ramce wymaga ustawienia `SHOPIVO_PANEL_ORIGIN` w witrynie.
 - **UX katalogu:** kategorie są sortowane alfabetycznie — brak zmiany kolejności (np. przeciąganiem w drzewie);
@@ -324,7 +348,7 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
 - **Faza 4a:** zdjęcia: brak WebP/AVIF,
   przetwarzanie synchroniczne; pliki serwowane przez backend (CDN — Faza 6). Adapter S3 sprawdzony na emulatorze (moto),
   nie na prawdziwym R2/S3.
-- **Faza 4a:** JSON-LD `Organization` jest tylko na stronie głównej; motywy różnią się ustawieniami, nie strukturą sekcji (ADR-016).
+- **Faza 4a:** JSON-LD `Organization` jest tylko na stronie głównej.
 - **Faza 3:** VAT od dostawy i opłaty za pobranie liczony stawką 23% (uproszczenie, patrz ADR-015).
 - Lokalnie operatora trzeba raz skonfigurować w panelu admina (Rozliczenia → Operatorzy płatności → Symulator, dowolny sekret).
 - Panel sprzedawcy nie ma jeszcze modułów produktów, zamówień itd. — nawigacja pokazuje wyłącznie działające sekcje.

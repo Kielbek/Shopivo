@@ -230,6 +230,18 @@ Blokady zadań cyklicznych.
 |---|---|
 | `store_legal_settings` | Dane używane we wzorach (poza danymi firmy z `store_settings`): `shipping_time`, `effective_date`, `returns_address` (NULL = adres firmy), `analytics_tools`, `marketing_tools`, `version` |
 
+## 5j. Obrazy motywu i kategorii (migracja V16)
+
+`media_assets.owner_type` przyjmuje dodatkowo `THEME` (biblioteka zdjęć motywu; `owner_id` = id sklepu, maks. 40) i
+`CATEGORY` (jedno zdjęcie na kategorię; nowe zastępuje stare, usunięcie kategorii usuwa plik). Sekcje strony głównej
+są przechowywane w istniejącym JSON-ie motywu (`store_themes`), więc nie wymagają nowej tabeli.
+
+## 5k. Newsletter (migracja V17; z RLS)
+
+| Tabela | Opis |
+|---|---|
+| `newsletter_subscribers` | `email` (unikalny w sklepie), `status` `PENDING`/`CONFIRMED`/`UNSUBSCRIBED`, skróty SHA-256 tokenów potwierdzenia i wypisu (same tokeny nie są zapisywane), `confirm_sent_at` (ponowna wysyłka maks. raz na 24 h), `consent_text` i `confirmed_at` (dowód zgody), `source`, `unsubscribed_at` |
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |
@@ -238,7 +250,7 @@ Blokady zadań cyklicznych.
 | 3 (pozostałe) | `returns`, `complaints`, `discounts`, `discount_usage`, `wishlists` |
 | 5 | `integrations`, `integration_credentials` (szyfrowane), `payments`, `payment_transactions`, `refunds`, `shipments`, `shipment_events`, `shipping_methods`, `shipping_zones` |
 | 6 | rozszerzenia `store_domains`, `domain_checks` |
-| 7 | `newsletter_subscribers`, `abandoned_carts`, `marketing_settings`, `analytics_daily` (agregaty), `ai_usage`, `ai_jobs` |
+| 7 | `abandoned_carts`, `marketing_settings`, `analytics_daily` (agregaty), `ai_usage`, `ai_jobs` |
 | 8 | `support_tickets`, `support_messages`, `notifications`, `email_templates`, `email_log`, `data_requests` (RODO), `platform_settings` |
 
 Projekt szczegółowy każdej tabeli zostanie dopisany do tego dokumentu w momencie implementacji fazy
