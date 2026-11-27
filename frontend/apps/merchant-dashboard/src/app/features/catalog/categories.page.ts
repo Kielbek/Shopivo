@@ -15,7 +15,7 @@ import { ART_BACKGROUNDS, ART_MOTIFS, ArtBackground, ArtMotif, artSvg, renderArt
 import { StoreContext } from '../store/store-context';
 import { buildTree } from './category-tree';
 import { SeoPanelComponent } from './seo-panel';
-import { StarterCategory, industryOf } from './industries';
+import { StarterCategory, industryLabels, starterCategoriesFor, storeIndustries } from './industries';
 
 interface CategoryForm {
   id: string | null; name: string; slug: string; description: string; parentId: string; visible: boolean;
@@ -44,7 +44,7 @@ interface CategoryForm {
           <button sv-button class="shrink-0" [loading]="seeding()" (click)="seed(st.missing)"><svg [lucideIcon]="icons.plus" />Dodaj propozycje</button>
         </section>
       }
-    } @else if (canWrite && !ctx.store()?.industry && !tree().length) {
+    } @else if (canWrite && !hasIndustry() && !tree().length) {
       <sv-alert class="mt-6">Wybierz branżę sklepu w <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'ustawienia']">Ustawieniach</a>, a zaproponujemy gotowe kategorie.</sv-alert>
     }
 
@@ -288,15 +288,18 @@ export class CategoriesPage {
   });
   protected readonly roots = computed(() => this.nodes().filter((n) => n.depth === 0).length);
 
-  /** Starter categories for the store's industry that do not exist yet (matched by name under the same parent). */
+  protected readonly hasIndustry = computed(() => storeIndustries(this.ctx.store()).length > 0);
+
+  /** Starter categories for the store's industries that do not exist yet (matched by name under the same parent). */
   protected readonly starter = computed(() => {
-    const industry = industryOf(this.ctx.store()?.industry);
-    if (!industry || !this.categories.hasValue()) return null;
+    const ids = storeIndustries(this.ctx.store());
+    const starters = starterCategoriesFor(ids);
+    if (!starters.length || !this.categories.hasValue()) return null;
     const existing = this.nodes();
     const rootByName = new Map(existing.filter((n) => n.depth === 0).map((n) => [n.category.name.toLowerCase(), n.category.id]));
     const missing: StarterCategory[] = [];
     let count = 0;
-    for (const c of industry.categories) {
+    for (const c of starters) {
       const rootId = rootByName.get(c.name.toLowerCase());
       const childNames = new Set(existing.filter((n) => rootId && n.category.parentId === rootId).map((n) => n.category.name.toLowerCase()));
       const children = (c.children ?? []).filter((ch) => !childNames.has(ch.toLowerCase()));
@@ -305,8 +308,8 @@ export class CategoriesPage {
         count += (rootId ? 0 : 1) + children.length;
       }
     }
-    const preview = industry.categories.map((c) => (c.children?.length ? `${c.name} (${c.children.join(', ')})` : c.name)).join(' · ');
-    return { label: industry.label, missing, count, preview };
+    const preview = starters.map((c) => (c.children?.length ? `${c.name} (${c.children.join(', ')})` : c.name)).join(' · ');
+    return { label: industryLabels(ids), missing, count, preview };
   });
 
   protected guides(depth: number): number[] {

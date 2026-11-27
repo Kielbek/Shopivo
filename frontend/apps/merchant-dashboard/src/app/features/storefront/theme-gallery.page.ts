@@ -7,7 +7,7 @@ import { StoreIndustry, ThemePreset } from '@shopivo/shared-models';
 import { AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, LoadingComponent, ToastService, icons } from '@shopivo/shared-ui';
 import { BackIconComponent } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
-import { INDUSTRIES, industryOf } from '../catalog/industries';
+import { INDUSTRIES, industryLabels, industryOf, storeIndustries } from '../catalog/industries';
 import { StoreContext } from '../store/store-context';
 import { STYLE_LABELS, ThemeStyle, metaOf } from './theme-meta';
 import { ThemeMockComponent } from './theme-mock';
@@ -67,7 +67,7 @@ function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
               @for (i of industries; track i.id) {<option [value]="i.id">{{ i.label }}</option>}
             </select>
             @if (storeIndustry(); as own) {
-              <p class="mt-2 text-[12px] text-ink-muted">Szablony dla branży „{{ own }}” pokazujemy najpierw.</p>
+              <p class="mt-2 text-[12px] text-ink-muted">Szablony dla: {{ own }} pokazujemy najpierw.</p>
             }
           </div>
           @if (style() || industry()) {
@@ -172,18 +172,18 @@ export class ThemeGalleryPage {
   protected readonly choosing = signal<string | null>(null);
 
   protected readonly storeName = computed(() => this.ctx.store()?.name ?? '');
-  protected readonly storeIndustry = computed(() => industryOf(this.ctx.store()?.industry)?.label ?? null);
+  protected readonly storeIndustry = computed(() => industryLabels(storeIndustries(this.ctx.store())) || null);
+  private readonly own = computed(() => storeIndustries(this.ctx.store()));
   /** A template counts as chosen once the store saved one (version ≥ 0). */
   protected readonly chosen = computed(() => (this.data.hasValue() ? this.data.value().state.version >= 0 : false));
 
   protected readonly list = computed(() => {
     if (!this.data.hasValue()) return [];
-    const own = this.ctx.store()?.industry;
     return this.data.value().presets
       .filter((p) => !this.style() || this.metaFor(p.code).style === this.style())
       .filter((p) => !this.industry() || this.metaFor(p.code).industries.includes(this.industry()!))
       .sort((a, b) => Number(this.isCurrent(b)) - Number(this.isCurrent(a))
-        || Number(!!own && this.metaFor(b.code).industries.includes(own)) - Number(!!own && this.metaFor(a.code).industries.includes(own)));
+        || Number(this.recommended(b)) - Number(this.recommended(a)));
   });
 
   protected metaFor(code: string) {
@@ -195,8 +195,7 @@ export class ThemeGalleryPage {
   }
 
   protected recommended(p: ThemePreset): boolean {
-    const own = this.ctx.store()?.industry;
-    return !!own && this.metaFor(p.code).industries.includes(own);
+    return this.own().some((i) => this.metaFor(p.code).industries.includes(i));
   }
 
   protected swatches(p: ThemePreset): string[] {

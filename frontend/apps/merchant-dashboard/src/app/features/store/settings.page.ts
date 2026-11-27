@@ -12,7 +12,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from './store-context';
 import { IndustryPickerComponent } from './industry-picker';
-import { industryOf } from '../catalog/industries';
+import { industryLabels, storeIndustries } from '../catalog/industries';
 
 const LOCALES: SelectOption[] = [
   { value: 'pl-PL', label: 'Polski' },
@@ -125,7 +125,7 @@ const TIMEZONES: SelectOption[] = [
             <div class="p-5"><sv-industry-picker [wide]="true" [(value)]="industry" /></div>
             <div class="sv-card-footer">
               <button sv-button variant="ghost" type="button" (click)="editIndustry.set(false)">Anuluj</button>
-              <button sv-button type="button" [loading]="savingIndustry()" (click)="saveIndustry()">Zapisz branżę</button>
+              <button sv-button type="button" [loading]="savingIndustry()" (click)="saveIndustry()">Zapisz</button>
             </div>
           }
         </div>
@@ -260,20 +260,20 @@ export class SettingsPage {
   protected readonly savingGeneral = signal(false);
   protected readonly editIndustry = signal(false);
   protected readonly savingIndustry = signal(false);
-  protected readonly industry = signal<StoreIndustry | null>(null);
+  protected readonly industry = signal<StoreIndustry[]>([]);
   protected industryLabel(): string | null {
-    return industryOf(this.ctx.store()?.industry)?.label ?? null;
+    return industryLabels(storeIndustries(this.ctx.store())) || null;
   }
 
   protected startIndustry(): void {
-    this.industry.set(this.ctx.store()?.industry ?? null);
+    this.industry.set([...storeIndustries(this.ctx.store())]);
     this.editIndustry.set(true);
   }
 
   protected async saveIndustry(): Promise<void> {
     this.savingIndustry.set(true);
     try {
-      this.ctx.updateStore(await firstValueFrom(this.api.setIndustry(this.ctx.tenantId(), this.industry())));
+      this.ctx.updateStore(await firstValueFrom(this.api.setIndustries(this.ctx.tenantId(), this.industry())));
       this.editIndustry.set(false);
       this.toast.success('Zapisano branżę sklepu.');
     } catch (e) {

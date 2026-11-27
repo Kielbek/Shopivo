@@ -7,7 +7,7 @@ import { SlugAvailability, StoreIndustry } from '@shopivo/shared-models';
 import { ButtonComponent, InfoTipComponent, LogoComponent, ToastOutletComponent, ToastService, icons, slugify } from '@shopivo/shared-ui';
 import { catchError, debounceTime, distinctUntilChanged, filter, firstValueFrom, map, of, switchMap, tap } from 'rxjs';
 import { IndustryPickerComponent } from '../store/industry-picker';
-import { industryOf } from '../catalog/industries';
+import { industryLabels } from '../catalog/industries';
 
 const SLUG_PATTERN = /^[a-z0-9](?:[a-z0-9-]{1,38}[a-z0-9])$/;
 const POSTAL = /^\d{2}-\d{3}$/;
@@ -106,7 +106,7 @@ const STEPS: Step[] = ['name', 'industry', 'company', 'orders'];
             @case ('industry') {
               <h1 class="text-[28px] font-semibold leading-9 tracking-[-0.02em] text-ink">Co będziesz sprzedawać?</h1>
               <p class="mt-2 text-[15px] text-ink-soft">Dopasujemy podpowiedzi: kategorie, rozmiary i kolory wariantów, typowe paczki. Nie ogranicza to, co sprzedajesz.</p>
-              <sv-industry-picker class="mt-8 block" [wide]="true" [(value)]="industry" />
+              <sv-industry-picker class="mt-8 block" [wide]="true" [(value)]="industries" />
             }
             @case ('company') {
               <h1 class="flex items-center gap-1.5 text-[28px] font-semibold leading-9 tracking-[-0.02em] text-ink">Dane Twojej firmy
@@ -168,7 +168,7 @@ const STEPS: Step[] = ['name', 'industry', 'company', 'orders'];
                 <p class="font-medium text-ink">Podsumowanie</p>
                 <dl class="mt-2 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 text-ink-soft">
                   <dt>Sklep</dt><dd class="truncate text-ink">{{ name().trim() }} · {{ slug() }}.{{ domain() }}</dd>
-                  <dt>Branża</dt><dd class="text-ink">{{ industryLabel() ?? 'nie wybrano' }}</dd>
+                  <dt>{{ industries().length > 1 ? 'Branże' : 'Branża' }}</dt><dd class="text-ink">{{ industryLabel() ?? 'nie wybrano' }}</dd>
                   <dt>Firma</dt><dd class="truncate text-ink">{{ companyFilled() ? company().legalCompanyName : 'uzupełnisz później' }}</dd>
                 </dl>
               </div>
@@ -183,7 +183,7 @@ const STEPS: Step[] = ['name', 'industry', 'company', 'orders'];
               <button sv-button type="button" variant="ghost" size="lg" (click)="go(-1)"><svg [lucideIcon]="icons.arrowLeft" />Wstecz</button>
             }
             <span class="flex-1"></span>
-            @if (step() === 'industry' && !industry()) {
+            @if (step() === 'industry' && !industries().length) {
               <button type="button" class="px-2 text-[14px] text-ink-soft hover:text-ink" (click)="go(1)">Pomiń</button>
             }
             @if (step() === 'company') {
@@ -218,7 +218,7 @@ export class CreateStorePage {
   protected readonly name = signal('');
   protected readonly slug = signal('');
   protected slugEdited = false;
-  protected readonly industry = signal<StoreIndustry | null>(null);
+  protected readonly industries = signal<StoreIndustry[]>([]);
   protected readonly company = signal({ legalCompanyName: '', taxId: '', phone: '', addressLine1: '', postalCode: '', city: '' });
   protected readonly orderEmail = signal(this.session.user()?.email ?? '');
   protected readonly pricesIncludeTax = signal(true);
@@ -230,7 +230,7 @@ export class CreateStorePage {
   protected readonly progress = signal<{ label: string; done: boolean }[]>([]);
 
   protected readonly firstName = computed(() => this.session.user()?.firstName ?? '');
-  protected readonly industryLabel = computed(() => industryOf(this.industry())?.label ?? null);
+  protected readonly industryLabel = computed(() => industryLabels(this.industries()) || null);
   protected readonly available = computed(() => {
     const a = this.availability();
     return !!a && a.available && a.slug === this.slug();
@@ -343,7 +343,7 @@ export class CreateStorePage {
     const done = (i: number) => this.progress.update((p) => p.map((x, j) => (j <= i ? { ...x, done: true } : x)));
     let tenantId: string;
     try {
-      tenantId = (await firstValueFrom(this.api.create(this.name().trim(), this.slug(), this.industry()))).tenantId;
+      tenantId = (await firstValueFrom(this.api.create(this.name().trim(), this.slug(), this.industries()))).tenantId;
       done(0);
     } catch (e) {
       const err = ApiError.from(e);

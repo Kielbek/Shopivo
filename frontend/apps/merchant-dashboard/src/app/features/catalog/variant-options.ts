@@ -118,7 +118,8 @@ export class VariantOptionsComponent {
   protected readonly icons = icons;
   protected readonly max = MAX_OPTIONS;
   readonly options = model<OptionRow[]>([]);
-  readonly industry = input<StoreIndustry | null>(null);
+  /** Store industries (primary first) — their presets are suggested first. */
+  readonly industry = input<StoreIndustry | StoreIndustry[] | null>(null);
   readonly disabled = input(false);
   protected readonly presets = computed(() => presetsFor(this.industry()));
   protected readonly optionNames = [...new Set(OPTION_PRESETS.map((p) => p.name))];

@@ -393,3 +393,7 @@ Redis, okno stałe per klucz:
 Rozmiar ciała żądania: maks. 1 MB dla `/api/**`, 11 MB dla uploadu zdjęć produktu, 64 KB dla webhooków (413 `PAYLOAD_TOO_LARGE`).
 Sklep z wygasłą subskrypcją (tylko do odczytu) może nadal: opłacić subskrypcję (`/subscription/**`) i obsługiwać
 złożone zamówienia (`/orders/{id}/status|paid|refunded|notes`); pozostałe zapisy → 402 `SUBSCRIPTION_INACTIVE`.
+
+- **Branże sklepu**: `POST /stores` i `PUT /tenants/{t}/store/industry` przyjmują `industries` (lista, główna pierwsza, maks. 5;
+  „GENERAL” przy innych jest pomijany; 422 `TOO_MANY_INDUSTRIES`). Pojedyncze `industry` nadal działa. `Store` zwraca `industry`
+  (główna) i `industries`.

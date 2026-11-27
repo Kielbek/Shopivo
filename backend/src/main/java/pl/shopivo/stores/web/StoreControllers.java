@@ -57,10 +57,12 @@ class StoreControllers {
     record CreateStoreRequest(
             @NotBlank @Size(min = 2, max = 150) String name,
             @NotBlank @Size(min = 3, max = 40) String slug,
-            pl.shopivo.stores.StoreIndustry industry) {
+            pl.shopivo.stores.StoreIndustry industry,
+            java.util.List<pl.shopivo.stores.StoreIndustry> industries) {
     }
 
-    record IndustryRequest(pl.shopivo.stores.StoreIndustry industry) {
+    /** {@code industries} (primary first); the single {@code industry} is still accepted from older clients. */
+    record IndustryRequest(pl.shopivo.stores.StoreIndustry industry, java.util.List<pl.shopivo.stores.StoreIndustry> industries) {
     }
 
     record UpdateStoreRequest(
@@ -104,7 +106,8 @@ class StoreControllers {
     StoreView create(@Valid @RequestBody CreateStoreRequest request) {
         CurrentUser user = SecurityUtils.requireUser();
         rateLimiter.consume("store-create:" + user.id(), 5, java.time.Duration.ofHours(1));
-        return provisioning.createStore(user, request.name(), request.slug(), request.industry());
+        return provisioning.createStore(user, request.name(), request.slug(),
+                pl.shopivo.stores.StoreIndustry.normalize(request.industries(), request.industry()));
     }
 
     @GetMapping("/api/v1/stores/slug-availability")
@@ -129,7 +132,7 @@ class StoreControllers {
     @PutMapping("/api/v1/tenants/{tenantId}/store/industry")
     @PreAuthorize("@tenantAccess.can('STORE_SETTINGS_WRITE')")
     StoreView updateIndustry(@PathVariable UUID tenantId, @RequestBody IndustryRequest r) {
-        return stores.setIndustry(r.industry());
+        return stores.setIndustries(pl.shopivo.stores.StoreIndustry.normalize(r.industries(), r.industry()));
     }
 
     @GetMapping("/api/v1/tenants/{tenantId}/store/settings")

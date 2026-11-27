@@ -281,3 +281,8 @@ Projekt szczegółowy każdej tabeli zostanie dopisany do tego dokumentu w momen
 
 ## 8. Kopie zapasowe
 Patrz `DEPLOYMENT.md` §6.
+
+## 5n. Kilka branż sklepu (migracja V20)
+
+`stores.additional_industries varchar(40)[]` — dalsze branże po głównej (`stores.industry`), w kolejności wyboru; razem
+najwyżej 5, tylko znane kody, bez dodatkowych gdy nie ma głównej (CHECK). API zwraca `industries` (główna pierwsza).

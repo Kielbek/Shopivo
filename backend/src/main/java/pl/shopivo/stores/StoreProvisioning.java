@@ -69,7 +69,7 @@ public class StoreProvisioning {
         return createStore(user, name, rawSlug, null);
     }
 
-    public StoreView createStore(CurrentUser user, String name, String rawSlug, StoreIndustry industry) {
+    public StoreView createStore(CurrentUser user, String name, String rawSlug, java.util.List<StoreIndustry> industries) {
         SlugAvailability availability = checkSlug(rawSlug);
         if (!availability.available()) {
             if ("TAKEN".equals(availability.reason())) {
@@ -90,7 +90,7 @@ public class StoreProvisioning {
             return TenantContext.callInTenant(tenantId, () -> tx.execute(status -> {
                 memberships.createTenantWithOwner(tenantId, storeName, user.id());
                 StoreEntity entity = new StoreEntity(storeName, slug, user.email());
-                entity.setIndustry(industry);
+                entity.setIndustries(industries);
                 StoreEntity store = stores.save(entity);
                 settings.save(new StoreSettingsEntity());
                 var domain = domains.createPlatformSubdomain(slug);

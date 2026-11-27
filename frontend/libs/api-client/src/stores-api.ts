@@ -28,8 +28,9 @@ export class StoresApi {
     return this.http.get<MyStore[]>('/api/v1/stores');
   }
 
-  create(name: string, slug: string, industry: StoreIndustry | null = null): Observable<Store> {
-    return this.http.post<Store>('/api/v1/stores', { name, slug, industry });
+  /** `industries`: primary first (up to 5). */
+  create(name: string, slug: string, industries: StoreIndustry[] = []): Observable<Store> {
+    return this.http.post<Store>('/api/v1/stores', { name, slug, industries });
   }
 
   slugAvailability(slug: string): Observable<SlugAvailability> {
@@ -58,8 +59,8 @@ export class TenantApi {
     return this.http.patch<Store>(`${this.base(tenantId)}/store`, update);
   }
 
-  setIndustry(tenantId: string, industry: StoreIndustry | null): Observable<Store> {
-    return this.http.put<Store>(`${this.base(tenantId)}/store/industry`, { industry });
+  setIndustries(tenantId: string, industries: StoreIndustry[]): Observable<Store> {
+    return this.http.put<Store>(`${this.base(tenantId)}/store/industry`, { industries });
   }
 
   settings(tenantId: string): Observable<StoreSettings> {

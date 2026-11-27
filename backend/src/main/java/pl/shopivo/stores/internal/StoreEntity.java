@@ -9,7 +9,9 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.TenantId;
+import org.hibernate.type.SqlTypes;
 import pl.shopivo.shared.persistence.BaseEntity;
 import pl.shopivo.stores.StoreStatus;
 import pl.shopivo.stores.StoreView;
@@ -39,6 +41,10 @@ public class StoreEntity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private pl.shopivo.stores.StoreIndustry industry;
+    /** Further industries after the primary one, in the order chosen (V20). */
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "additional_industries", nullable = false, columnDefinition = "varchar(40)[]")
+    private String[] additionalIndustries = new String[0];
     @Column(name = "published_at")
     private Instant publishedAt;
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -109,12 +115,23 @@ public class StoreEntity extends BaseEntity {
         this.timezone = timezone;
     }
 
-    public void setIndustry(pl.shopivo.stores.StoreIndustry industry) {
-        this.industry = industry;
+    /** Primary industry first; empty list = not chosen. */
+    public void setIndustries(java.util.List<pl.shopivo.stores.StoreIndustry> industries) {
+        this.industry = industries.isEmpty() ? null : industries.get(0);
+        this.additionalIndustries = industries.stream().skip(1).map(Enum::name).toArray(String[]::new);
+    }
+
+    public java.util.List<pl.shopivo.stores.StoreIndustry> industries() {
+        java.util.List<pl.shopivo.stores.StoreIndustry> all = new java.util.ArrayList<>();
+        if (industry != null) all.add(industry);
+        if (additionalIndustries != null) {
+            for (String i : additionalIndustries) all.add(pl.shopivo.stores.StoreIndustry.valueOf(i));
+        }
+        return java.util.List.copyOf(all);
     }
 
     public StoreView toView(String primaryHostname) {
         return new StoreView(getId(), tenantId, name, slug, status, defaultLocale, defaultCurrency, timezone,
-                contactEmail, primaryHostname, industry, createdAt, version);
+                contactEmail, primaryHostname, industry, industries(), createdAt, version);
     }
 }

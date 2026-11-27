@@ -10,7 +10,7 @@ import { CategoryTreeSelectComponent } from './category-tree';
 import { OptionRow, VariantOptionsComponent } from './variant-options';
 import { SeoPanelComponent } from './seo-panel';
 import { ParcelFieldsComponent } from './parcel-fields';
-import { industryOf } from './industries';
+import { industryOf, storeIndustries } from './industries';
 import { StorefrontAdminApi } from '@shopivo/api-client';
 import {
   AlertComponent, BadgeComponent, ButtonComponent, CardComponent, DialogComponent, FieldComponent, LoadingComponent, MoneyPipe,
@@ -142,7 +142,7 @@ function emptyVariant(): VariantRow {
               @if (!options().length) {
                 <p class="mb-3 text-[13px] text-ink-muted">Produkt ma jeden wariant. Dodaj opcje, jeśli występuje w kilku rozmiarach, kolorach lub pojemnościach.</p>
               }
-              <sv-variant-options [options]="options()" (optionsChange)="options.set($event); rebuild()" [industry]="industry()" [disabled]="!canWrite" />
+              <sv-variant-options [options]="options()" (optionsChange)="options.set($event); rebuild()" [industry]="industries()" [disabled]="!canWrite" />
               @if (options().length) {
                 @if (tooMany()) {
                   <sv-alert tone="warning" class="mt-4">Za dużo kombinacji ({{ combinations() }}). Produkt może mieć najwyżej 100 wariantów.</sv-alert>
@@ -303,6 +303,7 @@ export class ProductEditPage implements OnInit {
   protected readonly categoryIds = signal<string[]>([]);
   protected readonly pendingImages = signal<PendingImage[]>([]);
   protected readonly industry = computed(() => this.ctx.store()?.industry ?? null);
+  protected readonly industries = computed(() => storeIndustries(this.ctx.store()));
   protected readonly images = signal<ProductImage[]>([]);
   protected readonly combinations = signal(1);
 

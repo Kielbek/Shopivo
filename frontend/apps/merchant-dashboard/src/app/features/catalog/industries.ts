@@ -177,9 +177,48 @@ export function industryOf(id: StoreIndustry | null | undefined): Industry | nul
   return INDUSTRIES.find((i) => i.id === id) ?? null;
 }
 
-/** Presets ordered for an industry: its own first, then the rest. */
-export function presetsFor(id: StoreIndustry | null | undefined): { suggested: OptionPreset[]; other: OptionPreset[] } {
-  const own = industryOf(id)?.presets ?? [];
+/** Most industries one store can choose (backend checks the same). */
+export const MAX_INDUSTRIES = 5;
+
+/** Industries of a store, primary first; tolerates the older single-industry shape. */
+export function storeIndustries(store: { industry?: StoreIndustry | null; industries?: StoreIndustry[] | null } | null | undefined): StoreIndustry[] {
+  if (!store) return [];
+  if (store.industries?.length) return store.industries;
+  return store.industry ? [store.industry] : [];
+}
+
+/** "Odzież, Obuwie i Perfumy". */
+export function industryLabels(ids: StoreIndustry[]): string {
+  const names = ids.map((i) => industryOf(i)?.label).filter((n): n is string => !!n);
+  return names.length > 1 ? names.slice(0, -1).join(', ') + ' i ' + names.at(-1) : names[0] ?? '';
+}
+
+/** Starter categories of several industries merged: same top-level name → one category with all subcategories. */
+export function starterCategoriesFor(ids: StoreIndustry[]): StarterCategory[] {
+  const out: StarterCategory[] = [];
+  const byName = new Map<string, StarterCategory>();
+  for (const id of ids) {
+    for (const c of industryOf(id)?.categories ?? []) {
+      const key = c.name.toLowerCase();
+      const existing = byName.get(key);
+      if (!existing) {
+        const copy = { name: c.name, children: [...(c.children ?? [])] };
+        byName.set(key, copy);
+        out.push(copy);
+      } else {
+        for (const ch of c.children ?? []) {
+          if (!existing.children!.some((x) => x.toLowerCase() === ch.toLowerCase())) existing.children!.push(ch);
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/** Presets ordered for the store's industries: theirs first (in industry order), then the rest. */
+export function presetsFor(id: StoreIndustry | StoreIndustry[] | null | undefined): { suggested: OptionPreset[]; other: OptionPreset[] } {
+  const ids = Array.isArray(id) ? id : id ? [id] : [];
+  const own = [...new Set(ids.flatMap((i) => industryOf(i)?.presets ?? []))];
   const byId = new Map(OPTION_PRESETS.map((p) => [p.id, p]));
   const suggested = own.map((p) => byId.get(p)).filter((p): p is OptionPreset => !!p);
   return { suggested, other: OPTION_PRESETS.filter((p) => !own.includes(p.id)) };

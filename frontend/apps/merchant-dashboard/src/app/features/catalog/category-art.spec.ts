@@ -45,3 +45,22 @@ describe('industry graphics', () => {
     expect(suggestMotif('Namioty').id).toBe('tent');
   });
 });
+
+describe('several industries', () => {
+  it('merges starter categories by name and keeps the order of industries', async () => {
+    const { starterCategoriesFor, presetsFor, industryLabels } = await import('./industries');
+    const merged = starterCategoriesFor(['FASHION', 'FOOTWEAR', 'PERFUMES']);
+    const names = merged.map((c) => c.name.toLowerCase());
+    expect(new Set(names).size).toBe(names.length);
+    const fashionOnly = starterCategoriesFor(['FASHION']);
+    expect(merged.slice(0, fashionOnly.length).map((c) => c.name)).toEqual(fashionOnly.map((c) => c.name));
+    const total = (list: { children?: string[] }[]) => list.reduce((n, c) => n + 1 + (c.children?.length ?? 0), 0);
+    expect(total(merged)).toBeGreaterThan(total(fashionOnly));
+
+    const presets = presetsFor(['FASHION', 'PERFUMES']).suggested.map((p) => p.id);
+    expect(presets).toContain('size');
+    expect(presets).toContain('capacity');
+    expect(new Set(presets).size).toBe(presets.length);
+    expect(industryLabels(['FASHION', 'FOOTWEAR', 'PERFUMES'])).toBe('Odzież, Obuwie i Perfumy');
+  });
+});

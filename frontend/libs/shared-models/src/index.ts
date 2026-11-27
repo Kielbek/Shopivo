@@ -93,7 +93,10 @@ export interface Store {
   timezone: string;
   contactEmail: string | null;
   primaryHostname: string | null;
+  /** Primary industry (first of `industries`). */
   industry: StoreIndustry | null;
+  /** All industries the store sells in, primary first (up to 5). */
+  industries: StoreIndustry[];
   createdAt: string;
   version: number;
 }
