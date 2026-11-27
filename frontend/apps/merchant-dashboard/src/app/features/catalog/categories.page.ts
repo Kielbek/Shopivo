@@ -119,7 +119,8 @@ interface CategoryForm {
           </form>
         }
         @if (!brands.value()?.length) {
-          <p class="px-5 pb-5 text-[13px] text-ink-muted">Brak marek.</p>
+          <sv-empty-state icon="tag" illustration="brands" title="Brak marek"
+            [description]="canWrite ? 'Wpisz nazwę marki powyżej — np. producenta, którego produkty sprzedajesz. Marka pokaże się przy produkcie.' : 'Sklep nie ma jeszcze żadnej marki.'" />
         } @else {
           <ul class="px-5 pb-3">
             @for (b of brands.value(); track b.id) {

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-export type IllustrationName = 'customers' | 'products' | 'orders' | 'returns' | 'reviews' | 'newsletter' | 'pages' | 'categories' | 'inventory' | 'store';
+export type IllustrationName = 'brands' | 'customers' | 'products' | 'orders' | 'returns' | 'reviews' | 'newsletter' | 'pages' | 'categories' | 'inventory' | 'store';
 
 /**
  * Flat spot illustrations for first-time empty states (original Shopivo artwork: soft grey disc, simple shapes,
@@ -14,6 +14,9 @@ export type IllustrationName = 'customers' | 'products' | 'orders' | 'returns' |
     <svg viewBox="0 0 240 180" class="h-auto w-full" focusable="false">
       <circle cx="120" cy="98" r="72" fill="#EEF0EC"/>
       @switch (name()) {
+      @case ('brands') {
+        <rect x="89" y="77" width="72" height="80" rx="7" fill="#DDE0DA"/><path d="M102 76v-8a18 18 0 0 1 36 0v8" fill="none" stroke="#DD8A1E" stroke-width="5" stroke-linecap="round"/><rect x="84" y="72" width="72" height="80" rx="7" fill="#F2A93B"/><rect x="84" y="72" width="72" height="10" rx="5" fill="#F6C26F"/><circle cx="120" cy="114" r="18" fill="#fff"/><polygon points="0,-7 2.1,-2.4 6.7,-2.2 3.3,1.2 4.2,6 0,3.4 -4.2,6 -3.3,1.2 -6.7,-2.2 -2.1,-2.4" transform="translate(120 114.5) scale(1.55)" fill="#36AE2C"/><path d="M150 88q12 2 16 14" fill="none" stroke="#B9BDB6" stroke-width="1.6"/><g transform="rotate(18 172 118)"><path d="M163 100h18a2 2 0 0 1 2 2v26l-11 9-11-9v-26a2 2 0 0 1 2-2z" fill="#1E7F4F"/><circle cx="172" cy="106" r="2.4" fill="#fff"/><rect x="166" y="114" width="12" height="3" rx="1.5" fill="#fff" fill-opacity=".7"/><rect x="167.5" y="120" width="9" height="3" rx="1.5" fill="#fff" fill-opacity=".45"/></g><path d="M70 62l2.5 5.5L78 70l-5.5 2.5L70 78l-2.5-5.5L62 70l5.5-2.5z" fill="#41C336"/>
+      }
       @case ('customers') {
         <rect x="81" y="38" width="104" height="128" rx="9" fill="#DDE0DA"/><rect x="76" y="33" width="104" height="128" rx="9" fill="#fff"/><rect x="84" y="43" width="88" height="30" rx="7" fill="#EFF1EC"/><circle cx="99" cy="54" r="5" fill="#1E7F4F"/><path d="M90.5 67a8.5 7 0 0 1 17 0z" fill="#1E7F4F"/><rect x="113" y="52" width="20" height="4" rx="2" fill="#8E958D"/><rect x="113" y="60" width="30" height="4" rx="2" fill="#C8CCC5"/><path d="M151 50h11l8 8-8 8h-11a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2z" fill="#F2A93B"/><circle cx="161" cy="58" r="1.8" fill="#fff"/><circle cx="99" cy="92" r="5" fill="#C8CCC5"/><path d="M90.5 105a8.5 7 0 0 1 17 0z" fill="#C8CCC5"/><rect x="113" y="90" width="20" height="4" rx="2" fill="#D5D8D2"/><rect x="113" y="98" width="30" height="4" rx="2" fill="#E3E5E0"/><path d="M151 88h11l8 8-8 8h-11a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2z" fill="#D5D8D2"/><circle cx="161" cy="96" r="1.8" fill="#fff"/><circle cx="99" cy="128" r="5" fill="#C8CCC5"/><path d="M90.5 141a8.5 7 0 0 1 17 0z" fill="#C8CCC5"/><rect x="113" y="126" width="20" height="4" rx="2" fill="#D5D8D2"/><rect x="113" y="134" width="30" height="4" rx="2" fill="#E3E5E0"/><path d="M151 124h11l8 8-8 8h-11a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2z" fill="#D5D8D2"/><circle cx="161" cy="132" r="1.8" fill="#fff"/><circle cx="178" cy="42" r="13" fill="#36AE2C"/><path d="M178 36v12M172 42h12" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
       }
