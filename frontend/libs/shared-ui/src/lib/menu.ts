@@ -17,7 +17,8 @@ import { ChangeDetectionStrategy, Component, ElementRef, HostListener, inject, i
     </button>
     @if (open()) {
       <div role="menu" [attr.aria-label]="label()" (click)="onPanelClick($event)" (keydown)="onKey($event)"
-        class="absolute z-40 mt-2 min-w-[220px] rounded-[12px] border border-line bg-card p-1.5 shadow-[var(--shadow-pop)]"
+        class="absolute z-40 min-w-[220px] rounded-[12px] border border-line bg-card p-1.5 text-ink shadow-[var(--shadow-pop)]"
+        [class.mt-2]="side() === 'bottom'" [class.bottom-full]="side() === 'top'" [class.mb-2]="side() === 'top'"
         [class.right-0]="align() === 'end'" [class.left-0]="align() === 'start'">
         <ng-content />
       </div>
@@ -28,6 +29,8 @@ export class MenuComponent {
   private readonly host = inject(ElementRef<HTMLElement>);
   readonly label = input.required<string>();
   readonly align = input<'start' | 'end'>('end');
+  /** Where the panel opens (`top` for menus at the foot of the navigation). */
+  readonly side = input<'top' | 'bottom'>('bottom');
   readonly triggerClass = input('');
   protected readonly open = signal(false);
 

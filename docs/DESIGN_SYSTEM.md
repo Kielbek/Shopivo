@@ -13,7 +13,7 @@ sam (po zmianie strony wraca na górę, zmiana filtrów nie przewija).
 | Token | Wartość | Użycie |
 |---|---|---|
 | `--nav-bg`, `nav-*` | `#0F1210`; tekst `#E7EAE5`, przygaszony `#8E958D` | tło nawigacji i ramki (czarne, wybrane spośród 5 wariantów), aktywna pozycja `nav-active` = neon; cała paleta paska w jednym miejscu w `theme.css` |
-| `neon` / `neon-deep` | `#B5F23D` / `#9FDE24` | aktywna pozycja menu, przycisk `accent`, kropka nad „ı” w logo — **tylko jako wypełnienie z czarnym tekstem**, nigdy tekst na bieli |
+| `neon` / `neon-deep` | `#95BF47` / `#86AE3C` (spokojna zieleń, nie jaskrawa) | aktywna pozycja menu, przycisk `accent`, kropka nad „ı” w logo — **tylko jako wypełnienie z czarnym tekstem**, nigdy tekst na bieli |
 | `night` / `night-3` | `#0F1210` / `#262B27` | przycisk `primary`, przełączniki, ciemne plakietki |
 | `canvas` / `card` | `#F2F3F0` / `#FFFFFF` | tło treści / karty, nagłówek |
 | `ink` / `ink-soft` / `ink-muted` | `#161916` / `#575D58` / `#8A8F88` | tekst / tekst drugorzędny (AA) / meta i ikony |
@@ -49,6 +49,10 @@ Ikony nawigacji: Hugeicons stroke-rounded (MIT, `lib/nav-icon-paths.ts` generowa
 1.0.10) — miękkie, zaokrąglone kształty (`sv-nav-icon`); pozostałe ikony interfejsu: Lucide. W zwiniętej nawigacji
 nazwy pokazuje dymek `svTooltip` (renderowany na `<body>`, więc nie ucina go przewijana lista). Treść stron jest biała,
 karty z cienką ramką bez cienia, pola białe z ramką, lżejsze wagi kroju (medium 480, semibold 560).
+
+Nawigacja bez górnego paska nad treścią (na komputerze): przełącznik sklepów ze statusem sklepu jest na górze kolumny
+nawigacji, konto użytkownika na jej dole (menu otwiera się w górę, w zwiniętej nawigacji — sam awatar). Na telefonie
+zostaje cienki pasek z przyciskiem menu i logo.
 
 ## Komponenty
 

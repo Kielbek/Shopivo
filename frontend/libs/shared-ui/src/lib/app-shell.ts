@@ -65,17 +65,16 @@ export interface NavSection {
       }
 
       <div #panel class="flex min-w-0 flex-1 flex-col bg-card lg:my-2.5 lg:mr-2.5 lg:overflow-y-auto lg:rounded-[18px]">
-        <header class="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-card/95 px-4 backdrop-blur sm:px-6 lg:px-8">
+        <header class="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-card/95 px-4 backdrop-blur sm:px-6 lg:hidden">
           <button type="button" class="-ml-1 rounded-[8px] p-2 text-ink-soft hover:bg-hover lg:hidden" (click)="drawerOpen.set(true)"
             aria-label="Otwórz menu">
             <svg [lucideIcon]="icons.menu" [size]="20" />
           </button>
           <a [routerLink]="homeLink()" class="lg:hidden" aria-label="Strona główna panelu"><sv-logo [suffix]="logoSuffix()" /></a>
-          <div class="hidden min-w-0 lg:block"><ng-content select="[shell-header-start]" /></div>
-          <div class="ml-auto flex items-center gap-1 sm:gap-2"><ng-content select="[shell-header-end]" /></div>
+                    <div class="ml-auto flex items-center gap-1 sm:gap-2"><ng-content select="[shell-header-end]" /></div>
         </header>
 
-        <main id="sv-main" class="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
+        <main id="sv-main" class="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-10 lg:py-9">
           <div class="mx-auto w-full" [class]="narrow() ? 'max-w-[840px]' : 'max-w-[1600px]'"><ng-content /></div>
         </main>
       </div>
@@ -153,7 +152,7 @@ export interface NavSection {
               }
             </ul>
           }
-          <div [class.lg:hidden]="rail()"><ng-content select="[shell-sidebar-bottom]" /></div>
+          <ng-content select="[shell-sidebar-bottom]" />
         </div>
       </nav>
     </ng-template>

@@ -81,7 +81,7 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
 @Component({
   selector: 'sv-store-shell',
   imports: [BackIconComponent, NavIconComponent, RouterOutlet, RouterLink, RouterLinkActive, LucideDynamicIcon, AppShellComponent, LoadingComponent, AlertComponent, ButtonComponent,
-    MenuComponent, MenuItemComponent, AvatarComponent, BadgeComponent, LogoComponent, SubscriptionBanner],
+    MenuComponent, MenuItemComponent, AvatarComponent, LogoComponent, SubscriptionBanner],
   providers: [StoreContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -129,25 +129,25 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
             </ul>
           </div>
         }
-        <div shell-header-start class="flex min-w-0 items-center gap-2.5">
-          <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium"
-            [class]="store.status === 'PUBLISHED' ? 'bg-success-soft text-success-ink' : 'bg-[#EEEFEB] text-ink-soft'">
-            <span class="size-1.5 rounded-full" [class]="store.status === 'PUBLISHED' ? 'bg-success' : 'bg-warning'"></span>
-            {{ store.status === 'PUBLISHED' ? 'Sklep otwarty' : 'Szkic — sklep niewidoczny dla klientów' }}</span>
-          @if (store.status === 'PUBLISHED' && storeUrl()) {
-            <a [href]="storeUrl()" target="_blank" rel="noopener" class="inline-flex items-center gap-1 truncate text-[13px] font-medium text-ink-soft hover:text-ink">
-              {{ store.primaryHostname }}<svg [lucideIcon]="icons.external" [size]="13" /></a>
-          }
-        </div>
-        <ng-container shell-header-end>
-          <sv-menu label="Wybierz sklep" triggerClass="h-9 gap-2 rounded-[var(--radius-control)] border border-line px-2.5 hover:bg-hover">
-            <span menu-trigger class="flex items-center gap-2">
-              <span class="flex size-6 items-center justify-center rounded-[6px] bg-primary-soft text-primary-strong">
-                <svg [lucideIcon]="icons.store" [size]="14" />
+        <!-- Store switcher at the top of the navigation (with the store's status). -->
+        <div shell-sidebar-top>
+          <sv-menu class="block w-full" align="start" label="Wybierz sklep"
+            triggerClass="w-full gap-2.5 rounded-[12px] border border-nav-line bg-nav-field px-2.5 py-2 text-left hover:bg-nav-hover">
+            <span menu-trigger class="flex w-full min-w-0 items-center gap-2.5">
+              <span class="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-neon text-[12px] font-bold text-night">{{ initials() }}</span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-[13px] font-medium text-nav-strong">{{ store.name }}</span>
+                <span class="flex items-center gap-1.5 truncate text-[11.5px] text-nav-muted" [attr.title]="store.status === 'PUBLISHED' ? null : 'Sklep jest niewidoczny dla klientów do czasu publikacji'">
+                  <span class="size-1.5 rounded-full" [class]="store.status === 'PUBLISHED' ? 'bg-success' : 'bg-warning'"></span>
+                  {{ store.status === 'PUBLISHED' ? 'Sklep otwarty' : 'Szkic' }}</span>
               </span>
-              <span class="hidden max-w-[160px] truncate text-[13px] font-medium text-ink sm:inline">{{ store.name }}</span>
-              <svg [lucideIcon]="icons.chevronsUpDown" [size]="14" class="text-ink-muted" />
+              <svg [lucideIcon]="icons.chevronsUpDown" [size]="15" class="shrink-0 text-nav-muted" />
             </span>
+            @if (store.status === 'PUBLISHED' && storeUrl()) {
+              <a sv-menu-item [href]="storeUrl()" target="_blank" rel="noopener"><svg [lucideIcon]="icons.external" />Otwórz sklep
+                <span class="ml-auto truncate text-[11px] text-ink-muted">{{ store.primaryHostname }}</span></a>
+              <div class="my-1 h-px bg-line"></div>
+            }
             <p class="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-ink-muted">Twoje sklepy</p>
             @for (s of ctx.allStores(); track s.tenantId) {
               @if (s.tenantStatus === 'ACTIVE') {
@@ -162,23 +162,29 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
             <a sv-menu-item routerLink="/nowy-sklep"><svg [lucideIcon]="icons.plus" />Nowy sklep</a>
             <a sv-menu-item routerLink="/sklepy"><svg [lucideIcon]="icons.bag" />Wszystkie sklepy</a>
           </sv-menu>
+        </div>
 
-          <sv-menu label="Menu użytkownika" triggerClass="gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-hover">
-            <span menu-trigger class="flex items-center gap-2">
+        <!-- Account at the foot of the navigation (avatar only when it is collapsed). -->
+        <div shell-sidebar-bottom class="border-t border-nav-line px-3 py-3" [class.lg:px-2.5]="inSettings()">
+          <sv-menu class="block w-full" align="start" side="top" label="Menu użytkownika"
+            triggerClass="w-full gap-2.5 rounded-[10px] px-1.5 py-1.5 text-left hover:bg-nav-hover">
+            <span menu-trigger class="flex w-full min-w-0 items-center gap-2.5" [class.lg:justify-center]="inSettings()">
               <sv-avatar [name]="fullName()" size="sm" />
-              <span class="hidden text-[13px] font-medium text-ink md:inline">{{ fullName() }}</span>
-              <svg [lucideIcon]="icons.chevronDown" [size]="14" class="hidden text-ink-muted md:block" />
+              <span class="min-w-0 flex-1" [class.lg:hidden]="inSettings()">
+                <span class="block truncate text-[13px] font-medium text-nav-strong">{{ fullName() }}</span>
+                <span class="block truncate text-[11.5px] text-nav-muted">{{ roleLabel() }}</span>
+              </span>
+              <span class="shrink-0 text-nav-muted" [class.lg:hidden]="inSettings()"><svg [lucideIcon]="icons.chevronsUpDown" [size]="15" /></span>
             </span>
             <div class="px-2.5 pb-2 pt-1.5">
               <p class="truncate text-[13px] font-medium text-ink">{{ fullName() }}</p>
               <p class="truncate text-[12px] text-ink-muted">{{ session.user()?.email }}</p>
-              <sv-badge tone="info" class="mt-1.5">{{ roleLabel() }}</sv-badge>
             </div>
             <div class="my-1 h-px bg-line"></div>
             <a sv-menu-item routerLink="/konto"><svg [lucideIcon]="icons.user" />Ustawienia konta</a>
             <button sv-menu-item type="button" (click)="logout()"><svg [lucideIcon]="icons.logout" />Wyloguj</button>
           </sv-menu>
-        </ng-container>
+        </div>
 
         @if (inSettings()) {
           <!-- Phones: the settings sections as a scrollable strip. -->
