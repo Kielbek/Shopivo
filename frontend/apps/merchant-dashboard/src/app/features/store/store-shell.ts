@@ -104,33 +104,8 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
               <a [routerLink]="base()" class="group flex items-center rounded-[8px] px-2 py-1.5 text-[14px] font-semibold text-nav-strong hover:bg-nav-hover" aria-label="Wróć do panelu sklepu">
                 <sv-back-icon icon="settings" label="Ustawienia" hoverLabel="Wróć" /></a>
             </div>
-            <div class="mx-3 mb-4 flex items-center gap-2.5 rounded-[12px] border border-nav-line bg-nav-field px-3 py-2.5">
-              <span class="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-neon text-[12px] font-bold text-night">{{ initials() }}</span>
-              <span class="min-w-0"><span class="block truncate text-[13px] font-semibold text-nav-strong">{{ store.name }}</span>
-                <span class="block truncate text-[11.5px] text-nav-muted">{{ store.primaryHostname || store.slug }}</span></span>
-            </div>
-            <ul class="space-y-0.5 px-3">
-              @for (it of settingsNav(); track it.label) {
-                <li>
-                  @if (it.link) {
-                    <a [routerLink]="it.link" routerLinkActive #rla="routerLinkActive" [routerLinkActiveOptions]="{ exact: !!it.exact }"
-                      [attr.aria-current]="rla.isActive ? 'page' : null"
-                      class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] transition-colors"
-                      [class]="rla.isActive ? 'bg-nav-active font-medium text-nav-active-text' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
-                      <sv-nav-icon [name]="it.icon" [active]="rla.isActive" [size]="18" [class]="rla.isActive ? 'text-nav-active-text' : 'text-nav-muted'" />{{ it.label }}</a>
-                  } @else {
-                    <span class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] text-nav-muted/60" aria-disabled="true">
-                      <sv-nav-icon [name]="it.icon" [size]="18" class="text-nav-muted/50" />
-                      <span class="flex-1">{{ it.label }}<span class="sr-only"> (wkrótce)</span></span>
-                      <span class="rounded-full border border-nav-line px-1.5 text-[10px] text-nav-muted" aria-hidden="true">wkrótce</span></span>
-                  }
-                </li>
-              }
-            </ul>
-          </div>
-        }
-        <!-- Store switcher at the top of the navigation (with the store's status). -->
-        <div shell-sidebar-top>
+            <!-- Store switcher (with the store's status). -->
+            <div class="mx-3 mb-4">
           <sv-menu class="block w-full" align="start" label="Wybierz sklep"
             triggerClass="w-full gap-2.5 rounded-[12px] border border-nav-line bg-nav-field px-2.5 py-2 text-left hover:bg-nav-hover">
             <span menu-trigger class="flex w-full min-w-0 items-center gap-2.5">
@@ -163,18 +138,38 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
             <a sv-menu-item routerLink="/sklepy"><svg [lucideIcon]="icons.bag" />Wszystkie sklepy</a>
           </sv-menu>
         </div>
-
-        <!-- Account at the foot of the navigation (avatar only when it is collapsed). -->
-        <div shell-sidebar-bottom class="border-t border-nav-line px-3 py-3" [class.lg:px-2.5]="inSettings()">
+            <ul class="space-y-0.5 px-3">
+              @for (it of settingsNav(); track it.label) {
+                <li>
+                  @if (it.link) {
+                    <a [routerLink]="it.link" routerLinkActive #rla="routerLinkActive" [routerLinkActiveOptions]="{ exact: !!it.exact }"
+                      [attr.aria-current]="rla.isActive ? 'page' : null"
+                      class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] transition-colors"
+                      [class]="rla.isActive ? 'bg-nav-active font-medium text-nav-active-text' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
+                      <sv-nav-icon [name]="it.icon" [active]="rla.isActive" [size]="18" [class]="rla.isActive ? 'text-nav-active-text' : 'text-nav-muted'" />{{ it.label }}</a>
+                  } @else {
+                    <span class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] text-nav-muted/60" aria-disabled="true">
+                      <sv-nav-icon [name]="it.icon" [size]="18" class="text-nav-muted/50" />
+                      <span class="flex-1">{{ it.label }}<span class="sr-only"> (wkrótce)</span></span>
+                      <span class="rounded-full border border-nav-line px-1.5 text-[10px] text-nav-muted" aria-hidden="true">wkrótce</span></span>
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+        }
+        @if (inSettings()) {
+          <!-- Account (opens upwards). -->
+          <div shell-subnav-bottom class="border-t border-nav-line px-3 py-3">
           <sv-menu class="block w-full" align="start" side="top" label="Menu użytkownika"
             triggerClass="w-full gap-2.5 rounded-[10px] px-1.5 py-1.5 text-left hover:bg-nav-hover">
-            <span menu-trigger class="flex w-full min-w-0 items-center gap-2.5" [class.lg:justify-center]="inSettings()">
+            <span menu-trigger class="flex w-full min-w-0 items-center gap-2.5">
               <sv-avatar [name]="fullName()" size="sm" />
-              <span class="min-w-0 flex-1" [class.lg:hidden]="inSettings()">
+              <span class="min-w-0 flex-1">
                 <span class="block truncate text-[13px] font-medium text-nav-strong">{{ fullName() }}</span>
                 <span class="block truncate text-[11.5px] text-nav-muted">{{ roleLabel() }}</span>
               </span>
-              <span class="shrink-0 text-nav-muted" [class.lg:hidden]="inSettings()"><svg [lucideIcon]="icons.chevronsUpDown" [size]="15" /></span>
+              <span class="shrink-0 text-nav-muted"><svg [lucideIcon]="icons.chevronsUpDown" [size]="15" /></span>
             </span>
             <div class="px-2.5 pb-2 pt-1.5">
               <p class="truncate text-[13px] font-medium text-ink">{{ fullName() }}</p>
@@ -185,6 +180,8 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
             <button sv-menu-item type="button" (click)="logout()"><svg [lucideIcon]="icons.logout" />Wyloguj</button>
           </sv-menu>
         </div>
+        }
+
 
         @if (inSettings()) {
           <!-- Phones: the settings sections as a scrollable strip. -->
@@ -198,6 +195,9 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
                     [class]="rlm.isActive ? 'border-night bg-night text-white' : 'border-line-strong bg-card text-ink-soft'">{{ it.label }}</a></li>
                 }
               }
+              <li><a routerLink="/sklepy" class="flex h-9 items-center gap-2 whitespace-nowrap rounded-full border border-line-strong bg-card px-3.5 text-[13px] font-medium text-ink-soft">Moje sklepy</a></li>
+              <li><a routerLink="/konto" class="flex h-9 items-center gap-2 whitespace-nowrap rounded-full border border-line-strong bg-card px-3.5 text-[13px] font-medium text-ink-soft">Konto</a></li>
+              <li><button type="button" class="flex h-9 items-center gap-2 whitespace-nowrap rounded-full border border-line-strong bg-card px-3.5 text-[13px] font-medium text-ink-soft" (click)="logout()">Wyloguj</button></li>
             </ul>
           </nav>
         }

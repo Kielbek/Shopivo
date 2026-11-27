@@ -50,9 +50,9 @@ Ikony nawigacji: Hugeicons stroke-rounded (MIT, `lib/nav-icon-paths.ts` generowa
 nazwy pokazuje dymek `svTooltip` (renderowany na `<body>`, więc nie ucina go przewijana lista). Treść stron jest biała,
 karty z cienką ramką bez cienia, pola białe z ramką, lżejsze wagi kroju (medium 480, semibold 560).
 
-Nawigacja bez górnego paska nad treścią (na komputerze): przełącznik sklepów ze statusem sklepu jest na górze kolumny
-nawigacji, konto użytkownika na jej dole (menu otwiera się w górę, w zwiniętej nawigacji — sam awatar). Na telefonie
-zostaje cienki pasek z przyciskiem menu i logo.
+Bez górnego paska nad treścią (na komputerze). Główna nawigacja to tylko moduły sklepu; przełącznik sklepów (ze statusem
+sklepu) i konto użytkownika są w kolumnie **Ustawień** — na górze i na dole (menu konta otwiera się w górę). Na telefonie
+zostaje cienki pasek z przyciskiem menu i logo, a w Ustawieniach pasek skrótów ma też „Moje sklepy”, „Konto”, „Wyloguj”.
 
 ## Komponenty
 

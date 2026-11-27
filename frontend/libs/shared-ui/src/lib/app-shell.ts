@@ -61,6 +61,7 @@ export interface NavSection {
         <!-- Section navigation (settings…) next to the icon rail; on phones the page shows it inline instead. -->
         <aside class="sticky top-0 hidden h-dvh w-[248px] shrink-0 flex-col border-l border-nav-line [background:var(--nav-bg)] text-nav-text lg:flex" [attr.aria-label]="subnavLabel()">
           <div class="min-h-0 flex-1 overflow-y-auto pr-2"><ng-content select="[shell-subnav]" /></div>
+          <div class="relative shrink-0 pr-2"><ng-content select="[shell-subnav-bottom]" /></div>
         </aside>
       }
 
