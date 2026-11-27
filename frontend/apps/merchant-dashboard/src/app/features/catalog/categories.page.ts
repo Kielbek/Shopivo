@@ -46,7 +46,7 @@ interface CategoryForm {
       <sv-alert class="mt-6">Wybierz branżę sklepu w <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'ustawienia']">Ustawieniach</a>, a zaproponujemy gotowe kategorie.</sv-alert>
     }
 
-    <div class="mt-6 grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+    <div class="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]" [class.items-start]="!bothEmpty()">
       <sv-card heading="Kategorie" [flush]="true">
         @if (categories.isLoading() && !categories.value()) {
           <sv-loading />
@@ -213,6 +213,8 @@ export class CategoriesPage {
 
   protected readonly plural = plural;
   protected readonly nodes = computed(() => buildTree(this.categories.value() ?? []));
+  /** Both lists empty: the two cards stretch to the same height so their bottom edges line up. */
+  protected readonly bothEmpty = computed(() => !!this.categories.value() && !!this.brands.value() && !this.tree().length && !this.brands.value()!.length);
   protected readonly tree = computed(() => this.nodes().map((n) => n.category));
   protected readonly collapsed = signal(new Set<string>());
   protected readonly seeding = signal(false);
