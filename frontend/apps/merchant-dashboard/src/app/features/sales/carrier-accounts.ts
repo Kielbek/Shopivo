@@ -188,7 +188,7 @@ export class CarrierAccountsComponent {
   private readonly toast = inject(ToastService);
   protected readonly icons = icons;
   protected readonly canWrite = this.ctx.can('STORE_SETTINGS_WRITE');
-  protected readonly couriers = ['inpost', 'dpd', 'dhl', 'gls', 'ups', 'poczta', 'orlen'];
+  protected readonly couriers = ['inpost', 'dpd', 'dhl', 'gls', 'ups', 'fedex', 'poczta', 'orlen'];
 
   /** `?polaczono=<carrier>` / `?blad=…` after the carrier's sign-in (set by the page). */
   readonly connected = input<string | null>(null);

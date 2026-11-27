@@ -1,7 +1,7 @@
 # Loga operatorów płatności i przewoźników
 
 Pliki w `frontend/apps/merchant-dashboard/public/brands/`. Pokazujemy je wyłącznie informacyjnie (który operator / przewoźnik
-jest podłączony) — to znaki towarowe ich właścicieli. Nie rysujemy zamienników: marki bez pliku (np. PayU, Tpay, FedEx)
+jest podłączony) — to znaki towarowe ich właścicieli. Nie rysujemy zamienników: marki bez pliku
 panel pokazuje nazwą na neutralnym kafelku (`sv-brand-logo`). Pliki SVG sprawdzone pod kątem skryptów (brak).
 
 | Plik | Źródło | Licencja pliku |
@@ -18,5 +18,13 @@ panel pokazuje nazwą na neutralnym kafelku (`sv-brand-logo`). Pliki SVG sprawdz
 | `ups.svg` | [File:United Parcel Service logo 2014.svg](https://commons.wikimedia.org/wiki/File%3AUnited_Parcel_Service_logo_2014.svg) | Public domain |
 | `furgonetka.svg` | logo ze strony furgonetka.pl (`/images/menu/furgonetka-logo-web.svg`) | znak towarowy Furgonetka — użycie informacyjne |
 | `apaczka.png` | logo ze strony apaczka.pl (`/app/uploads/2024/05/cropped-Apaczka-Full-Logotype-Full-Color-768x233.png`) | znak towarowy Apaczka/Alsendo — użycie informacyjne |
+| `googlepay.svg` | [File:Google Pay Logo (2020).svg](https://commons.wikimedia.org/wiki/File:Google_Pay_Logo_(2020).svg) | PD-textlogo |
+| `applepay.svg` | [File:Apple Pay logo.svg](https://commons.wikimedia.org/wiki/File:Apple_Pay_logo.svg) | PD-textlogo |
+| `visa.svg` | [File:Visa Inc. logo (2021–present).svg](https://commons.wikimedia.org/wiki/File:Visa_Inc._logo_(2021%E2%80%93present).svg) | PD-textlogo |
+| `mastercard.svg` | [File:Mastercard 2019 logo.svg](https://commons.wikimedia.org/wiki/File:Mastercard_2019_logo.svg) | PD-textlogo |
+| `payu.svg` | [File:PayU.svg](https://commons.wikimedia.org/wiki/File:PayU.svg) | PD-textlogo |
+| `paypal.svg` | [File:PayPal.svg](https://commons.wikimedia.org/wiki/File:PayPal.svg) | PD-textlogo |
+| `fedex.svg` | [File:FedEx Express.svg](https://commons.wikimedia.org/wiki/File:FedEx_Express.svg) | PD-textlogo |
+| `tpay.png` | logo ze strony tpay.com (`/user/themes/tpay-trusted-payments/assets/footer/tpay-brand-logo-short.png`) | znak towarowy Tpay — użycie informacyjne |
 
 Przed produkcją warto zastąpić je plikami z oficjalnych pakietów prasowych / wytycznych marki każdej firmy.

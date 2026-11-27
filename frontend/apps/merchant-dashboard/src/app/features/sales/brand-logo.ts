@@ -7,6 +7,8 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 const LOGOS: Record<string, string> = {
   stripe: 'stripe.svg', przelewy24: 'przelewy24.png', blik: 'blik.jpg', inpost: 'inpost.svg', dpd: 'dpd.svg', dhl: 'dhl.svg', gls: 'gls.svg',
   ups: 'ups.svg', poczta: 'poczta.svg', orlen: 'orlen.svg', furgonetka: 'furgonetka.svg', apaczka: 'apaczka.png',
+  tpay: 'tpay.png', payu: 'payu.svg', fedex: 'fedex.svg', googlepay: 'googlepay.svg', applepay: 'applepay.svg', visa: 'visa.svg',
+  mastercard: 'mastercard.svg', paypal: 'paypal.svg',
 };
 
 const NAMES: Record<string, string> = {

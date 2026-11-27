@@ -69,9 +69,7 @@ import { BrandLogoComponent } from './brand-logo';
               </div>
               @if (op.id === 'stripe') {
                 <div class="mt-3 flex flex-wrap items-center gap-1.5" aria-label="Metody płatności przez Stripe">
-                  <sv-brand-logo brand="blik" class="h-7 w-12" />
-                  <sv-brand-logo brand="przelewy24" class="h-7 w-16" />
-                  @for (m of ['Karty', 'Apple Pay', 'Google Pay']; track m) {<span class="settings-pill">{{ m }}</span>}
+                  @for (m of stripeMethods; track m) {<sv-brand-logo [brand]="m" class="h-7 w-14" />}
                 </div>
               }
               <div class="mt-4 flex flex-wrap items-center gap-2 border-t border-line pt-4">
@@ -139,6 +137,7 @@ export class OnlinePaymentsComponent {
   private readonly toast = inject(ToastService);
   protected readonly icons = icons;
   protected readonly canWrite = this.ctx.can('STORE_SETTINGS_WRITE');
+  protected readonly stripeMethods = ['visa', 'mastercard', 'blik', 'przelewy24', 'applepay', 'googlepay'];
 
   /** `?stripe=powrot|odswiez` after Stripe's onboarding (set by the payments page). */
   readonly stripeReturn = input<string | null>(null);
