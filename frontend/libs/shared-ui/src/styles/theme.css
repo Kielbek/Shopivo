@@ -5,7 +5,7 @@
  * Night frame, white page: a black navigation column with a neon active item, a white work surface with thin borders
  * and lighter type (like the reference admin), neon only for the one key action and the logo dot, black buttons.
  * Contrast rules (WCAG AA):
- *  - green accent (#95BF47) is a FILL colour only — always with night (#0F1210) text on it, never as text on white;
+ *  - green accent (#41C336) is a FILL colour only — always with night (#0F1210) text on it, never as text on white;
  *  - green text/links use primary-strong (#2E6B0F, 6.4:1 on white); primary (#4C9A1B) is for icons and borders;
  *  - ink-muted (#8A8F88) is for meta labels and icons only, body text uses ink-soft (#575D58, 6.6:1).
  */
@@ -37,13 +37,13 @@
   --color-nav-hover: rgba(255, 255, 255, 0.08);
   --color-nav-line: rgba(255, 255, 255, 0.09);
   --color-nav-field: rgba(255, 255, 255, 0.08);
-  --color-nav-active: #95BF47;
+  --color-nav-active: #41C336;
   --color-nav-active-text: #0F1210;
 
   /* Accent */
-  --color-neon: #95BF47;
-  --color-neon-deep: #86AE3C;
-  --color-neon-soft: #EEF5E1;
+  --color-neon: #41C336;
+  --color-neon-deep: #36AE2C;
+  --color-neon-soft: #E7F7E5;
 
   /* Work surface */
   --color-page: #FFFFFF;
