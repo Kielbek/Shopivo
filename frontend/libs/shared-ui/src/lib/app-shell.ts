@@ -40,7 +40,7 @@ export interface NavSection {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <a href="#sv-main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-[8px] focus:bg-card focus:px-4 focus:py-2 focus:shadow">Przejdź do treści</a>
-    <div class="flex min-h-dvh bg-canvas">
+    <div class="flex min-h-dvh bg-canvas lg:h-dvh lg:min-h-0 lg:overflow-hidden lg:bg-[linear-gradient(180deg,var(--color-forest)_0%,var(--color-forest)_45%,#0F1210_100%)]">
 
       <!-- Overlay fades with the drawer and follows the swipe. -->
       <div class="fixed inset-0 z-40 bg-night/50 transition-opacity duration-300 motion-reduce:transition-none lg:hidden"
@@ -62,7 +62,7 @@ export interface NavSection {
         </aside>
       }
 
-      <div class="flex min-w-0 flex-1 flex-col bg-canvas">
+      <div #panel class="flex min-w-0 flex-1 flex-col bg-canvas lg:my-2.5 lg:mr-2.5 lg:overflow-y-auto lg:rounded-[18px] lg:shadow-[0_0_0_1px_rgba(255,255,255,0.04)]">
         <header class="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-3 border-b border-line bg-card/90 px-4 backdrop-blur sm:px-6 lg:px-8">
           <button type="button" class="-ml-1 rounded-[8px] p-2 text-ink-soft hover:bg-hover lg:hidden" (click)="drawerOpen.set(true)"
             aria-label="Otwórz menu">
@@ -99,7 +99,7 @@ export interface NavSection {
         <svg [lucideIcon]="icons.search" [size]="15" class="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-forest-muted" />
         <label for="sv-nav-search" class="sr-only">Szukaj w panelu</label>
         <input #search id="sv-nav-search" type="search" autocomplete="off" placeholder="Szukaj"
-          class="h-9 w-full rounded-[10px] border border-white/10 bg-white/[0.08] pl-9 pr-10 text-[13px] text-white placeholder:text-forest-muted hover:bg-white/[0.12] focus:border-neon/70 focus:outline-none focus:ring-2 focus:ring-neon/25"
+          class="h-9 w-full rounded-full border border-white/10 bg-white/[0.08] pl-9 pr-10 text-[13px] text-white placeholder:text-forest-muted hover:bg-white/[0.12] focus:border-neon/70 focus:outline-none focus:ring-2 focus:ring-neon/25"
           [value]="query()" (input)="query.set($any($event.target).value); activeResult.set(0)"
           (keydown)="onSearchKey($event)" (blur)="closeSearchSoon()" role="combobox" aria-autocomplete="list"
           [attr.aria-expanded]="showResults()" aria-controls="sv-nav-results" />
@@ -206,6 +206,9 @@ export class AppShellComponent {
     return Math.max(0, 1 - (this.drawerDrag() ?? 0) / width);
   });
   private readonly drawerEl = viewChild<ElementRef<HTMLElement>>('drawer');
+  /** Desktop: the work surface scrolls by itself (inside the frame), so a new page starts at its top. */
+  private readonly panelEl = viewChild<ElementRef<HTMLElement>>('panel');
+  private lastPath = '';
   /** Below lg the closed drawer must not be reachable by keyboard / screen readers. */
   protected readonly isDesktop = signal(typeof window === 'undefined' || window.matchMedia('(min-width: 1024px)').matches);
   protected readonly drawerHidden = computed(() => !this.isDesktop() && !this.drawerOpen());
@@ -247,7 +250,14 @@ export class AppShellComponent {
       mq.addEventListener('change', (e) => this.isDesktop.set(e.matches));
     }
     this.router.events.pipe(filter((e) => e instanceof NavigationEnd), takeUntilDestroyed())
-      .subscribe(() => this.drawerOpen.set(false));
+      .subscribe(() => {
+        this.drawerOpen.set(false);
+        // Only a different page starts at the top; filters and tabs (query parameters) keep the position.
+        const path = this.router.url.split(/[?#]/)[0];
+        const panel = this.panelEl()?.nativeElement;
+        if (panel && path !== this.lastPath) panel.scrollTop = 0;
+        this.lastPath = path;
+      });
   }
 
   protected asNav(item: unknown): NavItem {

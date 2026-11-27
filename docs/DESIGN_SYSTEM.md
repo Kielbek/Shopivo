@@ -5,7 +5,8 @@ i nie korzystają z tych tokenów.
 
 Źródło: `frontend/libs/shared-ui` (`styles/theme.css` + komponenty). Kierunek (2026-11-27): ciemnozielona kolumna
 nawigacji przechodząca w czerń, neonowa zieleń wyłącznie jako akcent, czarne przyciski domyślne, spokojna ciepło-szara
-powierzchnia robocza przylegająca do nawigacji (bez ramek i odstępów wokół treści).
+powierzchnia robocza jako zaokrąglony panel (18 px) z odstępem 10 px od góry, prawej i dołu — odstęp ma kolor nawigacji, panel przewija się
+sam (po zmianie strony wraca na górę, zmiana filtrów nie przewija).
 
 ## Tokeny (Tailwind `@theme`)
 
@@ -20,7 +21,7 @@ powierzchnia robocza przylegająca do nawigacji (bez ramek i odstępów wokół 
 | `primary` / `primary-strong` | `#4C9A1B` / `#2E6B0F` | zielone ikony i paski postępu / linki i zielony tekst (6,4:1) |
 | `info` (`-soft`, `-ink`) | `#3D7BEA` | plakietki informacyjne (np. „Szkic”) — odróżnione od zielonego „sukcesu” |
 | `success`, `warning`, `danger`, `violet` | | + warianty `-soft` (tła) i `-ink` (tekst) |
-| `--radius-card` / `--radius-control` | 16 px / 10 px | karty / przyciski i pola; okna dialogowe 20 px, plakietki — pigułki |
+| `--radius-card` / `--radius-control` | 16 px / 10 px | karty / pola; **przyciski, zakładki, wyszukiwarka i plakietki — pigułki** (`rounded-full`); okna dialogowe 20 px |
 
 Przyciski: `primary` (czarny) to domyślna akcja; `accent` (neon) — jedna kluczowa akcja ekranu: publikacja sklepu,
 motywu i strony, utworzenie sklepu. Karty KPI są monochromatyczne (liczby, nie dekoracja niosą znaczenie).

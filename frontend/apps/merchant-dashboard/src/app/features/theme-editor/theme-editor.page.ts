@@ -49,11 +49,11 @@ function newId(type: string): string {
     ToastOutletComponent, ImagePickerComponent, PropFormComponent],
   providers: [StoreContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex h-dvh bg-canvas', '(window:beforeunload)': 'beforeUnload($event)' },
+  host: { class: 'flex h-dvh bg-canvas lg:bg-[linear-gradient(180deg,var(--color-forest)_0%,var(--color-forest)_45%,#0F1210_100%)]', '(window:beforeunload)': 'beforeUnload($event)' },
   template: `
     <sv-toast-outlet />
     <!-- Collapsed panel navigation (desktop): the editor keeps the way back to every part of the store. -->
-    <nav class="hidden w-[68px] shrink-0 flex-col items-center bg-[linear-gradient(180deg,var(--color-forest)_0%,var(--color-forest)_45%,#0F1210_100%)] lg:flex" aria-label="Panel sklepu">
+    <nav class="hidden w-[68px] shrink-0 flex-col items-center lg:flex" aria-label="Panel sklepu">
       <a [routerLink]="['/sklep', tenantId()]" class="flex h-16 items-center" aria-label="Przegląd sklepu" (click)="go($event, [])"><sv-logo [mark]="true" /></a>
       <ul class="flex flex-1 flex-col items-center gap-1 pt-2">
         @for (r of rail; track r.label) {
@@ -72,7 +72,7 @@ function newId(type: string): string {
           <svg [lucideIcon]="icons.settings" [size]="18" [strokeWidth]="1.75" /></a>
       </div>
     </nav>
-    <div class="flex min-w-0 flex-1 flex-col bg-canvas">
+    <div class="flex min-w-0 flex-1 flex-col overflow-hidden bg-canvas lg:my-2.5 lg:mr-2.5 lg:rounded-[18px]">
     <!-- top bar -->
     <header class="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-card px-3 sm:px-4">
       <button type="button" class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[8px] px-2 text-[13px] font-medium text-ink-soft hover:bg-hover hover:text-ink" (click)="exit()">

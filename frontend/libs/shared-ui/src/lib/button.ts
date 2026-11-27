@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 export type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'danger' | 'ghost' | 'soft';
 
 const BASE =
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] font-medium ' +
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium ' +
   'transition-[background-color,border-color,color,box-shadow] duration-150 focus-visible:outline-2 ' +
   'focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-55 [&_svg]:size-4 [&_svg]:shrink-0';
 
@@ -19,9 +19,9 @@ const VARIANTS: Record<ButtonVariant, string> = {
 };
 
 const SIZES = {
-  sm: 'h-8 px-3 text-[13px]',
-  md: 'h-10 px-4 text-[14px]',
-  lg: 'h-11 px-5 text-[14px]',
+  sm: 'h-8 px-3.5 text-[13px]',
+  md: 'h-10 px-5 text-[14px]',
+  lg: 'h-11 px-6 text-[14px]',
   icon: 'size-9 p-0',
 };
 
