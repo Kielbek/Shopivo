@@ -22,14 +22,30 @@ class ThemeController {
 
     private final Themes themes;
     private final pl.shopivo.themes.ThemeImages images;
+    private final pl.shopivo.themes.ThemeSamples samples;
 
-    ThemeController(Themes themes, pl.shopivo.themes.ThemeImages images) {
+    ThemeController(Themes themes, pl.shopivo.themes.ThemeImages images, pl.shopivo.themes.ThemeSamples samples) {
         this.themes = themes;
         this.images = images;
+        this.samples = samples;
+    }
+
+    record SamplesRequest(String code) {
+    }
+
+    record SamplesResponse(int created) {
+    }
+
+    /** Adds the template's example products to the store as ordinary products (skips names that already exist). */
+    @PostMapping("/sample-products")
+    @PreAuthorize("@tenantAccess.can('PRODUCTS_WRITE')")
+    SamplesResponse importSamples(@PathVariable UUID tenantId, @RequestBody SamplesRequest request) {
+        return new SamplesResponse(samples.importInto(request.code()));
     }
 
     record ThemeResponse(List<ThemeRegistry.Preset> presets, List<ThemeRegistry.Field> fields, List<pl.shopivo.themes.SectionRegistry.SectionType> sectionTypes,
-            Themes.ThemeState state, List<pl.shopivo.themes.ThemeAssets.Asset> templateImages) {
+            Themes.ThemeState state, List<pl.shopivo.themes.ThemeAssets.Asset> templateImages,
+            Map<String, List<pl.shopivo.themes.ThemeSamples.SampleCard>> sampleProducts) {
     }
 
     record DraftRequest(String code, Map<String, String> settings, List<pl.shopivo.themes.SectionRegistry.Section> sections, long version) {
@@ -39,7 +55,7 @@ class ThemeController {
     @PreAuthorize("@tenantAccess.can('STORE_READ')")
     ThemeResponse get(@PathVariable UUID tenantId) {
         return new ThemeResponse(ThemeRegistry.PRESETS, ThemeRegistry.FIELDS, pl.shopivo.themes.SectionRegistry.TYPES, themes.state(),
-                pl.shopivo.themes.ThemeAssets.ALL);
+                pl.shopivo.themes.ThemeAssets.ALL, pl.shopivo.themes.ThemeSamples.cards());
     }
 
     @PutMapping

@@ -7,7 +7,7 @@ Ostatnia aktualizacja: 2026-11-27 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 49/49 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 86/86 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 87/87 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
 | Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 81/81 ✔ (panel 67, admin 3, witryna 11) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
@@ -39,6 +39,11 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - baner „Magazyn” z drugim przyciskiem i kartą polecanego produktu;
   - nadtytuły;
   - filtry kategorii i sortowanie w sekcji produktów.
+- **Przykładowe produkty szablonu:**
+  - 8 produktów Véry widocznych tylko w podglądzie pustego sklepu; klienci ich nie widzą;
+  - na życzenie można je dodać do sklepu jako zwykłe produkty (ze zdjęciami, rozmiarami i kategoriami);
+  - miniatura Véry w galerii ma ciemny pasek, rozstrzelone logo, zdjęcia produktów i poprawiony widok telefonu;
+  - E2E: pusty sklep → 8 przykładów i notka w podglądzie, zero przykładów na żywo → dodanie 8 produktów → podgląd pokazuje prawdziwe produkty; 0 błędów konsoli.
 - **Poprawka:** lista produktów obsługuje `?promocje=tak`. Wcześniej linki „Promocje” z sekcji pokazywały wszystkie produkty.
 - **E2E (Playwright, poza repo):**
   - **Przepływ:** sklep modowy z 8 produktami → wybór Véry w galerii → edytor → publikacja → strona główna (filtry: Akcesoria 2, Promocje 2) → szybkie dodanie produktu bez wariantów (boczny koszyk) → produkt z rozmiarami prowadzi na stronę produktu → dodanie z wyborem rozmiaru → `/produkty?promocje=tak`.

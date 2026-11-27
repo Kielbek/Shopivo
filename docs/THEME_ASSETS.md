@@ -13,7 +13,20 @@ Na **licencji Unsplash** (https://unsplash.com/license) wolno je bezpłatnie kop
 | `tpl:vera/accessories` | `vera/accessories-w*.jpg` | `images.unsplash.com/photo-1584917865442-de89df76afd3` |
 | `tpl:vera/atelier` | `vera/atelier-w*.jpg` | `images.unsplash.com/photo-1441984904996-e0b6ba687e04` |
 
-Zdjęć produktów z pierwotnego HTML-a nie dołączamy: produkty w sklepie mają zdjęcia wgrane przez sprzedawcę.
+Zdjęcia przykładowych produktów (`tpl:vera/p-*`, kadr 3:4) — to samo źródło i ta sama licencja:
+
+| Odnośnik | Źródło (Unsplash) |
+|---|---|
+| `tpl:vera/p-coat` | `photo-1539533018447-63fcce2678e3` |
+| `tpl:vera/p-sweater` | `photo-1520903920243-00d872a2d1c9` |
+| `tpl:vera/p-blazer` | `photo-1593030761757-71fae45fa0e7` |
+| `tpl:vera/p-bag` | `photo-1591561954557-26941169b49e` |
+| `tpl:vera/p-shirt` | `photo-1596755094514-f87e34085b2c` |
+| `tpl:vera/p-dress` | `photo-1595777457583-95e059d581b8` |
+| `tpl:vera/p-chinos` | `photo-1473966968600-fa801b869a1a` |
+| `tpl:vera/p-jacket` | `photo-1544022613-e87ca75a784a` |
+
+Pominięto zdjęcie koszulki z cudzą grafiką/napisem z pierwotnego HTML-a, bo był na niej nadruk innej marki.
 
 ## Fonty (frontend/apps/storefront/public/fonts/)
 

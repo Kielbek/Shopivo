@@ -90,10 +90,10 @@ function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
                   <button type="button" class="relative block bg-canvas p-5 pb-0 text-left" [attr.aria-label]="'Szczegóły szablonu ' + p.name" (click)="details.set(p)">
                     <div class="relative mx-auto max-w-[92%]">
                       <div class="overflow-hidden rounded-t-[10px] shadow-[0_6px_24px_rgba(15,18,16,0.12)] transition-transform group-hover:-translate-y-1">
-                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" />
+                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [productImages]="samplesOf(p.code)" />
                       </div>
                       <div class="absolute -bottom-0 -right-3 w-[24%] overflow-hidden rounded-t-[12px] border-[3px] border-b-0 border-[#0F1210] shadow-lg transition-transform group-hover:-translate-y-2">
-                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [phone]="true" />
+                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [phone]="true" [productImages]="samplesOf(p.code)" />
                       </div>
                     </div>
                     @if (isCurrent(p)) {<span class="absolute left-3 top-3"><sv-badge tone="info">Twój szablon</sv-badge></span>}
@@ -132,7 +132,7 @@ function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
     <sv-dialog [heading]="details()?.name ?? ''" [open]="!!details()" (closed)="details.set(null)">
       @if (details(); as p) {
         @let meta = metaFor(p.code);
-        <div class="overflow-hidden rounded-[12px] border border-line"><sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" /></div>
+        <div class="overflow-hidden rounded-[12px] border border-line"><sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [productImages]="samplesOf(p.code)" /></div>
         <p class="mt-4 text-[14px] text-ink-soft">{{ p.description }}</p>
         <dl class="mt-4 grid gap-3 text-[13px] sm:grid-cols-2">
           <div><dt class="font-medium text-ink">Najlepiej sprawdzi się w</dt><dd class="mt-1 text-ink-soft">{{ industryNames(meta.industries) }}</dd></div>
@@ -175,6 +175,11 @@ export class ThemeGalleryPage {
   protected readonly storeIndustry = computed(() => industryLabels(storeIndustries(this.ctx.store())) || null);
   private readonly own = computed(() => storeIndustries(this.ctx.store()));
   /** A template counts as chosen once the store saved one (version ≥ 0). */
+  protected samplesOf(code: string): string[] {
+    const list = this.data.hasValue() ? this.data.value().sampleProducts?.[code] ?? [] : [];
+    return list.map((p) => p.imageUrl).filter((u): u is string => !!u);
+  }
+
   protected readonly chosen = computed(() => (this.data.hasValue() ? this.data.value().state.version >= 0 : false));
 
   protected readonly list = computed(() => {

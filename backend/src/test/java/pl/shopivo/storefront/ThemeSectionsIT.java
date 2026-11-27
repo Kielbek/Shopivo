@@ -85,7 +85,8 @@ class ThemeSectionsIT extends IntegrationTest {
         assertThat(vera.get("defaults").get("font").asString()).isEqualTo("editorial");
         assertThat(vera.get("sections").get(0).get("data").get("image").asString()).isEqualTo("tpl:vera/hero");
         var assets = theme.get("templateImages");
-        assertThat(assets.size()).isEqualTo(5);
+        assertThat(assets.size()).isEqualTo(13);
+        assertThat(theme.get("sampleProducts").get("VERA").size()).isEqualTo(8);
         assertThat(assets.get(0).get("urls").get("w1200").asString()).isEqualTo("/api/v1/theme-assets/vera/hero-w1200.jpg");
 
         // The template's own sections (with its images) are accepted as they are
@@ -129,5 +130,38 @@ class ThemeSectionsIT extends IntegrationTest {
         assertThat(anon.get("/api/v1/theme-assets/vera/secret-w400.jpg").status()).isEqualTo(404);
         assertThat(anon.get("/api/v1/theme-assets/other/hero-w400.jpg").status()).isEqualTo(404);
         assertThat(anon.get("/api/v1/theme-assets/vera/..%2F..%2Fapplication.yml").status()).isIn(400, 404);
+    }
+
+    @Test
+    void templateSampleProductsArePreviewOnlyUntilTheMerchantAddsThem() throws Exception {
+        ApiClient owner = registeredUser(uniqueEmail("probki"));
+        String slug = uniqueSlug("probki");
+        String t = createStore(owner, "Próbki", slug);
+        var store = jsonMapper.readTree(mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/storefront/store")
+                .header("Host", slug + ".shopivo.test")).andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+        assertThat(store.get("sampleProducts").size()).as("never shown to customers").isZero();
+
+        var first = owner.post(base(t) + "/theme/sample-products", Map.of("code", "VERA"));
+        assertThat(first.status()).as(first.body()).isEqualTo(200);
+        assertThat(first.json().get("created").asInt()).isEqualTo(8);
+        assertThat(owner.post(base(t) + "/theme/sample-products", Map.of("code", "VERA")).json().get("created").asInt()).as("repeatable").isZero();
+        assertThat(owner.post(base(t) + "/theme/sample-products", Map.of("code", "VOLT")).code()).isEqualTo("NO_SAMPLES");
+
+        var products = owner.get(base(t) + "/products?size=50").json();
+        assertThat(products.get("totalElements") != null ? products.get("totalElements").asInt() : products.get("totalItems").asInt()).isEqualTo(8);
+        var cats = owner.get(base(t) + "/categories").json();
+        assertThat(cats.size()).isEqualTo(3);
+        String coatId = null;
+        for (var p : products.get("content") != null ? products.get("content") : products.get("items")) {
+            if (p.get("name").asString().equals("Płaszcz wełniany Oslo")) coatId = p.get("id").asString();
+        }
+        var coat = owner.get(base(t) + "/products/" + coatId).json();
+        assertThat(coat.get("status").asString()).isEqualTo("ACTIVE");
+        assertThat(coat.get("variants").size()).isEqualTo(5);
+        assertThat(coat.get("images").size()).isEqualTo(1);
+        assertThat(coat.get("images").get(0).get("urls").get("w400").asString()).contains(t);
+
+        ApiClient other = registeredUser(uniqueEmail("obcy2"));
+        assertThat(other.post(base(t) + "/theme/sample-products", Map.of("code", "VERA")).status()).isEqualTo(404);
     }
 }

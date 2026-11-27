@@ -6,7 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { money } from '../core/format';
 import { routeOf } from '../core/link-token';
 import { StoreState } from '../core/store-state';
-import { StorefrontApi, ThemeSection } from '../storefront-api';
+import { SampleCard, StorefrontApi, ThemeSection } from '../storefront-api';
 import { ProductCardComponent } from './product-card';
 import { RichTextComponent } from './rich-text';
 import { StarsComponent } from './stars';
@@ -56,14 +56,57 @@ const ICONS: Record<string, string> = {
   chat: 'M4 5h16v11H9l-5 4V5Z',
 };
 
+/**
+ * Example product of the template, shown only in the merchant's preview while the store has no products: same look as
+ * a product card, but not a link and clearly marked.
+ */
+@Component({
+  selector: 'sf-sample-card',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    @let p = product();
+    @let sale = !!p.compareAtMinor && p.compareAtMinor > p.priceMinor;
+    <div class="flex h-full flex-col" [attr.aria-label]="'Przykładowy produkt: ' + p.name">
+      <div class="relative mb-3.5 overflow-hidden bg-sf-surface" [class]="vera() ? 'aspect-[3/4] rounded-xl' : 'sf-media aspect-square'">
+        @if (p.imageUrl) {<img [src]="p.imageUrl" alt="" class="size-full object-cover" loading="lazy" />}
+        <span class="absolute left-3 top-3 rounded bg-sf-bg/90 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider">Przykład</span>
+        @if (sale) {<span class="absolute right-3 top-3 rounded bg-sf-danger px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-white">Promocja</span>}
+      </div>
+      <div class="flex items-start justify-between gap-2">
+        <div class="min-w-0">
+          <p class="text-[11px] uppercase tracking-wider text-sf-muted">{{ p.category }}</p>
+          <p class="mt-0.5 line-clamp-2 font-medium">{{ p.name }}</p>
+        </div>
+        <div class="shrink-0 text-right">
+          <p class="text-[14px] font-semibold" [class.text-sf-danger]="sale">{{ fmt(p.priceMinor) }}</p>
+          @if (sale) {<p class="text-[12px] text-sf-muted line-through">{{ fmt(p.compareAtMinor!) }}</p>}
+        </div>
+      </div>
+    </div>
+  `,
+})
+export class SampleCardComponent {
+  private readonly store = inject(StoreState);
+  readonly product = input.required<SampleCard>();
+  protected readonly vera = computed(() => this.store.layout() === 'vera');
+
+  protected fmt(minor: number): string {
+    return money(minor, 'PLN');
+  }
+}
+
 @Component({
   selector: 'sf-section-products',
-  imports: [RouterLink, ProductCardComponent],
+  imports: [RouterLink, ProductCardComponent, SampleCardComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let d = data();
-    @if (items().length || d['filters']) {
+    @if (items().length || d['filters'] || samples().length) {
       <section class="sf-container" [attr.aria-label]="d['heading'] || 'Produkty'">
+        @if (samples().length) {
+          <p class="mb-4 rounded-lg border border-dashed border-sf-line px-4 py-2.5 text-center text-[13px] text-sf-muted" role="note">
+            Przykładowe produkty szablonu — widzisz je tylko w podglądzie, dopóki nie dodasz własnych. Klienci ich nie zobaczą.</p>
+        }
         @if (d['filters']) {
           <div class="flex flex-col justify-between gap-4 border-b border-sf-line pb-8 md:flex-row md:items-end">
             <div>
@@ -91,7 +134,7 @@ const ICONS: Record<string, string> = {
             <ul class="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4" aria-hidden="true">
               @for (i of [0, 1, 2, 3]; track i) {<li><span class="sf-shimmer block aspect-[3/4] rounded-xl"></span></li>}
             </ul>
-          } @else if (!items().length) {
+          } @else if (!items().length && !samples().length) {
             <p class="mt-10 text-center text-sf-muted">Brak produktów w tym wyborze.</p>
           }
         } @else {
@@ -102,6 +145,11 @@ const ICONS: Record<string, string> = {
             </div>
             @if (d['buttonText']) {<a [routerLink]="moreLink()" [queryParams]="moreQuery()" class="shrink-0 text-[14px] font-medium hover:underline">{{ d['buttonText'] }} →</a>}
           </div>
+        }
+        @if (samples().length) {
+          <ul class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4" [class]="d['filters'] ? 'mt-10 sm:gap-x-6 sm:gap-y-10' : 'mt-5'">
+            @for (p of samples(); track p.name) {<li><sf-sample-card [product]="p" /></li>}
+          </ul>
         }
         @if (items().length) {
           <ul class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4" [class]="d['filters'] ? 'mt-10 sm:gap-x-6 sm:gap-y-10 md:!grid-cols-3 lg:!grid-cols-4' : 'mt-5'">
@@ -139,6 +187,13 @@ export class SectionProductsComponent {
   });
   protected readonly items = computed(() => (this.res.hasValue() ? this.res.value().items : []));
   protected readonly total = computed(() => (this.res.hasValue() ? this.res.value().totalItems : 0));
+  /** Preview of an empty store: the template's example products (filtered by the visitor's category pill by name). */
+  protected readonly samples = computed<SampleCard[]>(() => {
+    if (!this.res.hasValue() || this.res.value().totalItems > 0 || this.filter() !== null && this.filter() !== 'sale') return [];
+    const all = this.store.samples();
+    const list = this.filter() === 'sale' ? all.filter((p) => p.compareAtMinor) : all;
+    return list.slice(0, Number(this.data()['count'] ?? 8));
+  });
   protected readonly moreLink = computed(() => {
     const f = this.data()['filters'] ? this.filter() : null;
     const slug = f && f !== 'sale' ? f : f === 'sale' ? null : this.slug();
@@ -147,7 +202,7 @@ export class SectionProductsComponent {
   protected readonly moreQuery = computed(() => ((this.data()['filters'] ? this.filter() === 'sale' : this.data()['source'] === 'sale') ? { promocje: 'tak' } : null));
 
   protected countLabel(): string {
-    const n = this.total();
+    const n = this.total() || this.samples().length;
     const word = n === 1 ? 'produkt' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'produkty' : 'produktów';
     return `${n} ${word}`;
   }
@@ -317,6 +372,16 @@ export class SectionNewsletterCompactComponent {
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    @if (!product() && sample(); as p) {
+      <div class="flex max-w-xs items-center gap-4 rounded-xl border border-sf-line bg-sf-bg/95 p-4 shadow-lg backdrop-blur-md">
+        @if (p.imageUrl) {<img [src]="p.imageUrl" alt="" class="h-16 w-14 shrink-0 rounded-lg object-cover" />}
+        <span class="min-w-0">
+          <span class="block text-[11px] uppercase tracking-widest text-sf-muted">Polecamy · przykład</span>
+          <span class="block truncate text-[14px] font-semibold">{{ p.name }}</span>
+          <span class="mt-0.5 block text-[12px] font-medium text-sf-accent">{{ price(p.priceMinor, 'PLN') }}</span>
+        </span>
+      </div>
+    }
     @if (product(); as p) {
       <a [routerLink]="['/produkt', p.slug]" class="flex max-w-xs items-center gap-4 rounded-xl border border-sf-line bg-sf-bg/95 p-4 shadow-lg backdrop-blur-md transition hover:shadow-xl">
         @if (p.imageUrl) {<img [src]="p.imageUrl" alt="" class="h-16 w-14 shrink-0 rounded-lg object-cover" loading="lazy" />}
@@ -331,7 +396,9 @@ export class SectionNewsletterCompactComponent {
 })
 export class SectionFeaturedComponent {
   private readonly api = inject(StorefrontApi);
+  private readonly store = inject(StoreState);
   private readonly res = rxResource({ stream: () => this.api.products({ size: 6, sort: 'NEWEST' }) });
+  protected readonly sample = computed(() => (this.res.hasValue() && this.res.value().totalItems === 0 ? this.store.samples()[0] ?? null : null));
   protected readonly product = computed(() => (this.res.hasValue() ? this.res.value().items.find((p) => p.available && p.imageUrl) ?? null : null));
 
   protected price(minor: number, currency: string): string {

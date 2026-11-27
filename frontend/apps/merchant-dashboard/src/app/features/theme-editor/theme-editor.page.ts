@@ -159,6 +159,13 @@ function newId(type: string): string {
                     <svg [lucideIcon]="icons.grid" [size]="16" class="text-ink-soft" />
                     <span class="min-w-0 flex-1"><span class="block text-[13px] font-medium text-ink">Szablon: {{ presetName() }}</span><span class="block text-[12px] text-ink-muted">Zmień na inny (wszystkie są darmowe)</span></span>
                     <svg [lucideIcon]="icons.chevronRight" [size]="15" class="text-ink-muted" /></a>
+                  @if (sampleCount() && canAddProducts) {
+                    <div class="mt-3 rounded-[10px] border border-dashed border-line-strong p-3">
+                      <p class="text-[13px] font-medium text-ink">Przykładowe produkty szablonu</p>
+                      <p class="mt-0.5 text-[12px] leading-snug text-ink-muted">Dopóki sklep nie ma produktów, podgląd pokazuje {{ sampleCount() }} przykładów (klienci ich nie widzą). Możesz dodać je do sklepu jako zwykłe produkty i zmienić.</p>
+                      <button sv-button variant="tonal" size="sm" class="mt-2" type="button" (click)="confirmSamples.set(true)">Dodaj przykładowe produkty</button>
+                    </div>
+                  }
                 </div>
               </div>
             }
@@ -290,6 +297,16 @@ function newId(type: string): string {
     <sv-image-picker #picker [tenantId]="ctx.tenantId()" [open]="!!picking()" [selected]="pickingValue()" [templateImages]="templateImages()"
       (chosen)="imageChosen($event)" (cleared)="imageCleared()" (closed)="picking.set(null)" />
 
+    <sv-dialog heading="Dodać przykładowe produkty?" [open]="confirmSamples()" (closed)="confirmSamples.set(false)">
+      <p class="text-[14px] leading-relaxed text-ink-soft">Utworzymy {{ sampleCount() }} aktywnych produktów szablonu „{{ presetName() }}” ze zdjęciami, rozmiarami,
+        przykładowymi cenami i 10 szt. na wariant, oraz brakujące kategorie. Produkty o tej samej nazwie pominiemy.
+        Przed publikacją sklepu zmień ich nazwy, ceny i zdjęcia albo je usuń.</p>
+      <ng-container dialog-actions>
+        <button sv-button variant="secondary" type="button" (click)="confirmSamples.set(false)">Anuluj</button>
+        <button sv-button type="button" [loading]="importing()" (click)="importSamples()">Dodaj produkty</button>
+      </ng-container>
+    </sv-dialog>
+
     <sv-dialog heading="Masz niezapisane zmiany" [open]="confirmExit()" (closed)="confirmExit.set(false)">
       <p class="text-[14px] text-ink-soft">Jeśli wyjdziesz teraz, zmiany w wyglądzie zostaną utracone.</p>
       <ng-container dialog-actions>
@@ -382,6 +399,12 @@ export class ThemeEditorPage {
   /** The storefront in the frame said "shopivo:ready" — only then do we send it the draft. */
   private readonly frameReady = signal(false);
   protected readonly frameBroken = signal(false);
+  protected readonly confirmSamples = signal(false);
+  protected readonly importing = signal(false);
+  protected get canAddProducts(): boolean {
+    return this.ctx.can('PRODUCTS_WRITE');
+  }
+  protected readonly sampleCount = computed(() => (this.data.hasValue() ? this.data.value().sampleProducts?.[this.code()]?.length ?? 0 : 0));
   private frameTimer: ReturnType<typeof setTimeout> | null = null;
   protected readonly previewHref = computed(() => {
     const u = this.previewUrl();
@@ -458,6 +481,20 @@ export class ThemeEditorPage {
     // The storefront announces itself ("shopivo:ready") once it has started; no answer = the preview is not shown.
     if (this.frameTimer) clearTimeout(this.frameTimer);
     this.frameTimer = setTimeout(() => this.frameBroken.set(!this.frameReady()), 6000);
+  }
+
+  protected async importSamples(): Promise<void> {
+    this.importing.set(true);
+    try {
+      const r = await firstValueFrom(this.api.importSampleProducts(this.ctx.tenantId(), this.code()));
+      this.toast.success(r.created ? `Dodano produkty: ${r.created}. Znajdziesz je w Produktach.` : 'Te produkty są już w sklepie.');
+      this.confirmSamples.set(false);
+      this.retryFrame();
+    } catch (e) {
+      this.toast.error(ApiError.from(e).message);
+    } finally {
+      this.importing.set(false);
+    }
   }
 
   protected retryFrame(): void {

@@ -75,6 +75,21 @@ produktów w JS, logowanie Google bez Google, przykładowe zamówienia, „check
    - `ThemeSectionsIT`: preset jest zapisywalny, grafiki są serwowane, nieznane odnośniki są odrzucane;
    - E2E: zrzuty na komputerze i telefonie.
 
+## Przykładowe produkty szablonu
+
+- **Definicja:** szablon ma listę przykładowych produktów w `ThemeSamples.SAMPLES` (u Véry jest ich 8). Każdy produkt ma nazwę, kategorię, cenę, ewentualną cenę przed obniżką, rozmiary i zdjęcie `tpl:`.
+- **Tylko w podglądzie:**
+  - `GET /storefront/store` zwraca `sampleProducts` wyłącznie w podglądzie (`?podglad=`), a klientom zwraca pusty obiekt;
+  - witryna pokazuje przykłady w sekcji produktów i na karcie „Polecamy” tylko wtedy, gdy sklep nie ma żadnego aktywnego produktu;
+  - przykłady są oznaczone „Przykład” i nie są linkami, a nad nimi stoi notka, że klienci ich nie widzą.
+- **Dodanie do sklepu:** dzieje się wyłącznie na prośbę sprzedawcy, przyciskiem „Dodaj przykładowe produkty” w edytorze, przez `POST /tenants/{t}/theme/sample-products` (uprawnienie `PRODUCTS_WRITE`):
+  - tworzy zwykłe, aktywne produkty z wariantami rozmiarów i stanem 10 szt.;
+  - tworzy brakujące kategorie;
+  - kopiuje zdjęcia do mediów sklepu, więc sprzedawca może je zmienić lub usunąć;
+  - pomija produkty, których nazwa już istnieje, więc można to bezpiecznie powtórzyć;
+  - obowiązują limity planu.
+- **Miniatura w galerii:** szablony w stylu „magazyn” rysują karty produktów ze zdjęć przykładów.
+
 ## Véra — co ma
 
 - **Nagłówek i wygląd ogólny:**

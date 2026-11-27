@@ -41,6 +41,12 @@ export class StoreState {
     return id ? this.store()?.themeImages?.[id]?.[variant] ?? null : null;
   }
 
+  /** Example products of the current template (preview only; empty for customers). */
+  readonly samples = computed(() => {
+    const s = this.store();
+    return s?.preview ? s.sampleProducts?.[s.theme.code] ?? [] : [];
+  });
+
   readonly topCategories = computed(() => (this.store()?.categories ?? []).filter((c) => c.depth === 0));
 
   /** CSS custom properties of the theme, applied on the root element. */

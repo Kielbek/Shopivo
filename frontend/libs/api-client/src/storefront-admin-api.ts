@@ -46,6 +46,11 @@ export class StorefrontAdminApi {
     return this.http.delete<void>(`${this.base(t)}/theme/images/${encodeURIComponent(id)}`);
   }
 
+  /** Adds the template's example products to the store as ordinary products; returns how many were created. */
+  importSampleProducts(t: string, code: string): Observable<{ created: number }> {
+    return this.http.post<{ created: number }>(`${this.base(t)}/theme/sample-products`, { code });
+  }
+
   saveTheme(t: string, code: string, settings: Record<string, string>, version: number, sections: ThemeSection[] | null = null): Observable<ThemeState> {
     return this.http.put<ThemeState>(`${this.base(t)}/theme`, { code, settings, sections, version });
   }

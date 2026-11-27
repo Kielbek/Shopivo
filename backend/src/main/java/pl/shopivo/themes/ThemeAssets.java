@@ -38,7 +38,15 @@ public final class ThemeAssets {
             asset("vera", "women", "Kafelek — kobiety"),
             asset("vera", "men", "Kafelek — mężczyźni"),
             asset("vera", "accessories", "Kafelek — akcesoria"),
-            asset("vera", "atelier", "Baner — pracownia"));
+            asset("vera", "atelier", "Baner — pracownia"),
+            asset("vera", "p-coat", "Produkt — płaszcz"),
+            asset("vera", "p-sweater", "Produkt — sweter"),
+            asset("vera", "p-blazer", "Produkt — marynarka"),
+            asset("vera", "p-bag", "Produkt — torebka"),
+            asset("vera", "p-shirt", "Produkt — koszula"),
+            asset("vera", "p-dress", "Produkt — sukienka"),
+            asset("vera", "p-chinos", "Produkt — spodnie"),
+            asset("vera", "p-jacket", "Produkt — kurtka"));
 
     public static boolean isRef(String value) {
         return value != null && value.startsWith(PREFIX);

@@ -426,7 +426,12 @@ export interface ThemeConfig { code: string; settings: Record<string, string>; s
 export interface ThemeState { draft: ThemeConfig; published: ThemeConfig | null; publishedAt: string | null; unpublishedChanges: boolean; version: number; }
 /** An image that ships with a template, referenced as `tpl:<template>/<name>` until the merchant picks their own. */
 export interface TemplateImage { ref: string; template: string; label: string; urls: Record<string, string>; }
-export interface ThemeResponse { presets: ThemePreset[]; fields: ThemeField[]; sectionTypes: SectionType[]; state: ThemeState; templateImages: TemplateImage[]; }
+/** Example product of a template (preview only, or added to the store on request). */
+export interface TemplateSampleProduct { name: string; category: string; priceMinor: number; compareAtMinor: number | null; imageUrl: string | null; }
+export interface ThemeResponse {
+  presets: ThemePreset[]; fields: ThemeField[]; sectionTypes: SectionType[]; state: ThemeState; templateImages: TemplateImage[];
+  sampleProducts: Record<string, TemplateSampleProduct[]>;
+}
 export interface PublishReadiness { ready: boolean; missing: string[]; }
 export interface ProductImage { id: string; alt: string | null; width: number; height: number; position: number; urls: Record<string, string>; }
 

@@ -15,11 +15,19 @@ import { displayStack, fontStack, onColor, radiusOf, templateImageUrl } from './
     <div class="relative overflow-hidden" [style.aspect-ratio]="phone() ? '9 / 17' : '16 / 10'" [style.background]="s['background']" [style.color]="s['text']"
       [style.font-family]="font()">
       @if (s['announcement']) {
-        <div class="truncate px-2 py-[3px] text-center text-[7px] font-medium" [style.background]="s['accent']" [style.color]="on(s['accent'])">{{ s['announcement'] }}</div>
+        @if (editorial()) {
+          <div class="truncate px-2 py-[3px] text-center text-[6px] font-medium uppercase tracking-[0.12em]" [style.background]="s['text']" [style.color]="s['background']">{{ s['announcement'] }}</div>
+        } @else {
+          <div class="truncate px-2 py-[3px] text-center text-[7px] font-medium" [style.background]="s['accent']" [style.color]="on(s['accent'])">{{ s['announcement'] }}</div>
+        }
       }
       <!-- header -->
       <div class="flex items-center gap-2 px-[6%] py-[3%]" [style.border-bottom]="'1px solid ' + line()">
-        <span class="truncate font-semibold" [style.font-size.px]="phone() ? 9 : 10">{{ storeName() || 'Twój sklep' }}</span>
+        @if (editorial()) {
+          <span class="truncate font-bold uppercase tracking-[0.16em]" [style.font-family]="display()" [style.font-size.px]="phone() ? 9 : 11">{{ storeName() || 'Twój sklep' }}<span [style.color]="s['accent']">.</span></span>
+        } @else {
+          <span class="truncate font-semibold" [style.font-size.px]="phone() ? 9 : 10">{{ storeName() || 'Twój sklep' }}</span>
+        }
         @if (!phone()) {
           <span class="ml-3 flex gap-2 text-[7px] opacity-70"><span>Nowości</span><span>Kategorie</span><span>O nas</span></span>
         }
@@ -38,20 +46,18 @@ import { displayStack, fontStack, onColor, radiusOf, templateImageUrl } from './
           </div>
         }
         @case ('editorial') {
-          <div class="grid items-center gap-[5%] px-[6%] py-[4%]" [class]="phone() ? 'grid-cols-1' : 'grid-cols-2'" [style.background]="s['surface']">
-            <div>
-              @if (hero()['eyebrow']) {<span class="block text-[6px] font-semibold uppercase tracking-[0.2em]" [style.color]="s['accent']">{{ hero()['eyebrow'] }}</span>}
-              <span class="mt-1 block font-semibold leading-[1.05]" [style.font-family]="display()" [style.font-size.px]="phone() ? 13 : 15">{{ title() }}</span>
-              <span class="mt-2 flex gap-1">
-                <span class="px-2 py-1 text-[6px] font-medium uppercase tracking-wider" [style.background]="s['primary']" [style.color]="on(s['primary'])">{{ hero()['cta'] || 'Zobacz' }}</span>
-                @if (hero()['cta2']) {<span class="border px-2 py-1 text-[6px] font-medium uppercase tracking-wider" [style.border-color]="s['text']">{{ hero()['cta2'] }}</span>}
+          <div class="grid items-center gap-[5%] px-[6%] py-[3%]" [class]="phone() ? 'grid-cols-1' : 'grid-cols-2'" [style.background]="s['surface']">
+            <div class="min-w-0">
+              @if (hero()['eyebrow']) {<span class="block truncate text-[5px] font-semibold uppercase tracking-[0.2em]" [style.color]="s['accent']">{{ hero()['eyebrow'] }}</span>}
+              <span class="mt-1 block font-semibold leading-[1.05]" [style.font-family]="display()" [style.font-size.px]="phone() ? 9 : 13">{{ title() }}</span>
+              <span class="mt-2 flex flex-wrap gap-1">
+                <span class="px-1.5 py-[3px] text-[5px] font-medium uppercase tracking-wider" [style.background]="s['primary']" [style.color]="on(s['primary'])">{{ hero()['cta'] || 'Zobacz' }}</span>
+                @if (hero()['cta2']) {<span class="border px-1.5 py-[2px] text-[5px] font-medium uppercase tracking-wider" [style.border-color]="s['text']">{{ hero()['cta2'] }}</span>}
               </span>
             </div>
-            @if (!phone()) {
-              <span class="block aspect-[4/5] max-h-[110px] overflow-hidden rounded-[6px] shadow" [style.background]="s['accent']">
-                @if (heroImage(); as img) {<img [src]="img" alt="" class="size-full object-cover" loading="lazy" />}
-              </span>
-            }
+            <span class="relative block overflow-hidden rounded-[5px] shadow" [class]="phone() ? 'aspect-[4/3]' : 'aspect-[4/3] max-h-[78px]'" [style.background]="s['accent']">
+              @if (heroImage(); as img) {<img [src]="img" alt="" class="size-full object-cover" loading="lazy" />}
+            </span>
           </div>
         }
         @case ('split') {
@@ -76,6 +82,19 @@ import { displayStack, fontStack, onColor, radiusOf, templateImageUrl } from './
         }
       }
       <!-- products -->
+      @if (editorial() && productImages().length) {
+        <div class="mx-[6%] mt-[3%] grid gap-[3%]" [class]="phone() ? 'grid-cols-2' : 'grid-cols-4'">
+          @for (img of productImages().slice(0, 4); track img) {
+            <div>
+              <img [src]="img" alt="" class="block aspect-[3/4] w-full rounded-[4px] object-cover" loading="lazy" />
+              <span class="mt-[6%] flex items-center justify-between gap-1">
+                <span class="block h-[3px] w-3/5 rounded-full opacity-60" [style.background]="s['text']"></span>
+                <span class="block h-[3px] w-1/5 rounded-full" [style.background]="s['text']"></span>
+              </span>
+            </div>
+          }
+        </div>
+      } @else {
       <div class="mx-[6%] mt-[5%] grid gap-[3%]" [class]="phone() ? 'grid-cols-2' : 'grid-cols-4'">
         @for (i of cards(); track i) {
           <div class="p-[6%]" [style.border-radius]="radius()" [style.background]="s['productCard'] === 'plain' ? 'transparent' : s['surface']"
@@ -87,6 +106,7 @@ import { displayStack, fontStack, onColor, radiusOf, templateImageUrl } from './
           </div>
         }
       </div>
+      }
     </div>
   `,
 })
@@ -104,6 +124,9 @@ export class ThemeMockComponent {
     };
   });
   readonly storeName = input('');
+  /** Photos of the template's example products (drawn as product cards in magazine-style templates). */
+  readonly productImages = input<string[]>([]);
+  protected readonly editorial = computed(() => this.settings()['font'] === 'editorial');
   readonly phone = input(false);
 
   protected readonly font = computed(() => fontStack(this.settings()['font']));
