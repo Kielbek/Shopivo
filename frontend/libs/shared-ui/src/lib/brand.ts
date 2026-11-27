@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 @Component({
   selector: 'sv-logo',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'inline-flex items-center gap-2.5', '[class.text-ink]': "tone() === 'dark'", '[class.text-white]': "tone() === 'light'" },
+  host: { class: 'inline-flex items-center gap-2.5', '[class.text-ink]': "tone() === 'dark'", '[class.text-nav-strong]': "tone() === 'light'" },
   template: `
     <svg viewBox="0 0 32 32" class="size-8 shrink-0" aria-hidden="true">
       <rect width="32" height="32" rx="9" fill="#B5F23D" />

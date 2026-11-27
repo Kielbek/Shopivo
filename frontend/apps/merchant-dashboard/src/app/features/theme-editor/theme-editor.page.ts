@@ -49,7 +49,7 @@ function newId(type: string): string {
     ToastOutletComponent, ImagePickerComponent, PropFormComponent],
   providers: [StoreContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex h-dvh bg-canvas lg:bg-[linear-gradient(180deg,var(--color-forest)_0%,var(--color-forest)_45%,#0F1210_100%)]', '(window:beforeunload)': 'beforeUnload($event)' },
+  host: { class: 'flex h-dvh bg-canvas lg:[background:var(--nav-bg)]', '(window:beforeunload)': 'beforeUnload($event)' },
   template: `
     <sv-toast-outlet />
     <!-- Collapsed panel navigation (desktop): the editor keeps the way back to every part of the store. -->
@@ -61,14 +61,14 @@ function newId(type: string): string {
             <a [routerLink]="['/sklep', tenantId(), ...r.path]" [attr.title]="r.label" [attr.aria-label]="r.label" (click)="go($event, r.path)"
               [attr.aria-current]="r.current ? 'page' : null"
               class="flex size-10 items-center justify-center rounded-[10px] transition-colors"
-              [class]="r.current ? 'bg-neon text-night' : 'text-forest-muted hover:bg-white/[0.08] hover:text-white'">
+              [class]="r.current ? 'bg-nav-active text-nav-active-text' : 'text-nav-muted hover:bg-nav-hover hover:text-nav-strong'">
               <svg [lucideIcon]="icons[r.icon]" [size]="18" [strokeWidth]="1.75" /></a>
           </li>
         }
       </ul>
-      <div class="flex w-full justify-center border-t border-white/[0.07] pb-3 pt-3">
+      <div class="flex w-full justify-center border-t border-nav-line pb-3 pt-3">
         <a [routerLink]="['/sklep', tenantId(), 'ustawienia']" title="Ustawienia" aria-label="Ustawienia" (click)="go($event, ['ustawienia'])"
-          class="flex size-10 items-center justify-center rounded-[10px] text-forest-muted hover:bg-white/[0.08] hover:text-white">
+          class="flex size-10 items-center justify-center rounded-[10px] text-nav-muted hover:bg-nav-hover hover:text-nav-strong">
           <svg [lucideIcon]="icons.settings" [size]="18" [strokeWidth]="1.75" /></a>
       </div>
     </nav>

@@ -40,14 +40,14 @@ export interface NavSection {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <a href="#sv-main" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-[8px] focus:bg-card focus:px-4 focus:py-2 focus:shadow">Przejdź do treści</a>
-    <div class="flex min-h-dvh bg-canvas lg:h-dvh lg:min-h-0 lg:overflow-hidden lg:bg-[linear-gradient(180deg,var(--color-forest)_0%,var(--color-forest)_45%,#0F1210_100%)]">
+    <div class="flex min-h-dvh bg-canvas lg:h-dvh lg:min-h-0 lg:overflow-hidden lg:[background:var(--nav-bg)]">
 
       <!-- Overlay fades with the drawer and follows the swipe. -->
       <div class="fixed inset-0 z-40 bg-night/50 transition-opacity duration-300 motion-reduce:transition-none lg:hidden"
         [class.pointer-events-none]="!drawerOpen()" [class.opacity-0]="!drawerOpen()" [class.!transition-none]="drawerDrag() !== null"
         [style.opacity]="drawerDrag() !== null ? overlayOpacity() : null" (click)="drawerOpen.set(false)" aria-hidden="true"></div>
       <!-- One sidebar element: off-canvas drawer below lg, sticky column (full or icon rail) from lg. -->
-      <aside #drawer class="fixed inset-y-0 left-0 z-50 flex touch-pan-y w-[280px] max-w-[85vw] shrink-0 flex-col bg-[linear-gradient(180deg,var(--color-forest)_0%,var(--color-forest)_45%,#0F1210_100%)] text-forest-text transition-[transform,width] duration-300 ease-[cubic-bezier(0.2,0.9,0.25,1)] motion-reduce:transition-none lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:max-w-none lg:translate-x-0"
+      <aside #drawer class="fixed inset-y-0 left-0 z-50 flex touch-pan-y w-[280px] max-w-[85vw] shrink-0 flex-col [background:var(--nav-bg)] text-nav-text transition-[transform,width] duration-300 ease-[cubic-bezier(0.2,0.9,0.25,1)] motion-reduce:transition-none lg:sticky lg:top-0 lg:z-auto lg:h-dvh lg:max-w-none lg:translate-x-0"
         [class.lg:w-[252px]]="!rail()" [class.lg:w-[68px]]="rail()"
         [class.-translate-x-full]="!drawerOpen()" [class.!transition-none]="drawerDrag() !== null"
         [style.transform]="drawerDrag() !== null ? 'translateX(' + -drawerDrag()! + 'px)' : null" [attr.aria-label]="navLabel()"
@@ -57,7 +57,7 @@ export interface NavSection {
 
       @if (hasSubnav()) {
         <!-- Section navigation (settings…) next to the icon rail; on phones the page shows it inline instead. -->
-        <aside class="sticky top-0 hidden h-dvh w-[248px] shrink-0 flex-col border-l border-white/[0.07] bg-[linear-gradient(180deg,var(--color-forest)_0%,var(--color-forest)_45%,#0F1210_100%)] text-forest-text lg:flex" [attr.aria-label]="subnavLabel()">
+        <aside class="sticky top-0 hidden h-dvh w-[248px] shrink-0 flex-col border-l border-nav-line [background:var(--nav-bg)] text-nav-text lg:flex" [attr.aria-label]="subnavLabel()">
           <div class="min-h-0 flex-1 overflow-y-auto pr-2"><ng-content select="[shell-subnav]" /></div>
         </aside>
       }
@@ -90,20 +90,20 @@ export interface NavSection {
             <sv-logo [suffix]="logoSuffix()" tone="light" />
           }
         </a>
-        <button type="button" class="rounded-[8px] p-1.5 text-forest-muted hover:bg-white/10 hover:text-white lg:hidden" (click)="drawerOpen.set(false)" aria-label="Zamknij menu">
+        <button type="button" class="rounded-[8px] p-1.5 text-nav-muted hover:bg-nav-hover hover:text-nav-strong lg:hidden" (click)="drawerOpen.set(false)" aria-label="Zamknij menu">
           <svg [lucideIcon]="icons.close" [size]="18" />
         </button>
       </div>
 
       <div class="relative px-3" [class.lg:hidden]="rail()">
-        <svg [lucideIcon]="icons.search" [size]="15" class="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-forest-muted" />
+        <svg [lucideIcon]="icons.search" [size]="15" class="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-nav-muted" />
         <label for="sv-nav-search" class="sr-only">Szukaj w panelu</label>
         <input #search id="sv-nav-search" type="search" autocomplete="off" placeholder="Szukaj"
-          class="h-9 w-full rounded-full border border-white/10 bg-white/[0.08] pl-9 pr-10 text-[13px] text-white placeholder:text-forest-muted hover:bg-white/[0.12] focus:border-neon/70 focus:outline-none focus:ring-2 focus:ring-neon/25"
+          class="h-9 w-full rounded-full border border-nav-line bg-nav-field pl-9 pr-10 text-[13px] text-nav-strong placeholder:text-nav-muted hover:bg-nav-hover focus:border-neon/70 focus:outline-none focus:ring-2 focus:ring-neon/25"
           [value]="query()" (input)="query.set($any($event.target).value); activeResult.set(0)"
           (keydown)="onSearchKey($event)" (blur)="closeSearchSoon()" role="combobox" aria-autocomplete="list"
           [attr.aria-expanded]="showResults()" aria-controls="sv-nav-results" />
-        <kbd class="pointer-events-none absolute right-5 top-1/2 hidden -translate-y-1/2 rounded-[5px] border border-white/15 px-1.5 text-[10px] font-medium text-forest-muted sm:block">/</kbd>
+        <kbd class="pointer-events-none absolute right-5 top-1/2 hidden -translate-y-1/2 rounded-[5px] border border-nav-line px-1.5 text-[10px] font-medium text-nav-muted sm:block">/</kbd>
         @if (showResults()) {
           <ul id="sv-nav-results" role="listbox" class="absolute left-3 right-3 top-11 z-40 max-h-80 overflow-auto rounded-[12px] border border-line bg-card p-1.5 text-ink shadow-[var(--shadow-pop)]">
             @for (r of results(); track r.label; let i = $index) {
@@ -128,8 +128,8 @@ export interface NavSection {
         <div class="min-h-0 flex-1 overflow-y-auto pb-3 pt-2 [scrollbar-width:thin]" [class]="rail() ? 'px-3 lg:px-2.5' : 'px-3'">
           @for (section of sections(); track $index) {
             @if (section.title) {
-              <p class="mb-1 mt-5 px-3 text-[11.5px] font-medium uppercase tracking-[0.06em] text-forest-muted" [class.lg:hidden]="rail()">{{ section.title }}</p>
-              @if (rail()) {<div class="mx-2 my-3 hidden h-px bg-white/10 lg:block" aria-hidden="true"></div>}
+              <p class="mb-1 mt-5 px-3 text-[11.5px] font-medium uppercase tracking-[0.06em] text-nav-muted" [class.lg:hidden]="rail()">{{ section.title }}</p>
+              @if (rail()) {<div class="mx-2 my-3 hidden h-px bg-nav-line lg:block" aria-hidden="true"></div>}
             }
             <ul class="space-y-0.5">
               @for (item of section.items; track item.label) {
@@ -141,7 +141,7 @@ export interface NavSection {
           }
         </div>
         <!-- Pinned items (settings, help) at the foot, where the green has faded into black. -->
-        <div class="shrink-0 border-t border-white/[0.07] pb-3 pt-3" [class]="rail() ? 'px-3 lg:px-2.5' : 'px-3'">
+        <div class="shrink-0 border-t border-nav-line pb-3 pt-3" [class]="rail() ? 'px-3 lg:px-2.5' : 'px-3'">
           @for (section of bottomSections(); track $index) {
             <ul class="space-y-0.5">
               @for (item of section.items; track item.label) {
@@ -164,18 +164,18 @@ export interface NavSection {
             [attr.title]="rail() ? it.label : null"
             class="group flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] transition-colors"
             [class.lg:justify-center]="rail()" [class.lg:px-0]="rail()"
-            [class]="(rla.isActive || it.active) ? 'bg-neon font-semibold text-night' : 'text-forest-text/85 hover:bg-white/[0.08] hover:text-white'">
+            [class]="(rla.isActive || it.active) ? 'bg-nav-active font-semibold text-nav-active-text' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
             <svg [lucideIcon]="icons[it.icon]" [size]="18" [strokeWidth]="1.75"
-              [class]="(rla.isActive || it.active) ? 'text-night' : 'text-forest-muted group-hover:text-white'" />
+              [class]="(rla.isActive || it.active) ? 'text-nav-active-text' : 'text-nav-muted group-hover:text-nav-strong'" />
             <span class="min-w-0 flex-1 truncate" [class.lg:sr-only]="rail()">{{ it.label }}</span>
           </a>
         } @else {
           <span class="flex h-9 cursor-default items-center gap-3 rounded-[10px] px-3 text-[13.5px]"
-            [class]="'text-forest-muted/60'"
+            [class]="'text-nav-muted/60'"
             aria-disabled="true" [attr.title]="it.label + ' — moduł w przygotowaniu'">
-            <svg [lucideIcon]="icons[it.icon]" [size]="18" [strokeWidth]="1.75" class="text-forest-muted/50" />
+            <svg [lucideIcon]="icons[it.icon]" [size]="18" [strokeWidth]="1.75" class="text-nav-muted/50" />
             <span class="min-w-0 flex-1 truncate whitespace-nowrap">{{ it.label }}<span class="sr-only"> (wkrótce)</span></span>
-            <span class="rounded-full border px-1.5 text-[10px]" class="border-white/15 text-forest-muted" aria-hidden="true">wkrótce</span>
+            <span class="rounded-full border px-1.5 text-[10px]" class="border-nav-line text-nav-muted" aria-hidden="true">wkrótce</span>
           </span>
         }
       }

@@ -23,10 +23,18 @@
   --color-night-text: #E7EAE5;
   --color-night-muted: #8E958D;
 
-  /* Navigation column: deep green fading into night (white text, neon only as accent). */
+  /* Navigation column — ONE place for its palette (background in --nav-bg below). */
   --color-forest: #14492C;
   --color-forest-text: #EAF3EC;
   --color-forest-muted: #9DBFA7;
+  --color-nav-strong: #FFFFFF;
+  --color-nav-text: #EAF3EC;
+  --color-nav-muted: #9DBFA7;
+  --color-nav-hover: rgba(255, 255, 255, 0.08);
+  --color-nav-line: rgba(255, 255, 255, 0.09);
+  --color-nav-field: rgba(255, 255, 255, 0.08);
+  --color-nav-active: #B5F23D;
+  --color-nav-active-text: #0F1210;
 
   /* Accent */
   --color-neon: #B5F23D;
@@ -78,6 +86,11 @@
 
   --shadow-card: 0 1px 0 rgba(15, 18, 16, 0.04), 0 1px 3px rgba(15, 18, 16, 0.04);
   --shadow-pop: 0 16px 40px -12px rgba(15, 18, 16, 0.22), 0 2px 6px rgba(15, 18, 16, 0.06);
+}
+
+/* Background of the navigation column (and the frame around the work surface). */
+:root {
+  --nav-bg: linear-gradient(180deg, #14492C 0%, #14492C 45%, #0F1210 100%);
 }
 
 @layer base {

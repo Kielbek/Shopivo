@@ -28,6 +28,7 @@ const NAV: { title?: string; items: MerchantNavItem[] }[] = [
       { label: 'Produkty', icon: 'products', path: 'produkty', permission: 'PRODUCTS_READ' },
       { label: 'Kategorie i marki', icon: 'categories', path: 'kategorie', permission: 'PRODUCTS_READ' },
       { label: 'Magazyn', icon: 'inventory', path: 'magazyn', permission: 'PRODUCTS_READ' },
+      { label: 'Wysyłka i dostawa', icon: 'shipping', path: 'wysylka', permission: 'ORDERS_READ' },
       { label: 'Klienci', icon: 'users', path: 'klienci', permission: 'CUSTOMERS_READ' },
       { label: 'Opinie', icon: 'star', path: 'opinie', permission: 'PRODUCTS_READ' },
     ],
@@ -56,7 +57,6 @@ export const SETTINGS_NAV: MerchantNavItem[] = [
   { label: 'Ogólne', icon: 'store', path: 'ustawienia', exact: true, permission: 'STORE_READ' },
   { label: 'Dane firmy', icon: 'company', path: 'ustawienia/firma', permission: 'STORE_READ' },
   { label: 'Płatności', icon: 'payments', path: 'platnosci', permission: 'STORE_READ' },
-  { label: 'Wysyłka i dostawa', icon: 'shipping', path: 'wysylka', permission: 'ORDERS_READ' },
   { label: 'Integracje', icon: 'integrations', path: 'integracje', permission: 'STORE_READ' },
   { label: 'Zespół', icon: 'users', path: 'zespol', permission: 'TEAM_READ' },
   { label: 'Plan i rozliczenia', icon: 'wallet', path: 'subskrypcja', permission: 'STORE_READ' },
@@ -100,13 +100,13 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
         @if (inSettings()) {
           <div shell-subnav>
             <div class="flex h-16 items-center gap-2 px-3">
-              <a [routerLink]="base()" class="flex items-center gap-1.5 rounded-[8px] px-2 py-1.5 text-[14px] font-semibold text-white hover:bg-white/[0.08]">
+              <a [routerLink]="base()" class="flex items-center gap-1.5 rounded-[8px] px-2 py-1.5 text-[14px] font-semibold text-nav-strong hover:bg-nav-hover">
                 <svg [lucideIcon]="icons.arrowLeft" [size]="16" />Ustawienia</a>
             </div>
-            <div class="mx-3 mb-4 flex items-center gap-2.5 rounded-[12px] border border-white/10 bg-white/[0.06] px-3 py-2.5">
+            <div class="mx-3 mb-4 flex items-center gap-2.5 rounded-[12px] border border-nav-line bg-nav-field px-3 py-2.5">
               <span class="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-neon text-[12px] font-bold text-night">{{ initials() }}</span>
-              <span class="min-w-0"><span class="block truncate text-[13px] font-semibold text-white">{{ store.name }}</span>
-                <span class="block truncate text-[11.5px] text-forest-muted">{{ store.primaryHostname || store.slug }}</span></span>
+              <span class="min-w-0"><span class="block truncate text-[13px] font-semibold text-nav-strong">{{ store.name }}</span>
+                <span class="block truncate text-[11.5px] text-nav-muted">{{ store.primaryHostname || store.slug }}</span></span>
             </div>
             <ul class="space-y-0.5 px-3">
               @for (it of settingsNav(); track it.label) {
@@ -115,13 +115,13 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
                     <a [routerLink]="it.link" routerLinkActive #rla="routerLinkActive" [routerLinkActiveOptions]="{ exact: !!it.exact }"
                       [attr.aria-current]="rla.isActive ? 'page' : null"
                       class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] transition-colors"
-                      [class]="rla.isActive ? 'bg-neon font-semibold text-night' : 'text-forest-text/85 hover:bg-white/[0.08] hover:text-white'">
-                      <svg [lucideIcon]="icons[it.icon]" [size]="17" [strokeWidth]="1.75" [class]="rla.isActive ? 'text-night' : 'text-forest-muted'" />{{ it.label }}</a>
+                      [class]="rla.isActive ? 'bg-nav-active font-semibold text-nav-active-text' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
+                      <svg [lucideIcon]="icons[it.icon]" [size]="17" [strokeWidth]="1.75" [class]="rla.isActive ? 'text-nav-active-text' : 'text-nav-muted'" />{{ it.label }}</a>
                   } @else {
-                    <span class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] text-forest-muted/60" aria-disabled="true">
-                      <svg [lucideIcon]="icons[it.icon]" [size]="17" [strokeWidth]="1.75" class="text-forest-muted/50" />
+                    <span class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] text-nav-muted/60" aria-disabled="true">
+                      <svg [lucideIcon]="icons[it.icon]" [size]="17" [strokeWidth]="1.75" class="text-nav-muted/50" />
                       <span class="flex-1">{{ it.label }}<span class="sr-only"> (wkrótce)</span></span>
-                      <span class="rounded-full border border-white/15 px-1.5 text-[10px] text-forest-muted" aria-hidden="true">wkrótce</span></span>
+                      <span class="rounded-full border border-nav-line px-1.5 text-[10px] text-nav-muted" aria-hidden="true">wkrótce</span></span>
                   }
                 </li>
               }
