@@ -28,7 +28,7 @@ const SOCIALS = [
   imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, NgTemplateOutlet, SectionNewsletterCompactComponent,
     VeraHeaderComponent, VeraFooterComponent, BawilooHeaderComponent, BawilooFooterComponent, CartDrawerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { '[attr.style]': 'store.cssVars()', class: 'flex min-h-dvh flex-col bg-sf-bg text-sf-text font-[family-name:var(--sf-font)]' },
+  host: { '[attr.style]': 'store.cssVars()', '[attr.data-layout]': 'store.layout()', class: 'flex min-h-dvh flex-col bg-sf-bg text-sf-text font-[family-name:var(--sf-font)]' },
   template: `
     @switch (store.status()) {
       @case ('loading') {

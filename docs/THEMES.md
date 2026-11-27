@@ -62,6 +62,11 @@ produktów w JS, logowanie Google bez Google, przykładowe zamówienia, „check
   - przeglądarka pobiera plik tylko wtedy, gdy strona używa danego kroju;
   - żadnych zapytań do Google Fonts (RODO).
 
+## Zmiana szablonu i zgodność wersji
+
+- **Zmiana szablonu w galerii:** przenosi tylko treści, które sprzedawca sam zmienił, czyli inne niż domyślne w poprzednim szablonie: teksty banera, własne zdjęcie, logo, pasek informacyjny, stopkę i media społecznościowe. Teksty przykładowe i zdjęcia `tpl:` starego szablonu zastępuje treść nowego.
+- **Zgodność witryny z panelem:** witryna w podglądzie zgłasza listę szablonów, które umie narysować (`SUPPORTED_TEMPLATES` w `store-state.ts`, razem z „shopivo:ready”). Jeśli wybranego szablonu na niej nie ma (starsza wersja witryny), edytor pokazuje ostrzeżenie zamiast mylącego podglądu.
+
 ## Dodanie nowego szablonu — lista kroków
 
 1. Grafiki: pliki `<nazwa>-w400.jpg` i `-w1200.jpg` w `resources/themes/<kod>/`. Wpis w `ThemeAssets.ALL`. Źródło i licencja w `THEME_ASSETS.md`.
@@ -121,7 +126,7 @@ produktów w JS, logowanie Google bez Google, przykładowe zamówienia, „check
 
 ## Bawiloo — co ma (drugi szablon, zabawki)
 
-- **Nagłówek i stopka:** złoty gradient (z koloru akcentu); zaokrąglone logo Fredoka; pogrubione menu wielkimi literami z pigułką „Promocje”; ciemna stopka ze złotym logo.
+- **Nagłówek i stopka:** złoty gradient (z koloru akcentu); zaokrąglone logo w kroju Baloo 2 (Fredoka z oryginału nie ma polskich liter); pogrubione menu wielkimi literami z pigułką „Promocje”; ciemna stopka ze złotym logo.
 - **Baner „Radosny”:** ogromny napis, ciemny przycisk-pigułka, wycięte zdjęcie zabawek (WebP z przezroczystością) i falowana dolna krawędź.
 - **„Ulubione zabawki dzieci”:** sekcja *Kategorie* w stylu „okrągłe zdjęcia”, czyli prawdziwe kategorie główne sklepu ze zdjęciami kategorii.
   - W jednej linii mieszczą się 3 kategorie na telefonie, 4 na tablecie i 6 na komputerze.

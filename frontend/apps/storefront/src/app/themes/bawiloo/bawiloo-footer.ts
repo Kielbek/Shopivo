@@ -22,7 +22,7 @@ const SOCIALS = [
     <footer class="border-t border-sf-line px-5 pb-6 pt-14 text-[14px] sm:px-[6%]" style="background: color-mix(in srgb, var(--sf-bg) 80%, #000)">
       <div class="mx-auto grid max-w-[1500px] gap-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <a routerLink="/" class="sf-display text-[36px] font-semibold text-sf-primary">{{ s.name }}</a>
+          <a routerLink="/" class="sf-display text-[36px] font-bold text-sf-primary">{{ s.name }}</a>
           @if (ts['footerNote']) {<p class="mt-4 max-w-xs text-sf-muted">{{ ts['footerNote'] }}</p>}
           @if (socials().length) {
             <ul class="mt-5 flex gap-2" aria-label="Media społecznościowe">

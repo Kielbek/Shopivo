@@ -346,7 +346,7 @@ export class SectionBlogComponent {
           <div class="relative grid items-center gap-8 lg:grid-cols-[1.1fr_1fr]">
             <div>
               @if (d['eyebrow']) {<p class="mb-3 text-[12px] font-black uppercase tracking-[0.2em]"><span aria-hidden="true">✦ </span>{{ d['eyebrow'] }}</p>}
-              <h2 id="nl-h-{{ uid }}" class="text-[clamp(34px,5vw,60px)] font-semibold leading-[0.98] tracking-[-0.035em]">{{ d['heading'] || 'Newsletter' }}</h2>
+              <h2 id="nl-h-{{ uid }}" class="text-[clamp(34px,5vw,60px)] font-bold leading-[0.98] tracking-[-0.035em]">{{ d['heading'] || 'Newsletter' }}</h2>
               @if (d['text']) {<p class="mt-4 max-w-md text-[15px] font-bold opacity-85">{{ d['text'] }}</p>}
             </div>
             <div>
@@ -519,7 +519,7 @@ export class SectionFeaturedComponent {
           @if (d['layout'] === 'playful') {
             <!-- Playful: warm gradient, huge rounded heading, dark pill button, cut-out photo, scalloped bottom edge -->
             <section class="sf-play-gradient relative text-white" [attr.aria-label]="d['heading'] || store.store()?.name">
-              <h1 class="mx-auto max-w-[1300px] px-3 pt-10 text-center text-[clamp(32px,7.5vw,105px)] font-semibold uppercase leading-[0.98] tracking-[-0.025em] sm:pt-16">{{ d['heading'] || store.store()?.name }}</h1>
+              <h1 class="mx-auto max-w-[1100px] px-3 pt-10 text-center text-[clamp(32px,7.5vw,105px)] font-bold uppercase leading-[0.98] tracking-[-0.025em] sm:pt-16">{{ d['heading'] || store.store()?.name }}</h1>
               @if (d['subheading']) {<p class="mx-auto mt-4 max-w-2xl px-4 text-center text-[16px] font-semibold opacity-95">{{ d['subheading'] }}</p>}
               <div class="mt-6 flex flex-wrap justify-center gap-3 px-4">
                 <sf-section-link [to]="d['link'] || '/produkty'" [text]="d['cta']" cls="inline-flex rounded-full bg-sf-bg px-7 py-3 text-[13px] font-extrabold uppercase text-sf-text transition hover:opacity-85" />
@@ -613,7 +613,7 @@ export class SectionFeaturedComponent {
             @let total = cats.length || store.sampleCategories().length;
             <section class="sf-container mt-20 text-center sm:mt-28" [attr.aria-label]="d['heading'] || 'Kategorie'">
               @if (d['eyebrow']) {<p class="text-[12px] uppercase tracking-[0.2em] text-sf-muted">{{ d['eyebrow'] }}</p>}
-              @if (d['heading']) {<h2 class="mb-8 mt-1 text-[26px] font-semibold uppercase sm:text-[32px] lg:mb-12 lg:text-[40px]">{{ d['heading'] }}</h2>}
+              @if (d['heading']) {<h2 class="mb-8 mt-1 text-[26px] font-bold uppercase sm:text-[32px] lg:mb-12 lg:text-[40px]">{{ d['heading'] }}</h2>}
               <ul class="grid grid-cols-3 gap-x-3 gap-y-6 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6" [attr.id]="'cats-' + s.id">
                 @for (c of cats; track c.id; let i = $index) {
                   <li [class]="open ? '' : circleHide(i)"><a [routerLink]="['/kategoria', c.slug]" class="group block">
@@ -747,7 +747,7 @@ export class SectionFeaturedComponent {
               }
               <div>
                 @if (d['eyebrow']) {<p class="mb-4 text-[12px] font-extrabold uppercase tracking-[0.23em] text-sf-primary"><span aria-hidden="true">✦ </span>{{ d['eyebrow'] }}</p>}
-                @if (d['heading']) {<h2 class="font-semibold" [class]="flower ? 'text-[32px] uppercase leading-[1.05] tracking-[-0.025em] sm:text-[40px] lg:text-[48px]' : 'text-[26px] tracking-tight'">{{ d['heading'] }}</h2>}
+                @if (d['heading']) {<h2 class="font-semibold" [class]="flower ? 'text-[32px] !font-bold uppercase leading-[1.05] tracking-[-0.025em] sm:text-[40px] lg:text-[48px]' : 'text-[26px] tracking-tight'">{{ d['heading'] }}</h2>}
                 @if (d['text']) {<p class="mt-3 whitespace-pre-line text-[16px] leading-7 text-sf-muted">{{ d['text'] }}</p>}
                 <sf-section-link class="mt-6 inline-block" [to]="d['link']" [text]="d['cta']"
                   [cls]="flower ? 'inline-flex items-center gap-3 rounded-full bg-sf-primary px-6 py-3 text-[14px] font-extrabold text-sf-on-primary hover:opacity-90' : 'sf-btn-outline'" />

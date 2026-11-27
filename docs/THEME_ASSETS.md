@@ -48,8 +48,10 @@ Uwaga: na zdjęciu „O nas” jest napis „Whimsy”; szablon przykrywa go szy
 | Krój | Pliki | Licencja | Źródło |
 |---|---|---|---|
 | Cormorant Garamond 500/600/700 | `cormorant-garamond-latin(-ext)-*.woff2` | SIL Open Font License 1.1 (`OFL-cormorant-garamond.txt`) | npm `@fontsource/cormorant-garamond@5.3.0` |
-| Fredoka (zmienna 300–700) | `fredoka-latin(-ext)-wght-normal.woff2` | SIL OFL 1.1 (`OFL-fredoka.txt`) | npm `@fontsource-variable/fredoka@5.3.0` |
+| Baloo 2 (zmienna 400–800) | `baloo-2-latin(-ext)-wght-normal.woff2` | SIL OFL 1.1 (`OFL-baloo-2.txt`) | npm `@fontsource-variable/baloo-2@5.3.0` |
 | Nunito Sans (zmienna 200–1000) | `nunito-sans-latin(-ext)-wght-normal.woff2` | SIL OFL 1.1 (`OFL-nunito-sans.txt`) | npm `@fontsource-variable/nunito-sans@5.3.0` |
 | Plus Jakarta Sans (zmienna 200–800) | `plus-jakarta-sans-latin(-ext)-wght-normal.woff2` | SIL Open Font License 1.1 (`OFL-plus-jakarta-sans.txt`) | npm `@fontsource-variable/plus-jakarta-sans@5.3.0` |
+
+Fredoka z pierwotnego szablonu Bawiloo nie ma liter Ą, Ę ani Ż (sprawdzone w plikach fontu), więc zastąpiono go podobnym, zaokrąglonym Baloo 2 z pełnym polskim alfabetem. Każdy font szablonu trzeba sprawdzić pod kątem polskich znaków (ĄĆĘŁŃÓŚŹŻ), zanim trafi do sklepu.
 
 Fonty są serwowane przez witrynę sklepu, bez zapytań do Google Fonts (adres IP odwiedzającego nie trafia do podmiotów trzecich).

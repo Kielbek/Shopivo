@@ -16,8 +16,8 @@ import { ThemeMockComponent } from './theme-mock';
 const CONTENT_KEYS = ['announcement', 'footerNote', 'logoImage', 'instagram', 'facebook', 'tiktok', 'youtube'];
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
-  return Object.fromEntries(keys.filter((k) => data[k]).map((k) => [k, data[k]]));
+function pick(data: Record<string, any>, keys: string[], keep: (key: string, value: unknown) => boolean = () => true): Record<string, any> {
+  return Object.fromEntries(keys.filter((k) => data[k] && keep(k, data[k])).map((k) => [k, data[k]]));
 }
 
 /**
@@ -220,15 +220,19 @@ export class ThemeGalleryPage {
       const next = { ...p.defaults };
       let sections = p.sections;
       if (d.state.version >= 0) {
+        // Only what the merchant wrote themselves moves to the new template: values still equal to the previous
+        // template's defaults (its sample texts, its own photos) are replaced by the new template's content.
+        const old = d.presets.find((x) => x.code === d.state.draft.code);
+        const oldHeroDefaults = old?.sections.find((s) => s.type === 'hero')?.data ?? {};
         for (const k of CONTENT_KEYS) {
           const v = d.state.draft.settings[k];
-          if (v) next[k] = v;
+          if (v && v !== old?.defaults[k]) next[k] = v;
         }
-        // The merchant's banner texts and image move to the new template's banner.
         const oldHero = d.state.draft.sections?.find((s) => s.type === 'hero');
-        if (oldHero) {
-          sections = p.sections.map((s) => (s.type === 'hero'
-            ? { ...s, data: { ...s.data, ...pick(oldHero.data, ['heading', 'subheading', 'cta', 'link', 'image']) } } : s));
+        if (oldHero && old) {
+          const own = pick(oldHero.data, ['heading', 'subheading', 'cta', 'link', 'image'],
+            (k, v) => v !== oldHeroDefaults[k] && !(k === 'image' && String(v).startsWith('tpl:')));
+          sections = p.sections.map((s) => (s.type === 'hero' ? { ...s, data: { ...s.data, ...own } } : s));
         }
       }
       await firstValueFrom(this.api.saveTheme(this.ctx.tenantId(), p.code, next, d.state.version, sections));

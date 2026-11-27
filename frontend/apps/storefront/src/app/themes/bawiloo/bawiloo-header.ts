@@ -29,7 +29,7 @@ import { Wishlist } from '../../core/wishlist';
           </button>
           <a routerLink="/" class="flex min-w-0 items-center" [attr.aria-label]="s.name + ' — strona główna'">
             @if (logo) {<img [src]="logo" [alt]="s.name" class="h-10 w-auto max-w-[170px] object-contain" />}
-            @else {<span class="sf-display truncate text-[26px] font-semibold tracking-[-0.02em] drop-shadow-[0_2px_0_rgba(0,0,0,0.12)] sm:text-[30px]">{{ s.name }}</span>}
+            @else {<span class="sf-display truncate text-[26px] font-bold tracking-[-0.02em] drop-shadow-[0_2px_0_rgba(0,0,0,0.12)] sm:text-[30px]">{{ s.name }}</span>}
           </a>
         </div>
         <nav class="hidden min-w-0 flex-1 items-center justify-center gap-x-6 text-[12px] font-extrabold uppercase tracking-wide lg:flex" aria-label="Kategorie">

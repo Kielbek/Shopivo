@@ -4,6 +4,9 @@ import { firstValueFrom } from 'rxjs';
 import { DISPLAY_FONTS, FONTS, RADII, readableOn } from './format';
 import { PublicCategory, PublicStore, StorefrontApi, ThemeConfig } from '../storefront-api';
 
+/** Template codes this storefront build knows how to draw (keep in sync with ThemeRegistry.PRESETS). */
+export const SUPPORTED_TEMPLATES = ['VERA', 'BAWILOO'];
+
 /** The store being browsed (loaded once per page load, shared by all pages). */
 @Injectable({ providedIn: 'root' })
 export class StoreState {
@@ -132,6 +135,7 @@ export class StoreState {
       }
       this.live.set({ theme: { code: d.theme.code, settings, sections: d.theme.sections.slice(0, 30) }, images });
     });
-    window.parent?.postMessage({ type: 'shopivo:ready' }, origin);
+    // Tells the editor which templates this storefront build can draw (an older build would show a wrong preview)
+    window.parent?.postMessage({ type: 'shopivo:ready', templates: SUPPORTED_TEMPLATES }, origin);
   }
 }

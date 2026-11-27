@@ -270,6 +270,13 @@ function newId(type: string): string {
                 <iframe #frame [src]="src" title="Podgląd sklepu na żywo" class="block size-full border-0 bg-white" sandbox="allow-scripts allow-same-origin allow-forms" (load)="framed()"></iframe>
               </div>
             </div>
+            @if (staleStorefront() && !frameBroken()) {
+              <div class="absolute inset-x-4 top-4 z-10" role="alert">
+                <sv-alert tone="warning">Podgląd wyświetla starsza wersja witryny sklepu, która nie zna szablonu „{{ presetName() }}” — dlatego wygląda inaczej niż szablon.
+                  Zaktualizuj witrynę (zbuduj i uruchom ponownie serwer witryny), a potem kliknij „Odśwież”.
+                  <button type="button" class="ml-1 font-semibold underline" (click)="retryFrame()">Odśwież</button></sv-alert>
+              </div>
+            }
             @if (frameBroken()) {
               <!-- The storefront did not answer inside the frame (not running, or it refuses to be framed by this panel) -->
               <div class="absolute inset-0 z-10 flex items-center justify-center bg-canvas/95 p-6" role="alert">
@@ -399,6 +406,13 @@ export class ThemeEditorPage {
   /** The storefront in the frame said "shopivo:ready" — only then do we send it the draft. */
   private readonly frameReady = signal(false);
   protected readonly frameBroken = signal(false);
+  /** Templates the storefront in the frame can draw (null until it answers). */
+  private readonly frameTemplates = signal<string[] | null>(null);
+  /** The preview runs an older storefront build that does not know this template — its look would be wrong. */
+  protected readonly staleStorefront = computed(() => {
+    const t = this.frameTemplates();
+    return t !== null && !!this.code() && !t.includes(this.code());
+  });
   protected readonly confirmSamples = signal(false);
   protected readonly importing = signal(false);
   protected get canAddProducts(): boolean {
@@ -446,6 +460,7 @@ export class ThemeEditorPage {
     const onMessage = (e: MessageEvent) => {
       if (e.origin === this.frameOrigin() && e.data?.type === 'shopivo:ready') {
         this.frameReady.set(true);
+        this.frameTemplates.set(Array.isArray(e.data.templates) ? e.data.templates.filter((t: unknown) => typeof t === 'string') : []);
         this.frameBroken.set(false);
         this.post({ type: 'shopivo:theme', theme: { code: this.code(), settings: this.settings(), sections: this.sections() }, images: this.images() });
       }
