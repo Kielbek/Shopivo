@@ -607,7 +607,41 @@ export class SectionFeaturedComponent {
         }
         @case ('categories') {
           @let cats = categoriesFor(s);
-          @if (cats.length) {
+          @if (d['style'] === 'circles' && (cats.length || store.sampleCategories().length)) {
+            <!-- One row of round category pictures; "Więcej" reveals the rest when they do not fit -->
+            @let open = expanded().has(s.id);
+            @let total = cats.length || store.sampleCategories().length;
+            <section class="sf-container mt-20 text-center sm:mt-28" [attr.aria-label]="d['heading'] || 'Kategorie'">
+              @if (d['eyebrow']) {<p class="text-[12px] uppercase tracking-[0.2em] text-sf-muted">{{ d['eyebrow'] }}</p>}
+              @if (d['heading']) {<h2 class="mb-8 mt-1 text-[26px] font-semibold uppercase sm:text-[32px] lg:mb-12 lg:text-[40px]">{{ d['heading'] }}</h2>}
+              <ul class="grid grid-cols-3 gap-x-3 gap-y-6 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6" [attr.id]="'cats-' + s.id">
+                @for (c of cats; track c.id; let i = $index) {
+                  <li [class]="open ? '' : circleHide(i)"><a [routerLink]="['/kategoria', c.slug]" class="group block">
+                    <span class="mx-auto flex aspect-square w-full max-w-[170px] items-center justify-center overflow-hidden rounded-full bg-white ring-4 ring-transparent transition group-hover:ring-sf-primary">
+                      @if (c.image) {<img [src]="c.image['w400']" alt="" class="size-full object-cover transition duration-300 group-hover:scale-105" loading="lazy" width="400" height="400" />}
+                      @else {<span class="sf-display text-[40px] font-semibold text-[#151513] opacity-70" aria-hidden="true">{{ c.name[0] }}</span>}
+                    </span>
+                    <span class="mt-3 block text-[11px] font-semibold uppercase sm:text-[13px]">{{ c.name }}</span>
+                  </a></li>
+                }
+                @if (!cats.length) {
+                  @for (c of store.sampleCategories(); track c.name; let i = $index) {
+                    <li [class]="open ? '' : circleHide(i)" [attr.aria-label]="'Przykładowa kategoria: ' + c.name">
+                      <span class="mx-auto block aspect-square w-full max-w-[170px] overflow-hidden rounded-full bg-white">
+                        @if (c.imageUrl) {<img [src]="c.imageUrl" alt="" class="size-full object-cover" loading="lazy" />}
+                      </span>
+                      <span class="mt-3 block text-[11px] font-semibold uppercase sm:text-[13px]">{{ c.name }}</span>
+                    </li>
+                  }
+                }
+              </ul>
+              @if (!cats.length) {<p class="mt-4 text-[12px] text-sf-muted" role="note">Przykładowe kategorie szablonu — widzisz je tylko w podglądzie, dopóki nie dodasz własnych.</p>}
+              @if (total > 3) {
+                <button type="button" class="mt-10 inline-flex rounded-full border border-sf-text px-6 py-2.5 text-[12px] font-extrabold uppercase transition hover:bg-sf-text hover:text-sf-bg"
+                  [class]="open ? '' : moreVisibility(total)" [attr.aria-expanded]="open" [attr.aria-controls]="'cats-' + s.id" (click)="toggle(s.id)">{{ open ? 'Pokaż mniej' : 'Zobacz więcej' }}</button>
+              }
+            </section>
+          } @else if (cats.length) {
             <section class="sf-container mt-14" [attr.aria-label]="d['heading'] || 'Kategorie'">
               @if (d['eyebrow']) {<p class="sf-eyebrow">{{ d['eyebrow'] }}</p>}
               @if (d['heading']) {<h2 class="text-[24px] font-semibold tracking-tight">{{ d['heading'] }}</h2>}
@@ -757,6 +791,27 @@ export class HomeSectionsComponent {
     return ICONS[key] ?? ICONS['star'];
   }
 
+  /** Expanded "circles" category rows (section ids). */
+  protected readonly expanded = signal<Set<string>>(new Set());
+
+  protected toggle(id: string): void {
+    this.expanded.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  /** One row: 3 circles on phones, 4 on tablets, 6 on desktops; the rest wait behind "Zobacz więcej". */
+  protected circleHide(i: number): string {
+    return i >= 6 ? 'hidden' : i >= 4 ? 'hidden lg:block' : i >= 3 ? 'hidden sm:block' : '';
+  }
+
+  /** The button only where something is hidden at that width. */
+  protected moreVisibility(total: number): string {
+    return total > 6 ? '' : total > 4 ? 'lg:hidden' : 'sm:hidden';
+  }
+
   protected tileCols(n: number): string {
     return n >= 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : n === 3 ? 'md:grid-cols-3' : n === 2 ? 'md:grid-cols-2' : '';
   }
@@ -769,6 +824,8 @@ export class HomeSectionsComponent {
   protected categoriesFor(s: ThemeSection) {
     const ids: string[] = s.data['categories'] ?? [];
     const all = this.store.store()?.categories ?? [];
-    return ids.length ? ids.map((id) => all.find((c) => c.id === id)).filter((c) => !!c) : this.store.topCategories().slice(0, 8);
+    // "circles" shows every top category (one row + "Zobacz więcej"); the other styles the first 8
+    return ids.length ? ids.map((id) => all.find((c) => c.id === id)).filter((c) => !!c)
+      : this.store.topCategories().slice(0, s.data['style'] === 'circles' ? 100 : 8);
   }
 }

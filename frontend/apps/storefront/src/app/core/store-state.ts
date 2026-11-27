@@ -52,6 +52,12 @@ export class StoreState {
     return s?.preview && this.catalogEmpty() ? s.sampleProducts?.[s.theme.code] ?? [] : [];
   });
 
+  /** Preview of a store without categories: the template's example categories. */
+  readonly sampleCategories = computed(() => {
+    const s = this.store();
+    return s?.preview && !s.categories.length ? s.sampleCategories?.[s.theme.code] ?? [] : [];
+  });
+
   readonly topCategories = computed(() => (this.store()?.categories ?? []).filter((c) => c.depth === 0));
 
   /** CSS custom properties of the theme, applied on the root element. */

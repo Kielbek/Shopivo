@@ -32,6 +32,33 @@ public class ThemeSamples {
     public record Sample(String name, String category, long priceMinor, Long compareAtMinor, List<String> sizes, String image, String description) {
     }
 
+    /** A template's category with its picture (given to the category when example products are added). */
+    public record SampleCategory(String name, String image) {
+    }
+
+    /** Preview-only category tile: name and picture URL. */
+    public record SampleCategoryCard(String name, String imageUrl) {
+    }
+
+    /** Categories of each template, in display order. Pictures are template images ({@link ThemeAssets}). */
+    public static final Map<String, List<SampleCategory>> CATEGORIES = Map.of(
+            "VERA", List.of(new SampleCategory("Kobiety", "tpl:vera/women"), new SampleCategory("Mężczyźni", "tpl:vera/men"),
+                    new SampleCategory("Akcesoria", "tpl:vera/accessories")),
+            "BAWILOO", List.of(new SampleCategory("Pluszaki", "tpl:bawiloo/cat-pluszaki"),
+                    new SampleCategory("Zabawa na dworze", "tpl:bawiloo/cat-outdoor"),
+                    new SampleCategory("Do kąpieli", "tpl:bawiloo/cat-kapiel"),
+                    new SampleCategory("Plastyka i rękodzieło", "tpl:bawiloo/cat-plastyczne"),
+                    new SampleCategory("Figurki", "tpl:bawiloo/cat-figurki"),
+                    new SampleCategory("Puzzle i łamigłówki", "tpl:bawiloo/cat-ukladanki")));
+
+    /** Category tiles per template code, for the preview of a store without categories. */
+    public static Map<String, List<SampleCategoryCard>> categoryCards() {
+        Map<String, List<SampleCategoryCard>> out = new HashMap<>();
+        CATEGORIES.forEach((code, list) -> out.put(code, list.stream().map(c -> new SampleCategoryCard(c.name(),
+                ThemeAssets.find(c.image()).map(a -> a.urls().get("w400")).orElse(null))).toList()));
+        return out;
+    }
+
     /** What the storefront preview shows: shaped like a product card, priced in PLN. */
     public record SampleCard(String name, String category, long priceMinor, Long compareAtMinor, String imageUrl) {
     }
@@ -101,7 +128,14 @@ public class ThemeSamples {
         for (CatalogViews.CategoryView c : categories.list()) cats.putIfAbsent(c.name().toLowerCase(Locale.ROOT), c.id());
         var existing = products.search(null, null, null, false, Products.Sort.NAME, org.springframework.data.domain.PageRequest.of(0, 1000))
                 .map(r -> r.name().toLowerCase(Locale.ROOT)).toSet();
-        // Categories first, in the template's order (the menu follows category order)
+        // Categories first, in the template's order (the menu follows category order), with the template's pictures
+        for (SampleCategory c : CATEGORIES.getOrDefault(code, List.of())) {
+            String key = c.name().toLowerCase(Locale.ROOT);
+            if (cats.containsKey(key)) continue;
+            UUID id = categories.create(new Categories.CategoryInput(c.name(), null, null, null, null, true, null, null, 0)).id();
+            cats.put(key, id);
+            categories.setImage(id, bytes(c.image()));
+        }
         for (Sample s : list) {
             if (existing.contains(s.name().toLowerCase(Locale.ROOT))) continue;
             cats.computeIfAbsent(s.category().toLowerCase(Locale.ROOT),

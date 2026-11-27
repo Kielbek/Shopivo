@@ -40,7 +40,7 @@ class ThemeSectionsIT extends IntegrationTest {
                 Map.of("id", "hero1", "type", "hero", "enabled", true, "data", Map.of("heading", "Lato", "image", imageId, "layout", "image", "link", "/kategoria/kubki")),
                 Map.of("id", "faq1", "type", "faq", "enabled", true, "data", Map.of("items", List.of(Map.of("question", "Pytanie?", "answer", "Odpowiedź\ndruga linia")))),
                 Map.of("id", "cat1", "type", "categories", "enabled", false, "data", Map.of("categories", List.of(category), "style", "tiles")));
-        var saved = owner.put(base(t) + "/theme", Map.of("code", "FASHION", "settings", Map.of("mobileNav", "bottom", "instagram", "https://instagram.com/sklep"),
+        var saved = owner.put(base(t) + "/theme", Map.of("code", "VERA", "settings", Map.of("mobileNav", "bottom", "instagram", "https://instagram.com/sklep"),
                 "sections", sections, "version", -1));
         assertThat(saved.status()).as(saved.body()).isEqualTo(200);
         var draft = saved.json().get("draft");
@@ -56,11 +56,13 @@ class ThemeSectionsIT extends IntegrationTest {
                 List.of(Map.of("id", "h1h1", "type", "hero", "enabled", true, "data", Map.of("link", "javascript:alert(1)"))),
                 List.of(Map.of("id", "h1h1", "type", "hero", "enabled", true, "data", Map.of("image", "not-an-id"))),
                 List.of(Map.of("id", "h1h1", "type", "hero", "enabled", true, "data", Map.of()), Map.of("id", "h1h1", "type", "faq", "enabled", true, "data", Map.of())))) {
-            assertThat(owner.put(base(t) + "/theme", Map.of("code", "FASHION", "settings", Map.of(), "sections", bad, "version", v)).code())
+            assertThat(owner.put(base(t) + "/theme", Map.of("code", "VERA", "settings", Map.of(), "sections", bad, "version", v)).code())
                     .as(bad.toString()).isEqualTo("INVALID_THEME");
         }
-        assertThat(owner.put(base(t) + "/theme", Map.of("code", "FASHION", "settings", Map.of("instagram", "http://x.pl"), "version", v)).code())
+        assertThat(owner.put(base(t) + "/theme", Map.of("code", "VERA", "settings", Map.of("instagram", "http://x.pl"), "version", v)).code())
                 .isEqualTo("INVALID_THEME");
+        // Retired templates cannot be chosen any more
+        assertThat(owner.put(base(t) + "/theme", Map.of("code", "FASHION", "settings", Map.of(), "version", v)).code()).isEqualTo("INVALID_THEME");
 
         ApiClient other = registeredUser(uniqueEmail("obcy"));
         String to = createStore(other, "Obcy", uniqueSlug("obcy"));
@@ -175,6 +177,10 @@ class ThemeSectionsIT extends IntegrationTest {
         var savedB = owner.put(base(t) + "/theme", Map.of("code", "BAWILOO", "settings", Map.of(), "sections", bSections, "version", v));
         assertThat(savedB.status()).as(savedB.body()).isEqualTo(200);
         assertThat(owner.post(base(t) + "/theme/sample-products", Map.of("code", "BAWILOO")).json().get("created").asInt()).isEqualTo(16);
+        // its six categories come with the template's pictures
+        var allCats = owner.get(base(t) + "/categories").json();
+        assertThat(allCats.size()).isEqualTo(9);
+        for (var c : allCats) assertThat(c.get("image").isObject()).as(c.get("name").asString()).isTrue();
 
         ApiClient other = registeredUser(uniqueEmail("obcy2"));
         assertThat(other.post(base(t) + "/theme/sample-products", Map.of("code", "VERA")).status()).isEqualTo(404);

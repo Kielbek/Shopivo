@@ -49,6 +49,11 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - nowe opcje sekcji: baner „Radosny”, kafelki okrągłe z przyciskiem, druga linia nagłówka i opis, karuzela produktów, zdjęcie „kwiatek”, nadtytuły w obrazie z tekstem i newsletterze;
   - grafiki szablonu mogą być w WebP;
   - E2E: podgląd pustego sklepu pokazuje 14 przykładów → dodanie 16 produktów → strona sklepu: karuzela się przewija, „Do koszyka” otwiera boczny koszyk z progiem dostawy, telefon bez poziomego przewijania, 0 zapytań zewnętrznych, 0 błędów konsoli i HTTP.
+- **Tylko dwa szablony: Véra i Bawiloo.**
+  - Wycofane kody przechodzą na następcę razem z ustawieniami.
+  - W Bawiloo „Ulubione zabawki dzieci” to prawdziwe kategorie w jednej linii z „Zobacz więcej”.
+  - Przykładowe kategorie mają zdjęcia.
+  - Miniatury w galerii: proporcje jak na stronie, ikony w nagłówku, falowana krawędź z łuków.
 - **Poprawka:** lista produktów obsługuje `?promocje=tak`. Wcześniej linki „Promocje” z sekcji pokazywały wszystkie produkty.
 - **E2E (Playwright, poza repo):**
   - **Przepływ:** sklep modowy z 8 produktami → wybór Véry w galerii → edytor → publikacja → strona główna (filtry: Akcesoria 2, Promocje 2) → szybkie dodanie produktu bez wariantów (boczny koszyk) → produkt z rozmiarami prowadzi na stronę produktu → dodanie z wyborem rozmiaru → `/produkty?promocje=tak`.

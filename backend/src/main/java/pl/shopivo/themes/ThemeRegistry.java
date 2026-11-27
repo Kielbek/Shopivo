@@ -24,7 +24,19 @@ public final class ThemeRegistry {
     public record Preset(String code, String name, String description, Map<String, String> defaults, List<SectionRegistry.Section> sections) {
     }
 
-    public static final String DEFAULT_CODE = "ELECTRONICS";
+    public static final String DEFAULT_CODE = "VERA";
+
+    /**
+     * Templates retired on 2026-11-27 (Atelier, Róża, Volt, Bajka, Ostoja, Sprint, Tor, Kruszec): stores that used one
+     * keep their texts, sections and settings and are shown with the closest current template.
+     */
+    static final Map<String, String> RETIRED = Map.of("FASHION", "VERA", "BEAUTY", "VERA", "ELECTRONICS", "VERA", "TOYS", "BAWILOO",
+            "HOME", "VERA", "SPORTS", "VERA", "AUTOMOTIVE", "VERA", "JEWELRY", "VERA");
+
+    /** Current template code for a stored one (retired codes map to their successor). */
+    public static String current(String code) {
+        return code != null && RETIRED.containsKey(code) ? RETIRED.get(code) : code;
+    }
     static final Pattern COLOR = Pattern.compile("^#[0-9A-Fa-f]{6}$");
     static final Pattern SLUG = Pattern.compile("^[a-z0-9]+(-[a-z0-9]+)*$");
 
@@ -79,31 +91,6 @@ public final class ThemeRegistry {
         return Map.copyOf(m);
     }
 
-    /** Builds a template's default home page from a short plan, e.g. "usp", "categories:tiles", "products:8". */
-    static List<SectionRegistry.Section> plan(String heroLayout, String title, String subtitle, String... items) {
-        List<SectionRegistry.Section> out = new java.util.ArrayList<>();
-        out.add(SectionRegistry.section("hero", "hero", Map.of("heading", title, "subheading", subtitle, "cta", "Zobacz produkty", "link", "/produkty",
-                "layout", heroLayout, "height", "medium")));
-        int n = 1;
-        for (String item : items) {
-            String[] parts = item.split(":");
-            String id = parts[0].replace("_", "") + n++;
-            out.add(switch (parts[0]) {
-                case "usp" -> SectionRegistry.section(id, "usp", SectionRegistry.usp());
-                case "categories" -> SectionRegistry.section(id, "categories", Map.of("heading", "Kategorie", "style", parts[1]));
-                case "products" -> SectionRegistry.section(id, "products", SectionRegistry.products(parts.length > 2 ? parts[2] : "Nowości", parts[1]));
-                case "image_text" -> SectionRegistry.section(id, "image_text", Map.of("heading", "Nasza historia",
-                        "text", "Opowiedz klientom, kim jesteś i co wyróżnia Twoje produkty. Zdjęcie dodasz w edytorze.", "cta", "Poznaj nas", "link", "/strona/o-nas"));
-                case "faq" -> SectionRegistry.section(id, "faq", SectionRegistry.faq());
-                case "newsletter" -> SectionRegistry.section(id, "newsletter", SectionRegistry.newsletter());
-                case "reviews" -> SectionRegistry.section(id, "reviews", Map.of("heading", "Co mówią klienci"));
-                case "blog" -> SectionRegistry.section(id, "blog", Map.of("heading", "Z bloga", "count", "3"));
-                default -> throw new IllegalStateException(item);
-            });
-        }
-        return List.copyOf(out);
-    }
-
     /** VÉRA: editorial fashion template with its own photos (template assets, see {@link ThemeAssets}). */
     private static Preset vera() {
         Map<String, String> d = new LinkedHashMap<>(preset("#141413", "#9A6B4C", "#FAF9F6", "#F5F3EF", "#141413", "editorial", "soft", "editorial", "plain", null, null));
@@ -142,14 +129,7 @@ public final class ThemeRegistry {
         List<SectionRegistry.Section> sections = List.of(
                 SectionRegistry.section("hero", "hero", Map.of("heading", "Każda zabawka to nowa radość", "cta", "Kupuj teraz", "link", link,
                         "image", "tpl:bawiloo/hero", "layout", "playful", "height", "medium")),
-                SectionRegistry.section("tiles1", "tiles", Map.of("heading", "Ulubione zabawki dzieci", "style", "circles",
-                        "cta", "Zobacz więcej", "link", link, "items", List.of(
-                        Map.of("image", "tpl:bawiloo/cat-pluszaki", "title", "Pluszaki", "link", link),
-                        Map.of("image", "tpl:bawiloo/cat-outdoor", "title", "Zabawa na dworze", "link", link),
-                        Map.of("image", "tpl:bawiloo/cat-kapiel", "title", "Do kąpieli", "link", link),
-                        Map.of("image", "tpl:bawiloo/cat-plastyczne", "title", "Plastyka i rękodzieło", "link", link),
-                        Map.of("image", "tpl:bawiloo/cat-figurki", "title", "Figurki", "link", link),
-                        Map.of("image", "tpl:bawiloo/cat-ukladanki", "title", "Puzzle i łamigłówki", "link", link)))),
+                SectionRegistry.section("cats1", "categories", Map.of("heading", "Ulubione zabawki dzieci", "style", "circles")),
                 SectionRegistry.section("products2", "products", Map.of("eyebrow", "Hity do zabawy", "heading", "Małe figurki,",
                         "accent", "wielkie przygody!", "text", "Poznaj bohaterów, z którymi zabawa nie ma końca.", "style", "grid",
                         "source", "newest", "count", "6", "buttonText", "Zobacz więcej")),
@@ -173,31 +153,7 @@ public final class ThemeRegistry {
     /** Button colours are chosen so white text keeps at least 4.5:1 contrast (WCAG AA). */
     public static final List<Preset> PRESETS = List.of(
             vera(),
-            bawiloo(),
-            new Preset("FASHION", "Atelier", "Elegancka typografia szeryfowa i duże zdjęcia — odzież, obuwie, dodatki.",
-                    preset("#111111", "#C8A27C", "#FFFFFF", "#F6F4F1", "#1A1A1A", "serif", "none", "image", "plain", null, null),
-                    plan("image", "Nowa kolekcja", "Ponadczasowe fasony w najlepszej jakości.", "categories:tiles", "products:8:Nowa kolekcja", "image_text", "newsletter")),
-            new Preset("BEAUTY", "Róża", "Miękkie, pudrowe kolory i zaokrąglenia — kosmetyki, pielęgnacja.",
-                    preset("#A23E62", "#F2C4CE", "#FFF9FA", "#FBEFF2", "#3A2530", "serif", "round", "split", "plain", null, null),
-                    plan("split", "Naturalna pielęgnacja", "Kosmetyki, które pokochasz od pierwszego użycia.", "usp", "products:8:Bestsellery", "reviews", "newsletter")),
-            new Preset("ELECTRONICS", "Volt", "Czysty, techniczny wygląd z naciskiem na parametry — elektronika, AGD.",
-                    preset("#2563EB", "#0EA5E9", "#F8FAFC", "#FFFFFF", "#0F172A", "sans", "soft", "split", "bordered", null, null),
-                    plan("split", "Technologia na co dzień", "Sprawdzony sprzęt w dobrych cenach.", "usp", "categories:chips", "products:8", "faq")),
-            new Preset("TOYS", "Bajka", "Radosne kolory i zaokrąglony krój — zabawki, artykuły dziecięce.",
-                    preset("#C2410C", "#8B5CF6", "#FFFBF5", "#FFFFFF", "#2D2A26", "rounded", "round", "centered", "shadow", null, null),
-                    plan("centered", "Radość z zabawy", "Zabawki, które rozwijają wyobraźnię.", "categories:tiles", "products:8", "usp", "newsletter")),
-            new Preset("HOME", "Ostoja", "Ciepłe, naturalne barwy — dom, wnętrza, ogród.",
-                    preset("#5B6E4F", "#D9B48F", "#FAF8F4", "#FFFFFF", "#2F2C27", "serif", "soft", "split", "plain", null, null),
-                    plan("split", "Przytulny dom", "Wyposażenie wnętrz z charakterem.", "categories:tiles", "image_text", "products:8", "blog")),
-            new Preset("SPORTS", "Sprint", "Dynamiczny, kontrastowy układ — sport, outdoor, fitness.",
-                    preset("#15803D", "#FACC15", "#FFFFFF", "#F3F4F6", "#111827", "sans", "soft", "banner", "bordered", null, null),
-                    plan("banner", "Gotowi do startu", "Sprzęt dla aktywnych.", "usp", "products:8", "categories:chips", "newsletter")),
-            new Preset("AUTOMOTIVE", "Tor", "Mocny, techniczny styl — motoryzacja, części, akcesoria.",
-                    preset("#B91C1C", "#1F2937", "#F9FAFB", "#FFFFFF", "#111827", "sans", "none", "banner", "bordered", null, null),
-                    plan("banner", "Części i akcesoria", "Szybka wysyłka, sprawdzone marki.", "usp", "categories:chips", "products:12", "faq")),
-            new Preset("JEWELRY", "Kruszec", "Luksusowa, oszczędna forma — biżuteria, zegarki.",
-                    preset("#7A5F30", "#E8D9B5", "#FFFFFF", "#FAF7F0", "#241F16", "serif", "none", "centered", "plain", null, null),
-                    plan("centered", "Ręcznie wykonana biżuteria", "Detale, które zostają na lata.", "products:4:Wyróżnione", "image_text", "reviews", "newsletter")));
+            bawiloo());
 
     public static Optional<Preset> preset(String code) {
         return PRESETS.stream().filter(p -> p.code().equals(code)).findFirst();

@@ -11,7 +11,7 @@ swój wygląd, własne komponenty i własne zdjęcia. Sprzedawca widzi je od raz
 | **Grafiki** | `backend/src/main/resources/themes/<kod>/<nazwa>-w400.jpg` i `-w1200.jpg`, rejestr w `ThemeAssets.java` | zdjęcia dostarczane z szablonem (baner, kafelki, baner „pracownia”…); źródła i licencje w [THEME_ASSETS.md](THEME_ASSETS.md) |
 | **Kod** | `frontend/apps/storefront/src/app/themes/<kod>/` + wspólne sekcje w `ui/sections.ts` | komponenty, które szablon ma inne niż standardowy układ (u Véry: nagłówek, stopka, boczny koszyk); karta produktu i strona produktu mają wariant zależny od `StoreState.layout()` |
 
-Szablony bez własnego kodu (Atelier, Róża, Volt…) korzystają ze standardowego układu i różnią się ustawieniami oraz sekcjami.
+W ofercie są tylko dwa szablony: **Véra** (domyślny) i **Bawiloo**. Wcześniejsze presety (Atelier, Róża, Volt, Bajka, Ostoja, Sprint, Tor, Kruszec) wycofano 2026-11-27. Sklepy, które je miały, zachowują swoje teksty, sekcje i ustawienia: `ThemeRegistry.RETIRED` przenosi zabawkowy szablon na Bawiloo, a resztę na Vérę.
 
 ## Grafiki szablonu: odnośnik zamiast kopii
 
@@ -123,7 +123,11 @@ produktów w JS, logowanie Google bez Google, przykładowe zamówienia, „check
 
 - **Nagłówek i stopka:** złoty gradient (z koloru akcentu); zaokrąglone logo Fredoka; pogrubione menu wielkimi literami z pigułką „Promocje”; ciemna stopka ze złotym logo.
 - **Baner „Radosny”:** ogromny napis, ciemny przycisk-pigułka, wycięte zdjęcie zabawek (WebP z przezroczystością) i falowana dolna krawędź.
-- **Kafelki „okrągłe”:** 6 działów ze zdjęciami w kółkach i przyciskiem „Zobacz więcej”.
+- **„Ulubione zabawki dzieci”:** sekcja *Kategorie* w stylu „okrągłe zdjęcia”, czyli prawdziwe kategorie główne sklepu ze zdjęciami kategorii.
+  - W jednej linii mieszczą się 3 kategorie na telefonie, 4 na tablecie i 6 na komputerze.
+  - Przycisk „Zobacz więcej” pokazuje resztę i jest widoczny tylko wtedy, gdy coś się nie zmieściło.
+  - W podglądzie pustego sklepu pokazuje się 6 przykładowych kategorii szablonu.
+  - Dodanie przykładowych produktów tworzy te kategorie razem ze zdjęciami.
 - **Produkty:**
   - wyśrodkowany nagłówek z ✦ nadtytułem i przechyloną złotą drugą linią;
   - ciemne karty z kwadratowym zdjęciem, złotą ceną, pigułką „Do koszyka” i znaczkiem −% przy promocjach;

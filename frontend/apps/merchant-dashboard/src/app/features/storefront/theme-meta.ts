@@ -18,14 +18,6 @@ export const THEME_META: Record<string, ThemeMeta> = {
     features: ['Własne zdjęcia i 16 przykładowych zabawek', 'Okrągłe kategorie i karuzela promocji', 'Ilustrowane ikony korzyści'] },
   VERA: { industries: ['FASHION', 'FOOTWEAR', 'ACCESSORIES', 'JEWELRY'], style: 'elegant',
     features: ['Własne zdjęcia szablonu (do podmiany)', 'Kafelki działów i filtry produktów', 'Boczny koszyk z progiem darmowej dostawy'] },
-  FASHION: { industries: ['FASHION', 'FOOTWEAR', 'ACCESSORIES', 'HANDMADE'], style: 'elegant', features: ['Duży baner ze zdjęciem', 'Szeryfowe nagłówki', 'Ostre krawędzie'] },
-  BEAUTY: { industries: ['COSMETICS', 'PERFUMES', 'MEDICAL', 'ECO'], style: 'elegant', features: ['Pudrowe kolory', 'Zaokrąglone przyciski', 'Układ dwukolumnowy'] },
-  ELECTRONICS: { industries: ['ELECTRONICS', 'COMPUTERS', 'GAMES', 'OFFICE', 'DIGITAL', 'GENERAL'], style: 'technical', features: ['Czytelne karty z ramką', 'Nowoczesny krój', 'Układ dwukolumnowy'] },
-  TOYS: { industries: ['TOYS', 'KIDS', 'GIFTS', 'HOBBY', 'STATIONERY', 'PETS'], style: 'colorful', features: ['Radosne kolory', 'Zaokrąglony krój', 'Karty z cieniem'] },
-  HOME: { industries: ['HOME', 'FURNITURE', 'GARDEN', 'HANDMADE', 'FOOD', 'GROCERY', 'ECO', 'BOOKS'], style: 'natural', features: ['Ciepłe barwy', 'Szeryfowe nagłówki', 'Delikatne zaokrąglenia'] },
-  SPORTS: { industries: ['SPORTS', 'OUTDOOR', 'MUSIC', 'GENERAL'], style: 'colorful', features: ['Kontrastowy baner', 'Dynamiczne kolory', 'Karty z ramką'] },
-  AUTOMOTIVE: { industries: ['AUTOMOTIVE', 'TOOLS', 'BUILDING', 'HOUSEHOLD'], style: 'technical', features: ['Mocny baner', 'Ostre krawędzie', 'Czytelne parametry'] },
-  JEWELRY: { industries: ['JEWELRY', 'JEWELLER', 'ACCESSORIES', 'PERFUMES'], style: 'minimal', features: ['Dużo światła', 'Wyśrodkowany nagłówek', 'Oszczędna forma'] },
 };
 
 export function metaOf(code: string): ThemeMeta {

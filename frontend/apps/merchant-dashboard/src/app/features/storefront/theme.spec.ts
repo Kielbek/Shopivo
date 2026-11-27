@@ -20,8 +20,10 @@ describe('theme helpers', () => {
     expect(radiusOf('round')).toBe('14px');
   });
 
-  it('every store industry has at least one recommended template', () => {
-    const covered = new Set(Object.values(THEME_META).flatMap((m) => m.industries));
-    expect(INDUSTRIES.filter((i) => !covered.has(i.id)).map((i) => i.id)).toEqual([]);
+  it('templates recommend only existing store industries', () => {
+    const known = new Set(INDUSTRIES.map((i) => i.id));
+    const used = Object.values(THEME_META).flatMap((m) => m.industries);
+    expect(used.length).toBeGreaterThan(0);
+    expect(used.filter((i) => !known.has(i))).toEqual([]);
   });
 });

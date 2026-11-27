@@ -70,10 +70,10 @@ public final class SectionRegistry {
             new SectionType("usp", "Korzyści", "Krótkie hasła budujące zaufanie, np. darmowa dostawa, 30 dni na zwrot.", List.of(
                     Prop.items("items", "Korzyści", 4, Prop.select("icon", "Ikona", "truck", "return", "shield", "card", "gift", "leaf", "star", "chat"),
                             Prop.text("title", "Tytuł", 40), Prop.text("text", "Opis", 90)))),
-            new SectionType("categories", "Kategorie", "Kafelki kategorii ze zdjęciami lub lista przycisków.", List.of(
+            new SectionType("categories", "Kategorie", "Kategorie sklepu: kafelki ze zdjęciami, okrągłe zdjęcia w jednej linii (z „Więcej”) lub przyciski.", List.of(
                     Prop.text("eyebrow", "Nadtytuł", 60), Prop.text("heading", "Nagłówek", 60),
                     Prop.of("categories", "Kategorie", Kind.CATEGORIES, "Puste = kategorie główne w kolejności sklepu."),
-                    Prop.select("style", "Wygląd", "tiles", "chips"))),
+                    Prop.select("style", "Wygląd", "tiles", "chips", "circles"))),
             new SectionType("products", "Produkty", "Siatka produktów: nowości, promocje albo wybrana kategoria (np. nowa kolekcja).", List.of(
                     Prop.text("eyebrow", "Nadtytuł", 60), Prop.text("heading", "Nagłówek", 60),
                     Prop.text("accent", "Druga linia nagłówka (wyróżniona)", 60), Prop.text("text", "Opis pod nagłówkiem", 160),
@@ -222,25 +222,8 @@ public final class SectionRegistry {
         return new Section(id, type, true, values(type, type(type).orElseThrow().props(), data));
     }
 
-    static Map<String, Object> usp() {
-        return Map.of("items", List.of(
-                Map.of("icon", "truck", "title", "Szybka wysyłka", "text", "Zamówienia wysyłamy w dni robocze."),
-                Map.of("icon", "return", "title", "14 dni na zwrot", "text", "Bez podawania przyczyny."),
-                Map.of("icon", "shield", "title", "Bezpieczne płatności", "text", "BLIK, karty i szybkie przelewy.")));
-    }
-
-    static Map<String, Object> faq() {
-        return Map.of("heading", "Najczęstsze pytania", "items", List.of(
-                Map.of("question", "Ile trwa dostawa?", "answer", "Zamówienia wysyłamy w dni robocze. Czas dostawy zależy od wybranego przewoźnika."),
-                Map.of("question", "Czy mogę zwrócić produkt?", "answer", "Tak — masz 14 dni na odstąpienie od umowy bez podawania przyczyny. Szczegóły znajdziesz na stronie „Zwroty i reklamacje”."),
-                Map.of("question", "Jak mogę zapłacić?", "answer", "Dostępne metody płatności zobaczysz w koszyku przed złożeniem zamówienia.")));
-    }
-
     static Map<String, Object> newsletter() {
         return Map.of("heading", "Bądź na bieżąco", "text", "Nowości i promocje prosto na Twój e-mail. Możesz wypisać się w każdej chwili.", "button", "Zapisz się");
     }
 
-    static Map<String, Object> products(String heading, String count) {
-        return Map.of("heading", heading, "source", "newest", "count", count, "buttonText", "Wszystkie produkty");
-    }
 }

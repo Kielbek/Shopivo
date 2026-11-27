@@ -25,7 +25,8 @@ import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
       }
       <!-- header -->
       <div class="flex items-center gap-2 px-[6%] py-[3%]" [style.border-bottom]="playful() ? 'none' : '1px solid ' + line()"
-        [style.background]="playful() ? gradient() : null" [style.color]="playful() ? '#fff' : null">
+        [style.background]="playful() ? gradient() : null" [style.color]="playful() ? '#fff' : null" [style.margin-bottom.px]="playful() ? -1 : null"
+        [style.position]="playful() ? 'relative' : null" [style.z-index]="playful() ? 1 : null">
         @if (playful()) {
           <span class="truncate py-[1px] font-semibold leading-[1.35]" [style.font-family]="display()" [style.font-size.px]="phone() ? 12 : 13">{{ storeName() || 'Twój sklep' }}</span>
         } @else if (editorial()) {
@@ -58,7 +59,10 @@ import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
             <span class="mx-auto mt-1.5 inline-block rounded-full px-2 py-[2px] text-[5px] font-extrabold uppercase" [style.background]="s['background']" [style.color]="s['text']">{{ hero()['cta'] || 'Zobacz' }}</span>
             @if (heroImage(); as img) {<img [src]="img" alt="" class="mx-auto mt-1 block w-[92%] object-contain" [style.max-height.px]="phone() ? 58 : 62" />}
           </div>
-          <div class="h-[6px]" [style.background]="'radial-gradient(circle at 50% 0, ' + s['accent'] + ' 3px, transparent 3.5px) 0 0 / 8px 6px repeat-x'"></div>
+          <!-- scalloped bottom edge, as on the real page -->
+          <svg viewBox="0 0 1200 50" preserveAspectRatio="none" class="-mt-px block h-[9px] w-full" aria-hidden="true">
+            <path [attr.fill]="s['accent']" d="M0 0H1200V1A50 49 0 0 1 1100 1A50 49 0 0 1 1000 1A50 49 0 0 1 900 1A50 49 0 0 1 800 1A50 49 0 0 1 700 1A50 49 0 0 1 600 1A50 49 0 0 1 500 1A50 49 0 0 1 400 1A50 49 0 0 1 300 1A50 49 0 0 1 200 1A50 49 0 0 1 100 1A50 49 0 0 1 0 1Z" />
+          </svg>
         }
         @case ('editorial') {
           <div class="grid items-center gap-[5%] px-[6%] py-[3%]" [class]="phone() ? 'grid-cols-1' : 'grid-cols-2'" [style.background]="s['surface']">

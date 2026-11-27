@@ -103,7 +103,8 @@ public class Themes {
     }
 
     private ThemeConfig parse(String value) {
-        ThemeConfig raw = json.readValue(value, new TypeReference<ThemeConfig>() { });
+        ThemeConfig stored = json.readValue(value, new TypeReference<ThemeConfig>() { });
+        ThemeConfig raw = new ThemeConfig(ThemeRegistry.current(stored.code()), stored.settings(), stored.sections());
         // Re-validated on read: a preset may have gained new settings since the configuration was saved.
         try {
             List<SectionRegistry.Section> sections = raw.sections() == null ? migrated(raw) : SectionRegistry.validate(raw.sections());

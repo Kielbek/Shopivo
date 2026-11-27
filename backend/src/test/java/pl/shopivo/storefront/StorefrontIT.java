@@ -117,7 +117,7 @@ class StorefrontIT extends IntegrationTest {
         publishStore(owner, t);
         JsonNode store = json(sf(host, "/store", null));
         assertThat(store.get("open").asBoolean()).isTrue();
-        assertThat(store.get("theme").get("code").asString()).isEqualTo("ELECTRONICS");
+        assertThat(store.get("theme").get("code").asString()).isEqualTo("VERA");
         assertThat(store.get("seller").get("taxId").asString()).isEqualTo("5260001246");
         assertThat(store.get("categories").toString()).contains("Kubki").doesNotContain("Ukryta");
 
@@ -162,12 +162,12 @@ class StorefrontIT extends IntegrationTest {
         owner.post(base(t) + "/products", product("Produkt", "ACTIVE", "P-1", 1000, 1, List.of()));
 
         var theme = owner.get(base(t) + "/theme").json();
-        assertThat(theme.get("presets").size()).isEqualTo(10);
-        assertThat(owner.put(base(t) + "/theme", Map.of("code", "JEWELRY", "settings", Map.of("primary", "red"), "version", -1)).code())
+        assertThat(theme.get("presets").size()).isEqualTo(2);
+        assertThat(owner.put(base(t) + "/theme", Map.of("code", "BAWILOO", "settings", Map.of("primary", "red"), "version", -1)).code())
                 .isEqualTo("INVALID_THEME");
-        assertThat(owner.put(base(t) + "/theme", Map.of("code", "JEWELRY", "settings", Map.of("hack", "x"), "version", -1)).code())
+        assertThat(owner.put(base(t) + "/theme", Map.of("code", "BAWILOO", "settings", Map.of("hack", "x"), "version", -1)).code())
                 .isEqualTo("INVALID_THEME");
-        var saved = owner.put(base(t) + "/theme", Map.of("code", "JEWELRY", "settings", Map.of("primary", "#7a5f30",
+        var saved = owner.put(base(t) + "/theme", Map.of("code", "BAWILOO", "settings", Map.of("primary", "#7a5f30",
                 "heroTitle", "Złoto i srebro"), "version", -1));
         assertThat(saved.status()).as(saved.body()).isEqualTo(200);
         assertThat(saved.json().get("draft").get("settings").get("primary").asString()).isEqualTo("#7A5F30");
@@ -180,10 +180,10 @@ class StorefrontIT extends IntegrationTest {
         assertThat(sf(host, "/products", token + "x").getStatus()).isEqualTo(404);
         JsonNode previewStore = json(sf(host, "/store", token));
         assertThat(previewStore.get("preview").asBoolean()).isTrue();
-        assertThat(previewStore.get("theme").get("code").asString()).isEqualTo("JEWELRY");
+        assertThat(previewStore.get("theme").get("code").asString()).isEqualTo("BAWILOO");
         assertThat(sf(host, "/store", token).getHeader("Cache-Control")).contains("no-store");
         // Public visitors still see the published (default) theme
-        assertThat(json(sf(host, "/store", null)).get("theme").get("code").asString()).isEqualTo("ELECTRONICS");
+        assertThat(json(sf(host, "/store", null)).get("theme").get("code").asString()).isEqualTo("VERA");
 
         owner.post(base(t) + "/theme/publish", Map.of());
         // The old single-banner setting lands in the hero section; the storefront gets the sections and theme images
@@ -246,11 +246,11 @@ class StorefrontIT extends IntegrationTest {
         images.forEach(i -> positions.add(i.get("position").asInt()));
         assertThat(positions).containsExactlyInAnyOrder(0, 1, 2, 3, 4, 5, 6, 7, 8, 9);
 
-        var first = owner.put(base(t) + "/theme", Map.of("code", "HOME", "settings", Map.of(), "version", -1));
+        var first = owner.put(base(t) + "/theme", Map.of("code", "VERA", "settings", Map.of(), "version", -1));
         assertThat(first.status()).isEqualTo(200);
-        assertThat(owner.put(base(t) + "/theme", Map.of("code", "TOYS", "settings", Map.of(), "version", -1)).status()).isEqualTo(409);
+        assertThat(owner.put(base(t) + "/theme", Map.of("code", "BAWILOO", "settings", Map.of(), "version", -1)).status()).isEqualTo(409);
         long v = first.json().get("version").asLong();
-        assertThat(owner.put(base(t) + "/theme", Map.of("code", "TOYS", "settings", Map.of(), "version", v)).status()).isEqualTo(200);
-        assertThat(owner.put(base(t) + "/theme", Map.of("code", "FASHION", "settings", Map.of(), "version", v)).status()).isEqualTo(409);
+        assertThat(owner.put(base(t) + "/theme", Map.of("code", "BAWILOO", "settings", Map.of(), "version", v)).status()).isEqualTo(200);
+        assertThat(owner.put(base(t) + "/theme", Map.of("code", "BAWILOO", "settings", Map.of(), "version", v)).status()).isEqualTo(409);
     }
 }

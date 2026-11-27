@@ -16,6 +16,8 @@ export interface PublicStore {
   panelOrigin: string | null;
   /** Template example products by template code — sent only in preview, shown while the store has no products. */
   sampleProducts?: Record<string, SampleCard[]>;
+  /** Template example categories (preview only) — shown while the store has no categories. */
+  sampleCategories?: Record<string, { name: string; imageUrl: string | null }[]>;
 }
 export interface SampleCard { name: string; category: string; priceMinor: number; compareAtMinor: number | null; imageUrl: string | null; }
 export type LegalKey = 'TERMS' | 'PRIVACY' | 'RETURNS' | 'SHIPPING';
