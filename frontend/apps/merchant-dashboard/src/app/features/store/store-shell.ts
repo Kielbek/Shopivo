@@ -9,6 +9,7 @@ import {
   AlertComponent, AppShellComponent, AvatarComponent, BadgeComponent, ButtonComponent, LoadingComponent, LogoComponent,
   MenuComponent, MenuItemComponent, NavItem, NavSection, icons,
 } from '@shopivo/shared-ui';
+import { BackIconComponent } from '@shopivo/shared-ui';
 import { SubscriptionBanner } from './subscription-banner';
 import { StoreContext } from './store-context';
 
@@ -79,7 +80,7 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
 
 @Component({
   selector: 'sv-store-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideDynamicIcon, AppShellComponent, LoadingComponent, AlertComponent, ButtonComponent,
+  imports: [BackIconComponent, RouterOutlet, RouterLink, RouterLinkActive, LucideDynamicIcon, AppShellComponent, LoadingComponent, AlertComponent, ButtonComponent,
     MenuComponent, MenuItemComponent, AvatarComponent, BadgeComponent, LogoComponent, SubscriptionBanner],
   providers: [StoreContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -100,8 +101,8 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
         @if (inSettings()) {
           <div shell-subnav>
             <div class="flex h-16 items-center gap-2 px-3">
-              <a [routerLink]="base()" class="flex items-center gap-1.5 rounded-[8px] px-2 py-1.5 text-[14px] font-semibold text-nav-strong hover:bg-nav-hover">
-                <svg [lucideIcon]="icons.arrowLeft" [size]="16" />Ustawienia</a>
+              <a [routerLink]="base()" class="group flex items-center rounded-[8px] px-2 py-1.5 text-[14px] font-semibold text-nav-strong hover:bg-nav-hover" aria-label="Wróć do panelu sklepu">
+                <sv-back-icon icon="settings" label="Ustawienia" hoverLabel="Wróć" /></a>
             </div>
             <div class="mx-3 mb-4 flex items-center gap-2.5 rounded-[12px] border border-nav-line bg-nav-field px-3 py-2.5">
               <span class="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-neon text-[12px] font-bold text-night">{{ initials() }}</span>

@@ -5,6 +5,7 @@ import { LucideDynamicIcon } from '@lucide/angular';
 import { ApiError, StorefrontAdminApi } from '@shopivo/api-client';
 import { StoreIndustry, ThemePreset } from '@shopivo/shared-models';
 import { AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, LoadingComponent, ToastService, icons } from '@shopivo/shared-ui';
+import { BackIconComponent } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { INDUSTRIES, industryOf } from '../catalog/industries';
 import { StoreContext } from '../store/store-context';
@@ -25,11 +26,11 @@ function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
  */
 @Component({
   selector: 'sv-theme-gallery-page',
-  imports: [RouterLink, LucideDynamicIcon, AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, LoadingComponent, ThemeMockComponent],
+  imports: [BackIconComponent, RouterLink, LucideDynamicIcon, AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, LoadingComponent, ThemeMockComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (chosen()) {
-      <a routerLink="../" class="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink"><svg [lucideIcon]="icons.arrowLeft" [size]="14" />Wygląd sklepu</a>
+      <a routerLink="../" class="group inline-flex items-center text-[13px] text-ink-muted hover:text-ink"><sv-back-icon icon="appearance" [size]="14" label="Wygląd sklepu" /></a>
     }
     <div class="mt-2 flex flex-wrap items-end justify-between gap-4">
       <div>

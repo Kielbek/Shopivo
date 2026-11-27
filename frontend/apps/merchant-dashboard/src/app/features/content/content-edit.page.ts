@@ -9,6 +9,7 @@ import {
   AlertComponent, BadgeComponent, DatePipe, ButtonComponent, CardComponent, DialogComponent, FieldComponent, LoadingComponent, PageHeaderComponent,
   TabOption, TabsComponent, ToastService, icons,
 } from '@shopivo/shared-ui';
+import { BackIconComponent } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 import { RichPreviewComponent } from './rich-preview';
@@ -24,12 +25,12 @@ const PLACEHOLDER = /\[uzupełnij[^\]]*\]/g;
 /** Editor of a page or blog post (route `tresci/nowa?rodzaj=` or `tresci/:id`). */
 @Component({
   selector: 'sv-content-edit-page',
-  imports: [DevicePreviewComponent, LegalDataFormComponent, FormsModule, RouterLink, DatePipe, LucideDynamicIcon, PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent,
+  imports: [BackIconComponent, DevicePreviewComponent, LegalDataFormComponent, FormsModule, RouterLink, DatePipe, LucideDynamicIcon, PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent,
     AlertComponent, LoadingComponent, FieldComponent, DialogComponent, TabsComponent, RichPreviewComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <a routerLink="../" [queryParams]="{ zakladka: kind() === 'POST' ? 'blog' : null }" class="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink">
-      <svg [lucideIcon]="icons.arrowLeft" [size]="14" />Strony i blog
+    <a routerLink="../" [queryParams]="{ zakladka: kind() === 'POST' ? 'blog' : null }" class="group inline-flex items-center text-[13px] text-ink-muted hover:text-ink">
+      <sv-back-icon icon="pages" [size]="14" label="Strony i blog" />
     </a>
     @if (id() && entry.isLoading() && !entry.value()) {
       <sv-loading class="mt-2" variant="detail" />

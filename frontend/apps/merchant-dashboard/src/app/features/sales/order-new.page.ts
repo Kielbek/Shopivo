@@ -9,6 +9,7 @@ import {
   AlertComponent, ButtonComponent, CardComponent, FieldComponent, LoadingComponent, MoneyPipe, SelectComponent, SelectOption,
   ToastService, icons,
 } from '@shopivo/shared-ui';
+import { BackIconComponent } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 
@@ -17,14 +18,14 @@ interface Line { variantId: string; name: string; title: string; unitMinor: numb
 /** Order taken by phone/e-mail. Prices, stock and totals are computed by the server, exactly as for the storefront. */
 @Component({
   selector: 'sv-order-new-page',
-  imports: [FormsModule, RouterLink, LucideDynamicIcon, CardComponent, ButtonComponent, AlertComponent, FieldComponent, LoadingComponent,
+  imports: [BackIconComponent, FormsModule, RouterLink, LucideDynamicIcon, CardComponent, ButtonComponent, AlertComponent, FieldComponent, LoadingComponent,
     SelectComponent, MoneyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <form (ngSubmit)="save()" novalidate>
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-3">
-          <a sv-button variant="ghost" size="icon" [routerLink]="['/sklep', ctx.tenantId(), 'zamowienia']" aria-label="Wróć do zamówień"><svg [lucideIcon]="icons.arrowLeft" /></a>
+          <a sv-button variant="ghost" size="icon" class="group" [routerLink]="['/sklep', ctx.tenantId(), 'zamowienia']" aria-label="Wróć do zamówień" title="Wróć"><sv-back-icon icon="orders" /></a>
           <h1 class="text-[24px] font-semibold tracking-[-0.02em] text-ink">Nowe zamówienie</h1>
         </div>
         <button sv-button type="submit" [loading]="saving()" [disabled]="!lines().length">Utwórz zamówienie</button>

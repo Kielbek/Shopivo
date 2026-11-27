@@ -18,3 +18,4 @@ export * from './lib/select';
 export * from './lib/gestures';
 export * from './lib/info-tip';
 export * from './lib/password-reveal';
+export * from './lib/back-icon';

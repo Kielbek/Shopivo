@@ -10,6 +10,7 @@ import { ProductImage, SectionType, ThemeField, ThemeSection } from '@shopivo/sh
 import {
   AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, IconName, LogoComponent, SelectComponent, SelectOption, ToastOutletComponent, ToastService, icons,
 } from '@shopivo/shared-ui';
+import { BackIconComponent } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { buildTree } from '../catalog/category-tree';
 import { StoreContext } from '../store/store-context';
@@ -45,7 +46,7 @@ function newId(type: string): string {
  */
 @Component({
   selector: 'sv-theme-editor-page',
-  imports: [RouterLink, LucideDynamicIcon, LogoComponent, AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, SelectComponent,
+  imports: [BackIconComponent, RouterLink, LucideDynamicIcon, LogoComponent, AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, SelectComponent,
     ToastOutletComponent, ImagePickerComponent, PropFormComponent],
   providers: [StoreContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -75,8 +76,8 @@ function newId(type: string): string {
     <div class="flex min-w-0 flex-1 flex-col overflow-hidden bg-canvas lg:my-2.5 lg:mr-2.5 lg:rounded-[18px]">
     <!-- top bar -->
     <header class="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-card px-3 sm:px-4">
-      <button type="button" class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[8px] px-2 text-[13px] font-medium text-ink-soft hover:bg-hover hover:text-ink" (click)="exit()">
-        <svg [lucideIcon]="icons.arrowLeft" [size]="16" />Wyjdź</button>
+      <button type="button" class="group inline-flex h-9 shrink-0 items-center rounded-[8px] px-2 text-[13px] font-medium text-ink-soft hover:bg-hover hover:text-ink" aria-label="Wyjdź z edytora — wróć do wyglądu sklepu" (click)="exit()">
+        <sv-back-icon icon="appearance" label="Wyjdź" hoverLabel="Wróć" /></button>
       <span class="hidden h-6 w-px bg-line sm:block"></span>
       <div class="hidden min-w-0 items-center gap-2 sm:flex">
         <span class="truncate text-[14px] font-semibold text-ink">{{ presetName() }}</span>
@@ -165,7 +166,7 @@ function newId(type: string): string {
               @if (currentSection(); as s) {
                 @let t = typeOf(s.type);
                 <div class="flex items-center gap-2 border-b border-line px-3 py-3">
-                  <button type="button" class="rounded-[8px] p-1.5 text-ink-soft hover:bg-hover" aria-label="Wróć do listy sekcji" (click)="open({ kind: 'home' })"><svg [lucideIcon]="icons.arrowLeft" [size]="16" /></button>
+                  <button type="button" class="group rounded-[8px] p-1.5 text-ink-soft hover:bg-hover" aria-label="Wróć do listy sekcji" (click)="open({ kind: 'home' })"><sv-back-icon icon="dashboard" /></button>
                   <div class="min-w-0"><p class="truncate text-[14px] font-semibold text-ink">{{ t?.name }}</p><p class="truncate text-[12px] text-ink-muted">{{ t?.description }}</p></div>
                 </div>
                 <div class="min-h-0 flex-1 overflow-y-auto p-4">
@@ -184,7 +185,7 @@ function newId(type: string): string {
             }
             @case ('add') {
               <div class="flex items-center gap-2 border-b border-line px-3 py-3">
-                <button type="button" class="rounded-[8px] p-1.5 text-ink-soft hover:bg-hover" aria-label="Wróć do listy sekcji" (click)="open({ kind: 'home' })"><svg [lucideIcon]="icons.arrowLeft" [size]="16" /></button>
+                <button type="button" class="group rounded-[8px] p-1.5 text-ink-soft hover:bg-hover" aria-label="Wróć do listy sekcji" (click)="open({ kind: 'home' })"><sv-back-icon icon="dashboard" /></button>
                 <p class="text-[14px] font-semibold text-ink">Dodaj sekcję</p>
               </div>
               <ul class="min-h-0 flex-1 overflow-y-auto p-2">
@@ -199,7 +200,7 @@ function newId(type: string): string {
             @case ('group') {
               @let g = currentGroup();
               <div class="flex items-center gap-2 border-b border-line px-3 py-3">
-                <button type="button" class="rounded-[8px] p-1.5 text-ink-soft hover:bg-hover" aria-label="Wróć" (click)="open({ kind: 'home' })"><svg [lucideIcon]="icons.arrowLeft" [size]="16" /></button>
+                <button type="button" class="group rounded-[8px] p-1.5 text-ink-soft hover:bg-hover" aria-label="Wróć" (click)="open({ kind: 'home' })"><sv-back-icon icon="dashboard" /></button>
                 <p class="text-[14px] font-semibold text-ink">{{ g }}</p>
               </div>
               <div class="min-h-0 flex-1 overflow-y-auto p-4">

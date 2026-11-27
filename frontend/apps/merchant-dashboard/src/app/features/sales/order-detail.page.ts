@@ -9,6 +9,7 @@ import {
   AlertComponent, BadgeComponent, ButtonComponent, CardComponent, DatePipe, DialogComponent, FieldComponent, LoadingComponent,
   MoneyPipe, ToastService, icons,
 } from '@shopivo/shared-ui';
+import { BackIconComponent } from '@shopivo/shared-ui';
 import { Observable, firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 import { ORDER_TONE, PAYMENT_TONE } from './order-tones';
@@ -19,7 +20,7 @@ type Pending = { kind: 'ship' } | { kind: 'cancel' } | null;
 
 @Component({
   selector: 'sv-order-detail-page',
-  imports: [FormsModule, RouterLink, LucideDynamicIcon, CardComponent, BadgeComponent, ButtonComponent, AlertComponent, FieldComponent,
+  imports: [BackIconComponent, FormsModule, RouterLink, LucideDynamicIcon, CardComponent, BadgeComponent, ButtonComponent, AlertComponent, FieldComponent,
     LoadingComponent, DialogComponent, DatePipe, MoneyPipe, RichPreviewComponent, OrderShipmentsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -30,7 +31,7 @@ type Pending = { kind: 'ship' } | { kind: 'cancel' } | null;
     } @else if (order.value(); as o) {
       <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div class="flex min-w-0 items-center gap-3">
-          <a sv-button variant="ghost" size="icon" [routerLink]="['/sklep', ctx.tenantId(), 'zamowienia']" aria-label="Wróć do zamówień"><svg [lucideIcon]="icons.arrowLeft" /></a>
+          <a sv-button variant="ghost" size="icon" class="group" [routerLink]="['/sklep', ctx.tenantId(), 'zamowienia']" aria-label="Wróć do zamówień" title="Wróć"><sv-back-icon icon="orders" /></a>
           <div class="min-w-0">
             <h1 class="text-[24px] font-semibold tracking-[-0.02em] text-ink">Zamówienie #{{ o.number }}</h1>
             <p class="mt-0.5 flex flex-wrap items-center gap-1.5 text-[13px] text-ink-muted">

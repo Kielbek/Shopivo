@@ -8,6 +8,7 @@ import {
   AlertComponent, BadgeComponent, ButtonComponent, DatePipe, FieldComponent, LoadingComponent,
   AvatarComponent, TabsComponent, ToastService, controlError, describeUserAgent, icons,
 } from '@shopivo/shared-ui';
+import { BackIconComponent } from '@shopivo/shared-ui';
 import { LucideDynamicIcon } from '@lucide/angular';
 import { TopBar } from '../onboarding/top-bar';
 import { toDataURL } from 'qrcode';
@@ -18,13 +19,13 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
 
 @Component({
   selector: 'sv-account-page',
-  imports: [ReactiveFormsModule, RouterLink, LucideDynamicIcon, TopBar, TabsComponent, AvatarComponent, FieldComponent,
+  imports: [BackIconComponent, ReactiveFormsModule, RouterLink, LucideDynamicIcon, TopBar, TabsComponent, AvatarComponent, FieldComponent,
     ButtonComponent, AlertComponent, BadgeComponent, LoadingComponent, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <sv-top-bar />
     <main class="mx-auto max-w-[880px] px-4 py-8 sm:px-6">
-      <a routerLink="/" class="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink"><svg [lucideIcon]="icons.chevronLeft" [size]="16" />Wróć do panelu</a>
+      <a routerLink="/" class="group inline-flex items-center text-[13px] text-ink-muted hover:text-ink"><sv-back-icon icon="dashboard" [size]="15" label="Wróć do panelu" /></a>
       <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <h1 class="text-[24px] font-semibold tracking-[-0.02em] text-ink">Konto</h1>
         <sv-tabs label="Sekcje konta" [tabs]="tabs" [(active)]="tab" />

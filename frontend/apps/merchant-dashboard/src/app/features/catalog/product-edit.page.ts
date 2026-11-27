@@ -16,6 +16,7 @@ import {
   AlertComponent, BadgeComponent, ButtonComponent, CardComponent, DialogComponent, FieldComponent, LoadingComponent, MoneyPipe,
   SelectComponent, SelectOption, ToastService, icons, moneyInput, parseMoney,
 } from '@shopivo/shared-ui';
+import { BackIconComponent } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 
@@ -46,7 +47,7 @@ function emptyVariant(): VariantRow {
 /** Create / edit a product. Variants are generated from the options (all combinations, max. 100). */
 @Component({
   selector: 'sv-product-edit-page',
-  imports: [FormsModule, RouterLink, LucideDynamicIcon, CardComponent, BadgeComponent, ButtonComponent, AlertComponent,
+  imports: [BackIconComponent, FormsModule, RouterLink, LucideDynamicIcon, CardComponent, BadgeComponent, ButtonComponent, AlertComponent,
     FieldComponent, LoadingComponent, SelectComponent, DialogComponent, MoneyPipe, ProductImagesComponent, CategoryTreeSelectComponent,
     VariantOptionsComponent, SeoPanelComponent, ParcelFieldsComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,8 +60,8 @@ function emptyVariant(): VariantRow {
       <form (ngSubmit)="save()" novalidate>
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex min-w-0 items-center gap-3">
-            <a sv-button variant="ghost" size="icon" [routerLink]="['/sklep', ctx.tenantId(), 'produkty']" aria-label="Wróć do produktów">
-              <svg [lucideIcon]="icons.arrowLeft" />
+            <a sv-button variant="ghost" size="icon" class="group" [routerLink]="['/sklep', ctx.tenantId(), 'produkty']" aria-label="Wróć do produktów" title="Wróć">
+              <sv-back-icon icon="products" />
             </a>
             <div class="min-w-0">
               <h1 class="truncate text-[22px] font-semibold tracking-[-0.01em] text-ink">{{ isNew() ? 'Nowy produkt' : (name || 'Produkt') }}</h1>
