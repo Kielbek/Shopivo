@@ -31,7 +31,7 @@ const STATUS_LABEL: Record<ReviewStatus, string> = { PENDING: 'Do moderacji', AP
         } @else if (reviews.error()) {
           <div class="p-5"><sv-alert tone="error">Nie udało się wczytać opinii.</sv-alert></div>
         } @else if (!reviews.value()?.items?.length) {
-          <sv-empty-state icon="star" [title]="tab() === 'PENDING' ? 'Brak opinii do moderacji' : 'Brak opinii'"
+          <sv-empty-state icon="star" illustration="reviews" [title]="tab() === 'PENDING' ? 'Brak opinii do moderacji' : 'Brak opinii'"
             description="Gdy klient oceni zakupiony produkt, opinia pojawi się tutaj." />
         } @else {
           <ul>

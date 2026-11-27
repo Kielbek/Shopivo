@@ -48,7 +48,7 @@ import { ORDER_TONE, PAYMENT_TONE } from './order-tones';
       } @else if (rows.error()) {
         <div class="p-5"><sv-alert tone="error">Nie udało się wczytać zamówień.</sv-alert></div>
       } @else if (!rows.value()?.items?.length) {
-        <sv-empty-state icon="orders" [title]="filtered() ? 'Brak wyników' : 'Brak zamówień'"
+        <sv-empty-state icon="orders" [illustration]="filtered() ? undefined : 'orders'" [title]="filtered() ? 'Brak wyników' : 'Brak zamówień'"
           [description]="filtered() ? 'Zmień filtry.' : 'Zamówienia ze sklepu pojawią się tutaj. Możesz też dodać zamówienie telefoniczne ręcznie.'" />
       } @else {
         <div class="overflow-x-auto px-5 py-3">

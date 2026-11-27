@@ -1,3 +1,4 @@
+import { IllustrationComponent, IllustrationName } from './illustration';
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { LucideDynamicIcon } from '@lucide/angular';
 import { IconName, icons } from './icons';
@@ -70,18 +71,26 @@ export class SectionComponent {
 
 @Component({
   selector: 'sv-empty-state',
-  imports: [LucideDynamicIcon],
+  imports: [LucideDynamicIcon, IllustrationComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col items-center px-6 py-9 text-center' },
   template: `
-    <svg [lucideIcon]="ICONS[icon()]" [size]="22" [strokeWidth]="1.5" class="text-[#B9BDB6]" />
-    <p class="mt-2.5 text-[13px] font-medium text-ink-soft">{{ title() }}</p>
-    @if (description()) {<p class="mt-0.5 max-w-xs text-[12px] leading-5 text-ink-muted">{{ description() }}</p>}
+    @if (illustration(); as name) {
+      <sv-illustration [name]="name" class="w-[210px] max-w-full" />
+      <p class="mt-3 text-[15px] font-semibold text-ink">{{ title() }}</p>
+      @if (description()) {<p class="mt-1 max-w-sm text-[13px] leading-5 text-ink-soft">{{ description() }}</p>}
+    } @else {
+      <svg [lucideIcon]="ICONS[icon()]" [size]="22" [strokeWidth]="1.5" class="text-[#B9BDB6]" />
+      <p class="mt-2.5 text-[13px] font-medium text-ink-soft">{{ title() }}</p>
+      @if (description()) {<p class="mt-0.5 max-w-xs text-[12px] leading-5 text-ink-muted">{{ description() }}</p>}
+    }
     <div class="mt-4 flex gap-2 empty:mt-0"><ng-content /></div>
   `,
 })
 export class EmptyStateComponent {
   protected readonly ICONS = icons;
+  /** First-time empty state: a spot illustration instead of the small icon (not for "no results"). */
+  readonly illustration = input<IllustrationName>();
   readonly title = input.required<string>();
   readonly description = input<string>();
   readonly icon = input<IconName>('info');

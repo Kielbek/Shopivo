@@ -71,7 +71,7 @@ const SAMPLE_CSV = '﻿email;imie;nazwisko;telefon;firma;adres;adres2;kod_poczto
         @if (filtersActive()) {
           <sv-empty-state icon="search" title="Brak wyników" description="Zmień filtry lub wyszukiwaną frazę." />
         } @else {
-          <sv-empty-state icon="users" title="Nie masz jeszcze klientów" description="Klienci pojawią się po pierwszych zamówieniach. Możesz też dodać ich ręcznie lub zaimportować z pliku CSV.">
+          <sv-empty-state icon="users" illustration="customers" title="Nie masz jeszcze klientów" description="Klienci pojawią się po pierwszych zamówieniach. Możesz też dodać ich ręcznie lub zaimportować z pliku CSV.">
             @if (canWrite) {
               <div class="mt-4 flex flex-wrap justify-center gap-2">
                 <button sv-button variant="secondary" (click)="openImport()"><svg [lucideIcon]="icons.upload" />Importuj</button>

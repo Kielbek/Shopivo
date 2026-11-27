@@ -65,7 +65,7 @@ const STATUS: Record<NewsletterStatus, { label: string; tone: 'success' | 'info'
         @if (query() || status()) {
           <sv-empty-state icon="mail" title="Brak wyników" description="Zmień filtry." />
         } @else {
-          <sv-empty-state icon="mail" title="Nikt jeszcze się nie zapisał"
+          <sv-empty-state icon="mail" illustration="newsletter" title="Nikt jeszcze się nie zapisał"
             description="Formularz newslettera pokazuje się w stopce sklepu i w sekcji „Newsletter” na stronie głównej.">
             <a sv-button variant="secondary" class="mt-4" [routerLink]="['/sklep', ctx.tenantId(), 'edytor-wygladu']">Ustaw w edytorze wyglądu</a>
           </sv-empty-state>

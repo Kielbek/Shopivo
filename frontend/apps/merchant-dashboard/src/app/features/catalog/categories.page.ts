@@ -53,7 +53,7 @@ interface CategoryForm {
         } @else if (categories.error()) {
           <div class="px-5 pb-5"><sv-alert tone="error">Nie udało się wczytać kategorii.</sv-alert></div>
         } @else if (!tree().length) {
-          <sv-empty-state icon="categories" title="Brak kategorii" description="Np. Odzież → Koszulki, Bluzy.">
+          <sv-empty-state icon="categories" illustration="categories" title="Brak kategorii" description="Np. Odzież → Koszulki, Bluzy.">
             @if (canWrite) {<button sv-button class="mt-4" (click)="open(null, null)"><svg [lucideIcon]="icons.plus" />Dodaj kategorię</button>}
           </sv-empty-state>
         } @else {

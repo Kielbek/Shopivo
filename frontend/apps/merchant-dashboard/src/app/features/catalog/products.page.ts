@@ -75,7 +75,7 @@ type BulkAction = 'ACTIVATE' | 'DRAFT' | 'ARCHIVE' | 'DELETE';
         @if (filtersActive()) {
           <sv-empty-state icon="search" title="Brak wyników" description="Zmień filtry lub wyszukiwaną frazę." />
         } @else {
-          <sv-empty-state icon="products" title="Nie masz jeszcze produktów" description="Dodaj pierwszy produkt — z wariantami, cenami i stanem magazynu.">
+          <sv-empty-state icon="products" illustration="products" title="Nie masz jeszcze produktów" description="Dodaj pierwszy produkt — z wariantami, cenami i stanem magazynu.">
             @if (canWrite) {<a sv-button routerLink="nowy" class="mt-4"><svg [lucideIcon]="icons.plus" />Dodaj produkt</a>}
           </sv-empty-state>
         }

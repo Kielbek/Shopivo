@@ -105,3 +105,11 @@ Produkt nie używa spinnerów. Wczytywanie = szkielet w kształcie treści (`<sv
 klasa `.sv-shimmer`), karty statystyk mają `[loading]`, przycisk w trakcie akcji (`[loading]`) zachowuje etykietę i dostaje
 połysk (`.sv-btn-busy`), `aria-busy` i tekst dla czytników ekranu. W sklepie klienta: `.sf-shimmer` (kolor z motywu).
 Animacje są wyłączane przy `prefers-reduced-motion`.
+
+## Ilustracje pustych stanów
+
+`sv-illustration` (`libs/shared-ui/src/lib/illustration.ts`) — własne, płaskie ilustracje SVG Shopivo: jasnoszare koło w tle,
+proste kształty, zielenie marki (`#36AE2C`, `#1E7F4F`, `#41C336`) z ciepłym akcentem (`#F2A93B`, `#EF7D62`), delikatny „cień”
+jako przesunięty szary kształt (`#DDE0DA`). Dostępne: `customers`, `products`, `orders`, `returns`, `reviews`, `newsletter`,
+`pages`, `categories`, `inventory`, `store`. Używaj przez `<sv-empty-state illustration="…">` tylko dla stanu „jeszcze nic
+tu nie ma” — dla „brak wyników” zostaje mała ikona. Ilustracje są dekoracyjne (`aria-hidden`).

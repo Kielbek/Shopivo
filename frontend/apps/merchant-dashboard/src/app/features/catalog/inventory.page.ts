@@ -39,7 +39,7 @@ const MANUAL_REASONS: MovementReason[] = ['RECEIPT', 'ADJUSTMENT', 'CORRECTION',
       } @else if (rows.error()) {
         <div class="p-5"><sv-alert tone="error">Nie udało się wczytać stanów.</sv-alert></div>
       } @else if (!rows.value()?.items?.length) {
-        <sv-empty-state icon="inventory" [title]="query() || lowOnly() ? 'Brak wyników' : 'Brak śledzonych stanów'"
+        <sv-empty-state icon="inventory" [illustration]="query() || lowOnly() ? undefined : 'inventory'" [title]="query() || lowOnly() ? 'Brak wyników' : 'Brak śledzonych stanów'"
           [description]="query() || lowOnly() ? 'Zmień filtry.' : 'Stany pojawią się po dodaniu produktów ze śledzeniem magazynu.'" />
       } @else {
         <div class="overflow-x-auto px-5 py-3">

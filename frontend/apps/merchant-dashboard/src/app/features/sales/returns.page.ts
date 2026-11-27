@@ -41,7 +41,7 @@ type Filter = 'open' | ReturnStatus | 'all';
       } @else if (rows.error()) {
         <div class="p-5"><sv-alert tone="error">Nie udało się wczytać zgłoszeń.</sv-alert></div>
       } @else if (!items().length) {
-        <sv-empty-state icon="undo" [title]="filter() === 'open' ? 'Nic do rozpatrzenia' : 'Brak zgłoszeń'"
+        <sv-empty-state icon="undo" illustration="returns" [title]="filter() === 'open' ? 'Nic do rozpatrzenia' : 'Brak zgłoszeń'"
           description="Klienci zgłaszają zwroty (14 dni od otrzymania) i reklamacje ze swojego konta, na stronie zamówienia." />
       } @else {
         <ul>

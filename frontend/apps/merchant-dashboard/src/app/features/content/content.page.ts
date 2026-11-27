@@ -93,7 +93,7 @@ type Tab = 'strony' | 'blog' | 'menu' | 'przekierowania';
       } @else if (entries.error()) {
         <div class="p-5"><sv-alert tone="error">Nie udało się wczytać listy.</sv-alert></div>
       } @else if (!items().length) {
-        <sv-empty-state [icon]="'pages'" [title]="query() ? 'Brak wyników' : tab() === 'blog' ? 'Brak wpisów' : 'Brak stron'"
+        <sv-empty-state [icon]="'pages'" [illustration]="query() ? undefined : 'pages'" [title]="query() ? 'Brak wyników' : tab() === 'blog' ? 'Brak wpisów' : 'Brak stron'"
           [description]="tab() === 'blog' ? 'Wpisy na blogu pomagają klientom i wyszukiwarkom — opisz nowości, porady, kulisy pracy.' : 'Dodaj np. stronę „O nas” lub „Kontakt”.'" />
       } @else {
         <ul>

@@ -27,7 +27,7 @@ import { TopBar } from './top-bar';
         } @else if (stores.error()) {
           <div class="p-4"><sv-alert tone="error">{{ errorMessage() }}</sv-alert></div>
         } @else if (!stores.value()?.length) {
-          <sv-empty-state icon="store" title="Nie masz jeszcze sklepu" description="Utwórz pierwszy sklep — zajmie to mniej niż minutę.">
+          <sv-empty-state icon="store" illustration="store" title="Nie masz jeszcze sklepu" description="Utwórz pierwszy sklep — zajmie to mniej niż minutę.">
             <a sv-button routerLink="/nowy-sklep">Utwórz sklep</a>
           </sv-empty-state>
         } @else {
