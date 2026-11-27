@@ -9,7 +9,7 @@ import { AvatarComponent, LogoComponent, MenuComponent, MenuItemComponent, Toast
   selector: 'sv-top-bar',
   imports: [RouterLink, LucideDynamicIcon, LogoComponent, MenuComponent, MenuItemComponent, AvatarComponent, ToastOutletComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block [background:var(--nav-bg)] bg-[length:100%_400%] text-nav-strong' },
+  host: { class: 'block [background:var(--nav-bg)] text-nav-strong' },
   template: `
     <div class="mx-auto flex h-16 max-w-[1120px] items-center justify-between px-4 sm:px-6">
       <a routerLink="/sklepy" aria-label="Moje sklepy"><sv-logo tone="light" /></a>

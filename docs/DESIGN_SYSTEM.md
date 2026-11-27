@@ -3,8 +3,8 @@
 Dotyczy panelu sprzedawcy i panelu administratora platformy. **Witryny sklepów (storefront) mają własne motywy**
 i nie korzystają z tych tokenów.
 
-Źródło: `frontend/libs/shared-ui` (`styles/theme.css` + komponenty). Kierunek (2026-11-27): ciemnozielona kolumna
-nawigacji przechodząca w czerń, neonowa zieleń wyłącznie jako akcent, czarne przyciski domyślne, spokojna ciepło-szara
+Źródło: `frontend/libs/shared-ui` (`styles/theme.css` + komponenty). Kierunek (2026-11-27): czarna kolumna
+nawigacji, neonowa zieleń wyłącznie jako akcent, czarne przyciski domyślne, spokojna ciepło-szara
 powierzchnia robocza jako zaokrąglony panel (18 px) z odstępem 10 px od góry, prawej i dołu — odstęp ma kolor nawigacji, panel przewija się
 sam (po zmianie strony wraca na górę, zmiana filtrów nie przewija).
 
@@ -12,7 +12,7 @@ sam (po zmianie strony wraca na górę, zmiana filtrów nie przewija).
 
 | Token | Wartość | Użycie |
 |---|---|---|
-| `forest` → `night` | `#14492C` → `#0F1210` | tło nawigacji (gradient od 45 % wysokości), biały tekst; `forest-text` `#EAF3EC`, `forest-muted` `#9DBFA7` |
+| `--nav-bg`, `nav-*` | `#0F1210`; tekst `#E7EAE5`, przygaszony `#8E958D` | tło nawigacji i ramki (czarne, wybrane spośród 5 wariantów), aktywna pozycja `nav-active` = neon; cała paleta paska w jednym miejscu w `theme.css` |
 | `neon` / `neon-deep` | `#B5F23D` / `#9FDE24` | aktywna pozycja menu, przycisk `accent`, logo — **tylko jako wypełnienie z czarnym tekstem**, nigdy tekst na bieli |
 | `night` / `night-3` | `#0F1210` / `#262B27` | przycisk `primary`, przełączniki, ciemne plakietki |
 | `canvas` / `card` | `#F2F3F0` / `#FFFFFF` | tło treści / karty, nagłówek |

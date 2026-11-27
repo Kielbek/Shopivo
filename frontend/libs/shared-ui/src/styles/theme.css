@@ -2,8 +2,8 @@
  * Shopivo design system — administration interfaces (merchant dashboard, platform admin).
  * Public storefront themes are intentionally NOT based on these tokens.
  *
- * Forest, night & neon: a deep-green navigation column fading into black, a neon-green accent for the one key action
- * and the active item, black default buttons, and a calm warm-grey work surface.
+ * Night & neon: a black navigation frame (like the reference admin), a neon-green accent for the active item and the
+ * one key action, black default buttons, and a calm warm-grey work surface.
  * Contrast rules (WCAG AA):
  *  - neon (#B5F23D) is a FILL colour only — always with night (#0F1210) text on it, never as text on white;
  *  - green text/links use primary-strong (#2E6B0F, 6.4:1 on white); primary (#4C9A1B) is for icons and borders;
@@ -28,8 +28,8 @@
   --color-forest-text: #EAF3EC;
   --color-forest-muted: #9DBFA7;
   --color-nav-strong: #FFFFFF;
-  --color-nav-text: #EAF3EC;
-  --color-nav-muted: #9DBFA7;
+  --color-nav-text: #E7EAE5;
+  --color-nav-muted: #8E958D;
   --color-nav-hover: rgba(255, 255, 255, 0.08);
   --color-nav-line: rgba(255, 255, 255, 0.09);
   --color-nav-field: rgba(255, 255, 255, 0.08);
@@ -90,7 +90,7 @@
 
 /* Background of the navigation column (and the frame around the work surface). */
 :root {
-  --nav-bg: linear-gradient(180deg, #14492C 0%, #14492C 45%, #0F1210 100%);
+  --nav-bg: #0F1210;
 }
 
 @layer base {
