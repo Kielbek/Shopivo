@@ -87,7 +87,7 @@ function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
               @let meta = metaFor(p.code);
               <li>
                 <article class="group flex h-full flex-col overflow-hidden rounded-[16px] border border-line bg-card transition-[box-shadow,border-color] hover:border-line-strong hover:shadow-[0_10px_30px_rgba(15,18,16,0.08)]">
-                  <button type="button" class="relative block bg-canvas p-5 pb-0 text-left" [attr.aria-label]="'Szczegóły szablonu ' + p.name" (click)="details.set(p)">
+                  <button type="button" class="relative block bg-canvas px-5 pb-0 pt-11 text-left" [attr.aria-label]="'Szczegóły szablonu ' + p.name" (click)="details.set(p)">
                     <div class="relative mx-auto max-w-[92%]">
                       <div class="overflow-hidden rounded-t-[10px] shadow-[0_6px_24px_rgba(15,18,16,0.12)] transition-transform group-hover:-translate-y-1">
                         <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [templateImages]="tplImages()" [productImages]="samplesOf(p.code)" />

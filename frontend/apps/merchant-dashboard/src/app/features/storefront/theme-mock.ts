@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, computed, inject, input, signal, viewChild } from '@angular/core';
 import { ThemeSection } from '@shopivo/shared-models';
 import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
 
@@ -12,8 +12,10 @@ import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
   host: { class: 'block', 'aria-hidden': 'true' },
   template: `
     @let s = settings();
-    <div class="relative overflow-hidden" [style.aspect-ratio]="phone() ? '9 / 17' : '16 / 10'" [style.background]="s['background']" [style.color]="s['text']"
-      [style.font-family]="font()">
+    <!-- Drawn at a fixed design width and scaled to the available space, so text keeps the proportions of a real page -->
+    <div #box class="relative overflow-hidden" [style.aspect-ratio]="phone() ? '9 / 17' : '16 / 10'" [style.background]="s['background']">
+    <div class="absolute left-0 top-0 origin-top-left overflow-hidden" [style.width.px]="designWidth()" [style.height.px]="designHeight()"
+      [style.transform]="'scale(' + scale() + ')'" [style.color]="s['text']" [style.font-family]="font()">
       @if (s['announcement']) {
         @if (editorial()) {
           <div class="truncate px-2 py-[3px] text-center text-[6px] font-medium uppercase tracking-[0.12em]" [style.background]="s['text']" [style.color]="s['background']">{{ s['announcement'] }}</div>
@@ -25,7 +27,7 @@ import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
       <div class="flex items-center gap-2 px-[6%] py-[3%]" [style.border-bottom]="playful() ? 'none' : '1px solid ' + line()"
         [style.background]="playful() ? gradient() : null" [style.color]="playful() ? '#fff' : null">
         @if (playful()) {
-          <span class="truncate font-semibold" [style.font-family]="display()" [style.font-size.px]="phone() ? 10 : 12">{{ storeName() || 'Twój sklep' }}</span>
+          <span class="truncate py-[1px] font-semibold leading-[1.35]" [style.font-family]="display()" [style.font-size.px]="phone() ? 12 : 13">{{ storeName() || 'Twój sklep' }}</span>
         } @else if (editorial()) {
           <span class="truncate font-bold uppercase tracking-[0.16em]" [style.font-family]="display()" [style.font-size.px]="phone() ? 9 : 11">{{ storeName() || 'Twój sklep' }}<span [style.color]="s['accent']">.</span></span>
         } @else {
@@ -34,9 +36,11 @@ import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
         @if (!phone()) {
           <span class="ml-3 flex gap-2 text-[7px] opacity-70"><span>Nowości</span><span>Kategorie</span><span>O nas</span></span>
         }
-        <span class="ml-auto flex gap-1.5">
-          <span class="size-[7px] rounded-full border" [style.border-color]="s['text']"></span>
-          <span class="size-[7px] rounded-[2px] border" [style.border-color]="s['text']"></span>
+        <!-- wishlist, account, cart -->
+        <span class="ml-auto flex shrink-0 items-center gap-[5px]">
+          <svg viewBox="0 0 24 24" class="size-[9px]" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 20s-7-4.4-9.2-8.6C1.3 8.5 3 5 6.4 5c2 0 3.3 1.1 4.1 2.3h3C14.3 6.1 15.6 5 17.6 5 21 5 22.7 8.5 21.2 11.4 19 15.6 12 20 12 20Z" stroke-linejoin="round"/></svg>
+          <svg viewBox="0 0 24 24" class="size-[9px]" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>
+          <svg viewBox="0 0 24 24" class="size-[9px]" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
         </span>
       </div>
       <!-- hero -->
@@ -50,9 +54,9 @@ import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
         }
         @case ('playful') {
           <div class="relative pb-[2%] text-center text-white" [style.background]="gradient()">
-            <span class="block px-[4%] pt-[3%] font-semibold uppercase leading-[1]" [style.font-family]="display()" [style.font-size.px]="phone() ? 10 : 15">{{ title() }}</span>
+            <span class="block px-[4%] pt-[3%] font-semibold uppercase leading-[1]" [style.font-family]="display()" [style.font-size.px]="phone() ? 14 : 19">{{ title() }}</span>
             <span class="mx-auto mt-1.5 inline-block rounded-full px-2 py-[2px] text-[5px] font-extrabold uppercase" [style.background]="s['background']" [style.color]="s['text']">{{ hero()['cta'] || 'Zobacz' }}</span>
-            @if (heroImage(); as img) {<img [src]="img" alt="" class="mx-auto mt-1 block w-[92%] object-contain" [style.max-height.px]="phone() ? 40 : 62" />}
+            @if (heroImage(); as img) {<img [src]="img" alt="" class="mx-auto mt-1 block w-[92%] object-contain" [style.max-height.px]="phone() ? 58 : 62" />}
           </div>
           <div class="h-[6px]" [style.background]="'radial-gradient(circle at 50% 0, ' + s['accent'] + ' 3px, transparent 3.5px) 0 0 / 8px 6px repeat-x'"></div>
         }
@@ -60,7 +64,7 @@ import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
           <div class="grid items-center gap-[5%] px-[6%] py-[3%]" [class]="phone() ? 'grid-cols-1' : 'grid-cols-2'" [style.background]="s['surface']">
             <div class="min-w-0">
               @if (hero()['eyebrow']) {<span class="block truncate text-[5px] font-semibold uppercase tracking-[0.2em]" [style.color]="s['accent']">{{ hero()['eyebrow'] }}</span>}
-              <span class="mt-1 block font-semibold leading-[1.05]" [style.font-family]="display()" [style.font-size.px]="phone() ? 9 : 13">{{ title() }}</span>
+              <span class="mt-1 block font-semibold leading-[1.05]" [style.font-family]="display()" [style.font-size.px]="phone() ? 15 : 13">{{ title() }}</span>
               <span class="mt-2 flex flex-wrap gap-1">
                 <span class="px-1.5 py-[3px] text-[5px] font-medium uppercase tracking-wider" [style.background]="s['primary']" [style.color]="on(s['primary'])">{{ hero()['cta'] || 'Zobacz' }}</span>
                 @if (hero()['cta2']) {<span class="border px-1.5 py-[2px] text-[5px] font-medium uppercase tracking-wider" [style.border-color]="s['text']">{{ hero()['cta2'] }}</span>}
@@ -129,9 +133,29 @@ import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
       </div>
       }
     </div>
+    </div>
   `,
 })
 export class ThemeMockComponent {
+  /** Design size the miniature is drawn at (a phone ~ 180 px wide, a desktop ~ 400 px), then scaled to fit. */
+  protected readonly designWidth = computed(() => (this.phone() ? 180 : 400));
+  protected readonly designHeight = computed(() => (this.phone() ? (180 * 17) / 9 : (400 * 10) / 16));
+  private readonly width = signal(0);
+  protected readonly scale = computed(() => (this.width() ? this.width() / this.designWidth() : 0));
+  private readonly box = viewChild<ElementRef<HTMLElement>>('box');
+
+  constructor() {
+    const destroy = inject(DestroyRef);
+    afterNextRender(() => {
+      const el = this.box()?.nativeElement;
+      if (!el) return;
+      const ro = new ResizeObserver(() => this.width.set(el.clientWidth));
+      ro.observe(el);
+      this.width.set(el.clientWidth);
+      destroy.onDestroy(() => ro.disconnect());
+    });
+  }
+
   readonly settings = input.required<Record<string, string>>();
   readonly sections = input<ThemeSection[] | null>(null);
   /** The first enabled banner section (falls back to the old flat settings). */
