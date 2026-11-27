@@ -152,7 +152,7 @@ app.use((req, res, next) => {
     "font-src 'self'",
     "connect-src 'self' https://challenges.cloudflare.com",
     'frame-src https://challenges.cloudflare.com',
-    'podglad' in req.query && previewFramers(req.hostname).length ? `frame-ancestors 'self' ${previewFramers(req.hostname).join(' ')}` : "frame-ancestors 'self'",
+    ('podglad' in req.query || 'szablon' in req.query) && previewFramers(req.hostname).length ? `frame-ancestors 'self' ${previewFramers(req.hostname).join(' ')}` : "frame-ancestors 'self'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

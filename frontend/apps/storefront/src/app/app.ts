@@ -8,6 +8,7 @@ import { CartState } from './core/cart';
 import { CustomerSession } from './core/account';
 import { Wishlist } from './core/wishlist';
 import { routeOf } from './core/link-token';
+import { TemplateDemo } from './core/demo';
 import { StoreState } from './core/store-state';
 import { SectionNewsletterCompactComponent } from './ui/sections';
 import { CartDrawerComponent } from './themes/vera/cart-drawer';
@@ -57,6 +58,12 @@ const SOCIALS = [
           </main>
         } @else {
           <a href="#tresc" class="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-50 focus:bg-sf-surface focus:px-3 focus:py-2">Przejdź do treści</a>
+          @if (demo.code()) {
+            <div class="sticky top-0 z-[60] flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-[#0f1210] px-4 py-2 text-center text-[13px] text-white" role="status">
+              <span>Podgląd szablonu „{{ s.theme.code === 'BAWILOO' ? 'Bawiloo' : s.theme.code === 'VERA' ? 'Véra' : s.theme.code }}” z przykładowymi produktami. Koszyk i zamówienia są wyłączone.</span>
+              @if (!demo.framed()) {<button type="button" class="rounded-full border border-white/40 px-3 py-0.5 text-[12px] font-semibold hover:bg-white/10" (click)="demo.close()">Zamknij podgląd</button>}
+            </div>
+          }
           @if (s.preview) {
             <div class="bg-[#111] px-4 py-2 text-center text-[13px] text-white" role="status">Podgląd sklepu — zmiany w szkicu widzisz tylko Ty (link ważny 2 godziny).</div>
           }
@@ -269,6 +276,7 @@ const SOCIALS = [
 export class App {
   protected readonly store = inject(StoreState);
   protected readonly cart = inject(CartState);
+  protected readonly demo = inject(TemplateDemo);
   protected readonly customer = inject(CustomerSession);
   protected readonly wishlist = inject(Wishlist);
   /** Menu items may carry a query (`/szukaj?q=…`): routerLink needs it separately, or it would be encoded into the path. */
@@ -293,6 +301,9 @@ export class App {
         // Unknown store → 404, backend down → 503, unpublished → visible but never indexed.
         if (this.response) this.response.status = st === 'not-found' ? 404 : st === 'error' ? 503 : 200;
         this.title.setTitle(s?.name ?? (st === 'not-found' ? 'Nie znaleziono sklepu' : 'Sklep chwilowo niedostępny'));
+        this.meta.updateTag({ name: 'robots', content: 'noindex, nofollow' });
+      } else if (this.demo.code()) {
+        // A template preview with example products is never indexed
         this.meta.updateTag({ name: 'robots', content: 'noindex, nofollow' });
       } else {
         void this.cart.refresh();

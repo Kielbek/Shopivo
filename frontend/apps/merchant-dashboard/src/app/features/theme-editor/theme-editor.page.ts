@@ -162,7 +162,7 @@ function newId(type: string): string {
                   @if (sampleCount() && canAddProducts) {
                     <div class="mt-3 rounded-[10px] border border-dashed border-line-strong p-3">
                       <p class="text-[13px] font-medium text-ink">Przykładowe produkty szablonu</p>
-                      <p class="mt-0.5 text-[12px] leading-snug text-ink-muted">Dopóki sklep nie ma produktów, podgląd pokazuje {{ sampleCount() }} przykładów (klienci ich nie widzą). Możesz dodać je do sklepu jako zwykłe produkty i zmienić.</p>
+                      <p class="mt-0.5 text-[12px] leading-snug text-ink-muted">Podgląd pokazuje tylko Twoje produkty. Jeśli chcesz zacząć od przykładów z szablonu, dodaj {{ sampleCount() }} produktów do sklepu i zmień je po swojemu.</p>
                       <button sv-button variant="tonal" size="sm" class="mt-2" type="button" (click)="confirmSamples.set(true)">Dodaj przykładowe produkty</button>
                     </div>
                   }

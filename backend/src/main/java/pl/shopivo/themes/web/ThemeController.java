@@ -23,8 +23,10 @@ class ThemeController {
     private final Themes themes;
     private final pl.shopivo.themes.ThemeImages images;
     private final pl.shopivo.themes.ThemeSamples samples;
+    private final pl.shopivo.themes.ThemeUsage usage;
 
-    ThemeController(Themes themes, pl.shopivo.themes.ThemeImages images, pl.shopivo.themes.ThemeSamples samples) {
+    ThemeController(Themes themes, pl.shopivo.themes.ThemeImages images, pl.shopivo.themes.ThemeSamples samples, pl.shopivo.themes.ThemeUsage usage) {
+        this.usage = usage;
         this.themes = themes;
         this.images = images;
         this.samples = samples;
@@ -45,7 +47,7 @@ class ThemeController {
 
     record ThemeResponse(List<ThemeRegistry.Preset> presets, List<ThemeRegistry.Field> fields, List<pl.shopivo.themes.SectionRegistry.SectionType> sectionTypes,
             Themes.ThemeState state, List<pl.shopivo.themes.ThemeAssets.Asset> templateImages,
-            Map<String, List<pl.shopivo.themes.ThemeSamples.SampleCard>> sampleProducts) {
+            Map<String, List<pl.shopivo.themes.ThemeSamples.SampleCard>> sampleProducts, Map<String, Long> usage) {
     }
 
     record DraftRequest(String code, Map<String, String> settings, List<pl.shopivo.themes.SectionRegistry.Section> sections, long version) {
@@ -55,19 +57,23 @@ class ThemeController {
     @PreAuthorize("@tenantAccess.can('STORE_READ')")
     ThemeResponse get(@PathVariable UUID tenantId) {
         return new ThemeResponse(ThemeRegistry.PRESETS, ThemeRegistry.FIELDS, pl.shopivo.themes.SectionRegistry.TYPES, themes.state(),
-                pl.shopivo.themes.ThemeAssets.ALL, pl.shopivo.themes.ThemeSamples.cards());
+                pl.shopivo.themes.ThemeAssets.ALL, pl.shopivo.themes.ThemeSamples.cards(), usage.counts());
     }
 
     @PutMapping
     @PreAuthorize("@tenantAccess.can('THEMES_WRITE')")
     Themes.ThemeState save(@PathVariable UUID tenantId, @RequestBody DraftRequest request) {
-        return themes.saveDraft(request.code(), request.settings(), request.sections(), request.version());
+        var state = themes.saveDraft(request.code(), request.settings(), request.sections(), request.version());
+        usage.refresh();
+        return state;
     }
 
     @PostMapping("/publish")
     @PreAuthorize("@tenantAccess.can('THEMES_WRITE')")
     Themes.ThemeState publish(@PathVariable UUID tenantId) {
-        return themes.publish();
+        var state = themes.publish();
+        usage.refresh();
+        return state;
     }
 
     @GetMapping("/images")

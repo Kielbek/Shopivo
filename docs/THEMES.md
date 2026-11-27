@@ -62,6 +62,25 @@ produktów w JS, logowanie Google bez Google, przykładowe zamówienia, „check
   - przeglądarka pobiera plik tylko wtedy, gdy strona używa danego kroju;
   - żadnych zapytań do Google Fonts (RODO).
 
+## Strona szablonu, podgląd demo i licznik
+
+- **Strona szablonu w panelu** (`/sklep/:id/wyglad/szablony/:kod`) — szczegóły zamiast okienka:
+  - opis, dla jakich branż, styl, kolory;
+  - co zawiera i jakie sekcje ma strona główna;
+  - zdjęcia szablonu;
+  - przycisk „Wybierz szablon”.
+- **Licznik** „Korzysta z niego N sklepów” (`ThemeUsage`):
+  - to wyłącznie liczba, bez danych sklepów;
+  - liczy szablon opublikowany albo szkic, bez zawieszonych sklepów; wycofane kody liczą się do następcy;
+  - wynik jest w pamięci podręcznej 10 minut i odświeża się po zapisie lub publikacji szablonu.
+- **Podgląd demo** — prawdziwa witryna w trybie `?szablon=KOD`, w ramce (komputer lub telefon) albo w nowej karcie:
+  - dane pochodzą z `GET /api/v1/storefront/demo/{KOD}/…`: ten sam kształt API co sklep, ale tylko przykładowy katalog szablonu, bez żadnego sklepu i bez danych klientów;
+  - koszyk, zamówienia, konta i newsletter są wyłączone (409 `TEMPLATE_DEMO` i baner w witrynie);
+  - strony demo mają `noindex`;
+  - jeden **katalog demo** może obsługiwać kilka szablonów (`ThemeSamples.CATALOG_OF`), np. wszystkie szablony modowe korzystają z tych samych ubrań;
+  - link podglądu sklepu (`?podglad=`) zawsze wyłącza tryb demo w tej samej karcie.
+- **Edytor i sklep** pokazują wyłącznie produkty sprzedawcy. Przykładowe produkty można świadomie dodać do sklepu przyciskiem w edytorze.
+
 ## Zmiana szablonu i zgodność wersji
 
 - **Zmiana szablonu w galerii:** przenosi tylko treści, które sprzedawca sam zmienił, czyli inne niż domyślne w poprzednim szablonie: teksty banera, własne zdjęcie, logo, pasek informacyjny, stopkę i media społecznościowe. Teksty przykładowe i zdjęcia `tpl:` starego szablonu zastępuje treść nowego.
@@ -140,7 +159,7 @@ produktów w JS, logowanie Google bez Google, przykładowe zamówienia, „check
 - **Korzyści:** złote, ilustrowane ikony z wersji „premium” paczki (płatności, zwroty, dostawa, pomoc) — `ui/premium-icon.ts`.
 - **„O nas”:** zdjęcie w kształcie kwiatka. Na zdjęciu szablonu szyld pokazuje nazwę sklepu, bo oryginalny napis na zdjęciu jest nim przykryty.
 - **Newsletter:** duża złota karta z formularzem (double opt-in).
-- **Przykłady:** 16 przykładowych zabawek: 6 figurek, 5 pluszaków w promocji i 5 zabawek dla maluchów.
+- **Przykłady:** 16 przykładowych zabawek: 6 figurek, 5 pluszaków w promocji i 5 zabawek dla maluchów. Widać je w podglądzie demo szablonu albo w sklepie po dodaniu przyciskiem.
 - **Ciemne tło:** kolory statusów (`--sf-danger`, `--sf-success`) rozjaśniają się automatycznie, żeby pozostać czytelne.
 
 ### Czego z HTML-a celowo nie przeniesiono

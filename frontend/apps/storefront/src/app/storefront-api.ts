@@ -14,12 +14,7 @@ export interface PublicStore {
   themeImages: Record<string, Record<string, string>>;
   /** Set only in preview: the editor allowed to send live theme changes. */
   panelOrigin: string | null;
-  /** Template example products by template code — sent only in preview, shown while the store has no products. */
-  sampleProducts?: Record<string, SampleCard[]>;
-  /** Template example categories (preview only) — shown while the store has no categories. */
-  sampleCategories?: Record<string, { name: string; imageUrl: string | null }[]>;
 }
-export interface SampleCard { name: string; category: string; priceMinor: number; compareAtMinor: number | null; imageUrl: string | null; }
 export type LegalKey = 'TERMS' | 'PRIVACY' | 'RETURNS' | 'SHIPPING';
 export interface FooterLink { title: string; path: string; systemKey: LegalKey | null; }
 export interface PublicEntry {

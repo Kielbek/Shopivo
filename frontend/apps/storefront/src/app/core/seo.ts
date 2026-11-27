@@ -2,6 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { Injectable, REQUEST, inject } from '@angular/core';
 import { Meta, Title } from '@angular/platform-browser';
 import { StorePreview } from './preview';
+import { TemplateDemo } from './demo';
 
 export interface PageSeo {
   title: string;
@@ -21,6 +22,7 @@ export class Seo {
   private readonly document = inject(DOCUMENT);
   private readonly request = inject(REQUEST, { optional: true });
   private readonly preview = inject(StorePreview);
+  private readonly demo = inject(TemplateDemo);
 
   origin(): string {
     if (this.request) {
@@ -32,7 +34,7 @@ export class Seo {
 
   set(page: PageSeo, storeName: string): void {
     // Preview pages show draft content: never indexed, never canonical.
-    if (this.preview.token()) page = { ...page, noindex: true };
+    if (this.preview.token() || this.demo.code()) page = { ...page, noindex: true };
     const fullTitle = page.title === storeName ? storeName : `${page.title} – ${storeName}`;
     this.title.setTitle(fullTitle);
     const description = (page.description ?? '').replace(/\s+/g, ' ').trim().slice(0, 300);

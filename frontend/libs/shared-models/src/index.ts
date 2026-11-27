@@ -431,6 +431,8 @@ export interface TemplateSampleProduct { name: string; category: string; priceMi
 export interface ThemeResponse {
   presets: ThemePreset[]; fields: ThemeField[]; sectionTypes: SectionType[]; state: ThemeState; templateImages: TemplateImage[];
   sampleProducts: Record<string, TemplateSampleProduct[]>;
+  /** How many stores use each template (aggregate count only). */
+  usage: Record<string, number>;
 }
 export interface PublishReadiness { ready: boolean; missing: string[]; }
 export interface ProductImage { id: string; alt: string | null; width: number; height: number; position: number; urls: Record<string, string>; }

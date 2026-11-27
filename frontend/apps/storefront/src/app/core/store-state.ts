@@ -47,20 +47,6 @@ export class StoreState {
     return id ? this.store()?.themeImages?.[id]?.[variant] ?? null : null;
   }
 
-  /** Preview only: whether the store has no products yet (then the template's example products are shown). */
-  private readonly catalogEmpty = signal(false);
-  /** Example products of the current template (preview of an empty store only; always empty for customers). */
-  readonly samples = computed(() => {
-    const s = this.store();
-    return s?.preview && this.catalogEmpty() ? s.sampleProducts?.[s.theme.code] ?? [] : [];
-  });
-
-  /** Preview of a store without categories: the template's example categories. */
-  readonly sampleCategories = computed(() => {
-    const s = this.store();
-    return s?.preview && !s.categories.length ? s.sampleCategories?.[s.theme.code] ?? [] : [];
-  });
-
   readonly topCategories = computed(() => (this.store()?.categories ?? []).filter((c) => c.depth === 0));
 
   /** CSS custom properties of the theme, applied on the root element. */
@@ -84,9 +70,6 @@ export class StoreState {
       (store) => {
         this.loaded.set(store);
         this.status.set('ready');
-        if (store.preview && store.sampleProducts && Object.keys(store.sampleProducts).length) {
-          this.api.products({ size: 1 }).subscribe({ next: (p) => this.catalogEmpty.set(p.totalItems === 0), error: () => this.catalogEmpty.set(false) });
-        }
         if (this.browser && store.preview && store.panelOrigin) this.listenToEditor(store.panelOrigin);
       },
       (e) => this.status.set(e?.status === 404 ? 'not-found' : 'error'),

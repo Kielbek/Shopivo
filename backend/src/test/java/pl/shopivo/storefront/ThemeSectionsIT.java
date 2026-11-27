@@ -148,7 +148,24 @@ class ThemeSectionsIT extends IntegrationTest {
         String t = createStore(owner, "Próbki", slug);
         var store = jsonMapper.readTree(mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/storefront/store")
                 .header("Host", slug + ".shopivo.test")).andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
-        assertThat(store.get("sampleProducts").size()).as("never shown to customers").isZero();
+        assertThat(store.has("sampleProducts")).as("the store shows only its own products").isFalse();
+
+        // Template demo: the template's example catalogue, no store involved; buying is switched off
+        var demo = jsonMapper.readTree(mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/storefront/demo/BAWILOO/store"))
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+        assertThat(demo.get("theme").get("code").asString()).isEqualTo("BAWILOO");
+        assertThat(demo.get("categories").size()).isEqualTo(6);
+        var demoProducts = jsonMapper.readTree(mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/storefront/demo/BAWILOO/products?size=48"))
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+        assertThat(demoProducts.get("totalItems").asInt()).isEqualTo(16);
+        var pingwin = jsonMapper.readTree(mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/storefront/demo/BAWILOO/products/pingwin-lotek"))
+                .andReturn().getResponse().getContentAsString(java.nio.charset.StandardCharsets.UTF_8));
+        assertThat(pingwin.get("images").get(0).get("urls").get("w1200").asString()).startsWith("/api/v1/theme-assets/bawiloo/");
+        assertThat(mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/storefront/demo/BAWILOO/cart"))
+                .andReturn().getResponse().getStatus()).isEqualTo(409);
+        assertThat(mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/storefront/demo/NOPE/store"))
+                .andReturn().getResponse().getStatus()).isEqualTo(404);
+        assertThat(owner.get(base(t) + "/theme").json().get("usage").isObject()).isTrue();
 
         var first = owner.post(base(t) + "/theme/sample-products", Map.of("code", "VERA"));
         assertThat(first.status()).as(first.body()).isEqualTo(200);
@@ -176,6 +193,8 @@ class ThemeSectionsIT extends IntegrationTest {
         long v = owner.get(base(t) + "/theme").json().get("state").get("version").asLong();
         var savedB = owner.put(base(t) + "/theme", Map.of("code", "BAWILOO", "settings", Map.of(), "sections", bSections, "version", v));
         assertThat(savedB.status()).as(savedB.body()).isEqualTo(200);
+        // The gallery counts stores per template (an aggregate only)
+        assertThat(owner.get(base(t) + "/theme").json().get("usage").get("BAWILOO").asLong()).isPositive();
         assertThat(owner.post(base(t) + "/theme/sample-products", Map.of("code", "BAWILOO")).json().get("created").asInt()).isEqualTo(16);
         // its six categories come with the template's pictures
         var allCats = owner.get(base(t) + "/categories").json();

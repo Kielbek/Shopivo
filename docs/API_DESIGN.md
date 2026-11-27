@@ -331,13 +331,14 @@ rewizję; zamówienia wskazują rewizję zaakceptowaną przez klienta). Podgląd
 
 | Metoda | Ścieżka | Uprawnienie | Opis |
 |---|---|---|---|
-| GET/PUT | `/tenants/{t}/theme` | `STORE_READ` / `THEMES_WRITE` | Odpowiedź ma `sectionTypes` (schemat 12 typów sekcji) `templateImages` (grafiki szablonów) i `sampleProducts` (przykładowe produkty wg szablonu); szkic przyjmuje `sections` (maks. 20; id `[a-z0-9]{4,24}`, nieznane pola → 422, linki tylko względne `/…` lub `https://`). `sections: null` = migracja starych pól banera do sekcji |
+| GET/PUT | `/tenants/{t}/theme` | `STORE_READ` / `THEMES_WRITE` | Odpowiedź ma `sectionTypes` (schemat 12 typów sekcji) `templateImages` (grafiki szablonów) `sampleProducts` (przykładowe produkty wg szablonu) i `usage` (liczba sklepów na szablon); szkic przyjmuje `sections` (maks. 20; id `[a-z0-9]{4,24}`, nieznane pola → 422, linki tylko względne `/…` lub `https://`). `sections: null` = migracja starych pól banera do sekcji |
 | GET / POST | `/tenants/{t}/theme/images` | `STORE_READ` / `THEMES_WRITE` | Biblioteka zdjęć motywu (JPEG/PNG ≤ 10 MB, maks. 40) |
 | DELETE | `/tenants/{t}/theme/images/{id}` | `THEMES_WRITE` | |
 | POST | `/tenants/{t}/theme/sample-products` | `PRODUCTS_WRITE` | `{code}` → dodaje przykładowe produkty szablonu jako zwykłe produkty (pomija istniejące nazwy); `{created}`; brak przykładów → 422 `NO_SAMPLES` |
 | GET | `/storefront/collections/{źródło}?kategoria=&limit=` | publiczne | Gotowe listy produktów: `bestsellery`, `promocje`, `koncowki`, `nowosci`, `najlepiej-oceniane`, `wracaja` — zob. [RECOMMENDATIONS.md](RECOMMENDATIONS.md) |
 | GET | `/storefront/products/{slug}/bought-together`, `/similar` | publiczne | „Często kupowane razem” (tylko prawdziwe pary z zamówień) i „Podobne” |
 | GET | `/storefront/recommendations/cart?ids=&brakuje=` | publiczne | Podpowiedzi do koszyka (id produktów + brakująca kwota do darmowej dostawy, bez tokenu koszyka i danych osobowych) |
+| GET | `/storefront/demo/{szablon}/store`, `/products`, `/products/{slug}`, `/collections/{…}`… | publiczne | Podgląd demo szablonu: to samo API co sklep, ale tylko przykładowy katalog szablonu; zapis/koszyk → 409 `TEMPLATE_DEMO` |
 | GET | `/theme-assets/{szablon}/{plik}.jpg` | publiczne | Grafiki dostarczane z szablonem (tylko z rejestru `ThemeAssets`, cache 30 dni); w motywie wskazywane odnośnikiem `tpl:<szablon>/<nazwa>` — zob. [THEMES.md](THEMES.md) |
 | POST / DELETE | `/tenants/{t}/categories/{id}/image` | `PRODUCTS_WRITE` | Zdjęcie kategorii (jedno; nowe zastępuje poprzednie) |
 | GET | `/tenants/{t}/newsletter?status=&q=&page=` | `CUSTOMERS_READ` | Lista subskrybentów |

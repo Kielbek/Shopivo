@@ -56,6 +56,7 @@ export const routes: Routes = [
       { path: 'tresci/:id', title: 'Edycja strony', loadComponent: () => import('./features/content/content-edit.page').then((m) => m.ContentEditPage) },
       { path: 'wyglad', title: 'Wygląd sklepu', loadComponent: () => import('./features/storefront/appearance.page').then((m) => m.AppearancePage) },
       { path: 'wyglad/szablony', title: 'Szablony sklepu', loadComponent: () => import('./features/storefront/theme-gallery.page').then((m) => m.ThemeGalleryPage) },
+      { path: 'wyglad/szablony/:code', title: 'Szablon sklepu', loadComponent: () => import('./features/storefront/theme-details.page').then((m) => m.ThemeDetailsPage) },
       { path: 'subskrypcja', title: 'Subskrypcja', loadComponent: () => import('./features/store/subscription.page').then((m) => m.SubscriptionPage) },
       { path: 'dziennik', title: 'Dziennik zdarzeń', loadComponent: () => import('./features/store/audit.page').then((m) => m.AuditPage) },
     ],

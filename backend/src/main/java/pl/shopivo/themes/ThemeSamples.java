@@ -51,6 +51,22 @@ public class ThemeSamples {
                     new SampleCategory("Figurki", "tpl:bawiloo/cat-figurki"),
                     new SampleCategory("Puzzle i łamigłówki", "tpl:bawiloo/cat-ukladanki")));
 
+    /**
+     * Demo catalogue used by each template: several templates can share one (e.g. all fashion templates show the same
+     * clothes). The catalogue is keyed by the template that owns its pictures.
+     */
+    public static final Map<String, String> CATALOG_OF = Map.of("VERA", "VERA", "BAWILOO", "BAWILOO");
+
+    /** Example products shown in a template's demo (its catalogue). */
+    public static List<Sample> productsFor(String template) {
+        return SAMPLES.getOrDefault(CATALOG_OF.getOrDefault(template, template), List.of());
+    }
+
+    /** Example categories shown in a template's demo (its catalogue). */
+    public static List<SampleCategory> categoriesFor(String template) {
+        return CATEGORIES.getOrDefault(CATALOG_OF.getOrDefault(template, template), List.of());
+    }
+
     /** Category tiles per template code, for the preview of a store without categories. */
     public static Map<String, List<SampleCategoryCard>> categoryCards() {
         Map<String, List<SampleCategoryCard>> out = new HashMap<>();

@@ -88,9 +88,7 @@ class StorefrontController {
     record PublicStore(String name, StoreStatus status, boolean open, boolean preview, String locale, String currency,
             String hostname, Themes.ThemeConfig theme, Seller seller, List<PublicCatalog.PublicCategory> categories,
             List<PublicContent.Link> footerLinks, boolean blog, List<Navigation.Item> menu, String captchaSiteKey,
-            Map<String, Map<String, String>> themeImages, String panelOrigin,
-            Map<String, List<pl.shopivo.themes.ThemeSamples.SampleCard>> sampleProducts,
-            Map<String, List<pl.shopivo.themes.ThemeSamples.SampleCategoryCard>> sampleCategories) {
+            Map<String, Map<String, String>> themeImages, String panelOrigin) {
     }
 
     @GetMapping("/store")
@@ -111,10 +109,7 @@ class StorefrontController {
             return new PublicStore(s.name(), s.status(), open, preview, s.defaultLocale(), s.defaultCurrency(), s.primaryHostname(),
                     themes.storefront(preview), seller, open ? catalog.categories() : List.of(),
                     open ? content.footerLinks() : List.of(), open && content.hasPosts(), open ? navigation.menu() : List.of(),
-                    captcha.siteKey(), themeImages.urls(), preview ? panelOrigin : null,
-                    // Template example products: preview only (shown there while the store has no products of its own)
-                    preview ? pl.shopivo.themes.ThemeSamples.cards() : Map.of(),
-                    preview ? pl.shopivo.themes.ThemeSamples.categoryCards() : Map.of());
+                    captcha.siteKey(), themeImages.urls(), preview ? panelOrigin : null);
         });
         return cached(body, preview);
     }

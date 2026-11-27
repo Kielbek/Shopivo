@@ -22,6 +22,17 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 
 | Ręczny przepływ E2E Fazy 4a (Playwright, poza repo) | sprzedawca: produkty, kategorie, dostawa, przelew → 2 zdjęcia przez edytor produktu → „Wygląd sklepu”: preset Home, teksty, zapis szkicu → podgląd w nowej karcie (baner podglądu, szkic widoczny) → publikacja motywu → publikacja sklepu z karty na Przeglądzie; klient na `http://<sklep>.shopivo.localhost:4000`: strona główna → kategoria (Omnibus) → produkt (wariant niedostępny, wybór wariantu, galeria) → koszyk → checkout (walidacja, regulamin) → potwierdzenie z danymi do przelewu; SSR: tytuł, opis, canonical, OG, JSON-LD Product/BreadcrumbList, 404 dla nieznanego produktu/kategorii/sklepu, sitemap, robots; iPhone 13 bez poziomego przewijania; 0 błędów konsoli | ✔ |
 
+## Strona szablonu z podglądem demo (2026-11-27)
+
+- **Strona szablonu w panelu:** szczegóły, liczba sklepów korzystających z szablonu i żywy podgląd demo z przykładowymi produktami (komputer i telefon). Do tego „Otwórz w nowej karcie” i „Wybierz szablon”.
+- **Demo:** osobne API z katalogiem szablonu (katalogi współdzielone między szablonami); koszyk, zamówienia i konta są wyłączone, strony mają noindex.
+- **Edytor i sklep:** już bez przykładowych produktów, tylko produkty sprzedawcy.
+- **E2E:**
+  - galeria pokazuje licznik, strona szablonu ma podgląd z 14 produktami;
+  - w demo przejście na stronę produktu działa, a „Dodaj do koszyka” pokazuje komunikat podglądu;
+  - po wyborze edytor pokazuje 0 przykładów, a licznik wzrasta;
+  - 0 błędów konsoli.
+
 ## Polecanie produktów (2026-11-27)
 
 - **Moduł `recommendations` — gotowe listy** (`/storefront/collections/…`): bestsellery z wygaszaniem, promocje wg obniżki, ostatnie sztuki, najlepiej oceniane (średnia bayesowska), wróciły do sprzedaży i nowości, z filtrem kategorii.

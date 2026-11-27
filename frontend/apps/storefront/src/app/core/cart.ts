@@ -2,6 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Cart, StorefrontApi } from '../storefront-api';
+import { TemplateDemo } from './demo';
 
 const KEY = 'shopivo.cart';
 
@@ -19,8 +20,11 @@ export class CartState {
   readonly drawer = signal(false);
   readonly count = computed(() => this.cart()?.lines.reduce((n, l) => n + l.quantity, 0) ?? 0);
 
+  private readonly demo = inject(TemplateDemo);
+
   private token(): string | null {
-    if (!this.browser) return null;
+    // The template preview never touches the visitor's real cart on this host
+    if (!this.browser || this.demo.code()) return null;
     try {
       return localStorage.getItem(KEY);
     } catch {

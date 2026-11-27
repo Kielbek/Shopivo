@@ -4,29 +4,22 @@ import { Router, RouterLink } from '@angular/router';
 import { LucideDynamicIcon } from '@lucide/angular';
 import { ApiError, StorefrontAdminApi } from '@shopivo/api-client';
 import { StoreIndustry, ThemePreset } from '@shopivo/shared-models';
-import { AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, LoadingComponent, ToastService, icons } from '@shopivo/shared-ui';
+import { AlertComponent, BadgeComponent, ButtonComponent, LoadingComponent, ToastService, icons } from '@shopivo/shared-ui';
 import { BackIconComponent } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { INDUSTRIES, industryLabels, industryOf, storeIndustries } from '../catalog/industries';
 import { StoreContext } from '../store/store-context';
 import { STYLE_LABELS, ThemeStyle, metaOf, templateImageMap } from './theme-meta';
 import { ThemeMockComponent } from './theme-mock';
-
-/** Texts the merchant may have written; kept when switching templates (colours and layout come from the new one). */
-const CONTENT_KEYS = ['announcement', 'footerNote', 'logoImage', 'instagram', 'facebook', 'tiktok', 'youtube'];
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function pick(data: Record<string, any>, keys: string[], keep: (key: string, value: unknown) => boolean = () => true): Record<string, any> {
-  return Object.fromEntries(keys.filter((k) => data[k] && keep(k, data[k])).map((k) => [k, data[k]]));
-}
+import { storesLabel, themeChoice } from './theme-choice';
 
 /**
  * Template gallery: every template is free. Filters by industry and style, the store's own industry first, a details
- * dialog and "Use this template" — which only changes the draft; nothing reaches customers before publishing.
+ * page with a live demo and "Use this template" — which only changes the draft; nothing reaches customers before publishing.
  */
 @Component({
   selector: 'sv-theme-gallery-page',
-  imports: [BackIconComponent, RouterLink, LucideDynamicIcon, AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, LoadingComponent, ThemeMockComponent],
+  imports: [BackIconComponent, RouterLink, LucideDynamicIcon, AlertComponent, BadgeComponent, ButtonComponent, LoadingComponent, ThemeMockComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (chosen()) {
@@ -87,7 +80,7 @@ function pick(data: Record<string, any>, keys: string[], keep: (key: string, val
               @let meta = metaFor(p.code);
               <li>
                 <article class="group flex h-full flex-col overflow-hidden rounded-[16px] border border-line bg-card transition-[box-shadow,border-color] hover:border-line-strong hover:shadow-[0_10px_30px_rgba(15,18,16,0.08)]">
-                  <button type="button" class="relative block bg-canvas px-5 pb-0 pt-11 text-left" [attr.aria-label]="'Szczegóły szablonu ' + p.name" (click)="details.set(p)">
+                  <a class="relative block bg-canvas px-5 pb-0 pt-11 text-left" [routerLink]="[p.code]" [attr.aria-label]="'Szczegóły szablonu ' + p.name">
                     <div class="relative mx-auto max-w-[92%]">
                       <div class="overflow-hidden rounded-t-[10px] shadow-[0_6px_24px_rgba(15,18,16,0.12)] transition-transform group-hover:-translate-y-1">
                         <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [templateImages]="tplImages()" [productImages]="samplesOf(p.code)" />
@@ -98,7 +91,7 @@ function pick(data: Record<string, any>, keys: string[], keep: (key: string, val
                     </div>
                     @if (isCurrent(p)) {<span class="absolute left-3 top-3"><sv-badge tone="info">Twój szablon</sv-badge></span>}
                     @else if (recommended(p)) {<span class="absolute left-3 top-3"><sv-badge tone="success">Polecany dla Twojej branży</sv-badge></span>}
-                  </button>
+                  </a>
                   <div class="flex flex-1 flex-col p-4">
                     <div class="flex items-center gap-2">
                       <h2 class="text-[16px] font-semibold text-ink">{{ p.name }}</h2>
@@ -109,11 +102,12 @@ function pick(data: Record<string, any>, keys: string[], keep: (key: string, val
                       <span class="ml-1 text-[12px] text-ink-muted">{{ styleLabels[meta.style] }}</span>
                     </div>
                     <p class="mt-2 text-[13px] leading-5 text-ink-soft">{{ p.description }}</p>
+                    <p class="mt-2 inline-flex items-center gap-1.5 text-[12px] text-ink-muted"><svg [lucideIcon]="icons.store" [size]="13" />{{ usageOf(p.code) ? 'Korzysta ' + stores(usageOf(p.code)) : 'Nowy szablon' }}</p>
                     <div class="mt-3 flex flex-wrap gap-1.5">
                       @for (f of meta.features; track f) {<span class="rounded-[6px] bg-canvas px-2 py-0.5 text-[12px] text-ink-soft">{{ f }}</span>}
                     </div>
                     <div class="mt-auto flex gap-2 pt-4">
-                      <button sv-button variant="secondary" size="sm" (click)="details.set(p)">Szczegóły</button>
+                      <a sv-button variant="secondary" size="sm" [routerLink]="[p.code]">Szczegóły i podgląd</a>
                       @if (canWrite && !isCurrent(p)) {
                         <button sv-button size="sm" class="flex-1" [loading]="choosing() === p.code" (click)="choose(p)">Wybierz szablon</button>
                       } @else if (isCurrent(p)) {
@@ -129,29 +123,6 @@ function pick(data: Record<string, any>, keys: string[], keep: (key: string, val
       </div>
     }
 
-    <sv-dialog [heading]="details()?.name ?? ''" [open]="!!details()" (closed)="details.set(null)">
-      @if (details(); as p) {
-        @let meta = metaFor(p.code);
-        <div class="overflow-hidden rounded-[12px] border border-line"><sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [templateImages]="tplImages()" [productImages]="samplesOf(p.code)" /></div>
-        <p class="mt-4 text-[14px] text-ink-soft">{{ p.description }}</p>
-        <dl class="mt-4 grid gap-3 text-[13px] sm:grid-cols-2">
-          <div><dt class="font-medium text-ink">Najlepiej sprawdzi się w</dt><dd class="mt-1 text-ink-soft">{{ industryNames(meta.industries) }}</dd></div>
-          <div><dt class="font-medium text-ink">Styl</dt><dd class="mt-1 text-ink-soft">{{ styleLabels[meta.style] }}</dd></div>
-          <div class="sm:col-span-2"><dt class="font-medium text-ink">Cechy</dt>
-            <dd class="mt-1 flex flex-wrap gap-1.5">@for (f of meta.features; track f) {<span class="rounded-[6px] bg-canvas px-2 py-0.5 text-[12px] text-ink-soft">{{ f }}</span>}</dd></div>
-        </dl>
-        <p class="mt-4 rounded-[10px] bg-canvas px-4 py-3 text-[13px] text-ink-soft">Po wyborze zmienimy tylko <strong class="font-medium text-ink">szkic</strong> wyglądu.
-          Twoje teksty (nagłówek, pasek informacyjny, stopka) zostaną, a klienci zobaczą nowy szablon dopiero po kliknięciu „Opublikuj”.</p>
-      }
-      <ng-container dialog-actions>
-        <button sv-button variant="secondary" type="button" (click)="details.set(null)">Zamknij</button>
-        @if (details(); as p) {
-          @if (canWrite && !isCurrent(p)) {
-            <button sv-button type="button" [loading]="choosing() === p.code" (click)="choose(p)">Wybierz szablon „{{ p.name }}”</button>
-          }
-        }
-      </ng-container>
-    </sv-dialog>
   `,
 })
 export class ThemeGalleryPage {
@@ -169,7 +140,6 @@ export class ThemeGalleryPage {
   protected readonly tplImages = computed(() => templateImageMap(this.data.hasValue() ? this.data.value().templateImages : []));
   protected readonly style = signal<ThemeStyle | null>(null);
   protected readonly industry = signal<StoreIndustry | null>(null);
-  protected readonly details = signal<ThemePreset | null>(null);
   protected readonly choosing = signal<string | null>(null);
 
   protected readonly storeName = computed(() => this.ctx.store()?.name ?? '');
@@ -208,6 +178,14 @@ export class ThemeGalleryPage {
     return [p.defaults['primary'], p.defaults['accent'], p.defaults['background'], p.defaults['text']];
   }
 
+  protected usageOf(code: string): number {
+    return this.data.hasValue() ? this.data.value().usage?.[code] ?? 0 : 0;
+  }
+
+  protected stores(n: number): string {
+    return storesLabel(n);
+  }
+
   protected industryNames(ids: StoreIndustry[]): string {
     return ids.map((i) => industryOf(i)?.label).filter(Boolean).join(', ');
   }
@@ -217,24 +195,7 @@ export class ThemeGalleryPage {
     if (!d) return;
     this.choosing.set(p.code);
     try {
-      const next = { ...p.defaults };
-      let sections = p.sections;
-      if (d.state.version >= 0) {
-        // Only what the merchant wrote themselves moves to the new template: values still equal to the previous
-        // template's defaults (its sample texts, its own photos) are replaced by the new template's content.
-        const old = d.presets.find((x) => x.code === d.state.draft.code);
-        const oldHeroDefaults = old?.sections.find((s) => s.type === 'hero')?.data ?? {};
-        for (const k of CONTENT_KEYS) {
-          const v = d.state.draft.settings[k];
-          if (v && v !== old?.defaults[k]) next[k] = v;
-        }
-        const oldHero = d.state.draft.sections?.find((s) => s.type === 'hero');
-        if (oldHero && old) {
-          const own = pick(oldHero.data, ['heading', 'subheading', 'cta', 'link', 'image'],
-            (k, v) => v !== oldHeroDefaults[k] && !(k === 'image' && String(v).startsWith('tpl:')));
-          sections = p.sections.map((s) => (s.type === 'hero' ? { ...s, data: { ...s.data, ...own } } : s));
-        }
-      }
+      const { settings: next, sections } = themeChoice(d, p);
       await firstValueFrom(this.api.saveTheme(this.ctx.tenantId(), p.code, next, d.state.version, sections));
       this.toast.success(`Wybrano szablon „${p.name}”. Dopasuj go w edytorze i opublikuj, gdy będzie gotowy.`);
       await this.router.navigate(['/sklep', this.ctx.tenantId(), 'edytor-wygladu']);
