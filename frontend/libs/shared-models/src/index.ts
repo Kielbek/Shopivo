@@ -424,7 +424,9 @@ export interface ThemeSection { id: string; type: string; enabled: boolean; data
 export interface ThemePreset { code: string; name: string; description: string; defaults: Record<string, string>; sections: ThemeSection[]; }
 export interface ThemeConfig { code: string; settings: Record<string, string>; sections: ThemeSection[]; }
 export interface ThemeState { draft: ThemeConfig; published: ThemeConfig | null; publishedAt: string | null; unpublishedChanges: boolean; version: number; }
-export interface ThemeResponse { presets: ThemePreset[]; fields: ThemeField[]; sectionTypes: SectionType[]; state: ThemeState; }
+/** An image that ships with a template, referenced as `tpl:<template>/<name>` until the merchant picks their own. */
+export interface TemplateImage { ref: string; template: string; label: string; urls: Record<string, string>; }
+export interface ThemeResponse { presets: ThemePreset[]; fields: ThemeField[]; sectionTypes: SectionType[]; state: ThemeState; templateImages: TemplateImage[]; }
 export interface PublishReadiness { ready: boolean; missing: string[]; }
 export interface ProductImage { id: string; alt: string | null; width: number; height: number; position: number; urls: Record<string, string>; }
 

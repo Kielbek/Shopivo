@@ -15,6 +15,8 @@ export class CartState {
   private readonly browser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly cart = signal<Cart | null>(null);
   readonly busy = signal(false);
+  /** Side cart drawer (templates that use one open it after adding a product and from the cart icon). */
+  readonly drawer = signal(false);
   readonly count = computed(() => this.cart()?.lines.reduce((n, l) => n + l.quantity, 0) ?? 0);
 
   private token(): string | null {

@@ -27,6 +27,28 @@ import { PriceComponent } from '../ui/price';
       } @else if (loaded(); as p) {
         <sf-breadcrumbs [items]="crumbs()" />
         <div class="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-12">
+          @if (vera()) {
+            <!-- VÉRA: vertical thumbnails beside a tall 3:4 photo -->
+            <div class="flex flex-col-reverse gap-4 sm:flex-row">
+              @if (p.images.length > 1) {
+                <ul class="flex gap-3 overflow-x-auto sm:w-20 sm:shrink-0 sm:flex-col sm:overflow-visible" aria-label="Zdjęcia produktu">
+                  @for (img of p.images; track img.id; let i = $index) {
+                    <li class="shrink-0"><button type="button" class="block aspect-[3/4] w-16 overflow-hidden rounded-lg border-2 transition sm:w-20"
+                      [class]="i === imageIndex() ? 'border-sf-text' : 'border-transparent opacity-70 hover:opacity-100'"
+                      [attr.aria-label]="'Zdjęcie ' + (i + 1)" [attr.aria-pressed]="i === imageIndex()" (click)="imageIndex.set(i)">
+                      <img [src]="img.urls['w400']" [alt]="img.alt || ''" class="size-full object-cover" loading="lazy" width="400" height="533" /></button></li>
+                  }
+                </ul>
+              }
+              <div class="relative aspect-[3/4] flex-1 overflow-hidden rounded-2xl bg-sf-surface">
+                @if (activeImage(); as img) {
+                  <img [src]="img.urls['w1200']" [alt]="img.alt || p.name" class="size-full object-cover" width="1200" height="1600" fetchpriority="high" />
+                } @else {
+                  <span class="flex size-full items-center justify-center text-sf-muted">Brak zdjęcia</span>
+                }
+              </div>
+            </div>
+          } @else {
           <div>
             <div class="sf-media aspect-square">
               @if (activeImage(); as img) {
@@ -45,10 +67,11 @@ import { PriceComponent } from '../ui/price';
               </ul>
             }
           </div>
+          }
 
           <div>
             @if (p.brand) {<p class="text-[13px] uppercase tracking-wide text-sf-muted">{{ p.brand }}</p>}
-            <h1 class="mt-1 text-[30px] font-semibold leading-tight tracking-tight">{{ p.name }}</h1>
+            <h1 class="mt-1 font-semibold leading-tight tracking-tight" [class]="vera() ? 'text-[34px] sm:text-[40px]' : 'text-[30px]'">{{ p.name }}</h1>
               @if (summary(); as r) {
                 @if (r.count > 0) {
                   <a href="#opinie" class="mt-2 inline-flex items-center gap-2 text-[14px] text-sf-muted hover:underline">
@@ -94,7 +117,7 @@ import { PriceComponent } from '../ui/price';
               <label class="sr-only" for="qty">Ilość</label>
               <input id="qty" type="number" min="1" max="99" class="sf-input !w-20 text-center" [value]="quantity()"
                 (change)="quantity.set(clamp($any($event.target).value))" />
-              <button type="button" class="sf-btn flex-1" [disabled]="!variant()?.available || cart.busy()" (click)="add()">
+              <button type="button" class="sf-btn flex-1" [class.sf-btn-caps]="vera()" [disabled]="!variant()?.available || cart.busy()" (click)="add()">
                 {{ cart.busy() ? 'Dodawanie…' : 'Dodaj do koszyka' }}
               </button>
               <sf-favourite-button [productId]="p.id" [name]="p.name" [big]="true" />
@@ -171,6 +194,7 @@ import { PriceComponent } from '../ui/price';
 export class ProductPage {
   private readonly api = inject(StorefrontApi);
   private readonly store = inject(StoreState);
+  protected readonly vera = computed(() => this.store.layout() === 'vera');
   private readonly seo = inject(Seo);
   private readonly response = inject(RESPONSE_INIT, { optional: true });
   protected readonly cart = inject(CartState);
@@ -314,6 +338,7 @@ export class ProductPage {
     try {
       await this.cart.add(v.id, this.quantity());
       this.message.set({ text: 'Dodano do koszyka.', error: false });
+      if (this.vera()) this.cart.drawer.set(true);
     } catch (e: unknown) {
       const err = e as { error?: { detail?: string } };
       this.message.set({ text: err.error?.detail ?? 'Nie udało się dodać produktu. Spróbuj ponownie.', error: true });

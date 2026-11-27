@@ -112,6 +112,7 @@ app.all('/api/v1/storefront/{*path}', express.raw({ type: () => true, limit: '64
 
 // Product images (immutable, long-cached; a CDN in front caches them at the edge).
 app.get('/api/v1/media/{*path}', (req, res, next) => void proxy(req, res, next, req.originalUrl));
+app.get('/api/v1/theme-assets/{*path}', (req, res, next) => void proxy(req, res, next, req.originalUrl));
 
 // Per-store sitemap and robots.txt.
 app.get('/sitemap.xml', (req, res, next) => void proxy(req, res, next, '/api/v1/storefront/sitemap.xml'));

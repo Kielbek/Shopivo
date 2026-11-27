@@ -3,6 +3,7 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { money } from '../core/format';
 import { routeOf } from '../core/link-token';
 import { StoreState } from '../core/store-state';
 import { StorefrontApi, ThemeSection } from '../storefront-api';
@@ -61,15 +62,55 @@ const ICONS: Record<string, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let d = data();
-    @if (items().length) {
+    @if (items().length || d['filters']) {
       <section class="sf-container" [attr.aria-label]="d['heading'] || 'Produkty'">
-        <div class="flex items-end justify-between gap-4">
-          @if (d['heading']) {<h2 class="text-[24px] font-semibold tracking-tight">{{ d['heading'] }}</h2>}
-          @if (d['buttonText']) {<a [routerLink]="moreLink()" [queryParams]="moreQuery()" class="shrink-0 text-[14px] font-medium hover:underline">{{ d['buttonText'] }} →</a>}
-        </div>
-        <ul class="mt-5 grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
-          @for (p of items(); track p.id) {<li><sf-product-card [product]="p" /></li>}
-        </ul>
+        @if (d['filters']) {
+          <div class="flex flex-col justify-between gap-4 border-b border-sf-line pb-8 md:flex-row md:items-end">
+            <div>
+              @if (d['eyebrow']) {<p class="sf-eyebrow">{{ d['eyebrow'] }}</p>}
+              @if (d['heading']) {<h2 class="mt-1 text-[32px] font-semibold leading-tight sm:text-[38px]">{{ d['heading'] }}</h2>}
+              <p class="mt-1 text-[14px] text-sf-muted" aria-live="polite">{{ countLabel() }}</p>
+            </div>
+            <div class="flex min-w-0 flex-wrap items-center gap-3">
+              <div class="-mx-1 flex max-w-full items-center gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]" role="group" aria-label="Filtruj produkty">
+                <button type="button" class="shrink-0 rounded-full px-4 py-2 text-[12px] font-medium transition" [class]="pill(filter() === null)" [attr.aria-pressed]="filter() === null" (click)="filter.set(null)">Wszystko</button>
+                @for (c of filterCategories(); track c.id) {
+                  <button type="button" class="shrink-0 rounded-full px-4 py-2 text-[12px] font-medium transition" [class]="pill(filter() === c.slug)" [attr.aria-pressed]="filter() === c.slug" (click)="filter.set(c.slug)">{{ c.name }}</button>
+                }
+                <button type="button" class="shrink-0 rounded-full px-4 py-2 text-[12px] font-medium transition" [class]="filter() === 'sale' ? 'bg-sf-danger text-white' : 'bg-sf-surface text-sf-danger hover:bg-sf-line'" [attr.aria-pressed]="filter() === 'sale'" (click)="filter.set('sale')">Promocje</button>
+              </div>
+              <label class="sr-only" [attr.for]="'sort-' + uid">Sortowanie</label>
+              <select [id]="'sort-' + uid" class="h-9 rounded-lg border border-sf-line bg-sf-bg px-3 text-[12px] font-medium" [value]="sort()" (change)="sort.set($any($event.target).value)">
+                <option value="NEWEST">Sortuj: najnowsze</option>
+                <option value="PRICE_ASC">Cena: od najniższej</option>
+                <option value="PRICE_DESC">Cena: od najwyższej</option>
+              </select>
+            </div>
+          </div>
+          @if (res.isLoading() && !items().length) {
+            <ul class="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 lg:grid-cols-4" aria-hidden="true">
+              @for (i of [0, 1, 2, 3]; track i) {<li><span class="sf-shimmer block aspect-[3/4] rounded-xl"></span></li>}
+            </ul>
+          } @else if (!items().length) {
+            <p class="mt-10 text-center text-sf-muted">Brak produktów w tym wyborze.</p>
+          }
+        } @else {
+          <div class="flex items-end justify-between gap-4">
+            <div>
+              @if (d['eyebrow']) {<p class="sf-eyebrow">{{ d['eyebrow'] }}</p>}
+              @if (d['heading']) {<h2 class="text-[24px] font-semibold tracking-tight">{{ d['heading'] }}</h2>}
+            </div>
+            @if (d['buttonText']) {<a [routerLink]="moreLink()" [queryParams]="moreQuery()" class="shrink-0 text-[14px] font-medium hover:underline">{{ d['buttonText'] }} →</a>}
+          </div>
+        }
+        @if (items().length) {
+          <ul class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4" [class]="d['filters'] ? 'mt-10 sm:gap-x-6 sm:gap-y-10 md:!grid-cols-3 lg:!grid-cols-4' : 'mt-5'">
+            @for (p of items(); track p.id) {<li><sf-product-card [product]="p" /></li>}
+          </ul>
+          @if (d['filters'] && d['buttonText']) {
+            <div class="mt-10 text-center"><a [routerLink]="moreLink()" [queryParams]="moreQuery()" class="sf-btn-line">{{ d['buttonText'] }}</a></div>
+          }
+        }
       </section>
     }
   `,
@@ -83,13 +124,37 @@ export class SectionProductsComponent {
     const id = this.data()['category'];
     return this.data()['source'] === 'category' && id ? this.store.store()?.categories.find((c) => c.id === id)?.slug ?? null : null;
   });
-  private readonly res = rxResource({
-    params: () => ({ source: this.data()['source'], slug: this.slug(), size: Number(this.data()['count'] ?? 8) }),
-    stream: ({ params }) => this.api.products({ size: params.size, sort: 'NEWEST', kategoria: params.slug ?? undefined, promocje: params.source === 'sale' }),
+  protected readonly uid = Math.random().toString(36).slice(2, 8);
+  /** Visitor's filter in the "filters" mode: a top category slug, 'sale' or null (the section's own source). */
+  protected readonly filter = signal<string | null>(null);
+  protected readonly sort = signal('NEWEST');
+  protected readonly filterCategories = computed(() => this.store.topCategories().slice(0, 6));
+  protected readonly res = rxResource({
+    params: () => {
+      const f = this.data()['filters'] ? this.filter() : null;
+      return { source: f === 'sale' ? 'sale' : f ? 'category' : this.data()['source'], slug: f && f !== 'sale' ? f : f === 'sale' ? null : this.slug(),
+        size: Number(this.data()['count'] ?? 8), sort: this.sort() };
+    },
+    stream: ({ params }) => this.api.products({ size: params.size, sort: params.sort, kategoria: params.slug ?? undefined, promocje: params.source === 'sale' }),
   });
   protected readonly items = computed(() => (this.res.hasValue() ? this.res.value().items : []));
-  protected readonly moreLink = computed(() => (this.slug() ? ['/kategoria', this.slug()!] : ['/produkty']));
-  protected readonly moreQuery = computed(() => (this.data()['source'] === 'sale' ? { promocje: 'tak' } : null));
+  protected readonly total = computed(() => (this.res.hasValue() ? this.res.value().totalItems : 0));
+  protected readonly moreLink = computed(() => {
+    const f = this.data()['filters'] ? this.filter() : null;
+    const slug = f && f !== 'sale' ? f : f === 'sale' ? null : this.slug();
+    return slug ? ['/kategoria', slug] : ['/produkty'];
+  });
+  protected readonly moreQuery = computed(() => ((this.data()['filters'] ? this.filter() === 'sale' : this.data()['source'] === 'sale') ? { promocje: 'tak' } : null));
+
+  protected countLabel(): string {
+    const n = this.total();
+    const word = n === 1 ? 'produkt' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'produkty' : 'produktów';
+    return `${n} ${word}`;
+  }
+
+  protected pill(active: boolean): string {
+    return active ? 'bg-sf-text text-sf-bg' : 'bg-sf-surface text-sf-text hover:bg-sf-line';
+  }
 }
 
 @Component({
@@ -246,13 +311,41 @@ export class SectionNewsletterCompactComponent {
   }
 }
 
+/** Floating card on the editorial banner: the newest available product, linked to its page. */
+@Component({
+  selector: 'sf-section-featured',
+  imports: [RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    @if (product(); as p) {
+      <a [routerLink]="['/produkt', p.slug]" class="flex max-w-xs items-center gap-4 rounded-xl border border-sf-line bg-sf-bg/95 p-4 shadow-lg backdrop-blur-md transition hover:shadow-xl">
+        @if (p.imageUrl) {<img [src]="p.imageUrl" alt="" class="h-16 w-14 shrink-0 rounded-lg object-cover" loading="lazy" />}
+        <span class="min-w-0">
+          <span class="block text-[11px] uppercase tracking-widest text-sf-muted">Polecamy</span>
+          <span class="block truncate text-[14px] font-semibold">{{ p.name }}</span>
+          <span class="mt-0.5 block text-[12px] font-medium text-sf-accent">{{ price(p.priceMinor, p.currency) }} → Zobacz</span>
+        </span>
+      </a>
+    }
+  `,
+})
+export class SectionFeaturedComponent {
+  private readonly api = inject(StorefrontApi);
+  private readonly res = rxResource({ stream: () => this.api.products({ size: 6, sort: 'NEWEST' }) });
+  protected readonly product = computed(() => (this.res.hasValue() ? this.res.value().items.find((p) => p.available && p.imageUrl) ?? null : null));
+
+  protected price(minor: number, currency: string): string {
+    return money(minor, currency);
+  }
+}
+
 /**
  * Renders the store's home-page sections in order. Each section is self-contained and fetches its own data (products,
  * reviews, posts) so a merchant can combine them freely; every image comes from the store's own library.
  */
 @Component({
   selector: 'sf-home-sections',
-  imports: [RouterLink, RichTextComponent, SectionLinkComponent, SectionProductsComponent,
+  imports: [RouterLink, RichTextComponent, SectionLinkComponent, SectionProductsComponent, SectionFeaturedComponent,
     SectionReviewsComponent, SectionBlogComponent, SectionNewsletterComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -262,7 +355,28 @@ export class SectionNewsletterCompactComponent {
         @case ('hero') {
           @let img = store.image(d['image']);
           @let pad = d['height'] === 'large' ? 'py-24 sm:py-36' : d['height'] === 'small' ? 'py-10 sm:py-14' : 'py-16 sm:py-24';
-          @if (d['layout'] === 'image' && img) {
+          @if (d['layout'] === 'editorial') {
+            <!-- Magazine-style split: eyebrow, large display heading, two square buttons, tall photo with a product card -->
+            <section class="overflow-hidden bg-sf-surface" [attr.aria-label]="d['heading'] || store.store()?.name">
+              <div class="sf-container grid items-center gap-10 py-12 lg:grid-cols-12 lg:py-20">
+                <div class="space-y-6 lg:col-span-6">
+                  @if (d['eyebrow']) {<p class="sf-eyebrow">{{ d['eyebrow'] }}</p>}
+                  <h1 class="text-[40px] font-semibold leading-[1.08] sm:text-[56px] lg:text-[64px]">{{ d['heading'] || store.store()?.name }}</h1>
+                  @if (d['subheading']) {<p class="max-w-lg whitespace-pre-line text-[16px] leading-relaxed text-sf-muted sm:text-[18px]">{{ d['subheading'] }}</p>}
+                  <div class="flex flex-wrap gap-4 pt-2">
+                    <sf-section-link [to]="d['link'] || '/produkty'" [text]="d['cta']" cls="sf-btn sf-btn-caps" />
+                    <sf-section-link [to]="d['link2']" [text]="d['cta2']" cls="sf-btn-line" />
+                  </div>
+                </div>
+                <div class="relative lg:col-span-6">
+                  <div class="aspect-[4/5] overflow-hidden rounded-2xl bg-sf-line shadow-xl sm:aspect-[16/11] lg:aspect-[4/5]">
+                    @if (img) {<img [src]="img" alt="" class="size-full object-cover transition duration-700 hover:scale-105" [attr.fetchpriority]="first ? 'high' : null" />}
+                  </div>
+                  @if (d['featured']) {<sf-section-featured class="absolute -bottom-5 -left-6 hidden sm:block" />}
+                </div>
+              </div>
+            </section>
+          } @else if (d['layout'] === 'image' && img) {
             <section class="relative isolate overflow-hidden text-white" [attr.aria-label]="d['heading'] || store.store()?.name">
               <img [src]="img" alt="" class="absolute inset-0 -z-10 size-full object-cover" [attr.fetchpriority]="first ? 'high' : null" />
               <div class="absolute inset-0 -z-10 bg-black/45"></div>
@@ -306,6 +420,7 @@ export class SectionNewsletterCompactComponent {
           @let cats = categoriesFor(s);
           @if (cats.length) {
             <section class="sf-container mt-14" [attr.aria-label]="d['heading'] || 'Kategorie'">
+              @if (d['eyebrow']) {<p class="sf-eyebrow">{{ d['eyebrow'] }}</p>}
               @if (d['heading']) {<h2 class="text-[24px] font-semibold tracking-tight">{{ d['heading'] }}</h2>}
               @if (d['style'] === 'chips') {
                 <ul class="mt-5 flex flex-wrap gap-2">
@@ -327,6 +442,49 @@ export class SectionNewsletterCompactComponent {
               }
             </section>
           }
+        }
+        @case ('tiles') {
+          @if (d['items']?.length) {
+            <section class="sf-container mt-16" [attr.aria-label]="d['heading'] || 'Kafelki'">
+              @if (d['eyebrow'] || d['heading']) {
+                <div class="mb-8">
+                  @if (d['eyebrow']) {<p class="text-[12px] uppercase tracking-[0.2em] text-sf-muted">{{ d['eyebrow'] }}</p>}
+                  @if (d['heading']) {<h2 class="mt-1 text-[32px] font-semibold">{{ d['heading'] }}</h2>}
+                </div>
+              }
+              <ul class="grid gap-4 sm:gap-6" [class]="tileCols(d['items'].length)">
+                @for (t of d['items']; track $index) {
+                  @let timg = store.image(t.image, 'w1200');
+                  @let l = tileLink(t.link);
+                  <li>
+                    <a [routerLink]="l.path" [queryParams]="l.query" class="group relative block h-80 overflow-hidden rounded-xl bg-sf-line text-white">
+                      @if (timg) {<img [src]="timg" alt="" class="size-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />}
+                      <span class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" aria-hidden="true"></span>
+                      <span class="absolute bottom-6 left-6 right-6">
+                        <span class="sf-display block text-[26px] font-semibold leading-tight">{{ t.title }}</span>
+                        @if (t.text) {<span class="mt-1 block text-[12px] uppercase tracking-wider text-white/85 group-hover:underline">{{ t.text }} →</span>}
+                      </span>
+                    </a>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        }
+        @case ('banner') {
+          @let bimg = store.image(d['image']);
+          <section class="sf-container mt-16" [attr.aria-label]="d['heading'] || 'Baner'">
+            <div class="relative overflow-hidden rounded-2xl bg-[#141413] text-white">
+              @if (bimg) {<img [src]="bimg" alt="" class="h-80 w-full object-cover opacity-45 sm:h-96" loading="lazy" />}
+              @else {<div class="h-80 sm:h-96"></div>}
+              <div class="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
+                @if (d['eyebrow']) {<p class="mb-3 text-[12px] font-semibold uppercase tracking-[0.25em]" style="color: color-mix(in srgb, var(--sf-accent) 35%, #fff)">{{ d['eyebrow'] }}</p>}
+                @if (d['heading']) {<h2 class="max-w-2xl text-[32px] font-semibold leading-tight sm:text-[48px]">{{ d['heading'] }}</h2>}
+                @if (d['text']) {<p class="mt-4 max-w-xl whitespace-pre-line text-[14px] text-white/85 sm:text-[16px]">{{ d['text'] }}</p>}
+                <sf-section-link class="mt-6 inline-block" [to]="d['link']" [text]="d['cta']" cls="sf-btn sf-btn-caps !bg-white !text-black" />
+              </div>
+            </div>
+          </section>
         }
         @case ('products') {<sf-section-products class="mt-14 block" [data]="d" />}
         @case ('image_text') {
@@ -378,6 +536,15 @@ export class HomeSectionsComponent {
 
   protected icon(key: string): string {
     return ICONS[key] ?? ICONS['star'];
+  }
+
+  protected tileCols(n: number): string {
+    return n >= 4 ? 'sm:grid-cols-2 lg:grid-cols-4' : n === 3 ? 'md:grid-cols-3' : n === 2 ? 'md:grid-cols-2' : '';
+  }
+
+  /** Tile links are internal paths (validated by the server); anything else falls back to all products. */
+  protected tileLink(value: string | undefined): { path: string; query: Record<string, string> | null } {
+    return value?.startsWith('/') ? routeOf(value) : { path: '/produkty', query: null };
   }
 
   protected categoriesFor(s: ThemeSection) {

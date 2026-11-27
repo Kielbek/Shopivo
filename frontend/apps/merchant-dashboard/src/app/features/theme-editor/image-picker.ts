@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
 import { LucideDynamicIcon } from '@lucide/angular';
 import { ApiError, StorefrontAdminApi } from '@shopivo/api-client';
-import { ProductImage } from '@shopivo/shared-models';
+import { ProductImage, TemplateImage } from '@shopivo/shared-models';
 import { ButtonComponent, DialogComponent, ToastService, icons } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 
@@ -25,6 +25,21 @@ const TYPES = ['image/jpeg', 'image/png'];
         <p class="mt-2 text-[11px] text-ink-muted">JPEG lub PNG, do 10 MB. Na baner najlepiej poziome, min. 1600 px szerokości.</p>
         <input #file type="file" class="sr-only" tabindex="-1" aria-hidden="true" accept="image/jpeg,image/png" multiple (change)="picked($event)" />
       </div>
+      @if (templateImages().length) {
+        <p class="mt-4 text-[12px] font-semibold uppercase tracking-wide text-ink-muted">Zdjęcia szablonu</p>
+        <ul class="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-5" aria-label="Zdjęcia szablonu">
+          @for (img of templateImages(); track img.ref) {
+            <li>
+              <button type="button" class="block w-full overflow-hidden rounded-[8px] border-2 transition-colors"
+                [class]="img.ref === selected() ? 'border-primary' : 'border-transparent hover:border-line-strong'"
+                [attr.aria-label]="'Wybierz zdjęcie szablonu: ' + img.label" [attr.aria-pressed]="img.ref === selected()" [title]="img.label" (click)="chooseTemplate(img)">
+                <img [src]="img.urls['w400']" alt="" class="aspect-square w-full object-cover" loading="lazy" />
+              </button>
+            </li>
+          }
+        </ul>
+        <p class="mt-4 text-[12px] font-semibold uppercase tracking-wide text-ink-muted">Twoje zdjęcia</p>
+      }
       @if (loading()) {
         <div class="mt-4 grid grid-cols-3 gap-2">@for (i of [1, 2, 3]; track i) {<span class="sv-shimmer block aspect-square rounded-[8px]"></span>}</div>
       } @else if (images().length) {
@@ -58,6 +73,8 @@ export class ImagePickerComponent {
   readonly tenantId = input.required<string>();
   readonly open = input(false);
   readonly selected = input<string | null>(null);
+  /** Photos shipped with the current template — shared, never copied; choosing one stores its `tpl:` reference. */
+  readonly templateImages = input<TemplateImage[]>([]);
   readonly chosen = output<ProductImage>();
   readonly cleared = output<void>();
   readonly closed = output<void>();
@@ -80,6 +97,10 @@ export class ImagePickerComponent {
       this.loading.set(false);
     }
     return this.images();
+  }
+
+  protected chooseTemplate(img: TemplateImage): void {
+    this.chosen.emit({ id: img.ref, alt: img.label, width: 0, height: 0, position: 0, urls: img.urls } as ProductImage);
   }
 
   protected choose(img: ProductImage): void {

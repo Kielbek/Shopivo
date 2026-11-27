@@ -37,7 +37,7 @@ public final class ThemeRegistry {
             new Field("background", "Tło strony", FieldType.COLOR, null, 7, "Kolory"),
             new Field("surface", "Tło sekcji", FieldType.COLOR, null, 7, "Kolory"),
             new Field("text", "Kolor tekstu", FieldType.COLOR, null, 7, "Kolory"),
-            new Field("font", "Krój pisma", FieldType.SELECT, List.of("sans", "serif", "rounded", "mono"), 0, "Typografia"),
+            new Field("font", "Krój pisma", FieldType.SELECT, List.of("sans", "serif", "rounded", "mono", "editorial"), 0, "Typografia"),
             new Field("radius", "Zaokrąglenia", FieldType.SELECT, List.of("none", "soft", "round"), 0, "Typografia"),
             new Field("productCard", "Karty produktów", FieldType.SELECT, List.of("plain", "bordered", "shadow"), 0, "Typografia"),
             new Field("logoImage", "Logo", FieldType.IMAGE, null, 36, "Nagłówek"),
@@ -104,8 +104,36 @@ public final class ThemeRegistry {
         return List.copyOf(out);
     }
 
+    /** VÉRA: editorial fashion template with its own photos (template assets, see {@link ThemeAssets}). */
+    private static Preset vera() {
+        Map<String, String> d = new LinkedHashMap<>(preset("#141413", "#9A6B4C", "#FAF9F6", "#F5F3EF", "#141413", "editorial", "soft", "editorial", "plain", null, null));
+        d.put("headerStyle", "classic");
+        d.put("mobileNav", "drawer");
+        d.put("announcement", "Nowa kolekcja jesień / zima już w sklepie");
+        d.put("footerNote", "Ubrania projektowane z myślą o komforcie na lata — naturalne tkaniny i ponadczasowe kroje.");
+        List<SectionRegistry.Section> sections = List.of(
+                SectionRegistry.section("hero", "hero", Map.ofEntries(Map.entry("eyebrow", "Kolekcja jesień / zima"),
+                        Map.entry("heading", "Ponadczasowa forma i naturalne tkaniny."),
+                        Map.entry("subheading", "Odkryj kapsułową garderobę zaprojektowaną z myślą o komforcie na lata. Szlachetne materiały i minimalistyczne kroje."),
+                        Map.entry("cta", "Odkryj kolekcję"), Map.entry("link", "/produkty"), Map.entry("cta2", "Promocje"), Map.entry("link2", "/produkty?promocje=tak"),
+                        Map.entry("image", "tpl:vera/hero"), Map.entry("layout", "editorial"), Map.entry("height", "medium"), Map.entry("featured", true))),
+                SectionRegistry.section("tiles1", "tiles", Map.of("eyebrow", "Przeglądaj działy", "heading", "Kategorie", "items", List.of(
+                        Map.of("image", "tpl:vera/women", "title", "Kobiety", "text", "Zobacz produkty", "link", "/produkty"),
+                        Map.of("image", "tpl:vera/men", "title", "Mężczyźni", "text", "Zobacz produkty", "link", "/produkty"),
+                        Map.of("image", "tpl:vera/accessories", "title", "Akcesoria", "text", "Zobacz produkty", "link", "/produkty")))),
+                SectionRegistry.section("products2", "products", Map.of("heading", "Wszystkie produkty", "source", "newest", "count", "8",
+                        "buttonText", "Zobacz wszystko", "filters", true)),
+                SectionRegistry.section("banner3", "banner", Map.of("image", "tpl:vera/atelier", "eyebrow", "Nasza pracownia",
+                        "heading", "Szyjemy w krótkich seriach, z dbałością o każdy detal.",
+                        "text", "Opowiedz klientom o swoich materiałach, produkcji i podejściu do mody.")),
+                SectionRegistry.section("newsletter4", "newsletter", SectionRegistry.newsletter()));
+        return new Preset("VERA", "Véra", "Magazynowy styl mody: szeryfowe nagłówki, duże zdjęcia, kafelki działów i filtry produktów na stronie głównej.",
+                Map.copyOf(d), sections);
+    }
+
     /** Button colours are chosen so white text keeps at least 4.5:1 contrast (WCAG AA). */
     public static final List<Preset> PRESETS = List.of(
+            vera(),
             new Preset("FASHION", "Atelier", "Elegancka typografia szeryfowa i duże zdjęcia — odzież, obuwie, dodatki.",
                     preset("#111111", "#C8A27C", "#FFFFFF", "#F6F4F1", "#1A1A1A", "serif", "none", "image", "plain", null, null),
                     plan("image", "Nowa kolekcja", "Ponadczasowe fasony w najlepszej jakości.", "categories:tiles", "products:8:Nowa kolekcja", "image_text", "newsletter")),
@@ -155,15 +183,7 @@ public final class ThemeRegistry {
                 case SELECT -> {
                     if (!f.options().contains(v)) throw new IllegalArgumentException(f.label() + ": niedozwolona wartość.");
                 }
-                case IMAGE -> {
-                    if (!v.isEmpty()) {
-                        try {
-                            v = java.util.UUID.fromString(v).toString();
-                        } catch (IllegalArgumentException ex) {
-                            throw new IllegalArgumentException(f.label() + ": nieprawidłowy obraz.");
-                        }
-                    }
-                }
+                case IMAGE -> v = ThemeAssets.image(v, f.label() + ": nieprawidłowy obraz.");
                 case URL -> {
                     if (!v.isEmpty() && !SectionRegistry.URL.matcher(v).matches()) {
                         throw new IllegalArgumentException(f.label() + ": podaj pełny adres zaczynający się od https://");

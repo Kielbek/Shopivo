@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { ThemeSection } from '@shopivo/shared-models';
-import { fontStack, onColor, radiusOf } from './theme-meta';
+import { displayStack, fontStack, onColor, radiusOf, templateImageUrl } from './theme-meta';
 
 /**
  * A miniature storefront drawn from a template's settings (colours, font, corners, home layout, product cards) —
@@ -35,6 +35,23 @@ import { fontStack, onColor, radiusOf } from './theme-meta';
             <span class="font-semibold leading-tight" [style.font-size.px]="phone() ? 11 : 13">{{ title() }}</span>
             <span class="mt-1 text-[7px] opacity-80">{{ hero()['subheading'] }}</span>
             <span class="mt-2 w-fit px-2 py-1 text-[7px] font-semibold" [style.background]="s['background']" [style.color]="s['text']" [style.border-radius]="radius()">{{ hero()['cta'] || 'Zobacz' }}</span>
+          </div>
+        }
+        @case ('editorial') {
+          <div class="grid items-center gap-[5%] px-[6%] py-[4%]" [class]="phone() ? 'grid-cols-1' : 'grid-cols-2'" [style.background]="s['surface']">
+            <div>
+              @if (hero()['eyebrow']) {<span class="block text-[6px] font-semibold uppercase tracking-[0.2em]" [style.color]="s['accent']">{{ hero()['eyebrow'] }}</span>}
+              <span class="mt-1 block font-semibold leading-[1.05]" [style.font-family]="display()" [style.font-size.px]="phone() ? 13 : 15">{{ title() }}</span>
+              <span class="mt-2 flex gap-1">
+                <span class="px-2 py-1 text-[6px] font-medium uppercase tracking-wider" [style.background]="s['primary']" [style.color]="on(s['primary'])">{{ hero()['cta'] || 'Zobacz' }}</span>
+                @if (hero()['cta2']) {<span class="border px-2 py-1 text-[6px] font-medium uppercase tracking-wider" [style.border-color]="s['text']">{{ hero()['cta2'] }}</span>}
+              </span>
+            </div>
+            @if (!phone()) {
+              <span class="block aspect-[4/5] max-h-[110px] overflow-hidden rounded-[6px] shadow" [style.background]="s['accent']">
+                @if (heroImage(); as img) {<img [src]="img" alt="" class="size-full object-cover" loading="lazy" />}
+              </span>
+            }
           </div>
         }
         @case ('split') {
@@ -83,12 +100,16 @@ export class ThemeMockComponent {
     return {
       layout: h?.['layout'] ?? s['heroLayout'] ?? 'centered', heading: h?.['heading'] ?? s['heroTitle'] ?? '',
       subheading: h?.['subheading'] ?? s['heroSubtitle'] ?? '', cta: h?.['cta'] ?? s['heroCta'] ?? '',
+      eyebrow: h?.['eyebrow'] ?? '', cta2: h?.['cta2'] ?? '', image: h?.['image'] ?? '',
     };
   });
   readonly storeName = input('');
   readonly phone = input(false);
 
   protected readonly font = computed(() => fontStack(this.settings()['font']));
+  protected readonly display = computed(() => displayStack(this.settings()['font']));
+  /** Only the template's own photos can be drawn here (the store's library needs a request per store). */
+  protected readonly heroImage = computed(() => templateImageUrl(this.hero()['image']));
   protected readonly radius = computed(() => radiusOf(this.settings()['radius'], 0.45));
   protected readonly title = computed(() => this.hero()['heading'] || this.storeName() || 'Witaj w sklepie');
   protected readonly cards = computed(() => (this.phone() ? [1, 2, 3, 4] : [1, 2, 3, 4]));

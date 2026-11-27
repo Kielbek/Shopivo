@@ -23,5 +23,10 @@ export const FONTS: Record<string, string> = {
   serif: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
   rounded: 'ui-rounded, "SF Pro Rounded", "Nunito", "Segoe UI", system-ui, sans-serif',
   mono: 'ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace',
+  editorial: '"Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif',
+};
+/** Heading font per font choice (only "editorial" pairs a display serif with a sans body). Fonts are self-hosted. */
+export const DISPLAY_FONTS: Record<string, string> = {
+  editorial: '"Cormorant Garamond", ui-serif, Georgia, "Times New Roman", serif',
 };
 export const RADII: Record<string, string> = { none: '0px', soft: '10px', round: '22px' };

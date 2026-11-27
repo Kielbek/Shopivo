@@ -59,22 +59,35 @@ public final class SectionRegistry {
 
     public static final List<SectionType> TYPES = List.of(
             new SectionType("hero", "Baner główny", "Duży nagłówek na górze strony: hasło, opis, przycisk i zdjęcie.", List.of(
-                    Prop.text("heading", "Nagłówek", 80), Prop.area("subheading", "Opis", 240), Prop.text("cta", "Tekst przycisku", 30),
+                    Prop.text("eyebrow", "Nadtytuł", 60), Prop.text("heading", "Nagłówek", 80), Prop.area("subheading", "Opis", 240),
+                    Prop.text("cta", "Tekst przycisku", 30),
                     Prop.of("link", "Przycisk prowadzi do", Kind.LINK, "Np. kategoria, strona lub wszystkie produkty."),
+                    Prop.text("cta2", "Drugi przycisk", 30), Prop.of("link2", "Drugi przycisk prowadzi do", Kind.LINK, null),
                     Prop.of("image", "Zdjęcie", Kind.IMAGE, "Najlepiej poziome, min. 1600 px szerokości."),
-                    Prop.select("layout", "Układ", "banner", "split", "image", "centered"),
-                    Prop.select("height", "Wysokość", "small", "medium", "large"))),
+                    Prop.select("layout", "Układ", "banner", "split", "image", "centered", "editorial"),
+                    Prop.select("height", "Wysokość", "small", "medium", "large"),
+                    Prop.of("featured", "Karta polecanego produktu na zdjęciu", Kind.TOGGLE, "Najnowszy dostępny produkt (układ „Magazyn”)."))),
             new SectionType("usp", "Korzyści", "Krótkie hasła budujące zaufanie, np. darmowa dostawa, 30 dni na zwrot.", List.of(
                     Prop.items("items", "Korzyści", 4, Prop.select("icon", "Ikona", "truck", "return", "shield", "card", "gift", "leaf", "star", "chat"),
                             Prop.text("title", "Tytuł", 40), Prop.text("text", "Opis", 90)))),
             new SectionType("categories", "Kategorie", "Kafelki kategorii ze zdjęciami lub lista przycisków.", List.of(
-                    Prop.text("heading", "Nagłówek", 60),
+                    Prop.text("eyebrow", "Nadtytuł", 60), Prop.text("heading", "Nagłówek", 60),
                     Prop.of("categories", "Kategorie", Kind.CATEGORIES, "Puste = kategorie główne w kolejności sklepu."),
                     Prop.select("style", "Wygląd", "tiles", "chips"))),
             new SectionType("products", "Produkty", "Siatka produktów: nowości, promocje albo wybrana kategoria (np. nowa kolekcja).", List.of(
-                    Prop.text("heading", "Nagłówek", 60), Prop.select("source", "Jakie produkty", "newest", "sale", "category"),
+                    Prop.text("eyebrow", "Nadtytuł", 60), Prop.text("heading", "Nagłówek", 60),
+                    Prop.select("source", "Jakie produkty", "newest", "sale", "category"),
                     Prop.of("category", "Kategoria", Kind.CATEGORY, "Dla „Wybrana kategoria”."),
-                    Prop.select("count", "Liczba produktów", "4", "8", "12"), Prop.text("buttonText", "Tekst linku", 30))),
+                    Prop.select("count", "Liczba produktów", "4", "8", "12"), Prop.text("buttonText", "Tekst linku", 30),
+                    Prop.of("filters", "Filtry kategorii i sortowanie", Kind.TOGGLE, "Klient przełącza kategorie główne bez opuszczania strony."))),
+            new SectionType("tiles", "Kafelki ze zdjęciami", "2–4 duże kafelki prowadzące do kategorii, kolekcji lub stron.", List.of(
+                    Prop.text("eyebrow", "Nadtytuł", 60), Prop.text("heading", "Nagłówek", 60),
+                    Prop.items("items", "Kafelki", 4, Prop.of("image", "Zdjęcie", Kind.IMAGE, null), Prop.text("title", "Tytuł", 40),
+                            Prop.text("text", "Podpis", 40), Prop.of("link", "Prowadzi do", Kind.LINK, null)))),
+            new SectionType("banner", "Baner na zdjęciu", "Hasło na tle zdjęcia — historia marki, kolekcja, wartości.", List.of(
+                    Prop.of("image", "Zdjęcie", Kind.IMAGE, "Poziome, min. 1600 px szerokości."), Prop.text("eyebrow", "Nadtytuł", 60),
+                    Prop.text("heading", "Nagłówek", 100), Prop.area("text", "Tekst", 300), Prop.text("cta", "Tekst przycisku", 30),
+                    Prop.of("link", "Przycisk prowadzi do", Kind.LINK, null))),
             new SectionType("image_text", "Obraz z tekstem", "Zdjęcie obok tekstu — historia marki, kolekcja, wyróżniony produkt.", List.of(
                     Prop.of("image", "Zdjęcie", Kind.IMAGE, null), Prop.text("heading", "Nagłówek", 80), Prop.area("text", "Tekst", 600),
                     Prop.text("cta", "Tekst przycisku", 30), Prop.of("link", "Przycisk prowadzi do", Kind.LINK, null),
@@ -147,7 +160,8 @@ public final class SectionRegistry {
                 }
                 yield v;
             }
-            case IMAGE, CATEGORY -> {
+            case IMAGE -> ThemeAssets.image(raw == null ? "" : String.valueOf(raw), label + ": nieprawidłowe zdjęcie.");
+            case CATEGORY -> {
                 String v = raw == null ? "" : String.valueOf(raw).strip();
                 if (!v.isEmpty()) uuid(label, v);
                 yield v;

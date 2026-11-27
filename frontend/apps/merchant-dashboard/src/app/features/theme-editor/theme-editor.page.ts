@@ -272,7 +272,7 @@ function newId(type: string): string {
 
     </div>
 
-    <sv-image-picker #picker [tenantId]="ctx.tenantId()" [open]="!!picking()" [selected]="pickingValue()"
+    <sv-image-picker #picker [tenantId]="ctx.tenantId()" [open]="!!picking()" [selected]="pickingValue()" [templateImages]="templateImages()"
       (chosen)="imageChosen($event)" (cleared)="imageCleared()" (closed)="picking.set(null)" />
 
     <sv-dialog heading="Masz niezapisane zmiany" [open]="confirmExit()" (closed)="confirmExit.set(false)">
@@ -351,7 +351,9 @@ export class ThemeEditorPage {
     const p = this.picking();
     if (!p) return null;
     if (p.setting) return this.settings()[p.setting] || null;
-    return this.sections().find((s) => s.id === p.section)?.data[p.key!] || null;
+    const data = this.sections().find((s) => s.id === p.section)?.data;
+    const [key, index, prop] = p.key!.split(':');
+    return (prop ? data?.[key]?.[Number(index)]?.[prop] : data?.[key]) || null;
   });
   protected readonly contrastValue = computed(() => contrast(this.settings()['text'], this.settings()['background']).toFixed(1).replace('.', ','));
   protected readonly lowContrast = computed(() => contrast(this.settings()['text'], this.settings()['background']) < 4.5);
@@ -427,10 +429,20 @@ export class ThemeEditorPage {
     setTimeout(() => this.post({ type: 'shopivo:theme', theme: { code: this.code(), settings: this.settings(), sections: this.sections() }, images: this.images() }), 400);
   }
 
+  /** The store's library plus the templates' own images (`tpl:…`), so both show in the editor and the live preview. */
   private async loadImages(): Promise<void> {
+    const tpl = this.data.hasValue() ? this.data.value().templateImages ?? [] : [];
+    const own = Object.fromEntries(tpl.map((i) => [i.ref, i.urls]));
+    this.images.update((m) => ({ ...own, ...m }));
     const list = await this.picker()?.load();
-    if (list) this.images.set(Object.fromEntries(list.map((i) => [i.id, i.urls])));
+    if (list) this.images.set({ ...own, ...Object.fromEntries(list.map((i) => [i.id, i.urls])) });
   }
+
+  /** Images of the template being edited (offered first in the picker, so a replaced photo can be brought back). */
+  protected readonly templateImages = computed(() => {
+    const code = this.code().toLowerCase();
+    return this.data.hasValue() ? (this.data.value().templateImages ?? []).filter((i) => i.template === code) : [];
+  });
 
   // ---- navigation in the sidebar ------------------------------------------------------------------------------------
   protected open(v: View): void {
@@ -542,7 +554,13 @@ export class ThemeEditorPage {
     if (p.setting) this.setSetting(p.setting, id);
     else if (p.section && p.key) {
       const s = this.sections().find((x) => x.id === p.section);
-      if (s) this.updateSection(s.id, { ...s.data, [p.key]: id });
+      // "items:1:image" = the image of the second item of a repeatable list (e.g. a tile)
+      const [key, index, prop] = p.key.split(':');
+      if (s && prop) {
+        const items = [...(s.data[key] ?? [])];
+        items[Number(index)] = { ...items[Number(index)], [prop]: id };
+        this.updateSection(s.id, { ...s.data, [key]: items });
+      } else if (s) this.updateSection(s.id, { ...s.data, [p.key]: id });
     }
     this.picking.set(null);
   }

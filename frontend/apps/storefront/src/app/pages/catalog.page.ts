@@ -75,12 +75,15 @@ export class CatalogPage {
   readonly q = input<string>();
   readonly sort = input<string>();
   readonly strona = input<string>();
+  /** `?promocje=tak` — only discounted products (links from home sections and menus). */
+  readonly promocje = input<string>();
+  protected readonly sale = computed(() => this.promocje() === 'tak' && this.mode() !== 'search');
 
   protected readonly page = computed(() => Math.max(0, (Number(this.strona()) || 1) - 1));
   protected readonly category = computed(() => (this.mode() === 'category' && this.slug() ? this.store.category(this.slug()!) : undefined));
   protected readonly subcategories = computed(() => (this.category() ? this.store.children(this.category()!.id) : this.mode() === 'all' ? this.store.topCategories() : []));
   protected readonly heading = computed(() => this.mode() === 'search' ? `Wyniki wyszukiwania: „${this.q() ?? ''}”`
-    : this.category()?.name ?? (this.mode() === 'category' ? 'Kategoria' : 'Wszystkie produkty'));
+    : (this.sale() ? 'Promocje' + (this.category() ? ' – ' + this.category()!.name : '') : this.category()?.name ?? (this.mode() === 'category' ? 'Kategoria' : 'Wszystkie produkty')));
   protected readonly crumbs = computed<Crumb[]>(() => {
     if (this.mode() !== 'category' || !this.slug()) return [{ label: this.mode() === 'search' ? 'Wyszukiwanie' : 'Produkty', link: null }];
     const path = this.store.pathTo(this.slug()!);
@@ -88,9 +91,9 @@ export class CatalogPage {
   });
 
   protected readonly products = rxResource({
-    params: () => ({ mode: this.mode(), slug: this.slug(), q: this.q(), sort: this.sort(), page: this.page() }),
+    params: () => ({ mode: this.mode(), slug: this.slug(), q: this.q(), sort: this.sort(), page: this.page(), sale: this.sale() }),
     stream: ({ params }) => this.api.products({ kategoria: params.mode === 'category' ? params.slug : undefined,
-      q: params.mode === 'search' ? params.q : undefined, sort: params.sort, page: params.page }),
+      q: params.mode === 'search' ? params.q : undefined, sort: params.sort, page: params.page, promocje: params.sale }),
   });
 
   constructor() {
@@ -106,7 +109,7 @@ export class CatalogPage {
       const path = this.mode() === 'category' ? `/kategoria/${this.slug()}` : this.mode() === 'search' ? '/szukaj' : '/produkty';
       this.seo.set({
         title: c?.seoTitle || this.heading(), description: c?.seoDescription || c?.description || `${this.heading()} – ${s.name}`,
-        path: path + (this.page() > 0 ? `?strona=${this.page() + 1}` : ''), noindex: this.mode() === 'search',
+        path: path + (this.page() > 0 ? `?strona=${this.page() + 1}` : ''), noindex: this.mode() === 'search' || this.sale(),
         jsonLd: c ? [{ '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: this.store.pathTo(c.slug).map((x, i) => ({
           '@type': 'ListItem', position: i + 1, name: x.name, item: this.seo.origin() + '/kategoria/' + x.slug })) }] : [],
       }, s.name);

@@ -10,6 +10,9 @@ import { Wishlist } from './core/wishlist';
 import { routeOf } from './core/link-token';
 import { StoreState } from './core/store-state';
 import { SectionNewsletterCompactComponent } from './ui/sections';
+import { CartDrawerComponent } from './themes/vera/cart-drawer';
+import { VeraFooterComponent } from './themes/vera/vera-footer';
+import { VeraHeaderComponent } from './themes/vera/vera-header';
 
 const SOCIALS = [
   { key: 'instagram', label: 'Instagram', icon: 'M4 4h16v16H4zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM17 6.5h.01' },
@@ -20,7 +23,8 @@ const SOCIALS = [
 
 @Component({
   selector: 'sf-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, NgTemplateOutlet, SectionNewsletterCompactComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, FormsModule, NgTemplateOutlet, SectionNewsletterCompactComponent,
+    VeraHeaderComponent, VeraFooterComponent, CartDrawerComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '[attr.style]': 'store.cssVars()', class: 'flex min-h-dvh flex-col bg-sf-bg text-sf-text font-[family-name:var(--sf-font)]' },
   template: `
@@ -54,7 +58,8 @@ const SOCIALS = [
           @if (s.preview) {
             <div class="bg-[#111] px-4 py-2 text-center text-[13px] text-white" role="status">Podgląd sklepu — zmiany w szkicu widzisz tylko Ty (link ważny 2 godziny).</div>
           }
-          @if (store.settings()['announcement']) {
+          @let vera = store.layout() === 'vera';
+          @if (store.settings()['announcement'] && !vera) {
             <div class="px-4 py-2 text-center text-[13px] font-medium" style="background: var(--sf-accent); color: var(--sf-text)">
               {{ store.settings()['announcement'] }}
             </div>
@@ -102,6 +107,10 @@ const SOCIALS = [
             </a>
           </ng-template>
 
+          @if (vera) {
+            <sf-vera-header (menu)="menu.set(true)" />
+            <sf-cart-drawer />
+          } @else {
           <header class="z-30 border-b border-sf-line bg-sf-bg/95 backdrop-blur" [class.sticky]="ts['stickyHeader'] !== 'no'" [class.top-0]="ts['stickyHeader'] !== 'no'">
             <div class="sf-container flex h-16 items-center gap-3">
               <button type="button" class="-ml-2 flex size-10 items-center justify-center lg:hidden" [class.hidden]="bottomNav" aria-label="Menu"
@@ -128,6 +137,7 @@ const SOCIALS = [
               </nav>
             }
           </header>
+          }
 
           <!-- Side menu (phones and tablets) -->
           <div class="fixed inset-0 z-50 lg:hidden" [class.pointer-events-none]="!menu()" [attr.aria-hidden]="!menu()">
@@ -185,6 +195,9 @@ const SOCIALS = [
 
           <main id="tresc" class="flex-1"><router-outlet /></main>
 
+          @if (vera) {
+            <sf-vera-footer [class.pb-16]="bottomNav" [class.lg:pb-0]="bottomNav" class="block" />
+          } @else {
           <footer class="mt-16 border-t border-sf-line bg-sf-surface" [class.pb-16]="ts['mobileNav'] === 'bottom'" [class.lg:pb-0]="ts['mobileNav'] === 'bottom'">
             @if (ts['footerNewsletter'] !== 'no') {
               <div class="border-b border-sf-line">
@@ -239,6 +252,7 @@ const SOCIALS = [
             </div>
             <div class="border-t border-sf-line py-4 text-center text-[12px] text-sf-muted">© {{ year }} {{ s.name }} · Sklep działa na platformie Shopivo</div>
           </footer>
+          }
         }
       }
     }

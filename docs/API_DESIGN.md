@@ -331,9 +331,10 @@ rewizję; zamówienia wskazują rewizję zaakceptowaną przez klienta). Podgląd
 
 | Metoda | Ścieżka | Uprawnienie | Opis |
 |---|---|---|---|
-| GET/PUT | `/tenants/{t}/theme` | `STORE_READ` / `THEMES_WRITE` | Odpowiedź ma `sectionTypes` (schemat 10 typów sekcji); szkic przyjmuje `sections` (maks. 20; id `[a-z0-9]{4,24}`, nieznane pola → 422, linki tylko względne `/…` lub `https://`). `sections: null` = migracja starych pól banera do sekcji |
+| GET/PUT | `/tenants/{t}/theme` | `STORE_READ` / `THEMES_WRITE` | Odpowiedź ma `sectionTypes` (schemat 12 typów sekcji) i `templateImages` (grafiki szablonów); szkic przyjmuje `sections` (maks. 20; id `[a-z0-9]{4,24}`, nieznane pola → 422, linki tylko względne `/…` lub `https://`). `sections: null` = migracja starych pól banera do sekcji |
 | GET / POST | `/tenants/{t}/theme/images` | `STORE_READ` / `THEMES_WRITE` | Biblioteka zdjęć motywu (JPEG/PNG ≤ 10 MB, maks. 40) |
 | DELETE | `/tenants/{t}/theme/images/{id}` | `THEMES_WRITE` | |
+| GET | `/theme-assets/{szablon}/{plik}.jpg` | publiczne | Grafiki dostarczane z szablonem (tylko z rejestru `ThemeAssets`, cache 30 dni); w motywie wskazywane odnośnikiem `tpl:<szablon>/<nazwa>` — zob. [THEMES.md](THEMES.md) |
 | POST / DELETE | `/tenants/{t}/categories/{id}/image` | `PRODUCTS_WRITE` | Zdjęcie kategorii (jedno; nowe zastępuje poprzednie) |
 | GET | `/tenants/{t}/newsletter?status=&q=&page=` | `CUSTOMERS_READ` | Lista subskrybentów |
 | GET | `/tenants/{t}/newsletter/summary` | `CUSTOMERS_READ` | Liczby wg statusu |

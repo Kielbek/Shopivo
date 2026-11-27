@@ -54,6 +54,12 @@ type Data = Record<string, any>;
                   </div>
                 </div>
               }
+              @case ('TOGGLE') {
+                <label class="flex items-center gap-2.5 text-[13px] text-ink">
+                  <input type="checkbox" role="switch" class="sv-switch" [id]="id" [checked]="!!data()[p.key]" (change)="set(p.key, $any($event.target).checked)" />
+                  {{ data()[p.key] ? 'Włączone' : 'Wyłączone' }}
+                </label>
+              }
               @case ('CATEGORY') {
                 <sv-select [inputId]="id" [ariaLabel]="p.label" [options]="categoryOptions()" [value]="data()[p.key] ?? ''" (valueChange)="set(p.key, $event ?? '')" />
               }
@@ -78,7 +84,23 @@ type Data = Record<string, any>;
                           @let iid = id + '-' + i + '-' + ip.key;
                           <div>
                             <label class="text-[12px] text-ink-soft" [attr.for]="iid">{{ ip.label }}</label>
-                            @if (ip.kind === 'SELECT') {
+                            @if (ip.kind === 'IMAGE') {
+                              @let iurl = imageUrl()(item[ip.key]);
+                              <div class="mt-1 flex items-center gap-3">
+                                <span class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-[8px] border border-line bg-canvas text-ink-muted">
+                                  @if (iurl) {<img [src]="iurl" alt="" class="size-full object-cover" />} @else {<svg [lucideIcon]="icons.image" [size]="18" />}
+                                </span>
+                                <button type="button" class="text-[13px] font-medium text-primary-strong hover:underline" [id]="iid"
+                                  (click)="pickImage.emit(p.key + ':' + i + ':' + ip.key)">{{ iurl ? 'Zmień zdjęcie' : 'Wybierz zdjęcie' }}</button>
+                              </div>
+                            } @else if (ip.kind === 'LINK') {
+                              <sv-select class="mt-1 block" [inputId]="iid" [ariaLabel]="ip.label" [options]="linkChoices(item[ip.key])" [value]="linkValue(item[ip.key])"
+                                (valueChange)="setItemLink(p.key, i, ip.key, $event)" />
+                              @if (linkValue(item[ip.key]) === '__custom') {
+                                <input class="sv-input mt-2" maxlength="300" placeholder="/strona/o-nas" aria-label="Własny adres"
+                                  [value]="item[ip.key] ?? ''" (change)="setItem(p.key, i, ip.key, $any($event.target).value.trim())" />
+                              }
+                            } @else if (ip.kind === 'SELECT') {
                               <sv-select class="mt-1 block" [inputId]="iid" [ariaLabel]="ip.label" [options]="optionsOf(ip)" [value]="item[ip.key]" (valueChange)="setItem(p.key, i, ip.key, $event)" />
                             } @else if (ip.kind === 'TEXTAREA') {
                               <textarea class="sv-input mt-1 min-h-20 py-2" [id]="iid" [attr.maxlength]="ip.max" [value]="item[ip.key] ?? ''" (input)="setItem(p.key, i, ip.key, $any($event.target).value)"></textarea>
@@ -148,6 +170,12 @@ export class PropFormComponent {
     const items = [...(this.data()[key] ?? [])];
     items[index] = { ...items[index], [prop]: value };
     this.set(key, items);
+  }
+
+  protected setItemLink(key: string, index: number, prop: string, v: string | null): void {
+    const current = this.data()[key]?.[index]?.[prop];
+    if (v === '__custom') this.setItem(key, index, prop, current && !this.links().some((l) => l.value === current) ? current : '/');
+    else this.setItem(key, index, prop, v ?? '');
   }
 
   protected addItem(p: SectionProp): void {

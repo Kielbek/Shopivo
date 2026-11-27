@@ -29,7 +29,7 @@ class ThemeController {
     }
 
     record ThemeResponse(List<ThemeRegistry.Preset> presets, List<ThemeRegistry.Field> fields, List<pl.shopivo.themes.SectionRegistry.SectionType> sectionTypes,
-            Themes.ThemeState state) {
+            Themes.ThemeState state, List<pl.shopivo.themes.ThemeAssets.Asset> templateImages) {
     }
 
     record DraftRequest(String code, Map<String, String> settings, List<pl.shopivo.themes.SectionRegistry.Section> sections, long version) {
@@ -38,7 +38,8 @@ class ThemeController {
     @GetMapping
     @PreAuthorize("@tenantAccess.can('STORE_READ')")
     ThemeResponse get(@PathVariable UUID tenantId) {
-        return new ThemeResponse(ThemeRegistry.PRESETS, ThemeRegistry.FIELDS, pl.shopivo.themes.SectionRegistry.TYPES, themes.state());
+        return new ThemeResponse(ThemeRegistry.PRESETS, ThemeRegistry.FIELDS, pl.shopivo.themes.SectionRegistry.TYPES, themes.state(),
+                pl.shopivo.themes.ThemeAssets.ALL);
     }
 
     @PutMapping

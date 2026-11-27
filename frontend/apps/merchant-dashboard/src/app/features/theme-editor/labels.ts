@@ -3,6 +3,7 @@ import { IconName } from '@shopivo/shared-ui';
 /** Polish labels for option values of theme settings and section properties. */
 export const OPTION_LABELS: Record<string, string> = {
   sans: 'Bezszeryfowy (nowoczesny)', serif: 'Szeryfowy (elegancki)', rounded: 'Zaokrąglony (przyjazny)', mono: 'Techniczny',
+  editorial: 'Magazynowy (szeryfowe nagłówki + nowoczesny tekst)',
   none: 'Ostre rogi', soft: 'Delikatne', round: 'Mocne',
   plain: 'Bez ramki', bordered: 'Z ramką', shadow: 'Z cieniem',
   classic: 'Logo po lewej, menu obok', centered: 'Logo na środku, menu pod spodem',
@@ -19,6 +20,7 @@ export const OPTION_LABELS: Record<string, string> = {
 /** Overrides of option labels that depend on the property (same value, different meaning). */
 export function optionLabel(prop: string, value: string): string {
   if (prop === 'layout' && value === 'centered') return 'Wyśrodkowany tekst';
+  if (prop === 'layout' && value === 'editorial') return 'Magazyn: tekst, dwa przyciski i wysokie zdjęcie';
   if (prop === 'align' && value === 'left') return 'Do lewej';
   if (prop === 'count') return value;
   return OPTION_LABELS[value] ?? value;
@@ -26,7 +28,7 @@ export function optionLabel(prop: string, value: string): string {
 
 export const SECTION_ICONS: Record<string, IconName> = {
   hero: 'image', usp: 'shieldCheck', categories: 'categories', products: 'products', image_text: 'imagePlus', faq: 'question',
-  newsletter: 'mail', reviews: 'star', rich_text: 'pages', blog: 'help',
+  newsletter: 'mail', reviews: 'star', rich_text: 'pages', blog: 'help', tiles: 'categories', banner: 'image',
 };
 
 /** Hints shown in the settings views. */

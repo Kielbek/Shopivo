@@ -44,9 +44,14 @@ public class ThemeImages {
         auditLog.record(AuditEntry.tenant("theme.image.deleted", tenant, "theme", null));
     }
 
-    /** Image id → URLs, for the storefront (ids that are not in the store's library are simply absent). */
+    /**
+     * Image id → URLs, for the storefront: the store's library plus the templates' own images ({@code tpl:…}). Ids that
+     * are not in the store's library are simply absent.
+     */
     @Transactional(readOnly = true)
     public Map<String, Map<String, String>> urls() {
-        return list().stream().collect(Collectors.toMap(i -> i.id().toString(), Media.ImageView::urls));
+        Map<String, Map<String, String>> out = new java.util.LinkedHashMap<>(ThemeAssets.urls());
+        out.putAll(list().stream().collect(Collectors.toMap(i -> i.id().toString(), Media.ImageView::urls)));
+        return out;
     }
 }

@@ -1,15 +1,15 @@
 # Shopivo — postęp prac
 
-Ostatnia aktualizacja: 2026-11-27 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a**, **Faza 4b**, **Faza 4c — opinie**, **Faza 4d — konta klientów**, **Faza 4e — CAPTCHA i menu**, **Faza 5a — płatności online**, **Faza 5b — wysyłka InPost**, **usprawnienia UX katalogu**, **silnik wyglądu i newsletter** (z ograniczeniami opisanymi niżej).
+Ostatnia aktualizacja: 2026-11-27 · Ukończone: **Faza 0**, **Faza 1**, **Faza 2**, **Faza 3**, **Faza 4a**, **Faza 4b**, **Faza 4c — opinie**, **Faza 4d — konta klientów**, **Faza 4e — CAPTCHA i menu**, **Faza 5a — płatności online**, **Faza 5b — wysyłka InPost**, **usprawnienia UX katalogu**, **silnik wyglądu i newsletter**, **szablon Véra z grafikami szablonów** (z ograniczeniami opisanymi niżej).
 
 ## Wyniki testów (rzeczywiście uruchomione)
 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 49/49 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 85/85 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 86/86 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
-| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 74/74 ✔ (panel 60, admin 3, witryna 11) |
+| Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 81/81 ✔ (panel 67, admin 3, witryna 11) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
 | `npm audit --omit=dev --audit-level=high` | | 0 podatności |
 | Ręczny przepływ E2E w Chromium (Playwright, skrypt poza repo) na pełnym stosie lokalnym | rejestracja → e-mail (Mailpit) → weryfikacja → logowanie → sklep → dane firmy (walidacja NIP) → zaproszenie → MFA (QR) → panel admina → blokada sprzedawcy w panelu admina | ✔ |
@@ -21,6 +21,34 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 | Ręczny przepływ E2E Fazy 3 (Playwright, poza repo) | kategorie i marka → produkt z 3 wariantami w edytorze → obniżka z Omnibusem → korekta magazynu i historia → wysyłka i płatności w ustawieniach → zamówienie przez API storefrontu → opłacenie, wysyłka z numerem, notatka → zamówienie ręczne → karta klienta; widoki mobilne bez poziomego przewijania, 0 błędów konsoli | ✔ |
 
 | Ręczny przepływ E2E Fazy 4a (Playwright, poza repo) | sprzedawca: produkty, kategorie, dostawa, przelew → 2 zdjęcia przez edytor produktu → „Wygląd sklepu”: preset Home, teksty, zapis szkicu → podgląd w nowej karcie (baner podglądu, szkic widoczny) → publikacja motywu → publikacja sklepu z karty na Przeglądzie; klient na `http://<sklep>.shopivo.localhost:4000`: strona główna → kategoria (Omnibus) → produkt (wariant niedostępny, wybór wariantu, galeria) → koszyk → checkout (walidacja, regulamin) → potwierdzenie z danymi do przelewu; SSR: tytuł, opis, canonical, OG, JSON-LD Product/BreadcrumbList, 404 dla nieznanego produktu/kategorii/sklepu, sitemap, robots; iPhone 13 bez poziomego przewijania; 0 błędów konsoli | ✔ |
+
+## Szablon Véra i grafiki szablonów (2026-11-27)
+
+- **Grafiki szablonów jako odnośniki `tpl:<szablon>/<nazwa>`:**
+  - pliki leżą przy kodzie (`resources/themes/`), są wspólne dla wszystkich sklepów i serwowane publicznie z cache;
+  - edytor pokazuje je od razu, a sprzedawca może każde podmienić na własne (i przywrócić);
+  - walidacja odrzuca nieznane odnośniki;
+  - opis architektury: [THEMES.md](THEMES.md), licencje: [THEME_ASSETS.md](THEME_ASSETS.md).
+- **Szablon Véra (pierwszy z własnym kodem):**
+  - nagłówek, stopka i boczny koszyk z progiem darmowej dostawy;
+  - karta produktu 3:4 z szybkim dodaniem do koszyka;
+  - galeria strony produktu z pionowymi miniaturami;
+  - samohostowane fonty Cormorant Garamond i Plus Jakarta Sans.
+- **Nowe sekcje i opcje sekcji (dla wszystkich szablonów):**
+  - „Kafelki ze zdjęciami” i „Baner na zdjęciu”;
+  - baner „Magazyn” z drugim przyciskiem i kartą polecanego produktu;
+  - nadtytuły;
+  - filtry kategorii i sortowanie w sekcji produktów.
+- **Poprawka:** lista produktów obsługuje `?promocje=tak`. Wcześniej linki „Promocje” z sekcji pokazywały wszystkie produkty.
+- **E2E (Playwright, poza repo):**
+  - **Przepływ:** sklep modowy z 8 produktami → wybór Véry w galerii → edytor → publikacja → strona główna (filtry: Akcesoria 2, Promocje 2) → szybkie dodanie produktu bez wariantów (boczny koszyk) → produkt z rozmiarami prowadzi na stronę produktu → dodanie z wyborem rozmiaru → `/produkty?promocje=tak`.
+  - **Edytor:** podmiana zdjęcia banera na własne, zapis, przywrócenie zdjęcia szablonu.
+  - **Wynik:** iPhone 13 bez poziomego przewijania, 0 błędów konsoli, 0 zapytań do zewnętrznych hostów (fonty z `/fonts`).
+- **Ograniczenia:**
+  - komponenty Véry są w paczce startowej witryny (+~40 kB, próg ostrzeżenia 600 kB); przy kolejnych szablonach — leniwe ładowanie;
+  - kafelki z linkiem `https://` prowadzą do wszystkich produktów (obsługiwane są linki wewnętrzne);
+  - pole „Wysokość” banera nie wpływa na układ „Magazyn”;
+  - zdjęcia z HTML-a są z Unsplash — dobre jako start, ale sprzedawca powinien użyć własnych.
 
 ## Faza 4a — witryna sklepu i motywy (2026-11-26)
 
