@@ -69,6 +69,7 @@ export const icons = {
   chartPie: LucideChartPie,
   check: LucideCheck,
   chevronDown: LucideChevronDown,
+  chevronUp: LucideChevronUp,
   chevronLeft: LucideChevronLeft,
   chevronRight: LucideChevronRight,
   chevronsUpDown: LucideChevronsUpDown,

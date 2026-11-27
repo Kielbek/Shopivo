@@ -8,7 +8,7 @@ import { clip, suggestDescription, suggestTitle } from './seo-panel';
 import { isColorOption, mergeValues, splitValues } from './variant-options';
 
 const cat = (id: string, name: string, parentId: string | null, position = 0): Category => ({
-  id, name, parentId, position, slug: id, description: null, depth: 0, visible: true, seoTitle: null, seoDescription: null, productCount: 0, version: 0,
+  id, name, parentId, position, slug: id, description: null, depth: 0, visible: true, seoTitle: null, seoDescription: null, productCount: 0, version: 0, image: null,
 });
 
 describe('category tree', () => {

@@ -22,6 +22,10 @@ export const routes: Routes = [
   { path: 'sklepy', title: 'Moje sklepy', canActivate: [authGuard], loadComponent: () => import('./features/onboarding/store-picker.page').then((m) => m.StorePickerPage) },
   { path: 'konto', title: 'Ustawienia konta', canActivate: [authGuard], loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage) },
   {
+    path: 'sklep/:tenantId/edytor-wygladu', title: 'Edytor wyglądu', canActivate: [authGuard],
+    loadComponent: () => import('./features/theme-editor/theme-editor.page').then((m) => m.ThemeEditorPage),
+  },
+  {
     path: 'sklep/:tenantId',
     canActivate: [authGuard],
     loadComponent: () => import('./features/store/store-shell').then((m) => m.StoreShell),

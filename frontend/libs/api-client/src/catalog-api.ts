@@ -89,6 +89,16 @@ export class CatalogApi {
     return this.http.put<Category>(`${this.base(tenantId)}/categories/${encodeURIComponent(id)}`, input);
   }
 
+  setCategoryImage(t: string, id: string, file: File): Observable<Category> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<Category>(`${this.base(t)}/categories/${encodeURIComponent(id)}/image`, form);
+  }
+
+  removeCategoryImage(t: string, id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base(t)}/categories/${encodeURIComponent(id)}/image`);
+  }
+
   deleteCategory(tenantId: string, id: string): Observable<void> {
     return this.http.delete<void>(`${this.base(tenantId)}/categories/${encodeURIComponent(id)}`);
   }

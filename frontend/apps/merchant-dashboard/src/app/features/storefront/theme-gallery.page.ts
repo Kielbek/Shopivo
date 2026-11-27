@@ -116,7 +116,7 @@ function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
                       @if (canWrite && !isCurrent(p)) {
                         <button sv-button size="sm" class="flex-1" [loading]="choosing() === p.code" (click)="choose(p)">Wybierz szablon</button>
                       } @else if (isCurrent(p)) {
-                        <a sv-button size="sm" class="flex-1" routerLink="../">Dostosuj</a>
+                        <a sv-button size="sm" class="flex-1" [routerLink]="['/sklep', ctx.tenantId(), 'edytor-wygladu']">Dostosuj</a>
                       }
                     </div>
                   </div>
@@ -154,7 +154,7 @@ function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
   `,
 })
 export class ThemeGalleryPage {
-  private readonly ctx = inject(StoreContext);
+  protected readonly ctx = inject(StoreContext);
   private readonly api = inject(StorefrontAdminApi);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
@@ -226,8 +226,8 @@ export class ThemeGalleryPage {
         }
       }
       await firstValueFrom(this.api.saveTheme(this.ctx.tenantId(), p.code, next, d.state.version, sections));
-      this.toast.success(`Wybrano szablon „${p.name}”. Dopasuj go i opublikuj, gdy będzie gotowy.`);
-      await this.router.navigate(['/sklep', this.ctx.tenantId(), 'wyglad']);
+      this.toast.success(`Wybrano szablon „${p.name}”. Dopasuj go w edytorze i opublikuj, gdy będzie gotowy.`);
+      await this.router.navigate(['/sklep', this.ctx.tenantId(), 'edytor-wygladu']);
     } catch (e) {
       this.toast.error(ApiError.from(e).message);
     } finally {

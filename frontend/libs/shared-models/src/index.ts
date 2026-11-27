@@ -319,7 +319,7 @@ export type MovementReason = 'INITIAL' | 'RECEIPT' | 'ADJUSTMENT' | 'DAMAGE' | '
 
 export interface Category {
   id: string; parentId: string | null; name: string; slug: string; description: string | null; position: number; depth: number;
-  visible: boolean; seoTitle: string | null; seoDescription: string | null; productCount: number; version: number;
+  visible: boolean; seoTitle: string | null; seoDescription: string | null; productCount: number; version: number; image: Record<string, string> | null;
 }
 export interface Brand { id: string; name: string; slug: string; productCount: number; }
 export interface ProductOption { name: string; values: string[]; }

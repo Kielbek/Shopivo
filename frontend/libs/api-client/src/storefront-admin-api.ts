@@ -32,6 +32,20 @@ export class StorefrontAdminApi {
     return this.http.get<ThemeResponse>(`${this.base(t)}/theme`);
   }
 
+  themeImages(t: string): Observable<ProductImage[]> {
+    return this.http.get<ProductImage[]>(`${this.base(t)}/theme/images`);
+  }
+
+  uploadThemeImage(t: string, file: File): Observable<ProductImage> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<ProductImage>(`${this.base(t)}/theme/images`, form);
+  }
+
+  deleteThemeImage(t: string, id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base(t)}/theme/images/${encodeURIComponent(id)}`);
+  }
+
   saveTheme(t: string, code: string, settings: Record<string, string>, version: number, sections: ThemeSection[] | null = null): Observable<ThemeState> {
     return this.http.put<ThemeState>(`${this.base(t)}/theme`, { code, settings, sections, version });
   }

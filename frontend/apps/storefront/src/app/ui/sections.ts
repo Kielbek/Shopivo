@@ -276,8 +276,8 @@ export class SectionNewsletterCompactComponent {
             </section>
           } @else {
             <section [class]="d['layout'] === 'banner' ? 'bg-sf-primary text-sf-on-primary' : d['layout'] === 'split' ? 'bg-sf-surface' : 'bg-sf-soft'">
-              <div class="sf-container {{ pad }}" [class]="d['layout'] === 'split' ? 'grid items-center gap-8 md:grid-cols-2' : 'text-center'">
-                <div [class.mx-auto]="d['layout'] !== 'split'" [class.max-w-2xl]="d['layout'] !== 'split'">
+              <div [class]="'sf-container ' + pad + (d['layout'] === 'split' && img ? ' grid items-center gap-8 md:grid-cols-2' : ' text-center')">
+                <div [class.mx-auto]="d['layout'] !== 'split' || !img" [class.max-w-2xl]="d['layout'] !== 'split' || !img">
                   <h1 class="text-[34px] font-semibold leading-[1.1] tracking-tight sm:text-[48px]">{{ d['heading'] || store.store()?.name }}</h1>
                   @if (d['subheading']) {<p class="mt-4 whitespace-pre-line text-[17px] opacity-80">{{ d['subheading'] }}</p>}
                   <sf-section-link class="mt-8 inline-block" [to]="d['link'] || '/produkty'" [text]="d['cta']"
@@ -292,7 +292,7 @@ export class SectionNewsletterCompactComponent {
         }
         @case ('usp') {
           <section class="sf-container mt-12" aria-label="Dlaczego warto">
-            <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-{{ d['items']?.length || 3 }}">
+            <ul class="grid gap-4 sm:grid-cols-2" [class.lg:grid-cols-3]="(d['items']?.length ?? 3) === 3" [class.lg:grid-cols-4]="d['items']?.length === 4">
               @for (u of d['items']; track $index) {
                 <li class="sf-panel flex items-start gap-3 p-5">
                   <svg viewBox="0 0 24 24" class="size-7 shrink-0 text-sf-primary" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="icon(u.icon)" /></svg>
