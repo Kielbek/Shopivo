@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'soft';
+export type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'danger' | 'ghost' | 'soft';
 
 const BASE =
   'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] font-medium ' +
@@ -8,10 +8,13 @@ const BASE =
   'focus-visible:outline-offset-2 disabled:pointer-events-none disabled:opacity-55 [&_svg]:size-4 [&_svg]:shrink-0';
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'bg-primary-strong text-white hover:bg-primary-deep focus-visible:outline-primary-strong',
-  secondary: 'border border-line-strong bg-card text-ink hover:bg-hover hover:border-[#CDD3DD]',
+  /** Default action: night fill. */
+  primary: 'bg-night text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] hover:bg-night-3 focus-visible:outline-night',
+  /** The one key action of a screen (publish, create): neon fill, night text. */
+  accent: 'bg-neon text-night shadow-[inset_0_-1px_0_rgba(15,18,16,0.12)] hover:bg-neon-deep focus-visible:outline-night',
+  secondary: 'border border-line-strong bg-card text-ink shadow-[0_1px_0_rgba(15,18,16,0.04)] hover:bg-hover hover:border-[#C6CAC2]',
   soft: 'bg-primary-soft text-primary-strong hover:bg-primary-ring',
-  danger: 'bg-danger-ink text-white hover:bg-[#A82B3B] focus-visible:outline-danger-ink',
+  danger: 'bg-danger-ink text-white hover:bg-[#9E262B] focus-visible:outline-danger-ink',
   ghost: 'text-ink-soft hover:bg-hover hover:text-ink',
 };
 

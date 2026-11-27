@@ -33,7 +33,7 @@ import { StoreContext } from '../store/store-context';
             @if (canWrite) {<button sv-button variant="ghost" (click)="confirmOffline.set(true)">Wyłącz sklep</button>}
           } @else {
             @if (canPreview) {<button sv-button variant="secondary" [loading]="previewing()" (click)="preview()">Podgląd</button>}
-            @if (canWrite) {<button sv-button (click)="openPublish()">Opublikuj sklep</button>}
+            @if (canWrite) {<button sv-button variant="accent" (click)="openPublish()">Opublikuj sklep</button>}
           }
         </div>
       </section>
@@ -53,7 +53,7 @@ import { StoreContext } from '../store/store-context';
               }
             </ul>
             <p class="mt-4 text-[13px] text-ink-muted">
-              <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'ustawienia']">Dane firmy</a> ·
+              <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'ustawienia', 'firma']">Dane firmy</a> ·
               <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'produkty']">Produkty</a> ·
               <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'wysylka']">Wysyłka</a> ·
               <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'platnosci']">Płatności</a> ·
@@ -64,7 +64,7 @@ import { StoreContext } from '../store/store-context';
         @if (error(); as e) {<sv-alert tone="error" class="mt-4">{{ e }}</sv-alert>}
         <ng-container dialog-actions>
           <button sv-button variant="secondary" type="button" (click)="publishOpen.set(false)">Zamknij</button>
-          @if (readiness.value()?.ready) {<button sv-button type="button" [loading]="busy()" (click)="publish()">Opublikuj</button>}
+          @if (readiness.value()?.ready) {<button sv-button variant="accent" type="button" [loading]="busy()" (click)="publish()">Opublikuj</button>}
         </ng-container>
       </sv-dialog>
 

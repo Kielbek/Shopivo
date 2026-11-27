@@ -32,6 +32,7 @@ export const routes: Routes = [
     children: [
       { path: '', title: 'Przegląd', loadComponent: () => import('./features/store/overview.page').then((m) => m.OverviewPage) },
       { path: 'ustawienia', title: 'Ustawienia sklepu', loadComponent: () => import('./features/store/settings.page').then((m) => m.SettingsPage) },
+      { path: 'ustawienia/firma', title: 'Dane firmy', data: { sekcja: 'company' }, loadComponent: () => import('./features/store/settings.page').then((m) => m.SettingsPage) },
       { path: 'zespol', title: 'Zespół', loadComponent: () => import('./features/store/team.page').then((m) => m.TeamPage) },
       { path: 'zamowienia', title: 'Zamówienia', loadComponent: () => import('./features/sales/orders.page').then((m) => m.OrdersPage) },
       { path: 'zamowienia/nowe', title: 'Nowe zamówienie', loadComponent: () => import('./features/sales/order-new.page').then((m) => m.OrderNewPage) },

@@ -5,7 +5,7 @@ import { icons } from './icons';
 export type AlertTone = 'info' | 'success' | 'warning' | 'error';
 
 const TONES: Record<AlertTone, { box: string; icon: string }> = {
-  info: { box: 'border-primary-ring bg-primary-soft text-ink', icon: 'text-primary-strong' },
+  info: { box: 'border-[#D6E3FB] bg-info-soft text-ink', icon: 'text-info-ink' },
   success: { box: 'border-[#C9F2E5] bg-success-soft text-ink', icon: 'text-success-ink' },
   warning: { box: 'border-[#FFE3C2] bg-warning-soft text-ink', icon: 'text-warning-ink' },
   error: { box: 'border-[#FBD3D8] bg-danger-soft text-ink', icon: 'text-danger-ink' },

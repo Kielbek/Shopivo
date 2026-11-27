@@ -8,7 +8,7 @@ import { LogoComponent } from '@shopivo/shared-ui';
   imports: [RouterOutlet, RouterLink, LogoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex min-h-dvh flex-col bg-[#FAFBFC]">
+    <div class="flex min-h-dvh flex-col bg-[#F7F8F5]">
       <header class="flex h-16 items-center px-5 sm:px-8">
         <a routerLink="/" aria-label="Shopivo — strona główna panelu"><sv-logo /></a>
       </header>

@@ -71,7 +71,7 @@ export class SectionComponent {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col items-center px-6 py-9 text-center' },
   template: `
-    <svg [lucideIcon]="ICONS[icon()]" [size]="22" [strokeWidth]="1.5" class="text-[#C2C8D3]" />
+    <svg [lucideIcon]="ICONS[icon()]" [size]="22" [strokeWidth]="1.5" class="text-[#B9BDB6]" />
     <p class="mt-2.5 text-[13px] font-medium text-ink-soft">{{ title() }}</p>
     @if (description()) {<p class="mt-0.5 max-w-xs text-[12px] leading-5 text-ink-muted">{{ description() }}</p>}
     <div class="mt-4 flex gap-2 empty:mt-0"><ng-content /></div>
@@ -86,13 +86,13 @@ export class EmptyStateComponent {
 
 export type BadgeTone = 'neutral' | 'success' | 'warning' | 'danger' | 'brand' | 'info' | 'violet';
 const BADGE: Record<BadgeTone, string> = {
-  neutral: 'bg-[#F1F3F6] text-ink-soft',
+  neutral: 'bg-[#EEEFEB] text-ink-soft',
   success: 'bg-success-soft text-success-ink',
   warning: 'bg-warning-soft text-warning-ink',
   danger: 'bg-danger-soft text-danger-ink',
-  info: 'bg-primary-soft text-primary-strong',
+  info: 'bg-info-soft text-info-ink',
   violet: 'bg-violet-soft text-violet-ink',
-  brand: 'bg-ink text-white',
+  brand: 'bg-neon text-night',
 };
 
 /** Light status pill. */
@@ -131,8 +131,8 @@ export class AvatarComponent {
     ({ sm: 'size-7 text-[11px]', md: 'size-9 text-[13px]', lg: 'size-12 text-[16px]' })[this.size()]);
   protected readonly palette = computed(() => {
     const options = [
-      { bg: '#EEF3FE', fg: '#3E6FD8' }, { bg: '#F3EFFE', fg: '#6B4FD8' },
-      { bg: '#E8FAF4', fg: '#13805F' }, { bg: '#FFF5EA', fg: '#A75F0E' }, { bg: '#FEEFF1', fg: '#C23446' },
+      { bg: '#EFF8E2', fg: '#2E6B0F' }, { bg: '#F3EFFE', fg: '#6B4FD8' },
+      { bg: '#EAF1FE', fg: '#2155C0' }, { bg: '#FFF4E5', fg: '#9A560A' }, { bg: '#FDEEEE', fg: '#BB2F35' },
     ];
     let hash = 0;
     for (const ch of this.name()) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;

@@ -140,16 +140,16 @@ export class OverviewPage {
     const b = this.buckets();
     if (!b.labels.length) return [];
     return [
-      { name: 'Nowi użytkownicy', color: '#5B8DEF', values: b.users },
-      { name: 'Nowe sklepy', color: '#A58AF7', values: b.stores },
+      { name: 'Nowi użytkownicy', color: '#4C9A1B', values: b.users },
+      { name: 'Nowe sklepy', color: '#0F1210', values: b.stores },
     ];
   });
   protected readonly statusSplit = computed<DonutSegment[]>(() => {
     const o = this.overview.value();
     if (!o) return [];
     return [
-      { label: 'Aktywne', value: o.activeStores, color: '#5B8DEF' },
-      { label: 'Zawieszone', value: o.suspendedStores, color: '#A58AF7' },
+      { label: 'Aktywne', value: o.activeStores, color: '#4C9A1B' },
+      { label: 'Zawieszone', value: o.suspendedStores, color: '#0F1210' },
     ];
   });
 

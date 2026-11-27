@@ -23,7 +23,7 @@ import { INDUSTRIES } from '../catalog/industries';
           [class]="value() === i.id ? 'border-primary bg-primary-soft shadow-[0_0_0_1px_var(--color-primary)]' : 'border-line bg-card hover:border-line-strong hover:bg-hover'"
           (click)="value.set(value() === i.id && clearable() ? null : i.id)" (keydown)="key($event, i.id)">
           <span class="flex size-8 shrink-0 items-center justify-center rounded-[8px]"
-            [class]="value() === i.id ? 'bg-primary text-white' : 'bg-canvas text-ink-soft group-hover:text-ink'">
+            [class]="value() === i.id ? 'bg-night text-neon' : 'bg-canvas text-ink-soft group-hover:text-ink'">
             <svg [lucideIcon]="icons[i.icon]" [size]="16" />
           </span>
           <span class="min-w-0">

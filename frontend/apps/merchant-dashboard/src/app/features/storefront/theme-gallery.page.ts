@@ -85,13 +85,13 @@ function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
             @for (p of list(); track p.code) {
               @let meta = metaFor(p.code);
               <li>
-                <article class="group flex h-full flex-col overflow-hidden rounded-[16px] border border-line bg-card transition-[box-shadow,border-color] hover:border-line-strong hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
+                <article class="group flex h-full flex-col overflow-hidden rounded-[16px] border border-line bg-card transition-[box-shadow,border-color] hover:border-line-strong hover:shadow-[0_10px_30px_rgba(15,18,16,0.08)]">
                   <button type="button" class="relative block bg-canvas p-5 pb-0 text-left" [attr.aria-label]="'Szczegóły szablonu ' + p.name" (click)="details.set(p)">
                     <div class="relative mx-auto max-w-[92%]">
-                      <div class="overflow-hidden rounded-t-[10px] shadow-[0_6px_24px_rgba(15,23,42,0.12)] transition-transform group-hover:-translate-y-1">
+                      <div class="overflow-hidden rounded-t-[10px] shadow-[0_6px_24px_rgba(15,18,16,0.12)] transition-transform group-hover:-translate-y-1">
                         <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" />
                       </div>
-                      <div class="absolute -bottom-0 -right-3 w-[24%] overflow-hidden rounded-t-[12px] border-[3px] border-b-0 border-[#1f2430] shadow-lg transition-transform group-hover:-translate-y-2">
+                      <div class="absolute -bottom-0 -right-3 w-[24%] overflow-hidden rounded-t-[12px] border-[3px] border-b-0 border-[#0F1210] shadow-lg transition-transform group-hover:-translate-y-2">
                         <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [phone]="true" />
                       </div>
                     </div>

@@ -50,10 +50,10 @@ export function contrast(a: string, b: string): number {
       <section class="sv-card mt-5 grid gap-6 p-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <a [routerLink]="['/sklep', ctx.tenantId(), 'edytor-wygladu']" class="group block overflow-hidden rounded-[12px] border border-line bg-canvas p-4" aria-label="Otwórz edytor wyglądu">
           <div class="relative mx-auto max-w-[92%]">
-            <div class="overflow-hidden rounded-t-[10px] shadow-[0_6px_24px_rgba(15,23,42,0.12)] transition-transform group-hover:-translate-y-1">
+            <div class="overflow-hidden rounded-t-[10px] shadow-[0_6px_24px_rgba(15,18,16,0.12)] transition-transform group-hover:-translate-y-1">
               <sv-theme-mock [settings]="d.state.draft.settings" [sections]="d.state.draft.sections" [storeName]="storeName()" />
             </div>
-            <div class="absolute -bottom-4 -right-3 w-[24%] overflow-hidden rounded-[12px] border-[3px] border-[#1f2430] shadow-lg">
+            <div class="absolute -bottom-4 -right-3 w-[24%] overflow-hidden rounded-[12px] border-[3px] border-[#0F1210] shadow-lg">
               <sv-theme-mock [settings]="d.state.draft.settings" [sections]="d.state.draft.sections" [storeName]="storeName()" [phone]="true" />
             </div>
           </div>
@@ -78,7 +78,7 @@ export function contrast(a: string, b: string): number {
           @if (canWrite && d.state.unpublishedChanges) {
             <div class="mt-auto flex items-center gap-3 pt-5">
               <p class="flex-1 text-[12px] text-ink-muted">Masz zapisany szkic, którego klienci jeszcze nie widzą.</p>
-              <button sv-button [loading]="publishing()" (click)="publish()">Opublikuj</button>
+              <button sv-button variant="accent" [loading]="publishing()" (click)="publish()">Opublikuj</button>
             </div>
           }
         </div>

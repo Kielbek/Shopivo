@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { LucideDynamicIcon } from '@lucide/angular';
 import { SessionStore } from '@shopivo/api-client';
@@ -49,23 +49,28 @@ const NAV: { title?: string; items: MerchantNavItem[] }[] = [
       { label: 'Domeny', icon: 'domains', soon: true },
     ],
   },
-  {
-    title: 'Konfiguracja',
-    items: [
-      { label: 'Płatności', icon: 'payments', path: 'platnosci', permission: 'STORE_READ' },
-      { label: 'Wysyłka', icon: 'shipping', path: 'wysylka', permission: 'ORDERS_READ' },
-      { label: 'Integracje', icon: 'integrations', soon: true },
-      { label: 'Subskrypcja', icon: 'wallet', path: 'subskrypcja', permission: 'STORE_READ' },
-    ],
-  },
 ];
+
+/** Settings area: opens next to the collapsed navigation (desktop) or as a strip above the page (phones). */
+export const SETTINGS_NAV: MerchantNavItem[] = [
+  { label: 'Ogólne', icon: 'store', path: 'ustawienia', exact: true, permission: 'STORE_READ' },
+  { label: 'Dane firmy', icon: 'company', path: 'ustawienia/firma', permission: 'STORE_READ' },
+  { label: 'Płatności', icon: 'payments', path: 'platnosci', permission: 'STORE_READ' },
+  { label: 'Wysyłka i dostawa', icon: 'shipping', path: 'wysylka', permission: 'ORDERS_READ' },
+  { label: 'Zespół', icon: 'users', path: 'zespol', permission: 'TEAM_READ' },
+  { label: 'Plan i rozliczenia', icon: 'wallet', path: 'subskrypcja', permission: 'STORE_READ' },
+  { label: 'Dziennik zdarzeń', icon: 'audit', path: 'dziennik', permission: 'AUDIT_READ' },
+  { label: 'Domeny', icon: 'domains', soon: true },
+  { label: 'Integracje', icon: 'integrations', soon: true },
+];
+/** Planned modules are listed only in the settings navigation; the main navigation shows what works today. */
+const SETTINGS_NAV_GROUP = [{ items: SETTINGS_NAV }];
+const SETTINGS_PATHS = SETTINGS_NAV.filter((i) => i.path).map((i) => i.path!);
 
 /** Pinned at the bottom of the sidebar (always visible, like Settings / Help Center in the reference). */
 const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
   {
     items: [
-      { label: 'Zespół', icon: 'users', path: 'zespol', permission: 'TEAM_READ' },
-      { label: 'Dziennik zdarzeń', icon: 'audit', path: 'dziennik', permission: 'AUDIT_READ' },
       { label: 'Ustawienia', icon: 'settings', path: 'ustawienia', permission: 'STORE_READ' },
       { label: 'Centrum pomocy', icon: 'help', soon: true },
     ],
@@ -74,7 +79,7 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
 
 @Component({
   selector: 'sv-store-shell',
-  imports: [RouterOutlet, RouterLink, LucideDynamicIcon, AppShellComponent, LoadingComponent, AlertComponent, ButtonComponent,
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideDynamicIcon, AppShellComponent, LoadingComponent, AlertComponent, ButtonComponent,
     MenuComponent, MenuItemComponent, AvatarComponent, BadgeComponent, LogoComponent, SubscriptionBanner],
   providers: [StoreContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -90,7 +95,39 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
         </div>
       </div>
     } @else if (ctx.store(); as store) {
-      <sv-app-shell [sections]="sections()" [bottomSections]="bottomSections()" [homeLink]="base()" navLabel="Sekcje sklepu">
+      <sv-app-shell [sections]="sections()" [bottomSections]="bottomSections()" [homeLink]="base()" navLabel="Sekcje sklepu"
+        [rail]="inSettings()" [hasSubnav]="inSettings()" subnavLabel="Ustawienia" [narrow]="inSettings()">
+        @if (inSettings()) {
+          <div shell-subnav>
+            <div class="flex h-16 items-center gap-2 px-3">
+              <a [routerLink]="base()" class="flex items-center gap-1.5 rounded-[8px] px-2 py-1.5 text-[14px] font-semibold text-white hover:bg-white/[0.08]">
+                <svg [lucideIcon]="icons.arrowLeft" [size]="16" />Ustawienia</a>
+            </div>
+            <div class="mx-3 mb-4 flex items-center gap-2.5 rounded-[12px] border border-white/10 bg-white/[0.06] px-3 py-2.5">
+              <span class="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-neon text-[12px] font-bold text-night">{{ initials() }}</span>
+              <span class="min-w-0"><span class="block truncate text-[13px] font-semibold text-white">{{ store.name }}</span>
+                <span class="block truncate text-[11.5px] text-forest-muted">{{ store.primaryHostname || store.slug }}</span></span>
+            </div>
+            <ul class="space-y-0.5 px-3">
+              @for (it of settingsNav(); track it.label) {
+                <li>
+                  @if (it.link) {
+                    <a [routerLink]="it.link" routerLinkActive #rla="routerLinkActive" [routerLinkActiveOptions]="{ exact: !!it.exact }"
+                      [attr.aria-current]="rla.isActive ? 'page' : null"
+                      class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] transition-colors"
+                      [class]="rla.isActive ? 'bg-neon font-semibold text-night' : 'text-forest-text/85 hover:bg-white/[0.08] hover:text-white'">
+                      <svg [lucideIcon]="icons[it.icon]" [size]="17" [strokeWidth]="1.75" [class]="rla.isActive ? 'text-night' : 'text-forest-muted'" />{{ it.label }}</a>
+                  } @else {
+                    <span class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] text-forest-muted/60" aria-disabled="true">
+                      <svg [lucideIcon]="icons[it.icon]" [size]="17" [strokeWidth]="1.75" class="text-forest-muted/50" />
+                      <span class="flex-1">{{ it.label }}<span class="sr-only"> (wkrótce)</span></span>
+                      <span class="rounded-full border border-white/15 px-1.5 text-[10px] text-forest-muted" aria-hidden="true">wkrótce</span></span>
+                  }
+                </li>
+              }
+            </ul>
+          </div>
+        }
         <ng-container shell-header-end>
           <sv-menu label="Wybierz sklep" triggerClass="h-9 gap-2 rounded-[var(--radius-control)] border border-line px-2.5 hover:bg-hover">
             <span menu-trigger class="flex items-center gap-2">
@@ -132,6 +169,21 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
           </sv-menu>
         </ng-container>
 
+        @if (inSettings()) {
+          <!-- Phones: the settings sections as a scrollable strip. -->
+          <nav class="-mx-4 mb-5 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:hidden" aria-label="Ustawienia">
+            <ul class="flex gap-2">
+              @for (it of settingsNav(); track it.label) {
+                @if (it.link) {
+                  <li><a [routerLink]="it.link" routerLinkActive #rlm="routerLinkActive" [routerLinkActiveOptions]="{ exact: !!it.exact }"
+                    [attr.aria-current]="rlm.isActive ? 'page' : null"
+                    class="flex h-9 items-center gap-2 whitespace-nowrap rounded-full border px-3.5 text-[13px] font-medium"
+                    [class]="rlm.isActive ? 'border-night bg-night text-white' : 'border-line-strong bg-card text-ink-soft'">{{ it.label }}</a></li>
+                }
+              }
+            </ul>
+          </nav>
+        }
         @if (!onSubscriptionPage()) {
           <sv-subscription-banner [subscription]="ctx.subscription()" [link]="[...base(), 'subskrypcja']" />
         }
@@ -152,15 +204,21 @@ export class StoreShell {
   private readonly url = toSignal(this.router.events.pipe(filter((e) => e instanceof NavigationEnd), map(() => this.router.url)),
     { initialValue: this.router.url });
   protected readonly onSubscriptionPage = computed(() => this.url().split('?')[0].endsWith('/subskrypcja'));
+  private readonly path = computed(() => this.url().split('?')[0].split('#')[0].replace(/^\/sklep\/[^/]+\/?/, ''));
+  /** Settings area: any of its sections (and sub-pages, e.g. ustawienia/firma). */
+  protected readonly inSettings = computed(() => SETTINGS_PATHS.some((p) => this.path() === p || this.path().startsWith(p + '/')));
   protected readonly sections = computed<NavSection[]>(() => this.buildNav(NAV));
-  protected readonly bottomSections = computed<NavSection[]>(() => this.buildNav(NAV_BOTTOM));
+  protected readonly bottomSections = computed<NavSection[]>(() =>
+    this.buildNav(NAV_BOTTOM).map((sec) => ({ ...sec, items: sec.items.map((i) => (i.label === 'Ustawienia' ? { ...i, active: this.inSettings() } : i)) })));
+  protected readonly settingsNav = computed<NavItem[]>(() => this.buildNav(SETTINGS_NAV_GROUP)[0]?.items ?? []);
+  protected readonly initials = computed(() => (this.ctx.store()?.name ?? '').split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase());
 
   private buildNav(nav: { title?: string; items: MerchantNavItem[] }[]): NavSection[] {
     this.ctx.membership();
     return nav.map((section) => ({
       title: section.title,
       items: section.items
-        .filter((i) => i.soon || !i.permission || this.ctx.can(i.permission))
+        .filter((i) => (i.soon ? nav === SETTINGS_NAV_GROUP : !i.permission || this.ctx.can(i.permission)))
         .map((i) => ({ ...i, link: i.path === undefined ? undefined : [...this.base(), ...(i.path ? [i.path] : [])] })),
     })).filter((s) => s.items.length > 0);
   }

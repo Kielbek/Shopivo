@@ -157,7 +157,7 @@ const STEPS: Step[] = ['name', 'industry', 'company', 'orders'];
               <input #first id="orderEmail" type="email" class="sv-input big mt-8" maxlength="320" autocomplete="email"
                 [value]="orderEmail()" (input)="orderEmail.set($any($event.target).value); clearErrors('orderEmail')" [attr.aria-invalid]="!!errors()['orderEmail']" />
               @if (errors()['orderEmail']; as e) {<p class="mt-2 text-[13px] text-danger-ink">{{ e }}</p>}
-              <label class="mt-6 flex cursor-pointer items-center justify-between gap-4 rounded-[12px] bg-card px-4 py-3.5 shadow-[0_1px_2px_rgba(15,23,42,0.05)]">
+              <label class="mt-6 flex cursor-pointer items-center justify-between gap-4 rounded-[12px] bg-card px-4 py-3.5 shadow-[0_1px_2px_rgba(15,18,16,0.05)]">
                 <span>
                   <span class="block text-[14px] font-medium text-ink">Ceny w sklepie podaję z VAT (brutto)</span>
                   <span class="block text-[13px] text-ink-muted">Tak robi większość sklepów dla klientów indywidualnych. Wyłącz, jeśli wpisujesz ceny netto.</span>
@@ -189,7 +189,7 @@ const STEPS: Step[] = ['name', 'industry', 'company', 'orders'];
             @if (step() === 'company') {
               <button type="button" class="px-2 text-[14px] text-ink-soft hover:text-ink" (click)="skipCompany()">Uzupełnię później</button>
             }
-            <button sv-button type="submit" size="lg" class="min-w-36">
+            <button sv-button type="submit" size="lg" class="min-w-36" [variant]="step() === 'orders' ? 'accent' : 'primary'">
               {{ step() === 'orders' ? 'Utwórz sklep' : 'Dalej' }}<svg [lucideIcon]="icons.arrowRight" />
             </button>
           </div>

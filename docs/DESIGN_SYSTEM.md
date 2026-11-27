@@ -3,26 +3,32 @@
 Dotyczy panelu sprzedawcy i panelu administratora platformy. **Witryny sklepów (storefront) mają własne motywy**
 i nie korzystają z tych tokenów.
 
-Źródło: `frontend/libs/shared-ui` (`styles/theme.css` + komponenty). Inspiracja wizualna: referencja „E-COM dashboard”
-(jasne tło strony, biała zaokrąglona powierzchnia aplikacji, biały sidebar, karty KPI z kolorowymi kółkami).
+Źródło: `frontend/libs/shared-ui` (`styles/theme.css` + komponenty). Kierunek (2026-11-27): ciemnozielona kolumna
+nawigacji przechodząca w czerń, neonowa zieleń wyłącznie jako akcent, czarne przyciski domyślne, spokojna ciepło-szara
+powierzchnia robocza przylegająca do nawigacji (bez ramek i odstępów wokół treści).
 
 ## Tokeny (Tailwind `@theme`)
 
 | Token | Wartość | Użycie |
 |---|---|---|
-| `page` | `#F3F5F9` | tło strony |
-| `canvas` | `#F5F6F8` | tło obszaru treści, nagłówki tabel |
-| `card` | `#FFFFFF` | karty, sidebar, nagłówek |
-| `ink` | `#252B3B` | tekst główny |
-| `ink-soft` | `#5B6478` | tekst drugorzędny (pochodny — kontrast AA) |
-| `ink-muted` | `#8992A5` | etykiety meta, placeholdery, ikony |
-| `line` / `line-strong` | `#EDF0F4` / `#DFE3EA` | obramowania kart / pól |
-| `primary` / `primary-strong` | `#5B8DEF` / `#3E6FD8` | akcent, wykresy / przyciski (biały tekst AA) |
-| `violet`, `success`, `warning`, `danger` | `#A58AF7`, `#36CFA5`, `#FFB86B`, `#F47C87` | + warianty `-soft` (tła) i `-ink` (tekst) |
-| `--radius-card` / `--radius-control` | 14 px / 9 px | karty / przyciski, pola |
+| `forest` → `night` | `#14492C` → `#0F1210` | tło nawigacji (gradient od 45 % wysokości), biały tekst; `forest-text` `#EAF3EC`, `forest-muted` `#9DBFA7` |
+| `neon` / `neon-deep` | `#B5F23D` / `#9FDE24` | aktywna pozycja menu, przycisk `accent`, logo — **tylko jako wypełnienie z czarnym tekstem**, nigdy tekst na bieli |
+| `night` / `night-3` | `#0F1210` / `#262B27` | przycisk `primary`, przełączniki, ciemne plakietki |
+| `canvas` / `card` | `#F2F3F0` / `#FFFFFF` | tło treści / karty, nagłówek |
+| `ink` / `ink-soft` / `ink-muted` | `#161916` / `#575D58` / `#8A8F88` | tekst / tekst drugorzędny (AA) / meta i ikony |
+| `line` / `line-strong` | `#E8EAE5` / `#D8DBD4` | obramowania |
+| `primary` / `primary-strong` | `#4C9A1B` / `#2E6B0F` | zielone ikony i paski postępu / linki i zielony tekst (6,4:1) |
+| `info` (`-soft`, `-ink`) | `#3D7BEA` | plakietki informacyjne (np. „Szkic”) — odróżnione od zielonego „sukcesu” |
+| `success`, `warning`, `danger`, `violet` | | + warianty `-soft` (tła) i `-ink` (tekst) |
+| `--radius-card` / `--radius-control` | 16 px / 10 px | karty / przyciski i pola; okna dialogowe 20 px, plakietki — pigułki |
 
-Kontrast: `#8992A5` na bieli ma 3,2:1, a biały na `#5B8DEF` 3,3:1 — poniżej WCAG AA dla tekstu 13–14 px, dlatego
-dodano tokeny pochodne `ink-soft` i `primary-strong` do tekstu i przycisków.
+Przyciski: `primary` (czarny) to domyślna akcja; `accent` (neon) — jedna kluczowa akcja ekranu: publikacja sklepu,
+motywu i strony, utworzenie sklepu. Karty KPI są monochromatyczne (liczby, nie dekoracja niosą znaczenie).
+
+Nawigacja: w obszarze **Ustawień** (Ogólne, Dane firmy, Płatności, Wysyłka, Zespół, Plan, Dziennik) główne menu zwija
+się do ikon, a obok otwiera się kolumna ustawień (na telefonie — przewijany pasek nad treścią). **Edytor wyglądu** ma
+tę samą zwiniętą kolumnę ikon (wyjście przez nią pyta o niezapisane zmiany). Moduły „wkrótce” są widoczne tylko w
+kolumnie ustawień, nie zaśmiecają głównego menu.
 
 Typografia: Inter (self-hosted, `@fontsource-variable/inter` — bez Google Fonts ze względu na RODO), 13–14 px w
 treści, 22 px tytuły stron, 15 px tytuły kart. Ikony: Lucide (`@lucide/angular`), rejestr w `lib/icons.ts`,
@@ -32,9 +38,9 @@ treści, 22 px tytuły stron, 15 px tytuły kart. Ikony: Lucide (`@lucide/angula
 
 | Komponent | Selektor | Uwagi |
 |---|---|---|
-| Powłoka aplikacji | `sv-app-shell` | sidebar z sekcjami + przypięta grupa dolna, nagłówek z wyszukiwarką nawigacji (`/`), sloty na przełączniki, szuflada < 1024 px |
+| Powłoka aplikacji | `sv-app-shell` | kolumna nawigacji z wyszukiwarką (`/`), sekcjami i przypiętą grupą dolną; `rail` (zwinięta do ikon), `hasSubnav` + `[shell-subnav]` (kolumna sekcji), `narrow`; szuflada < 1024 px |
 | Karta | `sv-card` | `heading`, `subheading`, `[card-actions]`, `flush` dla tabel |
-| Karta KPI | `sv-stat-card` | `value=null` → jawny stan „brak danych” |
+| Karta KPI | `sv-stat-card` | monochromatyczna; `value=null` → jawny stan „brak danych” |
 | Wykres liniowy | `sv-line-chart` | SVG, interpolacja monotoniczna, gradient, podpowiedzi; pusty stan przez projekcję |
 | Wykres pierścieniowy | `sv-donut-chart` | legenda z procentami |
 | Menu | `sv-menu` + `sv-menu-item` | klawiatura, Esc, klik poza |

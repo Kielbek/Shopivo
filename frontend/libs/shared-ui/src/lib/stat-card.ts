@@ -8,31 +8,34 @@ const TONES: Record<StatTone, string> = {
   coral: '#F47C87',
   violet: '#A58AF7',
   orange: '#FFB86B',
-  blue: '#5B8DEF',
-  green: '#36CFA5',
+  blue: '#3D7BEA',
+  green: '#4C9A1B',
 };
 
 /**
- * Compact KPI card: solid coloured icon circle, label, value and optional change vs. previous period.
+ * Compact KPI card: label with a quiet icon tile, large value and optional change vs. previous period.
+ * (`tone` is kept for callers; the card itself stays monochrome so numbers, not decoration, carry the meaning.)
  * `value === null` renders an explicit "no data" state instead of a made-up number.
  */
 @Component({
   selector: 'sv-stat-card',
   imports: [LucideDynamicIcon],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'sv-card flex flex-col items-start gap-3 p-4 sm:flex-row sm:items-center sm:gap-4 sm:px-5 sm:py-[18px]' },
+  host: { class: 'sv-card flex flex-col gap-2 p-4 sm:px-5 sm:py-4' },
   template: `
-    <span class="flex size-10 shrink-0 sm:size-12 items-center justify-center rounded-full text-white" [style.background]="color()">
-      <svg [lucideIcon]="ICONS[icon()]" [size]="20" [strokeWidth]="2" />
-    </span>
+    <div class="flex items-center justify-between gap-3">
+      <p class="truncate text-[13px] font-medium text-ink-soft">{{ label() }}</p>
+      <span class="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-canvas text-ink-soft">
+        <svg [lucideIcon]="ICONS[icon()]" [size]="16" [strokeWidth]="1.75" />
+      </span>
+    </div>
     <div class="min-w-0">
-      <p class="truncate text-[13px] text-ink-muted">{{ label() }}</p>
       @if (loading()) {
         <span class="sv-shimmer mt-1.5 block h-5 w-20 rounded-[5px]" aria-hidden="true"></span><span class="sr-only">Wczytywanie…</span>
       } @else if (value() !== null) {
-        <p class="mt-0.5 truncate text-[20px] font-semibold leading-tight tracking-[-0.01em] text-ink tabular-nums">{{ value() }}</p>
+        <p class="mt-0.5 truncate text-[24px] font-semibold leading-tight tracking-[-0.02em] text-ink tabular-nums">{{ value() }}</p>
       } @else {
-        <p class="mt-0.5 text-[20px] font-semibold leading-tight text-[#C5CBD6]" aria-label="Brak danych">—</p>
+        <p class="mt-0.5 text-[24px] font-semibold leading-tight text-[#C2C6BF]" aria-label="Brak danych">—</p>
       }
       @if (loading()) {
         <span class="sv-shimmer mt-2 block h-3 w-28 rounded-[4px]" aria-hidden="true"></span>

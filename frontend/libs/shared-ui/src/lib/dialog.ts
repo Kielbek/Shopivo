@@ -12,7 +12,7 @@ import { icons } from './icons';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <dialog #dialog (close)="closed.emit()" (cancel)="closed.emit()"
-      class="m-auto w-[calc(100%-2rem)] max-w-[440px] rounded-[var(--radius-card)] border border-line bg-card p-0 text-ink shadow-[var(--shadow-pop)] backdrop:bg-[#252B3B]/30 backdrop:backdrop-blur-[1px]"
+      class="m-auto w-[calc(100%-2rem)] max-w-[440px] rounded-[20px] border border-line bg-card p-0 text-ink shadow-[var(--shadow-pop)] backdrop:bg-night/40 backdrop:backdrop-blur-[1px]"
       [attr.aria-labelledby]="titleId">
       <div class="flex items-start justify-between gap-4 px-6 pt-5">
         <h2 [id]="titleId" class="text-[16px] font-semibold">{{ heading() }}</h2>

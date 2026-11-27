@@ -26,7 +26,7 @@ const DEVICES: { id: Device; label: string; width: number; height: number; icon:
         @for (d of devices; track d.id) {
           <button type="button" role="radio" [attr.aria-checked]="device() === d.id"
             class="inline-flex h-8 items-center gap-1.5 rounded-[8px] px-3 text-[13px] font-medium transition-colors"
-            [class]="device() === d.id ? 'bg-card text-ink shadow-[0_1px_2px_rgba(15,23,42,0.08)]' : 'text-ink-muted hover:text-ink'"
+            [class]="device() === d.id ? 'bg-card text-ink shadow-[0_1px_2px_rgba(15,18,16,0.08)]' : 'text-ink-muted hover:text-ink'"
             (click)="device.set(d.id)">
             <svg [lucideIcon]="icons[d.icon]" [size]="15" />{{ d.label }}
           </button>
@@ -43,8 +43,8 @@ const DEVICES: { id: Device; label: string; width: number; height: number; icon:
 
     <div #stage class="relative mt-3 flex shrink-0 justify-center overflow-hidden rounded-[14px] bg-[#E9ECF1] p-4" [style.height.px]="stageHeight()">
       @if (safeUrl(); as src) {
-        <div class="origin-top overflow-hidden bg-white shadow-[0_8px_30px_rgba(15,23,42,0.12)]"
-          [class]="device() === 'phone' ? 'rounded-[28px] ring-[10px] ring-[#1f2430]' : device() === 'tablet' ? 'rounded-[18px] ring-[8px] ring-[#1f2430]' : 'rounded-[10px]'"
+        <div class="origin-top overflow-hidden bg-white shadow-[0_8px_30px_rgba(15,18,16,0.12)]"
+          [class]="device() === 'phone' ? 'rounded-[28px] ring-[10px] ring-[#0F1210]' : device() === 'tablet' ? 'rounded-[18px] ring-[8px] ring-[#0F1210]' : 'rounded-[10px]'"
           [style.width.px]="current().width" [style.height.px]="current().height" [style.transform]="'scale(' + scale() + ')'">
           @if (device() === 'desktop') {
             <div class="flex h-7 items-center gap-1.5 border-b border-[#e5e7eb] bg-[#f6f7f9] px-3" aria-hidden="true">

@@ -51,7 +51,7 @@ const DAY = new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'short' })
         <ul class="mt-4 grid gap-2 md:grid-cols-3">
           @for (item of checklist(); track item.label) {
             <li>
-              <a [routerLink]="item.link" class="flex h-full items-center gap-3 rounded-[10px] bg-[#F7F8FA] px-3.5 py-3 transition-colors hover:bg-primary-soft">
+              <a [routerLink]="item.link" class="flex h-full items-center gap-3 rounded-[10px] bg-[#F7F8F5] px-3.5 py-3 transition-colors hover:bg-primary-soft">
                 <span class="flex size-6 shrink-0 items-center justify-center rounded-full"
                   [class]="item.done ? 'bg-success text-white' : 'border-[1.5px] border-line-strong text-transparent'">
                   <svg [lucideIcon]="icons.check" [size]="14" [strokeWidth]="3" />
@@ -175,7 +175,7 @@ export class OverviewPage {
   protected readonly labels = computed(() => (this.daily.value() ?? []).map((d) => DAY.format(new Date(d.day + 'T12:00:00'))));
   protected readonly series = computed<ChartSeries[]>(() => {
     const d = this.daily.value() ?? [];
-    return d.some((x) => x.revenueMinor > 0) ? [{ name: 'Przychód', color: '#36CFA5', values: d.map((x) => x.revenueMinor / 100) }] : [];
+    return d.some((x) => x.revenueMinor > 0) ? [{ name: 'Przychód', color: '#4C9A1B', values: d.map((x) => x.revenueMinor / 100) }] : [];
   });
   protected readonly toFulfil = computed(() => {
     const s = this.orderStats.value();
@@ -214,7 +214,7 @@ export class OverviewPage {
     const s = this.settings.value();
     const base = ['/sklep', this.ctx.tenantId()];
     const items: ChecklistItem[] = [
-      { label: 'Uzupełnij dane firmy', done: !!s?.legalCompanyName && !!s?.taxId && !!s?.addressLine1, link: [...base, 'ustawienia'] },
+      { label: 'Uzupełnij dane firmy', done: !!s?.legalCompanyName && !!s?.taxId && !!s?.addressLine1, link: [...base, 'ustawienia', 'firma'] },
       { label: 'Dodaj pierwszy produkt', done: (this.catalogStats.value()?.products ?? 0) > 0, link: [...base, 'produkty', 'nowy'] },
       { label: 'Włącz weryfikację dwuetapową', done: !!this.session.user()?.mfaEnabled, link: '/konto' },
     ];

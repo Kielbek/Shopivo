@@ -94,7 +94,7 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
                   <sv-alert tone="warning" heading="Zapisz kody zapasowe">
                     Każdy kod działa jednorazowo, gdy nie masz dostępu do telefonu. Nie pokażemy ich ponownie.
                   </sv-alert>
-                  <ul class="mt-4 grid grid-cols-2 gap-2 rounded-[10px] bg-[#F7F8FA] p-4 font-mono text-[13px] text-ink sm:grid-cols-5">
+                  <ul class="mt-4 grid grid-cols-2 gap-2 rounded-[10px] bg-[#F7F8F5] p-4 font-mono text-[13px] text-ink sm:grid-cols-5">
                     @for (c of codes; track c) {<li>{{ c }}</li>}
                   </ul>
                   <div class="mt-4 flex gap-2">
@@ -120,7 +120,7 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
                     <div class="text-[13px]">
                       <p class="font-medium text-ink">1. Zeskanuj kod QR w aplikacji</p>
                       <p class="mt-1 text-ink-muted">Albo wpisz klucz ręcznie:</p>
-                      <code class="mt-1 inline-block break-all rounded-[8px] bg-[#F3F5F8] px-2.5 py-1.5 font-mono text-[12px] text-ink">{{ s.secret }}</code>
+                      <code class="mt-1 inline-block break-all rounded-[8px] bg-[#F2F3F0] px-2.5 py-1.5 font-mono text-[12px] text-ink">{{ s.secret }}</code>
                       <p class="mt-5 font-medium text-ink">2. Wpisz kod z aplikacji</p>
                       <form [formGroup]="confirmForm" (ngSubmit)="confirmMfa()" class="mt-2 flex max-w-xs gap-2" novalidate>
                         <label for="confirm-code" class="sr-only">Kod z aplikacji</label>
@@ -154,7 +154,7 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
               <ul class="px-5 pb-2 pt-3">
                 @for (s of sessions.value(); track s.id) {
                   <li class="flex items-center gap-3 border-b border-line py-3 last:border-b-0">
-                    <span class="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#F3F5F8] text-ink-muted">
+                    <span class="flex size-9 shrink-0 items-center justify-center rounded-[10px] bg-[#F2F3F0] text-ink-muted">
                       <svg [lucideIcon]="icons.globeIcon" [size]="16" />
                     </span>
                     <div class="min-w-0 flex-1">

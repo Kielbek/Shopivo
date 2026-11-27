@@ -86,7 +86,7 @@ let gradientCounter = 0;
       </defs>
       @for (tick of yTicks(); track tick.value) {
         <line [attr.x1]="pad.left" [attr.x2]="width() - pad.right" [attr.y1]="tick.y" [attr.y2]="tick.y"
-          stroke="#EDF0F4" stroke-dasharray="4 4" />
+          stroke="#E8EAE5" stroke-dasharray="4 4" />
         <text [attr.x]="pad.left - 10" [attr.y]="tick.y + 4" text-anchor="end" class="fill-ink-muted text-[11px]">{{ tick.label }}</text>
       }
       @for (label of labels(); track $index; let i = $index) {
@@ -101,7 +101,7 @@ let gradientCounter = 0;
         }
         @if (hover(); as h) {
           <line [attr.x1]="xAt(h)" [attr.x2]="xAt(h)" [attr.y1]="pad.top" [attr.y2]="height() - pad.bottom"
-            stroke="#C5CBD6" stroke-dasharray="3 4" />
+            stroke="#C2C6BF" stroke-dasharray="3 4" />
           @for (s of plotted(); track s.name) {
             <circle [attr.cx]="xAt(h)" [attr.cy]="s.points[h].y" r="4.5" fill="#fff" [attr.stroke]="s.color" stroke-width="2.5" />
           }
@@ -112,7 +112,7 @@ let gradientCounter = 0;
       @if (hover(); as h) {
         <div class="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-full rounded-[8px] bg-ink px-3 py-2 text-white shadow-[var(--shadow-pop)]"
           [style.left.px]="xAt(h)" [style.top.px]="tooltipTop(h) - 10">
-          <p class="text-[11px] text-[#B8BFCC]">{{ labels()[h] }}</p>
+          <p class="text-[11px] text-[#A9AEA6]">{{ labels()[h] }}</p>
           @for (s of series(); track s.name) {
             <p class="flex items-center gap-1.5 whitespace-nowrap text-[12px] font-semibold tabular-nums">
               <span class="size-2 rounded-full" [style.background]="s.color"></span>{{ s.name }}: {{ format()(s.values[h] ?? 0) }}
@@ -221,7 +221,7 @@ export interface DonutSegment {
   template: `
     <div class="relative" [style.width.px]="size()" [style.height.px]="size()">
       <svg [attr.viewBox]="'0 0 ' + size() + ' ' + size()" class="-rotate-90" role="img" [attr.aria-label]="ariaLabel()">
-        <circle [attr.cx]="c()" [attr.cy]="c()" [attr.r]="r()" fill="none" stroke="#EEF1F5" [attr.stroke-width]="stroke()" />
+        <circle [attr.cx]="c()" [attr.cy]="c()" [attr.r]="r()" fill="none" stroke="#ECEDE9" [attr.stroke-width]="stroke()" />
         @for (arc of arcs(); track arc.label) {
           <circle [attr.cx]="c()" [attr.cy]="c()" [attr.r]="r()" fill="none" [attr.stroke]="arc.color"
             [attr.stroke-width]="stroke()" [attr.stroke-dasharray]="arc.dash" [attr.stroke-dashoffset]="arc.offset" />

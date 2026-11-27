@@ -57,7 +57,7 @@ let selectCounter = 0;
         @if (sheet()) {
           <!-- Grab area: drag down to dismiss (touch-action none so the page does not scroll instead). -->
           <div class="relative flex shrink-0 touch-none items-center justify-between px-5 pb-2 pt-3" data-sheet-handle>
-            <span class="absolute left-1/2 top-2 block h-1 w-10 -translate-x-1/2 rounded-full bg-[#DCE0E7]" aria-hidden="true"></span>
+            <span class="absolute left-1/2 top-2 block h-1 w-10 -translate-x-1/2 rounded-full bg-[#D9DCD5]" aria-hidden="true"></span>
             <p class="pt-2 text-[15px] font-semibold text-ink">{{ ariaLabel() || placeholder() || 'Wybierz' }}</p>
             <button type="button" class="mt-1 rounded-[8px] p-1.5 text-ink-muted hover:bg-hover" (click)="close(true)" aria-label="Zamknij">
               <svg [lucideIcon]="ICONS.close" [size]="18" />

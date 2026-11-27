@@ -8,7 +8,7 @@ import { LucideDynamicIcon } from '@lucide/angular';
 import { ApiError, CatalogApi, ContentApi, StorefrontAdminApi } from '@shopivo/api-client';
 import { ProductImage, SectionType, ThemeField, ThemeSection } from '@shopivo/shared-models';
 import {
-  AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, IconName, SelectComponent, SelectOption, ToastOutletComponent, ToastService, icons,
+  AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, IconName, LogoComponent, SelectComponent, SelectOption, ToastOutletComponent, ToastService, icons,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { buildTree } from '../catalog/category-tree';
@@ -45,13 +45,34 @@ function newId(type: string): string {
  */
 @Component({
   selector: 'sv-theme-editor-page',
-  imports: [RouterLink, LucideDynamicIcon, AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, SelectComponent,
+  imports: [RouterLink, LucideDynamicIcon, LogoComponent, AlertComponent, BadgeComponent, ButtonComponent, DialogComponent, SelectComponent,
     ToastOutletComponent, ImagePickerComponent, PropFormComponent],
   providers: [StoreContext],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex h-dvh flex-col bg-canvas', '(window:beforeunload)': 'beforeUnload($event)' },
+  host: { class: 'flex h-dvh bg-canvas', '(window:beforeunload)': 'beforeUnload($event)' },
   template: `
     <sv-toast-outlet />
+    <!-- Collapsed panel navigation (desktop): the editor keeps the way back to every part of the store. -->
+    <nav class="hidden w-[68px] shrink-0 flex-col items-center bg-[linear-gradient(180deg,var(--color-forest)_0%,var(--color-forest)_45%,#0F1210_100%)] lg:flex" aria-label="Panel sklepu">
+      <a [routerLink]="['/sklep', tenantId()]" class="flex h-16 items-center" aria-label="Przegląd sklepu" (click)="go($event, [])"><sv-logo [mark]="true" /></a>
+      <ul class="flex flex-1 flex-col items-center gap-1 pt-2">
+        @for (r of rail; track r.label) {
+          <li>
+            <a [routerLink]="['/sklep', tenantId(), ...r.path]" [attr.title]="r.label" [attr.aria-label]="r.label" (click)="go($event, r.path)"
+              [attr.aria-current]="r.current ? 'page' : null"
+              class="flex size-10 items-center justify-center rounded-[10px] transition-colors"
+              [class]="r.current ? 'bg-neon text-night' : 'text-forest-muted hover:bg-white/[0.08] hover:text-white'">
+              <svg [lucideIcon]="icons[r.icon]" [size]="18" [strokeWidth]="1.75" /></a>
+          </li>
+        }
+      </ul>
+      <div class="flex w-full justify-center border-t border-white/[0.07] pb-3 pt-3">
+        <a [routerLink]="['/sklep', tenantId(), 'ustawienia']" title="Ustawienia" aria-label="Ustawienia" (click)="go($event, ['ustawienia'])"
+          class="flex size-10 items-center justify-center rounded-[10px] text-forest-muted hover:bg-white/[0.08] hover:text-white">
+          <svg [lucideIcon]="icons.settings" [size]="18" [strokeWidth]="1.75" /></a>
+      </div>
+    </nav>
+    <div class="flex min-w-0 flex-1 flex-col bg-canvas">
     <!-- top bar -->
     <header class="flex h-14 shrink-0 items-center gap-3 border-b border-line bg-card px-3 sm:px-4">
       <button type="button" class="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[8px] px-2 text-[13px] font-medium text-ink-soft hover:bg-hover hover:text-ink" (click)="exit()">
@@ -68,13 +89,13 @@ function newId(type: string): string {
         @for (d of devices; track d.id) {
           <button type="button" role="radio" [attr.aria-checked]="device() === d.id" [attr.aria-label]="d.label" [title]="d.label"
             class="flex h-8 w-10 items-center justify-center rounded-[8px] transition-colors"
-            [class]="device() === d.id ? 'bg-card text-ink shadow-[0_1px_2px_rgba(15,23,42,0.08)]' : 'text-ink-muted hover:text-ink'" (click)="device.set(d.id)">
+            [class]="device() === d.id ? 'bg-card text-ink shadow-[0_1px_2px_rgba(15,18,16,0.1)]' : 'text-ink-muted hover:text-ink'" (click)="device.set(d.id)">
             <svg [lucideIcon]="icons[d.icon]" [size]="16" /></button>
         }
       </div>
       @if (canWrite) {
         <button sv-button variant="secondary" size="sm" [disabled]="!dirty()" [loading]="saving()" (click)="save()">Zapisz</button>
-        <button sv-button size="sm" [loading]="publishing()" [disabled]="!dirty() && !(data.hasValue() && data.value().state.unpublishedChanges)" (click)="publish()">Opublikuj</button>
+        <button sv-button variant="accent" size="sm" [loading]="publishing()" [disabled]="!dirty() && !(data.hasValue() && data.value().state.unpublishedChanges)" (click)="publish()">Opublikuj</button>
       }
     </header>
 
@@ -235,8 +256,8 @@ function newId(type: string): string {
           @if (error(); as e) {<sv-alert tone="error" class="absolute inset-x-4 top-4 z-10">{{ e }}</sv-alert>}
           @if (frameUrl(); as src) {
             <div class="flex h-full justify-center overflow-hidden p-4">
-              <div class="origin-top overflow-hidden bg-white shadow-[0_10px_40px_rgba(15,23,42,0.14)] transition-[width]"
-                [class]="device() === 'phone' ? 'rounded-[28px] ring-[10px] ring-[#1f2430]' : device() === 'tablet' ? 'rounded-[18px] ring-[8px] ring-[#1f2430]' : 'rounded-[10px]'"
+              <div class="origin-top overflow-hidden bg-white shadow-[0_10px_40px_rgba(15,18,16,0.16)] transition-[width]"
+                [class]="device() === 'phone' ? 'rounded-[28px] ring-[10px] ring-night' : device() === 'tablet' ? 'rounded-[18px] ring-[8px] ring-night' : 'rounded-[10px]'"
                 [style.width.px]="deviceWidth()" [style.height.px]="frameHeight()" [style.transform]="'scale(' + scale() + ')'">
                 <iframe #frame [src]="src" title="Podgląd sklepu na żywo" class="block size-full border-0 bg-white" sandbox="allow-scripts allow-same-origin allow-forms" (load)="framed()"></iframe>
               </div>
@@ -247,6 +268,8 @@ function newId(type: string): string {
         </main>
       </div>
     }
+
+    </div>
 
     <sv-image-picker #picker [tenantId]="ctx.tenantId()" [open]="!!picking()" [selected]="pickingValue()"
       (chosen)="imageChosen($event)" (cleared)="imageCleared()" (closed)="picking.set(null)" />
@@ -557,14 +580,35 @@ export class ThemeEditorPage {
     }
   }
 
+  /** Where "leave" goes: the appearance overview, or a rail destination. */
+  private exitTo: string[] = ['wyglad'];
+  protected readonly rail: { label: string; icon: IconName; path: string[]; current?: boolean }[] = [
+    { label: 'Przegląd', icon: 'dashboard', path: [] },
+    { label: 'Zamówienia', icon: 'orders', path: ['zamowienia'] },
+    { label: 'Produkty', icon: 'products', path: ['produkty'] },
+    { label: 'Klienci', icon: 'users', path: ['klienci'] },
+    { label: 'Wygląd sklepu', icon: 'appearance', path: ['wyglad'], current: true },
+    { label: 'Strony i blog', icon: 'pages', path: ['tresci'] },
+  ];
+
+  protected go(e: MouseEvent, path: string[]): void {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    this.exitTo = path;
+    if (this.dirty()) this.confirmExit.set(true);
+    else this.leave();
+  }
+
   protected exit(): void {
+    this.exitTo = ['wyglad'];
     if (this.dirty()) this.confirmExit.set(true);
     else this.leave();
   }
 
   protected leave(): void {
     this.dirty.set(false);
-    void this.router.navigate(['/sklep', this.tenantId(), 'wyglad']);
+    this.confirmExit.set(false);
+    void this.router.navigate(['/sklep', this.tenantId(), ...this.exitTo]);
   }
 
   protected async saveAndLeave(): Promise<void> {

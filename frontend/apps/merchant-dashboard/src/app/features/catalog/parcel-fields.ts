@@ -39,7 +39,7 @@ export function toDisplay(value: number | null, divisor: number): string {
             class="relative rounded-[10px] border p-2.5 text-left transition-[border-color,background-color] disabled:opacity-60"
             [class]="isActive(p) ? 'border-primary bg-primary-soft' : 'border-line bg-card hover:border-line-strong hover:bg-hover'"
             [attr.aria-pressed]="isActive(p)" (click)="apply(p)">
-            @if (p.id === suggested()) {<span class="absolute -top-2 right-2 rounded-full bg-primary px-1.5 text-[10px] font-medium leading-4 text-white">typowa</span>}
+            @if (p.id === suggested()) {<span class="absolute -top-2 right-2 rounded-full bg-night px-1.5 text-[10px] font-medium leading-4 text-neon">typowa</span>}
             <span class="flex items-center gap-1.5 text-[13px] font-medium text-ink"><svg [lucideIcon]="icons.box" [size]="14" class="text-ink-muted" />{{ p.label }}</span>
             <span class="mt-0.5 block text-[11px] leading-4 text-ink-muted">do {{ kg(p.weightGrams) }} kg · {{ cm(p.lengthMm) }}×{{ cm(p.widthMm) }}×{{ cm(p.heightMm) }} cm</span>
             <span class="mt-0.5 block text-[11px] leading-4 text-ink-muted">{{ p.hint }}</span>

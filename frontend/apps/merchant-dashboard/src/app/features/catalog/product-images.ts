@@ -45,7 +45,7 @@ interface Tile { key: string; url: string; alt: string; saved: ProductImage | nu
       @if (count() === 0 && uploading() === 0) {
         <div class="flex flex-col items-center justify-center rounded-[12px] border-2 border-dashed border-line-strong bg-canvas/60 px-6 py-10 text-center
           transition-colors">
-          <span class="flex size-12 items-center justify-center rounded-full bg-card text-primary shadow-[0_1px_2px_rgba(15,23,42,0.08)]">
+          <span class="flex size-12 items-center justify-center rounded-full bg-card text-primary shadow-[0_1px_2px_rgba(15,18,16,0.08)]">
             <svg [lucideIcon]="icons.imagePlus" [size]="22" />
           </span>
           <p class="mt-3 text-[14px] font-medium text-ink">Przeciągnij zdjęcia tutaj</p>

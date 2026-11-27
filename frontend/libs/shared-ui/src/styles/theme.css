@@ -2,10 +2,12 @@
  * Shopivo design system — administration interfaces (merchant dashboard, platform admin).
  * Public storefront themes are intentionally NOT based on these tokens.
  *
- * Palette from the brand brief. Two accessibility-driven derived tokens:
- *  - ink-soft  (#5B6478) for small secondary text — #8992A5 on white is 3.2:1, below WCAG AA for body text,
- *    so ink-muted is reserved for meta labels, placeholders and icons;
- *  - primary-strong (#3E6FD8) for filled buttons — white on #5B8DEF is 3.3:1.
+ * Forest, night & neon: a deep-green navigation column fading into black, a neon-green accent for the one key action
+ * and the active item, black default buttons, and a calm warm-grey work surface.
+ * Contrast rules (WCAG AA):
+ *  - neon (#B5F23D) is a FILL colour only — always with night (#0F1210) text on it, never as text on white;
+ *  - green text/links use primary-strong (#2E6B0F, 6.4:1 on white); primary (#4C9A1B) is for icons and borders;
+ *  - ink-muted (#8A8F88) is for meta labels and icons only, body text uses ink-soft (#575D58, 6.6:1).
  */
 @import "@fontsource-variable/inter";
 
@@ -13,45 +15,69 @@
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --color-page: #F3F5F9;
-  --color-canvas: #F5F6F8;
+  /* Frame */
+  --color-night: #0F1210;
+  --color-night-2: #1A1E1B;
+  --color-night-3: #262B27;
+  --color-night-line: #2A2F2B;
+  --color-night-text: #E7EAE5;
+  --color-night-muted: #8E958D;
+
+  /* Navigation column: deep green fading into night (white text, neon only as accent). */
+  --color-forest: #14492C;
+  --color-forest-text: #EAF3EC;
+  --color-forest-muted: #9DBFA7;
+
+  /* Accent */
+  --color-neon: #B5F23D;
+  --color-neon-deep: #9FDE24;
+  --color-neon-soft: #F2FCDF;
+
+  /* Work surface */
+  --color-page: #F2F3F0;
+  --color-canvas: #F2F3F0;
   --color-card: #FFFFFF;
-  --color-hover: #F4F6FA;
+  --color-hover: #F4F5F2;
 
-  --color-ink: #252B3B;
-  --color-ink-soft: #5B6478;
-  --color-ink-muted: #8992A5;
+  --color-ink: #161916;
+  --color-ink-soft: #575D58;
+  --color-ink-muted: #8A8F88;
 
-  --color-line: #EDF0F4;
-  --color-line-strong: #DFE3EA;
+  --color-line: #E8EAE5;
+  --color-line-strong: #D8DBD4;
 
-  --color-primary: #5B8DEF;
-  --color-primary-strong: #3E6FD8;
-  --color-primary-deep: #335FBF;
-  --color-primary-soft: #EEF3FE;
-  --color-primary-ring: #D6E3FC;
+  --color-primary: #4C9A1B;
+  --color-primary-strong: #2E6B0F;
+  --color-primary-deep: #22520A;
+  --color-primary-soft: #EFF8E2;
+  --color-primary-ring: #DCF2BC;
+
+  --color-info: #3D7BEA;
+  --color-info-soft: #EAF1FE;
+  --color-info-ink: #2155C0;
 
   --color-violet: #A58AF7;
   --color-violet-soft: #F3EFFE;
   --color-violet-ink: #6B4FD8;
 
-  --color-success: #36CFA5;
-  --color-success-soft: #E8FAF4;
-  --color-success-ink: #13805F;
+  --color-success: #2FB37E;
+  --color-success-soft: #E6F7EF;
+  --color-success-ink: #13744D;
 
-  --color-warning: #FFB86B;
-  --color-warning-soft: #FFF5EA;
-  --color-warning-ink: #A75F0E;
+  --color-warning: #F5A33B;
+  --color-warning-soft: #FFF4E5;
+  --color-warning-ink: #9A560A;
 
-  --color-danger: #F47C87;
-  --color-danger-soft: #FEEFF1;
-  --color-danger-ink: #C23446;
+  --color-danger: #EF6A6A;
+  --color-danger-soft: #FDEEEE;
+  --color-danger-ink: #BB2F35;
 
-  --radius-card: 14px;
-  --radius-control: 9px;
+  /* Shape: cards 16, controls 10, pills for status. */
+  --radius-card: 16px;
+  --radius-control: 10px;
 
-  --shadow-card: 0 1px 2px rgba(37, 43, 59, 0.04);
-  --shadow-pop: 0 12px 32px -8px rgba(37, 43, 59, 0.16), 0 2px 6px rgba(37, 43, 59, 0.06);
+  --shadow-card: 0 1px 0 rgba(15, 18, 16, 0.04), 0 1px 3px rgba(15, 18, 16, 0.04);
+  --shadow-pop: 0 16px 40px -12px rgba(15, 18, 16, 0.22), 0 2px 6px rgba(15, 18, 16, 0.06);
 }
 
 @layer base {
@@ -71,22 +97,22 @@
   }
 
   ::selection {
-    @apply bg-primary-ring;
+    @apply bg-neon/60;
   }
 }
 
 @layer components {
   /* Filled controls (reference language): grey fill, no visible border until hover/focus. */
   .sv-input {
-    @apply block h-10 w-full rounded-[10px] border border-transparent bg-[#F3F5F8] px-3.5 text-[13.5px] text-ink
-      placeholder:text-[#A3AABA] transition-[background-color,border-color,box-shadow] duration-150
-      hover:bg-[#EEF1F5] focus:border-primary focus:bg-card focus:outline-none focus:ring-[3px] focus:ring-primary-soft
-      disabled:cursor-not-allowed disabled:bg-[#F7F8FA] disabled:text-ink-muted;
+    @apply block h-10 w-full rounded-[10px] border border-transparent bg-[#F2F3F0] px-3.5 text-[13.5px] text-ink
+      placeholder:text-[#A2A79F] transition-[background-color,border-color,box-shadow] duration-150
+      hover:bg-[#ECEDE9] focus:border-primary focus:bg-card focus:outline-none focus:ring-[3px] focus:ring-primary-ring
+      disabled:cursor-not-allowed disabled:bg-[#F7F7F5] disabled:text-ink-muted;
   }
 
   /* Skeleton shimmer: a soft light band sweeping across grey placeholders (no spinners in the product). */
   .sv-shimmer {
-    background: linear-gradient(90deg, #EDF0F4 0%, #EDF0F4 35%, #F7F8FA 50%, #EDF0F4 65%, #EDF0F4 100%);
+    background: linear-gradient(90deg, #ECEDE9 0%, #ECEDE9 35%, #F7F8F5 50%, #ECEDE9 65%, #ECEDE9 100%);
     background-size: 300% 100%;
     animation: sv-shimmer 1.5s ease-in-out infinite;
   }
@@ -108,7 +134,7 @@
 
   /* Outlined variant for full-page forms (sign-in, onboarding): white field with a visible border. */
   .sv-input-outline {
-    @apply h-11 border-line-strong bg-card text-[14.5px] hover:border-[#C9CFD9] hover:bg-card;
+    @apply h-11 border-line-strong bg-card text-[14.5px] hover:border-[#C6CAC2] hover:bg-card;
   }
 
   textarea.sv-input {
@@ -117,7 +143,7 @@
 
   select.sv-input {
     @apply cursor-pointer appearance-none bg-no-repeat pr-9;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238992A5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%238A8F88' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
     background-position: right 0.75rem center;
   }
 
@@ -126,18 +152,18 @@
   }
 
   .sv-checkbox {
-    @apply size-4 rounded-[4px] border-line-strong accent-primary-strong;
+    @apply size-4 rounded-[4px] border-line-strong accent-night;
   }
 
   /* Toggle switch on a native checkbox (keeps forms and accessibility semantics). */
   .sv-switch {
-    @apply relative h-6 w-10 shrink-0 cursor-pointer appearance-none rounded-full bg-[#DCE0E7] transition-colors
-      checked:bg-primary-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary
+    @apply relative h-6 w-10 shrink-0 cursor-pointer appearance-none rounded-full bg-[#D9DCD5] transition-colors
+      checked:bg-night focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary
       disabled:cursor-not-allowed disabled:opacity-60;
   }
 
   .sv-switch::after {
-    @apply absolute left-[3px] top-[3px] size-[18px] rounded-full bg-white shadow-[0_1px_2px_rgba(37,43,59,0.2)] transition-transform;
+    @apply absolute left-[3px] top-[3px] size-[18px] rounded-full bg-white shadow-[0_1px_2px_rgba(15,18,16,0.25)] transition-transform;
     content: "";
   }
 
@@ -190,7 +216,7 @@
   }
 
   .sv-table tbody tr {
-    @apply transition-colors hover:bg-[#FAFBFC];
+    @apply transition-colors hover:bg-[#FAFAF8];
   }
 }
 
@@ -229,7 +255,7 @@
     border: 0;
     border-radius: 18px 18px 0 0;
     padding-bottom: env(safe-area-inset-bottom);
-    box-shadow: 0 -12px 32px -8px rgba(37, 43, 59, 0.18);
+    box-shadow: 0 -12px 32px -8px rgba(15, 18, 16, 0.18);
   }
 
   .sv-select-panel.is-sheet {
@@ -251,7 +277,7 @@
   }
 
   .sv-select-panel.is-sheet::backdrop {
-    background: rgba(37, 43, 59, 0.35);
+    background: rgba(15, 18, 16, 0.4);
     animation: sv-fade-in 240ms ease-out;
   }
 

@@ -1,10 +1,10 @@
-import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiError, TenantApi } from '@shopivo/api-client';
 import { StoreIndustry, StoreSettings } from '@shopivo/shared-models';
 import {
-  AlertComponent, ButtonComponent, FieldComponent, LoadingComponent, SelectComponent, SelectOption, TabsComponent, ToastService,
+  AlertComponent, ButtonComponent, FieldComponent, LoadingComponent, SelectComponent, SelectOption, ToastService,
   controlError,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
@@ -41,19 +41,21 @@ const TIMEZONES: SelectOption[] = [
 
 @Component({
   selector: 'sv-settings-page',
-  imports: [IndustryPickerComponent, ReactiveFormsModule, TabsComponent, FieldComponent, SelectComponent, ButtonComponent, AlertComponent, LoadingComponent],
+  imports: [IndustryPickerComponent, ReactiveFormsModule, FieldComponent, SelectComponent, ButtonComponent, AlertComponent, LoadingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <h1 class="text-[22px] font-semibold tracking-[-0.01em] text-ink">Ustawienia</h1>
-      <sv-tabs label="Sekcje ustawień" [tabs]="tabs" [(active)]="tab" />
+    <div>
+      <h1 class="text-[22px] font-semibold tracking-[-0.01em] text-ink">{{ tab() === 'company' ? 'Dane firmy' : 'Ogólne' }}</h1>
+      <p class="mt-1 text-[13px] text-ink-muted">{{ tab() === 'company'
+        ? 'Dane sprzedawcy wymagane przy sprzedaży na odległość — pokazujemy je w stopce sklepu, w dokumentach prawnych i e-mailach.'
+        : 'Nazwa, adres sklepu, branża, waluta i strefa czasowa.' }}</p>
     </div>
     @if (!canEdit) {
       <sv-alert class="mt-5">Twoja rola pozwala tylko na podgląd ustawień.</sv-alert>
     }
 
     @if (tab() === 'general') {
-      <form id="panel-general" role="tabpanel" aria-labelledby="tab-general" [formGroup]="general" (ngSubmit)="saveGeneral()"
+      <form id="panel-general" aria-label="Informacje o sklepie" [formGroup]="general" (ngSubmit)="saveGeneral()"
         class="sv-card mt-5" novalidate>
         <div class="px-5 pb-1 pt-5">
           <h2 class="text-[15px] font-semibold text-ink">Informacje o sklepie</h2>
@@ -109,7 +111,7 @@ const TIMEZONES: SelectOption[] = [
         }
       </section>
     } @else {
-      <div id="panel-company" role="tabpanel" aria-labelledby="tab-company" class="sv-card mt-5">
+      <div id="panel-company" class="sv-card mt-5">
         <div class="px-5 pb-1 pt-5">
           <h2 class="text-[15px] font-semibold text-ink">Dane firmy</h2>
           <p class="mt-0.5 text-[12px] text-ink-muted">Dane sprzedawcy na dokumentach sprzedaży i w regulaminie sklepu.</p>
@@ -152,7 +154,7 @@ const TIMEZONES: SelectOption[] = [
                 [error]="companyErrors()['orderEmail'] ?? err(company.controls.orderEmail)">
                 <input id="orderEmail" type="email" class="sv-input" formControlName="orderEmail" />
               </sv-field>
-              <label class="flex items-center justify-between gap-4 rounded-[10px] bg-[#F7F8FA] px-4 py-3 md:col-span-2">
+              <label class="flex items-center justify-between gap-4 rounded-[10px] bg-[#F7F8F5] px-4 py-3 md:col-span-2">
                 <span>
                   <span class="block text-[13px] font-medium text-ink">Ceny zawierają VAT</span>
                   <span class="block text-[12px] text-ink-muted">Ceny produktów wprowadzasz jako brutto.</span>
@@ -209,8 +211,9 @@ export class SettingsPage {
     }
   }
   protected readonly savingCompany = signal(false);
-  protected readonly tabs = [{ id: 'general', label: 'Sklep' }, { id: 'company', label: 'Dane firmy' }];
-  protected readonly tab = signal('general');
+  /** Route data: `company` for /ustawienia/firma (each section has its own address in the settings navigation). */
+  readonly sekcja = input<string>();
+  protected readonly tab = computed(() => (this.sekcja() === 'company' ? 'company' : 'general'));
   protected readonly generalError = signal<string | null>(null);
   protected readonly companyError = signal<string | null>(null);
   private lastSettings: StoreSettings | null = null;

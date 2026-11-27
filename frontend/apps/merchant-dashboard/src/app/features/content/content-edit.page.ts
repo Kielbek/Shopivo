@@ -153,7 +153,7 @@ const PLACEHOLDER = /\[uzupełnij[^\]]*\]/g;
                   <button sv-button [loading]="saving() === 'PUBLISHED'" (click)="save('PUBLISHED')">Zapisz i opublikuj zmiany</button>
                   <button sv-button variant="secondary" [loading]="saving() === 'DRAFT'" (click)="save('DRAFT')">Wycofaj publikację</button>
                 } @else {
-                  <button sv-button [loading]="saving() === 'PUBLISHED'" (click)="save('PUBLISHED')">Opublikuj</button>
+                  <button sv-button variant="accent" [loading]="saving() === 'PUBLISHED'" (click)="save('PUBLISHED')">Opublikuj</button>
                   <button sv-button variant="secondary" [loading]="saving() === 'DRAFT'" (click)="save('DRAFT')">Zapisz szkic</button>
                 }
               </div>
