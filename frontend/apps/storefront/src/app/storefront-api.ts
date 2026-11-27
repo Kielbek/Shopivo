@@ -91,6 +91,29 @@ export class StorefrontApi {
     return this.http.get<Page<ProductCard>>(`${this.base}/products`, { params });
   }
 
+  /** Ready-made list: bestsellery, promocje, koncowki, nowosci, najlepiej-oceniane, wracaja (optionally in a category). */
+  collection(source: string, limit = 8, kategoria?: string): Observable<ProductCard[]> {
+    let params = new HttpParams().set('limit', limit);
+    if (kategoria) params = params.set('kategoria', kategoria);
+    return this.http.get<ProductCard[]>(`${this.base}/collections/${encodeURIComponent(source)}`, { params });
+  }
+
+  boughtTogether(slug: string, limit = 4): Observable<ProductCard[]> {
+    return this.http.get<ProductCard[]>(`${this.base}/products/${encodeURIComponent(slug)}/bought-together`, { params: new HttpParams().set('limit', limit) });
+  }
+
+  similar(slug: string, limit = 4): Observable<ProductCard[]> {
+    return this.http.get<ProductCard[]>(`${this.base}/products/${encodeURIComponent(slug)}/similar`, { params: new HttpParams().set('limit', limit) });
+  }
+
+  /** Suggestions for the cart (product ids in it; gross amount missing to free delivery, if any). */
+  cartSuggestions(productIds: string[], missingMinor: number | null, limit = 3): Observable<ProductCard[]> {
+    let params = new HttpParams().set('limit', limit);
+    if (productIds.length) params = params.set('ids', productIds.slice(0, 30).join(','));
+    if (missingMinor !== null && missingMinor > 0) params = params.set('brakuje', missingMinor);
+    return this.http.get<ProductCard[]>(`${this.base}/recommendations/cart`, { params });
+  }
+
   /** Cards of these products in the given order (inactive or unknown ones are skipped). */
   productCards(ids: string[]): Observable<ProductCard[]> {
     return this.http.get<ProductCard[]>(`${this.base}/product-cards`, { params: new HttpParams().set('ids', ids.slice(0, 60).join(',')) });

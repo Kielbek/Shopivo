@@ -132,7 +132,7 @@ public final class ThemeRegistry {
                 SectionRegistry.section("cats1", "categories", Map.of("heading", "Ulubione zabawki dzieci", "style", "circles")),
                 SectionRegistry.section("products2", "products", Map.of("eyebrow", "Hity do zabawy", "heading", "Małe figurki,",
                         "accent", "wielkie przygody!", "text", "Poznaj bohaterów, z którymi zabawa nie ma końca.", "style", "grid",
-                        "source", "newest", "count", "6", "buttonText", "Zobacz więcej")),
+                        "source", "bestsellers", "count", "6", "buttonText", "Zobacz więcej")),
                 SectionRegistry.section("usp3", "usp", Map.of("items", List.of(
                         Map.of("icon", "shield", "title", "Bezpieczne płatności", "text", "Bezpieczne płatności przy każdym zakupie."),
                         Map.of("icon", "return", "title", "Łatwe zwroty", "text", "Prosty i wygodny proces zwrotu."),

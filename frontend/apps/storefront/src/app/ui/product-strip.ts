@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { of } from 'rxjs';
-import { StorefrontApi } from '../storefront-api';
+import { ProductCard, StorefrontApi } from '../storefront-api';
 import { ProductCardComponent } from './product-card';
 
-/** A titled row of product cards for a list of ids (recently viewed etc.). Renders nothing when empty. */
+/** A titled row of product cards — for a list of ids (recently viewed) or ready cards (recommendations). Nothing when empty. */
 @Component({
   selector: 'sf-product-strip',
   imports: [ProductCardComponent],
@@ -23,12 +23,14 @@ import { ProductCardComponent } from './product-card';
 export class ProductStripComponent {
   private readonly api = inject(StorefrontApi);
   readonly heading = input.required<string>();
-  readonly ids = input.required<string[]>();
+  readonly ids = input<string[]>([]);
+  /** Ready cards (takes precedence over ids). */
+  readonly items = input<ProductCard[] | null>(null);
   readonly limit = input(4);
   private readonly wanted = computed(() => this.ids().slice(0, this.limit()));
   private readonly data = rxResource({
     params: () => this.wanted().join(','),
     stream: ({ params }) => (params ? this.api.productCards(params.split(',')) : of([])),
   });
-  protected readonly cards = computed(() => (this.data.hasValue() ? this.data.value() : []));
+  protected readonly cards = computed(() => this.items()?.slice(0, this.limit()) ?? (this.data.hasValue() ? this.data.value() : []));
 }

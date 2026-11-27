@@ -1,10 +1,12 @@
 import { isPlatformBrowser } from '@angular/common';
 import { ChangeDetectionStrategy, Component, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
 import { NavigationStart, Router, RouterLink } from '@angular/router';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { of } from 'rxjs';
 import { firstValueFrom, filter } from 'rxjs';
 import { CartState } from '../../core/cart';
 import { money } from '../../core/format';
-import { StorefrontApi } from '../../storefront-api';
+import { ProductCard, StorefrontApi } from '../../storefront-api';
 
 /**
  * Side cart: the real server cart (prices, availability, quantities), with a progress bar towards free delivery when
@@ -69,6 +71,27 @@ import { StorefrontApi } from '../../storefront-api';
               }
             </ul>
           }
+          @if (c?.lines?.length && suggestions().length) {
+            <!-- Suggestions from the store's orders; first those that close the gap to free delivery -->
+            <section class="mt-6 border-t border-sf-line pt-5" aria-labelledby="sf-cart-sugg">
+              <h3 id="sf-cart-sugg" class="text-[14px] font-semibold">{{ closesGap() ? 'Dodaj i odbierz darmową dostawę' : 'Dodaj do zamówienia' }}</h3>
+              <ul class="mt-3 space-y-3">
+                @for (p of suggestions(); track p.id) {
+                  <li class="flex items-center gap-3">
+                    <a [routerLink]="['/produkt', p.slug]" class="block size-14 shrink-0 overflow-hidden rounded-lg bg-sf-surface" (click)="close()">
+                      @if (p.imageUrl) {<img [src]="p.imageUrl" [alt]="p.imageAlt || p.name" class="size-full object-cover" loading="lazy" />}
+                    </a>
+                    <div class="min-w-0 flex-1">
+                      <a [routerLink]="['/produkt', p.slug]" class="line-clamp-1 text-[13px] font-medium hover:underline" (click)="close()">{{ p.name }}</a>
+                      <p class="text-[13px] text-sf-muted">{{ fmt(p.priceMinor, p.currency) }}</p>
+                    </div>
+                    <button type="button" class="shrink-0 rounded-full border border-sf-line px-3 py-1.5 text-[12px] font-semibold hover:border-sf-text disabled:opacity-50"
+                      [disabled]="cart.busy() || adding() === p.id" [attr.aria-label]="'Dodaj do koszyka: ' + p.name" (click)="addSuggestion(p)">+ Dodaj</button>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
         </div>
 
         @if (c?.lines?.length) {
@@ -93,6 +116,46 @@ export class CartDrawerComponent {
   protected readonly freeFrom = signal<number | null>(null);
   protected readonly error = signal<string | null>(null);
   private loaded = false;
+  protected readonly adding = signal<string | null>(null);
+  /** Gross amount still missing to free delivery (null = no threshold or already reached). */
+  protected readonly missing = computed(() => {
+    const limit = this.freeFrom();
+    const sub = this.cart.cart()?.subtotalMinor ?? 0;
+    return limit && sub < limit ? limit - sub : null;
+  });
+  private readonly suggestionsRes = rxResource({
+    params: () => (this.cart.drawer() && this.cart.cart()?.lines.length
+      ? { ids: this.cart.cart()!.lines.map((l) => l.productId).join(','), missing: this.missing() } : undefined),
+    stream: ({ params }) => (params ? this.api.cartSuggestions(params.ids.split(','), params.missing, 3) : of([] as ProductCard[])),
+  });
+  protected readonly suggestions = computed(() => (this.suggestionsRes.hasValue() ? this.suggestionsRes.value() : []));
+  /** Promise free delivery only when the first suggestion alone really reaches the threshold. */
+  protected readonly closesGap = computed(() => {
+    const m = this.missing();
+    const first = this.suggestions()[0];
+    return !!m && !!first && first.priceMinor >= m;
+  });
+  private readonly router = inject(Router);
+
+  /** One click for a product without variants; with sizes/colours the product page opens to choose one. */
+  protected async addSuggestion(p: ProductCard): Promise<void> {
+    this.adding.set(p.id);
+    this.error.set(null);
+    try {
+      const detail = await firstValueFrom(this.api.product(p.slug));
+      if (detail.variants.length !== 1 || !detail.variants[0].available) {
+        this.close();
+        await this.router.navigate(['/produkt', p.slug]);
+        return;
+      }
+      await this.cart.add(detail.variants[0].id, 1);
+    } catch {
+      this.error.set('Nie udało się dodać produktu.');
+    } finally {
+      this.adding.set(null);
+    }
+  }
+
   protected readonly progress = computed(() => {
     const limit = this.freeFrom();
     return limit ? Math.min(100, Math.round(((this.cart.cart()?.subtotalMinor ?? 0) / limit) * 100)) : 0;
@@ -108,7 +171,7 @@ export class CartDrawerComponent {
         }, () => this.freeFrom.set(null));
       }
     });
-    inject(Router).events.pipe(filter((e) => e instanceof NavigationStart)).subscribe(() => this.cart.drawer.set(false));
+    this.router.events.pipe(filter((e) => e instanceof NavigationStart)).subscribe(() => this.cart.drawer.set(false));
   }
 
   protected close(): void {

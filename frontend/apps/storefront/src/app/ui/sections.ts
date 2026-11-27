@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { money } from '../core/format';
 import { routeOf } from '../core/link-token';
 import { StoreState } from '../core/store-state';
@@ -11,6 +11,11 @@ import { ProductCardComponent } from './product-card';
 import { RichTextComponent } from './rich-text';
 import { StarsComponent } from './stars';
 import { PremiumIconComponent } from './premium-icon';
+
+/** Section sources served by the recommendation endpoint (`/collections/{slug}`). */
+const COLLECTIONS: Record<string, string> = {
+  bestsellers: 'bestsellery', last_pieces: 'koncowki', top_rated: 'najlepiej-oceniane', back_in_stock: 'wracaja',
+};
 
 /** Internal path (router link) or external https URL (new tab). */
 function linkOf(value: string | undefined): { route: string; query: Record<string, string> | null } | { href: string } | null {
@@ -131,7 +136,7 @@ export class SampleCardComponent {
             <div>
               @if (d['eyebrow']) {<p class="sf-eyebrow">{{ d['eyebrow'] }}</p>}
               @if (d['heading']) {<h2 class="mt-1 text-[32px] font-semibold leading-tight sm:text-[38px]">{{ d['heading'] }}</h2>}
-              <p class="mt-1 text-[14px] text-sf-muted" aria-live="polite">{{ countLabel() }}</p>
+              @if (!ranked()) {<p class="mt-1 text-[14px] text-sf-muted" aria-live="polite">{{ countLabel() }}</p>}
             </div>
             <div class="flex min-w-0 flex-wrap items-center gap-3">
               <div class="-mx-1 flex max-w-full items-center gap-1.5 overflow-x-auto px-1 [scrollbar-width:none]" role="group" aria-label="Filtruj produkty">
@@ -230,13 +235,25 @@ export class SectionProductsComponent {
   protected readonly res = rxResource({
     params: () => {
       const f = this.data()['filters'] ? this.filter() : null;
-      return { source: f === 'sale' ? 'sale' : f ? 'category' : this.data()['source'], slug: f && f !== 'sale' ? f : f === 'sale' ? null : this.slug(),
+      const own = this.data()['source'];
+      // A category pill narrows a ranked list (e.g. bestsellers in "Pluszaki") instead of replacing it
+      return { source: f === 'sale' ? 'sale' : f ? (COLLECTIONS[own] ? own : 'category') : own, slug: f && f !== 'sale' ? f : f === 'sale' ? null : this.slug(),
         size: Number(this.data()['count'] ?? 8), sort: this.sort() };
     },
-    stream: ({ params }) => this.api.products({ size: params.size, sort: params.sort, kategoria: params.slug ?? undefined, promocje: params.source === 'sale' }),
+    stream: ({ params }) => {
+      // Recommendation lists (bestsellers etc.) come ranked from the server; the visitor's sort switches to the catalogue
+      const list = COLLECTIONS[params.source as string];
+      if (list && params.sort === 'NEWEST') {
+        return this.api.collection(list, params.size, params.slug ?? undefined)
+          .pipe(map((items) => ({ items, totalItems: items.length, page: 0, size: params.size, totalPages: 1 })));
+      }
+      return this.api.products({ size: params.size, sort: params.sort, kategoria: params.slug ?? undefined, promocje: params.source === 'sale' });
+    },
   });
   protected readonly items = computed(() => (this.res.hasValue() ? this.res.value().items : []));
   protected readonly total = computed(() => (this.res.hasValue() ? this.res.value().totalItems : 0));
+  /** Lists ranked by the server show no product count (it is a selection, not the whole catalogue). */
+  protected readonly ranked = computed(() => !!COLLECTIONS[this.data()['source']] && this.sort() === 'NEWEST');
   /** Preview of an empty store: the template's example products (filtered by the visitor's category pill by name). */
   protected readonly samples = computed<SampleCard[]>(() => {
     if (this.filter() !== null && this.filter() !== 'sale') return [];

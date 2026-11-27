@@ -7,7 +7,7 @@ Ostatnia aktualizacja: 2026-11-27 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 49/49 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 87/87 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 88/88 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
 | Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 81/81 ✔ (panel 67, admin 3, witryna 11) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
@@ -21,6 +21,22 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 | Ręczny przepływ E2E Fazy 3 (Playwright, poza repo) | kategorie i marka → produkt z 3 wariantami w edytorze → obniżka z Omnibusem → korekta magazynu i historia → wysyłka i płatności w ustawieniach → zamówienie przez API storefrontu → opłacenie, wysyłka z numerem, notatka → zamówienie ręczne → karta klienta; widoki mobilne bez poziomego przewijania, 0 błędów konsoli | ✔ |
 
 | Ręczny przepływ E2E Fazy 4a (Playwright, poza repo) | sprzedawca: produkty, kategorie, dostawa, przelew → 2 zdjęcia przez edytor produktu → „Wygląd sklepu”: preset Home, teksty, zapis szkicu → podgląd w nowej karcie (baner podglądu, szkic widoczny) → publikacja motywu → publikacja sklepu z karty na Przeglądzie; klient na `http://<sklep>.shopivo.localhost:4000`: strona główna → kategoria (Omnibus) → produkt (wariant niedostępny, wybór wariantu, galeria) → koszyk → checkout (walidacja, regulamin) → potwierdzenie z danymi do przelewu; SSR: tytuł, opis, canonical, OG, JSON-LD Product/BreadcrumbList, 404 dla nieznanego produktu/kategorii/sklepu, sitemap, robots; iPhone 13 bez poziomego przewijania; 0 błędów konsoli | ✔ |
+
+## Polecanie produktów (2026-11-27)
+
+- **Moduł `recommendations` — gotowe listy** (`/storefront/collections/…`): bestsellery z wygaszaniem, promocje wg obniżki, ostatnie sztuki, najlepiej oceniane (średnia bayesowska), wróciły do sprzedaży i nowości, z filtrem kategorii.
+- **Przy produkcie i w koszyku:**
+  - „Często kupowane razem” — tylko prawdziwe pary, ze współczynnikiem osłabiającym bestsellery;
+  - „Podobne”;
+  - podpowiedzi do koszyka ułożone pod próg darmowej dostawy.
+- **Witryna:**
+  - nowe źródła w sekcji „Produkty”;
+  - dwie sekcje na stronie produktu;
+  - „Dodaj do zamówienia” w bocznym koszyku (z dodaniem jednym kliknięciem) i na stronie koszyka.
+- **Testy i E2E:**
+  - `RecommendationsIT` na prawdziwych zamówieniach: anulowane się nie liczą, promocje i ostatnie sztuki nie są „dopychane”, odświeżanie po zamówieniu;
+  - E2E na Bawiloo: 4 zamówienia → bestsellery i „kupowane razem” zgodne z zamówieniami, „+ Dodaj” w koszyku, 0 błędów konsoli.
+- **Opis:** [RECOMMENDATIONS.md](RECOMMENDATIONS.md). Etap 3 (personalizacja, statystyki) jeszcze nie jest zrobiony.
 
 ## Szablon Véra i grafiki szablonów (2026-11-27)
 

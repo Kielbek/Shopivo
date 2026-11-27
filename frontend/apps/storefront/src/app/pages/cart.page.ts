@@ -1,13 +1,16 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CartState } from '../core/cart';
 import { money } from '../core/format';
 import { Seo } from '../core/seo';
 import { StoreState } from '../core/store-state';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { ProductStripComponent } from '../ui/product-strip';
+import { StorefrontApi } from '../storefront-api';
 
 @Component({
   selector: 'sf-cart',
-  imports: [RouterLink],
+  imports: [RouterLink, ProductStripComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="sf-container py-8">
@@ -46,6 +49,7 @@ import { StoreState } from '../core/store-state';
             <a routerLink="/produkty" class="mt-3 block text-center text-[14px] hover:underline">Kontynuuj zakupy</a>
           </aside>
         </div>
+        <sf-product-strip heading="Dodaj do zamówienia" [items]="suggestions()" />
       }
     </div>
   `,
@@ -54,6 +58,13 @@ export class CartPage {
   protected readonly cart = inject(CartState);
   private readonly store = inject(StoreState);
   protected readonly error = signal<string | null>(null);
+  private readonly api = inject(StorefrontApi);
+  /** Bought together with the cart's products (or from the same categories), from the store's own orders. */
+  private readonly suggestionsRes = rxResource({
+    params: () => this.cart.cart()?.lines.map((l) => l.productId).join(',') || undefined,
+    stream: ({ params }) => this.api.cartSuggestions(params!.split(','), null, 4),
+  });
+  protected readonly suggestions = computed(() => (this.suggestionsRes.hasValue() ? this.suggestionsRes.value() : []));
 
   constructor() {
     const s = this.store.store();

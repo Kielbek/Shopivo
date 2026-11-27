@@ -78,7 +78,7 @@ public final class SectionRegistry {
                     Prop.text("eyebrow", "Nadtytuł", 60), Prop.text("heading", "Nagłówek", 60),
                     Prop.text("accent", "Druga linia nagłówka (wyróżniona)", 60), Prop.text("text", "Opis pod nagłówkiem", 160),
                     Prop.select("style", "Wygląd", "grid", "carousel"),
-                    Prop.select("source", "Jakie produkty", "newest", "sale", "category"),
+                    Prop.select("source", "Jakie produkty", "newest", "bestsellers", "sale", "last_pieces", "top_rated", "back_in_stock", "category"),
                     Prop.of("category", "Kategoria", Kind.CATEGORY, "Dla „Wybrana kategoria”."),
                     Prop.select("count", "Liczba produktów", "4", "6", "8", "12"), Prop.text("buttonText", "Tekst linku", 30),
                     Prop.of("filters", "Filtry kategorii i sortowanie", Kind.TOGGLE, "Klient przełącza kategorie główne bez opuszczania strony."))),

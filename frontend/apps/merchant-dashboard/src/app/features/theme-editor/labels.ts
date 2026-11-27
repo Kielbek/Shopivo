@@ -15,7 +15,9 @@ export const OPTION_LABELS: Record<string, string> = {
   banner: 'Kolorowy baner', split: 'Tekst i zdjęcie obok siebie', image: 'Zdjęcie na całą szerokość',
   small: 'Niski', medium: 'Średni', large: 'Wysoki',
   tiles: 'Kafelki ze zdjęciami', chips: 'Przyciski z nazwami',
-  newest: 'Nowości', sale: 'Promocje', category: 'Wybrana kategoria (np. nowa kolekcja)',
+  newest: 'Nowości', sale: 'Promocje (największe obniżki)', category: 'Wybrana kategoria (np. nowa kolekcja)',
+  bestsellers: 'Bestsellery (najczęściej kupowane)', last_pieces: 'Ostatnie sztuki', top_rated: 'Najlepiej oceniane',
+  back_in_stock: 'Wróciły do sprzedaży',
   left: 'Po lewej', right: 'Po prawej', center: 'Wyśrodkowany',
   truck: 'Dostawa', return: 'Zwrot', shield: 'Bezpieczeństwo', card: 'Płatność', gift: 'Prezent', leaf: 'Eko', star: 'Jakość', chat: 'Kontakt',
 };

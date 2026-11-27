@@ -186,6 +186,8 @@ import { PriceComponent } from '../ui/price';
             }
           }
         </section>
+        <sf-product-strip heading="Często kupowane razem" [items]="together()" />
+        <sf-product-strip heading="Może Ci się spodobać" [items]="similarOthers()" />
         <sf-product-strip heading="Ostatnio oglądane" [ids]="recentOthers()" />
       }
     </div>
@@ -201,6 +203,14 @@ export class ProductPage {
   private readonly recent = inject(RecentlyViewed);
   /** Taken when the page opens, so the list does not jump while browsing. */
   private readonly recentAtOpen = signal<string[]>([]);
+  /** Recommendations from the store's own orders; "similar" leaves out what is already shown as bought together. */
+  private readonly togetherRes = rxResource({ params: () => this.loaded()?.slug, stream: ({ params }) => this.api.boughtTogether(params!, 4) });
+  private readonly similarRes = rxResource({ params: () => this.loaded()?.slug, stream: ({ params }) => this.api.similar(params!, 8) });
+  protected readonly together = computed(() => (this.togetherRes.hasValue() ? this.togetherRes.value() : []));
+  protected readonly similarOthers = computed(() => {
+    const shown = new Set(this.together().map((p) => p.id));
+    return (this.similarRes.hasValue() ? this.similarRes.value() : []).filter((p) => !shown.has(p.id)).slice(0, 4);
+  });
   protected readonly recentOthers = computed(() => this.recentAtOpen().filter((id) => id !== this.loaded()?.id));
 
   readonly slug = input.required<string>();
