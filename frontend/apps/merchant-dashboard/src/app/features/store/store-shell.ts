@@ -96,7 +96,7 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
       </div>
     } @else if (ctx.store(); as store) {
       <sv-app-shell [sections]="sections()" [bottomSections]="bottomSections()" [homeLink]="base()" navLabel="Sekcje sklepu"
-        [rail]="inSettings()" [hasSubnav]="inSettings()" subnavLabel="Ustawienia" [narrow]="inSettings()">
+        [rail]="inSettings()" [hasSubnav]="inSettings()" subnavLabel="Ustawienia">
         @if (inSettings()) {
           <div shell-subnav>
             <div class="flex h-16 items-center gap-2 px-3">
@@ -219,7 +219,7 @@ export class StoreShell {
       title: section.title,
       items: section.items
         .filter((i) => (i.soon ? nav === SETTINGS_NAV_GROUP : !i.permission || this.ctx.can(i.permission)))
-        .map((i) => ({ ...i, link: i.path === undefined ? undefined : [...this.base(), ...(i.path ? [i.path] : [])] })),
+        .map((i) => ({ ...i, link: i.path === undefined ? undefined : [...this.base(), ...(i.path ? i.path.split('/') : [])] })),
     })).filter((s) => s.items.length > 0);
   }
   protected readonly fullName = computed(() => {

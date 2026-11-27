@@ -1,11 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { NgTemplateOutlet } from '@angular/common';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
+import { LucideDynamicIcon } from '@lucide/angular';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ApiError, TenantApi } from '@shopivo/api-client';
 import { StoreIndustry, StoreSettings } from '@shopivo/shared-models';
 import {
   AlertComponent, ButtonComponent, FieldComponent, LoadingComponent, SelectComponent, SelectOption, ToastService,
-  controlError,
+  controlError, icons,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from './store-context';
@@ -41,90 +43,121 @@ const TIMEZONES: SelectOption[] = [
 
 @Component({
   selector: 'sv-settings-page',
-  imports: [IndustryPickerComponent, ReactiveFormsModule, FieldComponent, SelectComponent, ButtonComponent, AlertComponent, LoadingComponent],
+  imports: [IndustryPickerComponent, ReactiveFormsModule, NgTemplateOutlet, LucideDynamicIcon, FieldComponent, SelectComponent, ButtonComponent, AlertComponent, LoadingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div>
-      <h1 class="text-[22px] font-semibold tracking-[-0.01em] text-ink">{{ tab() === 'company' ? 'Dane firmy' : 'Ogólne' }}</h1>
-      <p class="mt-1 text-[13px] text-ink-muted">{{ tab() === 'company'
-        ? 'Dane sprzedawcy wymagane przy sprzedaży na odległość — pokazujemy je w stopce sklepu, w dokumentach prawnych i e-mailach.'
-        : 'Nazwa, adres sklepu, branża, waluta i strefa czasowa.' }}</p>
-    </div>
-    @if (!canEdit) {
-      <sv-alert class="mt-5">Twoja rola pozwala tylko na podgląd ustawień.</sv-alert>
-    }
+    <header class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 class="text-[24px] font-semibold tracking-[-0.02em] text-ink">{{ tab() === 'company' ? 'Dane firmy' : 'Ogólne' }}</h1>
+        <p class="mt-1 max-w-2xl text-[13.5px] text-ink-soft">{{ tab() === 'company'
+          ? 'Dane sprzedawcy wymagane przy sprzedaży na odległość. Pokazujemy je w stopce sklepu, w regulaminie i w e-mailach do klientów.'
+          : 'Podstawowe informacje o sklepie, region i branża.' }}</p>
+      </div>
+      @if (!canEdit) {<sv-alert>Twoja rola pozwala tylko na podgląd ustawień.</sv-alert>}
+    </header>
 
     @if (tab() === 'general') {
-      <form id="panel-general" aria-label="Informacje o sklepie" [formGroup]="general" (ngSubmit)="saveGeneral()"
-        class="sv-card mt-5" novalidate>
-        <div class="px-5 pb-1 pt-5">
-          <h2 class="text-[15px] font-semibold text-ink">Informacje o sklepie</h2>
-          <p class="mt-0.5 text-[12px] text-ink-muted">Widoczne dla klientów w witrynie i wiadomościach.</p>
-        </div>
-        <div class="grid gap-x-5 gap-y-4 p-5 md:grid-cols-2">
-          @if (generalError(); as e) {<sv-alert tone="error" class="md:col-span-2">{{ e }}</sv-alert>}
-          <sv-field label="Nazwa sklepu" for="name" [error]="err(general.controls.name)">
-            <input id="name" class="sv-input" formControlName="name" maxlength="150" [attr.aria-invalid]="!!err(general.controls.name)" />
-          </sv-field>
-          <sv-field label="E-mail kontaktowy" for="contactEmail" [error]="err(general.controls.contactEmail)">
-            <input id="contactEmail" type="email" class="sv-input" formControlName="contactEmail" placeholder="kontakt@twojsklep.pl" />
-          </sv-field>
-          <sv-field label="Język" for="defaultLocale">
-            <sv-select inputId="defaultLocale" formControlName="defaultLocale" [options]="locales" ariaLabel="Język sklepu" />
-          </sv-field>
-          <sv-field label="Waluta" for="defaultCurrency">
-            <sv-select inputId="defaultCurrency" formControlName="defaultCurrency" [options]="currencies" ariaLabel="Waluta" />
-          </sv-field>
-          <sv-field label="Strefa czasowa" for="timezone" class="md:col-span-2 md:max-w-[calc(50%-10px)]">
-            <sv-select inputId="timezone" formControlName="timezone" [options]="timezones" ariaLabel="Strefa czasowa" />
-          </sv-field>
-        </div>
-        @if (canEdit) {
-          <div class="sv-card-footer">
-            <button sv-button variant="ghost" type="button" [disabled]="general.pristine" (click)="resetGeneral()">Odrzuć zmiany</button>
-            <button sv-button type="submit" [disabled]="general.pristine" [loading]="savingGeneral()">Zapisz</button>
+      <form id="settings-general" [formGroup]="general" (ngSubmit)="saveGeneral()" novalidate class="mt-6">
+        @if (generalError(); as e) {<sv-alert tone="error" class="mb-5">{{ e }}</sv-alert>}
+
+        <section class="settings-row" aria-labelledby="s-store">
+          <div>
+            <h2 id="s-store" class="settings-h">Sklep</h2>
+            <p class="settings-p">Nazwa i e-mail widoczne dla klientów w sklepie i w wiadomościach o zamówieniach.</p>
           </div>
-        }
+          <div class="sv-card space-y-4 p-5">
+            <div class="grid gap-4 md:grid-cols-2">
+              <sv-field label="Nazwa sklepu" for="name" [error]="err(general.controls.name)">
+                <input id="name" class="sv-input" formControlName="name" maxlength="150" [attr.aria-invalid]="!!err(general.controls.name)" />
+              </sv-field>
+              <sv-field label="E-mail kontaktowy" for="contactEmail" [error]="err(general.controls.contactEmail)">
+                <input id="contactEmail" type="email" class="sv-input" formControlName="contactEmail" placeholder="kontakt@twojsklep.pl" />
+              </sv-field>
+            </div>
+            @if (ctx.store(); as st) {
+              <div class="flex flex-wrap items-center gap-3 rounded-[12px] border border-line px-4 py-3">
+                <span class="flex size-9 items-center justify-center rounded-[10px] bg-canvas text-ink-soft"><svg [lucideIcon]="icons.domains" [size]="17" /></span>
+                <div class="min-w-0 flex-1">
+                  <p class="text-[12px] text-ink-muted">Adres sklepu</p>
+                  <p class="truncate text-[13.5px] font-medium text-ink">{{ st.primaryHostname || st.slug }}</p>
+                </div>
+                <span class="text-[12px] text-ink-muted">Własna domena — wkrótce</span>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section class="settings-row" aria-labelledby="s-region">
+          <div>
+            <h2 id="s-region" class="settings-h">Region i waluta</h2>
+            <p class="settings-p">Język treści systemowych, waluta cen i strefa czasowa raportów oraz godzin zamówień.
+              Waluty nie zmienisz po dodaniu pierwszego produktu lub zamówienia.</p>
+          </div>
+          <div class="sv-card grid gap-4 p-5 md:grid-cols-3">
+            <sv-field label="Język" for="defaultLocale">
+              <sv-select inputId="defaultLocale" formControlName="defaultLocale" [options]="locales" ariaLabel="Język sklepu" />
+            </sv-field>
+            <sv-field label="Waluta" for="defaultCurrency">
+              <sv-select inputId="defaultCurrency" formControlName="defaultCurrency" [options]="currencies" ariaLabel="Waluta" />
+            </sv-field>
+            <sv-field label="Strefa czasowa" for="timezone">
+              <sv-select inputId="timezone" formControlName="timezone" [options]="timezones" ariaLabel="Strefa czasowa" />
+            </sv-field>
+          </div>
+        </section>
       </form>
 
-      <section class="sv-card mt-5" aria-labelledby="industry-heading">
-        <div class="px-5 pb-1 pt-5">
-          <h2 id="industry-heading" class="text-[15px] font-semibold text-ink">Branża</h2>
-          <p class="mt-0.5 text-[12px] text-ink-muted">Na tej podstawie podpowiadamy rozmiary i kolory wariantów, kategorie startowe i typowe paczki.
-            Branża nie ogranicza tego, co sprzedajesz, i nie jest widoczna dla klientów.</p>
+      <section class="settings-row" aria-labelledby="s-industry">
+        <div>
+          <h2 id="s-industry" class="settings-h">Branża</h2>
+          <p class="settings-p">Na tej podstawie podpowiadamy rozmiary i kolory wariantów, kategorie startowe i typowe paczki.
+            Nie ogranicza tego, co sprzedajesz, i nie jest widoczna dla klientów.</p>
         </div>
-        <div class="p-5">
-          @if (!editIndustry()) {
-            <div class="flex flex-wrap items-center justify-between gap-3">
-              <p class="text-[14px] text-ink">{{ industryLabel() ?? 'Nie wybrano' }}</p>
-              @if (canEdit) {<button sv-button variant="secondary" type="button" (click)="startIndustry()">{{ industryLabel() ? 'Zmień' : 'Wybierz branżę' }}</button>}
+        <div class="sv-card">
+          <div class="p-5">
+            @if (!editIndustry()) {
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <span class="flex size-9 items-center justify-center rounded-[10px] bg-canvas text-ink-soft"><svg [lucideIcon]="icons.tag" [size]="17" /></span>
+                  <p class="text-[14px] font-medium text-ink">{{ industryLabel() ?? 'Nie wybrano' }}</p>
+                </div>
+                @if (canEdit) {<button sv-button variant="secondary" type="button" (click)="startIndustry()">{{ industryLabel() ? 'Zmień' : 'Wybierz branżę' }}</button>}
+              </div>
+            } @else {
+              <sv-industry-picker [wide]="true" [(value)]="industry" />
+            }
+          </div>
+          @if (editIndustry()) {
+            <div class="sv-card-footer">
+              <button sv-button variant="ghost" type="button" (click)="editIndustry.set(false)">Anuluj</button>
+              <button sv-button type="button" [loading]="savingIndustry()" (click)="saveIndustry()">Zapisz branżę</button>
             </div>
-          } @else {
-            <sv-industry-picker [wide]="true" [(value)]="industry" />
           }
         </div>
-        @if (editIndustry()) {
-          <div class="sv-card-footer">
-            <button sv-button variant="ghost" type="button" (click)="editIndustry.set(false)">Anuluj</button>
-            <button sv-button type="button" [loading]="savingIndustry()" (click)="saveIndustry()">Zapisz branżę</button>
-          </div>
-        }
       </section>
+
+      @if (canEdit && general.dirty) {
+        <ng-container *ngTemplateOutlet="saveBar; context: { form: 'settings-general', busy: savingGeneral(), reset: resetGeneral.bind(this) }" />
+      }
     } @else {
-      <div id="panel-company" class="sv-card mt-5">
-        <div class="px-5 pb-1 pt-5">
-          <h2 class="text-[15px] font-semibold text-ink">Dane firmy</h2>
-          <p class="mt-0.5 text-[12px] text-ink-muted">Dane sprzedawcy na dokumentach sprzedaży i w regulaminie sklepu.</p>
-        </div>
-        @if (settings.isLoading()) {
-          <sv-loading variant="form" />
-        } @else if (settings.error()) {
-          <div class="p-5"><sv-alert tone="error">Nie udało się wczytać danych firmy.</sv-alert></div>
-        } @else {
-          <form [formGroup]="company" (ngSubmit)="saveCompany()" novalidate>
-            <div class="grid gap-x-5 gap-y-4 p-5 md:grid-cols-2">
-              @if (companyError(); as e) {<sv-alert tone="error" class="md:col-span-2">{{ e }}</sv-alert>}
-              <sv-field label="Pełna nazwa firmy" for="legalCompanyName" class="md:col-span-2">
+      @if (settings.isLoading() && !settings.hasValue()) {
+        <div class="mt-6"><sv-loading variant="form" /></div>
+      } @else if (settings.error()) {
+        <sv-alert tone="error" class="mt-6">Nie udało się wczytać danych firmy.</sv-alert>
+      } @else {
+        <form id="settings-company" [formGroup]="company" (ngSubmit)="saveCompany()" novalidate class="mt-6">
+          @if (companyError(); as e) {<sv-alert tone="error" class="mb-5">{{ e }}</sv-alert>}
+          @if (missing().length) {
+            <sv-alert tone="warning" class="mb-5">Do publikacji sklepu brakuje: {{ missing().join(', ') }}.</sv-alert>
+          }
+
+          <section class="settings-row" aria-labelledby="c-firm">
+            <div>
+              <h2 id="c-firm" class="settings-h">Firma</h2>
+              <p class="settings-p">Pełna nazwa jak w CEIDG lub KRS i NIP — trafiają do regulaminu, stopki sklepu i potwierdzeń zamówień.</p>
+            </div>
+            <div class="sv-card grid gap-4 p-5 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+              <sv-field label="Pełna nazwa firmy" for="legalCompanyName">
                 <input id="legalCompanyName" class="sv-input" formControlName="legalCompanyName" maxlength="255" autocomplete="organization"
                   placeholder="np. Pracownia Anna Nowak" />
               </sv-field>
@@ -132,50 +165,95 @@ const TIMEZONES: SelectOption[] = [
                 <input id="taxId" class="sv-input" formControlName="taxId" maxlength="20" inputmode="numeric" placeholder="000-000-00-00"
                   [attr.aria-invalid]="!!companyErrors()['taxId']" />
               </sv-field>
-              <sv-field label="Telefon" for="phone" [error]="companyErrors()['phone']">
-                <input id="phone" type="tel" class="sv-input" formControlName="phone" maxlength="30" autocomplete="tel" placeholder="+48" />
+            </div>
+          </section>
+
+          <section class="settings-row" aria-labelledby="c-address">
+            <div>
+              <h2 id="c-address" class="settings-h">Adres siedziby</h2>
+              <p class="settings-p">Adres do korespondencji i reklamacji. Domyślnie także adres zwrotów w regulaminie.</p>
+            </div>
+            <div class="sv-card grid gap-4 p-5 md:grid-cols-6">
+              <sv-field label="Ulica i numer" for="addressLine1" class="md:col-span-4">
+                <input id="addressLine1" class="sv-input" formControlName="addressLine1" maxlength="200" autocomplete="address-line1" placeholder="ul. Kwiatowa 5" />
               </sv-field>
-              <sv-field label="Ulica i numer" for="addressLine1">
-                <input id="addressLine1" class="sv-input" formControlName="addressLine1" maxlength="200" autocomplete="address-line1" />
-              </sv-field>
-              <sv-field label="Lokal, piętro" for="addressLine2">
+              <sv-field label="Lokal, piętro" for="addressLine2" [optional]="true" class="md:col-span-2">
                 <input id="addressLine2" class="sv-input" formControlName="addressLine2" maxlength="200" autocomplete="address-line2" />
               </sv-field>
-              <div class="grid grid-cols-[120px_minmax(0,1fr)] gap-4">
-                <sv-field label="Kod pocztowy" for="postalCode" [error]="companyErrors()['postalCode']">
-                  <input id="postalCode" class="sv-input" formControlName="postalCode" maxlength="20" placeholder="00-000"
-                    autocomplete="postal-code" [attr.aria-invalid]="!!companyErrors()['postalCode']" />
-                </sv-field>
-                <sv-field label="Miejscowość" for="city">
-                  <input id="city" class="sv-input" formControlName="city" maxlength="100" autocomplete="address-level2" />
-                </sv-field>
-              </div>
+              <sv-field label="Kod pocztowy" for="postalCode" [error]="companyErrors()['postalCode']" class="md:col-span-2">
+                <input id="postalCode" class="sv-input" formControlName="postalCode" maxlength="20" placeholder="00-000"
+                  autocomplete="postal-code" [attr.aria-invalid]="!!companyErrors()['postalCode']" />
+              </sv-field>
+              <sv-field label="Miejscowość" for="city" class="md:col-span-2">
+                <input id="city" class="sv-input" formControlName="city" maxlength="100" autocomplete="address-level2" />
+              </sv-field>
+              <sv-field label="Kraj" for="country" class="md:col-span-2">
+                <input id="country" class="sv-input" value="Polska" disabled />
+              </sv-field>
+            </div>
+          </section>
+
+          <section class="settings-row" aria-labelledby="c-contact">
+            <div>
+              <h2 id="c-contact" class="settings-h">Kontakt</h2>
+              <p class="settings-p">Telefon pokazujemy klientom. Na e-mail do powiadomień wysyłamy informacje o nowych zamówieniach i zwrotach.</p>
+            </div>
+            <div class="sv-card grid gap-4 p-5 md:grid-cols-2">
+              <sv-field label="Telefon" for="phone" [error]="companyErrors()['phone']">
+                <input id="phone" type="tel" class="sv-input" formControlName="phone" maxlength="30" autocomplete="tel" placeholder="+48 600 100 200" />
+              </sv-field>
               <sv-field label="E-mail do powiadomień o zamówieniach" for="orderEmail"
                 [error]="companyErrors()['orderEmail'] ?? err(company.controls.orderEmail)">
-                <input id="orderEmail" type="email" class="sv-input" formControlName="orderEmail" />
+                <input id="orderEmail" type="email" class="sv-input" formControlName="orderEmail" placeholder="zamowienia@twojafirma.pl" />
               </sv-field>
-              <label class="flex items-center justify-between gap-4 rounded-[10px] bg-[#F7F8F5] px-4 py-3 md:col-span-2">
+            </div>
+          </section>
+
+          <section class="settings-row" aria-labelledby="c-tax">
+            <div>
+              <h2 id="c-tax" class="settings-h">Ceny i podatki</h2>
+              <p class="settings-p">Określa, jak wpisujesz ceny produktów. Klient zawsze widzi ceny brutto.</p>
+            </div>
+            <div class="sv-card p-5">
+              <label class="flex items-center justify-between gap-4">
                 <span>
-                  <span class="block text-[13px] font-medium text-ink">Ceny zawierają VAT</span>
-                  <span class="block text-[12px] text-ink-muted">Ceny produktów wprowadzasz jako brutto.</span>
+                  <span class="block text-[14px] font-medium text-ink">Ceny zawierają VAT</span>
+                  <span class="block text-[12.5px] text-ink-muted">Wprowadzasz ceny brutto. Wyłącz, jeśli wolisz podawać ceny netto.</span>
                 </span>
                 <input type="checkbox" role="switch" formControlName="pricesIncludeTax" class="sv-switch" />
               </label>
             </div>
-            @if (canEdit) {
-              <div class="sv-card-footer">
-                <button sv-button variant="ghost" type="button" [disabled]="company.pristine" (click)="resetCompany()">Odrzuć zmiany</button>
-                <button sv-button type="submit" [disabled]="company.pristine" [loading]="savingCompany()">Zapisz dane firmy</button>
-              </div>
-            }
-          </form>
+          </section>
+        </form>
+        @if (canEdit && company.dirty) {
+          <ng-container *ngTemplateOutlet="saveBar; context: { form: 'settings-company', busy: savingCompany(), reset: resetCompany.bind(this) }" />
         }
-      </div>
+      }
     }
+
+    <!-- Unsaved changes: one floating bar for the whole page (instead of a save button in every card). -->
+    <ng-template #saveBar let-form="form" let-busy="busy" let-reset="reset">
+      <div class="sticky bottom-5 z-20 mt-8 flex justify-center" role="region" aria-label="Niezapisane zmiany">
+        <div class="flex items-center gap-3 rounded-full bg-night py-2 pl-5 pr-2 text-white shadow-[0_16px_40px_-12px_rgba(15,18,16,0.5)]">
+          <span class="size-2 rounded-full bg-neon" aria-hidden="true"></span>
+          <span class="text-[13.5px] font-medium">Niezapisane zmiany</span>
+          <button type="button" class="h-9 rounded-full px-4 text-[13px] font-medium text-white/75 hover:bg-white/10 hover:text-white" (click)="reset()">Odrzuć</button>
+          <button sv-button variant="accent" size="sm" type="submit" [attr.form]="form" [loading]="busy" class="!h-9">Zapisz</button>
+        </div>
+      </div>
+    </ng-template>
+  `,
+  styles: `
+    .settings-row { display: grid; gap: 1rem; padding-block: 1.75rem; border-top: 1px solid var(--color-line); }
+    form > .settings-row:first-of-type { border-top: 0; padding-top: 0.5rem; }
+    @media (min-width: 1024px) { .settings-row { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 2.5rem; } }
+    .settings-h { font-size: 15px; font-weight: 600; color: var(--color-ink); }
+    .settings-p { margin-top: 0.25rem; font-size: 13px; line-height: 1.55; color: var(--color-ink-soft); }
   `,
 })
 export class SettingsPage {
-  private readonly ctx = inject(StoreContext);
+  protected readonly ctx = inject(StoreContext);
+  protected readonly icons = icons;
   private readonly api = inject(TenantApi);
   private readonly fb = inject(NonNullableFormBuilder);
   private readonly toast = inject(ToastService);
@@ -238,6 +316,16 @@ export class SettingsPage {
     phone: [''],
     orderEmail: ['', Validators.email],
     pricesIncludeTax: [true],
+  });
+
+  private readonly companyValue = toSignal(this.company.valueChanges, { initialValue: this.company.getRawValue() });
+  /** Data still needed to publish the store (same rule as the publication checklist). */
+  protected readonly missing = computed(() => {
+    const v = { ...this.company.getRawValue(), ...this.companyValue() };
+    return [
+      !v.legalCompanyName?.trim() && 'pełna nazwa firmy', !v.taxId?.trim() && 'NIP', !v.addressLine1?.trim() && 'adres',
+      !(v.orderEmail?.trim() || this.ctx.store()?.contactEmail) && 'e-mail',
+    ].filter((x): x is string => !!x);
   });
 
   protected readonly settings = rxResource({
