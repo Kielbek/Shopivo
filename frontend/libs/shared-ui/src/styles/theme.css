@@ -180,6 +180,19 @@
     @apply flex flex-wrap items-center justify-end gap-2 border-t border-line px-5 py-3.5;
   }
 
+  /* Settings-style list row inside a card: icon, label, grey status pill, chevron. */
+  .settings-item {
+    @apply flex w-full items-center gap-3 px-5 py-3.5 text-[13.5px] text-ink transition-colors
+      [&:not(:last-child)]:border-b [&:not(:last-child)]:border-line enabled:hover:bg-hover disabled:cursor-default;
+  }
+  .settings-pill {
+    @apply rounded-full bg-[#ECEDE9] px-2.5 py-0.5 text-[12px] font-medium text-ink-soft;
+  }
+  /* Empty section: dashed box with one small grey pill action. */
+  .sv-empty-box {
+    @apply flex flex-col items-center justify-center gap-2 rounded-[var(--radius-card)] border border-dashed border-line-strong px-5 py-6 text-center text-[13px] text-ink-muted;
+  }
+
   .sv-card {
     @apply rounded-[var(--radius-card)] border border-line bg-card shadow-[var(--shadow-card)];
   }

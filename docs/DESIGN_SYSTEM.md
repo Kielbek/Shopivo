@@ -26,7 +26,7 @@ sam (po zmianie strony wraca na górę, zmiana filtrów nie przewija).
 Przyciski: `primary` (czarny) to domyślna akcja; `accent` (neon) — jedna kluczowa akcja ekranu: publikacja sklepu,
 motywu i strony, utworzenie sklepu. Karty KPI są monochromatyczne (liczby, nie dekoracja niosą znaczenie).
 
-Nawigacja: w obszarze **Ustawień** (Ogólne, Dane firmy, Płatności, Wysyłka, Zespół, Plan, Dziennik) główne menu zwija
+Nawigacja: w obszarze **Ustawień** (Ogólne, Dane firmy, Płatności, Wysyłka i dostawa, Integracje, Zespół, Plan, Dziennik) główne menu zwija
 się do ikon, a obok otwiera się kolumna ustawień (na telefonie — przewijany pasek nad treścią). **Edytor wyglądu** ma
 tę samą zwiniętą kolumnę ikon (wyjście przez nią pyta o niezapisane zmiany). Moduły „wkrótce” są widoczne tylko w
 kolumnie ustawień, nie zaśmiecają głównego menu.
@@ -34,6 +34,12 @@ kolumnie ustawień, nie zaśmiecają głównego menu.
 Typografia: Inter (self-hosted, `@fontsource-variable/inter` — bez Google Fonts ze względu na RODO), 13–14 px w
 treści, 22 px tytuły stron, 15 px tytuły kart. Ikony: Lucide (`@lucide/angular`), rejestr w `lib/icons.ts`,
 18 px w nawigacji, obrys 1,75.
+
+Strony ustawień (wzór Shopify): jedna wyśrodkowana kolumna (840 px); nad każdą kartą tytuł i opis sekcji; listy jako
+wiersze `.settings-item` (ikona, nazwa, szara plakietka statusu `.settings-pill`, strzałka / rozwinięcie); pusta sekcja —
+`.sv-empty-box` (przerywana ramka + mały szary przycisk `variant="tonal"`); zmiany w formularzu — jeden pływający pasek
+„Niezapisane zmiany · Odrzuć · Zapisz”. Sposoby dostawy i metody płatności są oddzielone od **Integracji** (konta
+przewoźników i operatorów płatności).
 
 ## Komponenty
 

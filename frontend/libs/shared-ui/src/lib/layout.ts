@@ -47,17 +47,20 @@ export class CardComponent {
   readonly flush = input(false);
 }
 
-/** Form section inside a card: description on the left, fields on the right (stacked on mobile). */
+/** Settings section: title and description above, the content in a card below (one reading column). */
 @Component({
   selector: 'sv-section',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'sv-card mt-5 grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,260px)_minmax(0,1fr)] lg:gap-10' },
+  host: { class: 'mt-7 block' },
   template: `
-    <div>
-      <h2 class="text-[15px] font-semibold text-ink">{{ title() }}</h2>
-      @if (description()) {<p class="mt-1 text-[13px] leading-5 text-ink-muted">{{ description() }}</p>}
+    <div class="mb-3 flex flex-wrap items-end justify-between gap-3">
+      <div class="min-w-0">
+        <h2 class="text-[14.5px] font-semibold text-ink">{{ title() }}</h2>
+        @if (description()) {<p class="mt-0.5 max-w-2xl text-[13px] leading-[1.55] text-ink-soft">{{ description() }}</p>}
+      </div>
+      <ng-content select="[section-actions]" />
     </div>
-    <div class="min-w-0"><ng-content /></div>
+    <div class="sv-card min-w-0 p-5"><ng-content /></div>
   `,
 })
 export class SectionComponent {

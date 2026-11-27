@@ -74,7 +74,7 @@ export interface NavSection {
         </header>
 
         <main id="sv-main" class="min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-7">
-          <div class="mx-auto w-full" [class]="narrow() ? 'max-w-[980px]' : 'max-w-[1600px]'"><ng-content /></div>
+          <div class="mx-auto w-full" [class]="narrow() ? 'max-w-[840px]' : 'max-w-[1600px]'"><ng-content /></div>
         </main>
       </div>
     </div>

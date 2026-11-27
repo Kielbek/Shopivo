@@ -65,7 +65,7 @@ const TIMEZONES: SelectOption[] = [
             <h2 id="s-store" class="settings-h">Sklep</h2>
             <p class="settings-p">Nazwa i e-mail widoczne dla klientów w sklepie i w wiadomościach o zamówieniach.</p>
           </div>
-          <div class="sv-card space-y-4 p-5">
+          <div class="sv-card p-5">
             <div class="grid gap-4 md:grid-cols-2">
               <sv-field label="Nazwa sklepu" for="name" [error]="err(general.controls.name)">
                 <input id="name" class="sv-input" formControlName="name" maxlength="150" [attr.aria-invalid]="!!err(general.controls.name)" />
@@ -75,13 +75,13 @@ const TIMEZONES: SelectOption[] = [
               </sv-field>
             </div>
             @if (ctx.store(); as st) {
-              <div class="flex flex-wrap items-center gap-3 rounded-[12px] border border-line px-4 py-3">
-                <span class="flex size-9 items-center justify-center rounded-[10px] bg-canvas text-ink-soft"><svg [lucideIcon]="icons.domains" [size]="17" /></span>
-                <div class="min-w-0 flex-1">
-                  <p class="text-[12px] text-ink-muted">Adres sklepu</p>
-                  <p class="truncate text-[13.5px] font-medium text-ink">{{ st.primaryHostname || st.slug }}</p>
+              <div class="-mx-5 -mb-5 mt-5 border-t border-line">
+                <div class="settings-item cursor-default">
+                  <svg [lucideIcon]="icons.domains" [size]="17" class="text-ink-soft" />
+                  <span class="min-w-0 flex-1"><span class="block text-left">Adres sklepu</span>
+                    <span class="block truncate text-[12.5px] text-ink-muted">{{ st.primaryHostname || st.slug }}</span></span>
+                  <span class="settings-pill">Własna domena — wkrótce</span>
                 </div>
-                <span class="text-[12px] text-ink-muted">Własna domena — wkrótce</span>
               </div>
             }
           </div>
@@ -113,21 +113,16 @@ const TIMEZONES: SelectOption[] = [
           <p class="settings-p">Na tej podstawie podpowiadamy rozmiary i kolory wariantów, kategorie startowe i typowe paczki.
             Nie ogranicza tego, co sprzedajesz, i nie jest widoczna dla klientów.</p>
         </div>
-        <div class="sv-card">
-          <div class="p-5">
-            @if (!editIndustry()) {
-              <div class="flex flex-wrap items-center justify-between gap-3">
-                <div class="flex items-center gap-3">
-                  <span class="flex size-9 items-center justify-center rounded-[10px] bg-canvas text-ink-soft"><svg [lucideIcon]="icons.tag" [size]="17" /></span>
-                  <p class="text-[14px] font-medium text-ink">{{ industryLabel() ?? 'Nie wybrano' }}</p>
-                </div>
-                @if (canEdit) {<button sv-button variant="secondary" type="button" (click)="startIndustry()">{{ industryLabel() ? 'Zmień' : 'Wybierz branżę' }}</button>}
-              </div>
-            } @else {
-              <sv-industry-picker [wide]="true" [(value)]="industry" />
-            }
-          </div>
-          @if (editIndustry()) {
+        <div class="sv-card overflow-hidden">
+          @if (!editIndustry()) {
+            <button type="button" class="settings-item" [disabled]="!canEdit" (click)="startIndustry()">
+              <svg [lucideIcon]="icons.tag" [size]="17" class="text-ink-soft" />
+              <span class="flex-1 text-left">Branża sklepu</span>
+              <span class="settings-pill">{{ industryLabel() ?? 'Nie wybrano' }}</span>
+              @if (canEdit) {<svg [lucideIcon]="icons.chevronRight" [size]="16" class="text-ink-muted" />}
+            </button>
+          } @else {
+            <div class="p-5"><sv-industry-picker [wide]="true" [(value)]="industry" /></div>
             <div class="sv-card-footer">
               <button sv-button variant="ghost" type="button" (click)="editIndustry.set(false)">Anuluj</button>
               <button sv-button type="button" [loading]="savingIndustry()" (click)="saveIndustry()">Zapisz branżę</button>
@@ -244,11 +239,10 @@ const TIMEZONES: SelectOption[] = [
     </ng-template>
   `,
   styles: `
-    .settings-row { display: grid; gap: 1rem; padding-block: 1.75rem; border-top: 1px solid var(--color-line); }
-    form > .settings-row:first-of-type { border-top: 0; padding-top: 0.5rem; }
-    @media (min-width: 1024px) { .settings-row { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 2.5rem; } }
-    .settings-h { font-size: 15px; font-weight: 600; color: var(--color-ink); }
-    .settings-p { margin-top: 0.25rem; font-size: 13px; line-height: 1.55; color: var(--color-ink-soft); }
+    .settings-row { display: block; margin-top: 1.75rem; }
+    .settings-row > :first-child { margin-bottom: 0.75rem; }
+    .settings-h { font-size: 14.5px; font-weight: 600; color: var(--color-ink); }
+    .settings-p { margin-top: 0.15rem; font-size: 13px; line-height: 1.55; color: var(--color-ink-soft); }
   `,
 })
 export class SettingsPage {

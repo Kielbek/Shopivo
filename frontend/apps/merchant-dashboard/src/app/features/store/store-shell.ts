@@ -57,11 +57,11 @@ export const SETTINGS_NAV: MerchantNavItem[] = [
   { label: 'Dane firmy', icon: 'company', path: 'ustawienia/firma', permission: 'STORE_READ' },
   { label: 'Płatności', icon: 'payments', path: 'platnosci', permission: 'STORE_READ' },
   { label: 'Wysyłka i dostawa', icon: 'shipping', path: 'wysylka', permission: 'ORDERS_READ' },
+  { label: 'Integracje', icon: 'integrations', path: 'integracje', permission: 'STORE_READ' },
   { label: 'Zespół', icon: 'users', path: 'zespol', permission: 'TEAM_READ' },
   { label: 'Plan i rozliczenia', icon: 'wallet', path: 'subskrypcja', permission: 'STORE_READ' },
   { label: 'Dziennik zdarzeń', icon: 'audit', path: 'dziennik', permission: 'AUDIT_READ' },
   { label: 'Domeny', icon: 'domains', soon: true },
-  { label: 'Integracje', icon: 'integrations', soon: true },
 ];
 /** Planned modules are listed only in the settings navigation; the main navigation shows what works today. */
 const SETTINGS_NAV_GROUP = [{ items: SETTINGS_NAV }];
@@ -96,7 +96,7 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
       </div>
     } @else if (ctx.store(); as store) {
       <sv-app-shell [sections]="sections()" [bottomSections]="bottomSections()" [homeLink]="base()" navLabel="Sekcje sklepu"
-        [rail]="inSettings()" [hasSubnav]="inSettings()" subnavLabel="Ustawienia">
+        [rail]="inSettings()" [hasSubnav]="inSettings()" subnavLabel="Ustawienia" [narrow]="inSettings()">
         @if (inSettings()) {
           <div shell-subnav>
             <div class="flex h-16 items-center gap-2 px-3">

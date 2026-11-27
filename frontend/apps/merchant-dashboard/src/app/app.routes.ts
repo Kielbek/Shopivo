@@ -40,6 +40,7 @@ export const routes: Routes = [
       { path: 'zwroty', title: 'Zwroty i reklamacje', loadComponent: () => import('./features/sales/returns.page').then((m) => m.ReturnsPage) },
       { path: 'klienci', title: 'Klienci', loadComponent: () => import('./features/sales/customers.page').then((m) => m.CustomersPage) },
       { path: 'wysylka', title: 'Wysyłka', loadComponent: () => import('./features/sales/shipping.page').then((m) => m.ShippingPage) },
+      { path: 'integracje', title: 'Integracje', loadComponent: () => import('./features/sales/integrations.page').then((m) => m.IntegrationsPage) },
       { path: 'platnosci', title: 'Płatności', loadComponent: () => import('./features/sales/payments.page').then((m) => m.PaymentsPage) },
       { path: 'produkty', title: 'Produkty', loadComponent: () => import('./features/catalog/products.page').then((m) => m.ProductsPage) },
       { path: 'produkty/nowy', title: 'Nowy produkt', loadComponent: () => import('./features/catalog/product-edit.page').then((m) => m.ProductEditPage) },

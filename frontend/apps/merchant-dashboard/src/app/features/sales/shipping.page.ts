@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { LucideDynamicIcon } from '@lucide/angular';
-import { ApiError, OrdersApi } from '@shopivo/api-client';
+import { ApiError, OrdersApi, ShippingApi } from '@shopivo/api-client';
 import { SHIPPING_TYPE_LABELS, ShippingMethod, ShippingType } from '@shopivo/shared-models';
 import {
   AlertComponent, BadgeComponent, ButtonComponent, CardComponent, DialogComponent, EmptyStateComponent, FieldComponent, LoadingComponent,
@@ -10,38 +11,48 @@ import {
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
-import { CarrierAccountsComponent } from './carrier-accounts';
 
 interface Form { id: string | null; name: string; description: string; type: ShippingType; price: string; freeFrom: string; active: boolean; version: number; carrier: string; }
 
 @Component({
   selector: 'sv-shipping-page',
-  imports: [FormsModule, LucideDynamicIcon, PageHeaderComponent, CardComponent, BadgeComponent, ButtonComponent, AlertComponent,
-    LoadingComponent, EmptyStateComponent, DialogComponent, FieldComponent, SelectComponent, MoneyPipe, CarrierAccountsComponent],
+  imports: [FormsModule, LucideDynamicIcon, PageHeaderComponent, ButtonComponent, AlertComponent,
+    LoadingComponent, DialogComponent, FieldComponent, SelectComponent, MoneyPipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <sv-page-header title="Wysyłka" description="Sposoby dostawy widoczne przy zamówieniu. Ceny brutto. Sposób dostawy możesz powiązać z przewoźnikiem — wtedy klient wybiera paczkomat, a Ty tworzysz przesyłkę z zamówienia.">
-      @if (canWrite) {<button sv-button (click)="open(null)"><svg [lucideIcon]="icons.plus" />Dodaj sposób dostawy</button>}
-    </sv-page-header>
-    <sv-card class="mt-6" [flush]="true">
+    <sv-page-header title="Wysyłka i dostawa" description="Sposoby dostawy, które klient widzi przy zamówieniu." />
+
+    <section class="mt-7" aria-labelledby="ship-methods">
+      <div class="mb-3 flex items-end justify-between gap-3">
+        <div>
+          <h2 id="ship-methods" class="text-[14.5px] font-semibold text-ink">Sposoby dostawy</h2>
+          <p class="mt-0.5 text-[13px] text-ink-soft">Ceny brutto. Sposób powiązany z przewoźnikiem pozwala klientowi wybrać paczkomat, a Tobie utworzyć przesyłkę z zamówienia —
+            konto przewoźnika podłączysz w <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'integracje']">Integracjach</a>.</p>
+        </div>
+        @if (canWrite && methods.value()?.length) {<button sv-button variant="tonal" size="sm" (click)="open(null)"><svg [lucideIcon]="icons.plus" />Dodaj</button>}
+      </div>
       @if (methods.isLoading() && !methods.value()) {
-        <sv-loading />
+        <div class="sv-card"><sv-loading variant="list" /></div>
       } @else if (methods.error()) {
-        <div class="p-5"><sv-alert tone="error">Nie udało się wczytać metod dostawy.</sv-alert></div>
+        <sv-alert tone="error">Nie udało się wczytać metod dostawy.</sv-alert>
       } @else if (!methods.value()?.length) {
-        <sv-empty-state icon="shipping" title="Brak sposobów dostawy" description="Dodaj np. kuriera, paczkomat i odbiór osobisty — bez nich klienci nie zamówią produktów fizycznych." />
+        <div class="sv-empty-box">
+          <p>Bez sposobu dostawy klienci nie zamówią produktów fizycznych. Dodaj np. kuriera, paczkomat lub odbiór osobisty.</p>
+          @if (canWrite) {<button sv-button variant="tonal" size="sm" (click)="open(null)"><svg [lucideIcon]="icons.plus" />Sposób dostawy</button>}
+        </div>
       } @else {
-        <ul class="px-5 py-2">
+        <ul class="sv-card overflow-hidden">
           @for (m of methods.value(); track m.id) {
-            <li class="flex flex-wrap items-center gap-3 border-b border-line py-3 last:border-b-0">
-              <span class="flex size-10 shrink-0 items-center justify-center rounded-[10px] bg-canvas text-ink-soft"><svg [lucideIcon]="icons.shipping" [size]="18" /></span>
+            <li class="settings-item">
+              <svg [lucideIcon]="icons.shipping" [size]="17" class="shrink-0 text-ink-soft" />
               <div class="min-w-0 flex-1">
-                <p class="font-medium text-ink">{{ m.name }} @if (!m.active) {<sv-badge class="ml-1">Wyłączona</sv-badge>}</p>
-                <p class="text-[12px] text-ink-muted">{{ typeLabels[m.type] }}@if (m.carrier) { · {{ carrierName(m.carrier) }}}@if (m.freeFromMinor !== null) { · darmowa od {{ m.freeFromMinor | svMoney }}}@if (m.description) { · {{ m.description }}}</p>
+                <p class="font-medium text-ink">{{ m.name }}</p>
+                <p class="truncate text-[12px] text-ink-muted">{{ typeLabels[m.type] }}@if (m.carrier) { · {{ carrierName(m.carrier) }}}@if (m.freeFromMinor !== null) { · darmowa od {{ m.freeFromMinor | svMoney }}}@if (m.description) { · {{ m.description }}}</p>
               </div>
-              <span class="font-medium tabular-nums text-ink">{{ m.priceMinor === 0 ? 'Bezpłatna' : (m.priceMinor | svMoney) }}</span>
+              <span class="text-[13px] font-medium tabular-nums text-ink">{{ m.priceMinor === 0 ? 'Bezpłatna' : (m.priceMinor | svMoney) }}</span>
+              <span class="settings-pill" [class.!bg-success-soft]="m.active" [class.!text-success-ink]="m.active">{{ m.active ? 'Włączona' : 'Wyłączona' }}</span>
               @if (canWrite) {
-                <span class="flex gap-1">
+                <span class="flex gap-0.5">
                   <button sv-button variant="ghost" size="icon" [attr.aria-label]="'Edytuj ' + m.name" (click)="open(m)"><svg [lucideIcon]="icons.pencil" /></button>
                   <button sv-button variant="ghost" size="icon" [attr.aria-label]="'Usuń ' + m.name" (click)="remove(m)"><svg [lucideIcon]="icons.trash" /></button>
                 </span>
@@ -50,7 +61,7 @@ interface Form { id: string | null; name: string; description: string; type: Shi
           }
         </ul>
       }
-    </sv-card>
+    </section>
 
     <sv-dialog [heading]="form()?.id ? 'Edytuj sposób dostawy' : 'Nowy sposób dostawy'" [open]="!!form()" (closed)="form.set(null)">
       @if (form(); as f) {
@@ -63,7 +74,7 @@ interface Form { id: string | null; name: string; description: string; type: Shi
           <sv-field label="Opis" for="s-desc" [optional]="true"><input id="s-desc" name="desc" class="sv-input" maxlength="300" placeholder="np. 1–2 dni robocze" [(ngModel)]="f.description" /></sv-field>
           @if (f.type === 'COURIER' || f.type === 'PARCEL_LOCKER') {
             <sv-field label="Przewoźnik" for="s-carrier" class="sm:col-span-2"
-              [hint]="carrierOptions(f.type).length > 1 ? 'Powiązanie pozwala tworzyć przesyłki i etykiety z poziomu zamówienia.' : 'Włącz przewoźnika w sekcji „Przewoźnicy” poniżej, aby powiązać go z tą metodą.'">
+              [hint]="carrierOptions(f.type).length > 1 ? 'Powiązanie pozwala tworzyć przesyłki i etykiety z poziomu zamówienia.' : 'Podłącz i włącz przewoźnika w Ustawieniach → Integracje, aby powiązać go z tą metodą.'">
               <sv-select inputId="s-carrier" name="carrier" [options]="carrierOptions(f.type)" [(ngModel)]="f.carrier" ariaLabel="Przewoźnik" />
             </sv-field>
           }
@@ -76,12 +87,12 @@ interface Form { id: string | null; name: string; description: string; type: Shi
       </ng-container>
     </sv-dialog>
 
-    <sv-carrier-accounts (changed)="methods.reload()" />
   `,
 })
 export class ShippingPage {
-  private readonly ctx = inject(StoreContext);
+  protected readonly ctx = inject(StoreContext);
   private readonly api = inject(OrdersApi);
+  private readonly shipping = inject(ShippingApi);
   private readonly toast = inject(ToastService);
   protected readonly icons = icons;
   protected readonly typeLabels = SHIPPING_TYPE_LABELS;
@@ -92,10 +103,13 @@ export class ShippingPage {
   protected readonly form = signal<Form | null>(null);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
-  private readonly carriers = viewChild(CarrierAccountsComponent);
+  /** Carrier accounts are managed in Settings → Integrations; here only to link a method with an enabled carrier. */
+  private readonly carrierData = rxResource({ params: () => this.ctx.tenantId(), stream: ({ params }) => this.shipping.carriers(params) });
 
   protected carrierOptions(type: ShippingType): SelectOption[] {
-    const enabled = this.carriers()?.enabledFor(type) ?? [];
+    const d = this.carrierData.value();
+    const enabled = (d?.carriers ?? []).filter((c) => c.services.includes(type) && d?.accounts.some((a) => a.carrierId === c.id && a.enabled))
+      .map((c) => ({ id: c.id, name: c.name }));
     const current = this.form()?.carrier;
     const opts: SelectOption[] = [{ value: '', label: 'Bez integracji' }, ...enabled.map((c) => ({ value: c.id, label: c.name }))];
     if (current && !enabled.some((c) => c.id === current)) opts.push({ value: current, label: this.carrierName(current) + ' (wyłączony)' });
@@ -103,7 +117,7 @@ export class ShippingPage {
   }
 
   protected carrierName(id: string): string {
-    return this.carriers()?.nameOf(id) ?? id;
+    return this.carrierData.value()?.carriers.find((c) => c.id === id)?.name ?? id;
   }
 
   protected open(m: ShippingMethod | null): void {

@@ -3,7 +3,8 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ApiError, ShippingApi } from '@shopivo/api-client';
 import { CarrierAccount, CarrierDescriptor } from '@shopivo/shared-models';
-import { AlertComponent, BadgeComponent, ButtonComponent, CardComponent, FieldComponent, LoadingComponent, ToastService } from '@shopivo/shared-ui';
+import { LucideDynamicIcon } from '@lucide/angular';
+import { AlertComponent, BadgeComponent, ButtonComponent, FieldComponent, LoadingComponent, ToastService, icons } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 
@@ -12,28 +13,34 @@ interface Draft { values: Record<string, string>; sandbox: boolean; }
 /** The store's carrier accounts (e.g. InPost ShipX). Secrets are write-only; saved fields show as filled. */
 @Component({
   selector: 'sv-carrier-accounts',
-  imports: [FormsModule, CardComponent, FieldComponent, ButtonComponent, AlertComponent, LoadingComponent, BadgeComponent],
+  imports: [FormsModule, LucideDynamicIcon, FieldComponent, ButtonComponent, AlertComponent, LoadingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <sv-card class="mt-6" heading="Przewoźnicy" subheading="Podłącz własne konto u przewoźnika, aby klienci wybierali paczkomat, a Ty tworzył(a) przesyłki i etykiety z poziomu zamówienia.">
+    <section class="mt-7" aria-labelledby="carriers-h">
+      <div class="mb-3">
+        <h2 id="carriers-h" class="text-[14.5px] font-semibold text-ink">Przewoźnicy</h2>
+        <p class="mt-0.5 text-[13px] text-ink-soft">Podłącz własne konto u przewoźnika, aby klienci wybierali paczkomat, a Ty tworzył(a) przesyłki i etykiety z zamówienia.</p>
+      </div>
       @if (overview.isLoading() && !overview.value()) {
         <sv-loading variant="form" />
       } @else if (overview.error()) {
         <sv-alert tone="error">Nie udało się wczytać przewoźników.</sv-alert>
       } @else {
-        <div class="space-y-6">
+        <div class="sv-card overflow-hidden">
           @for (c of carriers(); track c.id) {
             @let acc = account(c.id);
-            <form class="rounded-[12px] border border-line p-4" (ngSubmit)="save(c)">
-              <div class="flex flex-wrap items-center gap-2">
-                <h3 class="text-[15px] font-semibold text-ink">{{ c.name }}</h3>
-                @if (acc) {
-                  <sv-badge [tone]="acc.enabled ? 'success' : 'neutral'">{{ acc.enabled ? 'Włączony' : 'Wyłączony' }}</sv-badge>
-                  @if (acc.sandbox) {<sv-badge tone="warning">Sandbox</sv-badge>}
-                  <span class="text-[12px] text-ink-muted">{{ acc.verifiedAt ? 'Połączenie sprawdzone' : 'Połączenie niesprawdzone' }}</span>
-                }
-              </div>
-              <p class="mt-1 text-[12px] text-ink-muted">{{ c.description }}
+            <button type="button" class="settings-item" [attr.aria-expanded]="openId() === c.id" [attr.aria-controls]="'carrier-' + c.id"
+              (click)="openId.set(openId() === c.id ? null : c.id)">
+              <svg [lucideIcon]="icons.shipping" [size]="17" class="shrink-0 text-ink-soft" />
+              <span class="min-w-0 flex-1 text-left font-medium">{{ c.name }}</span>
+              @if (acc?.sandbox) {<span class="settings-pill !bg-warning-soft !text-warning-ink">Sandbox</span>}
+              <span class="settings-pill" [class.!bg-success-soft]="acc?.enabled" [class.!text-success-ink]="acc?.enabled">
+                {{ !acc ? 'Niepołączony' : acc.enabled ? 'Włączony' : acc.verifiedAt ? 'Wyłączony' : 'Do sprawdzenia' }}</span>
+              <svg [lucideIcon]="icons.chevronDown" [size]="16" class="text-ink-muted transition-transform" [class.rotate-180]="openId() === c.id" />
+            </button>
+            @if (openId() === c.id) {
+            <form [id]="'carrier-' + c.id" class="border-b border-line bg-[#FAFAF8] px-5 pb-5 pt-1 last:border-b-0" (ngSubmit)="save(c)">
+              <p class="mt-2 text-[12.5px] text-ink-muted">{{ c.description }}
                 @if (c.docsUrl) {<a class="sv-link" [href]="c.docsUrl" target="_blank" rel="noopener">Dokumentacja</a>}</p>
               <fieldset class="mt-3 grid gap-3 sm:grid-cols-2" [disabled]="!canWrite">
                 @for (f of c.credentials; track f.key) {
@@ -62,10 +69,11 @@ interface Draft { values: Record<string, string>; sandbox: boolean; }
                 </div>
               }
             </form>
+            }
           }
         </div>
       }
-    </sv-card>
+    </section>
   `,
 })
 export class CarrierAccountsComponent {
@@ -73,6 +81,8 @@ export class CarrierAccountsComponent {
   private readonly api = inject(ShippingApi);
   private readonly toast = inject(ToastService);
   protected readonly canWrite = this.ctx.can('STORE_SETTINGS_WRITE');
+  protected readonly icons = icons;
+  protected readonly openId = signal<string | null>(null);
   /** Emitted when the set of enabled carriers may have changed. */
   readonly changed = output<void>();
 

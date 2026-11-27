@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
-export type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'danger' | 'ghost' | 'soft';
+export type ButtonVariant = 'primary' | 'accent' | 'secondary' | 'tonal' | 'danger' | 'ghost' | 'soft';
 
 const BASE =
   'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium ' +
@@ -13,6 +13,8 @@ const VARIANTS: Record<ButtonVariant, string> = {
   /** The one key action of a screen (publish, create): neon fill, night text. */
   accent: 'bg-neon text-night shadow-[inset_0_-1px_0_rgba(15,18,16,0.12)] hover:bg-neon-deep focus-visible:outline-night',
   secondary: 'border border-line-strong bg-card text-ink shadow-[0_1px_0_rgba(15,18,16,0.04)] hover:bg-hover hover:border-[#C6CAC2]',
+  /** Small in-section action (grey pill), e.g. „Dodaj” next to a section title. */
+  tonal: 'bg-[#E6E8E3] text-ink hover:bg-[#DCDFD8]',
   soft: 'bg-primary-soft text-primary-strong hover:bg-primary-ring',
   danger: 'bg-danger-ink text-white hover:bg-[#9E262B] focus-visible:outline-danger-ink',
   ghost: 'text-ink-soft hover:bg-hover hover:text-ink',

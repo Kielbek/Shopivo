@@ -7,13 +7,13 @@ import {
   parseMoney,
 } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
-import { OnlinePaymentsComponent } from './online-payments';
+import { RouterLink } from '@angular/router';
 import { StoreContext } from '../store/store-context';
 
 /** Offline payment methods. Online operators (Przelewy24, PayU, Tpay) are connected in the integrations phase. */
 @Component({
   selector: 'sv-payments-page',
-  imports: [FormsModule, OnlinePaymentsComponent, PageHeaderComponent, SectionComponent, FieldComponent, ButtonComponent, AlertComponent, LoadingComponent],
+  imports: [FormsModule, RouterLink, PageHeaderComponent, SectionComponent, FieldComponent, ButtonComponent, AlertComponent, LoadingComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <sv-page-header title="Płatności" description="Metody płatności dostępne dla Twoich klientów." />
@@ -43,11 +43,12 @@ import { StoreContext } from '../store/store-context';
         }
       </form>
     }
-    <sv-online-payments />
+    <p class="mt-7 text-[13px] text-ink-soft">Płatności online (BLIK, karty, szybkie przelewy) włączysz po podłączeniu operatora w
+      <a class="sv-link" [routerLink]="['/sklep', ctx.tenantId(), 'integracje']">Integracjach</a>.</p>
   `,
 })
 export class PaymentsPage {
-  private readonly ctx = inject(StoreContext);
+  protected readonly ctx = inject(StoreContext);
   private readonly api = inject(OrdersApi);
   private readonly toast = inject(ToastService);
   protected readonly canWrite = this.ctx.can('STORE_SETTINGS_WRITE');
