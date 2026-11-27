@@ -235,13 +235,13 @@ class StorefrontAccountController {
     record CustomerOrder(long number, Instant createdAt, String status, String paymentStatus, String paymentMethod, long totalMinor,
             String currency, String shippingMethodName, String trackingNumber, Object shippingAddress, long subtotalMinor, long shippingMinor,
             long paymentFeeMinor, List<Line> items) {
-        record Line(UUID productId, String name, String variantTitle, int quantity, long lineTotalMinor) {
+        record Line(UUID id, UUID productId, String name, String variantTitle, int quantity, long lineTotalMinor) {
         }
 
         static CustomerOrder of(OrderView o) {
             return new CustomerOrder(o.number(), o.createdAt(), o.status().name(), o.paymentStatus().name(), o.paymentMethod().name(),
                     o.totalMinor(), o.currency(), o.shippingMethodName(), o.trackingNumber(), o.shippingAddress(), o.subtotalMinor(),
-                    o.shippingMinor(), o.paymentFeeMinor(), o.items().stream().map(i -> new Line(i.productId(), i.name(), i.variantTitle(),
+                    o.shippingMinor(), o.paymentFeeMinor(), o.items().stream().map(i -> new Line(i.id(), i.productId(), i.name(), i.variantTitle(),
                             i.quantity(), i.lineTotalMinor())).toList());
         }
     }

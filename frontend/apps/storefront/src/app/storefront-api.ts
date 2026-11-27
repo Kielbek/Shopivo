@@ -86,6 +86,11 @@ export class StorefrontApi {
     return this.http.get<Page<ProductCard>>(`${this.base}/products`, { params });
   }
 
+  /** Cards of these products in the given order (inactive or unknown ones are skipped). */
+  productCards(ids: string[]): Observable<ProductCard[]> {
+    return this.http.get<ProductCard[]>(`${this.base}/product-cards`, { params: new HttpParams().set('ids', ids.slice(0, 60).join(',')) });
+  }
+
   latestReviews(): Observable<FeaturedReview[]> {
     return this.http.get<FeaturedReview[]>(`${this.base}/reviews/latest`);
   }

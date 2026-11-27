@@ -342,6 +342,31 @@ rewizję; zamówienia wskazują rewizję zaakceptowaną przez klienta). Podgląd
 witryna przyjmuje wiadomości `postMessage` edytora (`shopivo:theme`) i tylko od `window.parent`; kształt jest
 walidowany, a adresy zdjęć muszą zaczynać się od `/api/v1/media/`. `/storefront/products?promocje=true` — produkty w promocji.
 
+## 13d. Ulubione, zwroty i reklamacje (zaimplementowane)
+
+Konto klienta (`/storefront/account`, sesja w ciasteczku HttpOnly, nagłówek `X-Requested-With: shopivo`):
+
+| Metoda | Ścieżka | Opis |
+|---|---|---|
+| GET / POST | `/wishlist` | Lista id ulubionych / dodanie `{productIds}` (też scalenie ulubionych gościa po zalogowaniu; obce i nieaktywne id są pomijane) |
+| DELETE | `/wishlist/{productId}` | |
+| GET | `/orders/{number}/return-options` | `kinds` (co jest jeszcze możliwe) i `returnable` (ile sztuk każdej pozycji można zgłosić) |
+| POST | `/orders/{number}/returns` | `{kind, items:[{orderItemId, quantity}], reason, refundAccount}` → 201; błędy 422: `ORDER_NOT_SHIPPED`, `PERIOD_OVER`, `INVALID_QUANTITY`, `INVALID_ITEM`, `REASON_REQUIRED`, `INVALID_ACCOUNT`, `TOO_MANY_RETURNS`; limit 10/h |
+| GET | `/returns` | Zgłoszenia klienta (bez numeru rachunku) |
+
+Publiczne: `GET /storefront/product-cards?ids=a,b` (maks. 60) — karty aktywnych produktów w podanej kolejności (ulubione gościa, ostatnio oglądane).
+
+Panel:
+
+| Metoda | Ścieżka | Uprawnienie | Opis |
+|---|---|---|---|
+| GET | `/tenants/{t}/returns?status=&page=` | `ORDERS_READ` | Lista zgłoszeń |
+| GET | `/tenants/{t}/returns/open-count`, `/returns/{id}` | `ORDERS_READ` | |
+| POST | `/tenants/{t}/returns/{id}/decision` | `ORDERS_WRITE` | `{accept, note, version}`; odrzucenie wymaga wiadomości; 409 przy nieaktualnej wersji |
+| POST | `/tenants/{t}/returns/{id}/complete` | `ORDERS_WRITE` | Tylko przyjęte; zwrot pieniędzy odbywa się poza platformą |
+
+Każda zmiana statusu wysyła e-mail do klienta; nowe zgłoszenie — także do sklepu.
+
 ## 14. Kolejne fazy (zarys)
 - Faza 5c: DPD; zwroty płatności przez API operatorów
 - `/api/v1/webhooks/payments/{provider}/{tenantId}`,

@@ -6,6 +6,7 @@ import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } fro
 import { filter } from 'rxjs';
 import { CartState } from './core/cart';
 import { CustomerSession } from './core/account';
+import { Wishlist } from './core/wishlist';
 import { routeOf } from './core/link-token';
 import { StoreState } from './core/store-state';
 import { SectionNewsletterCompactComponent } from './ui/sections';
@@ -87,6 +88,12 @@ const SOCIALS = [
               [class.hidden]="bottomNav" [class.lg:flex]="bottomNav" [attr.aria-label]="customer.account() ? 'Moje konto' : 'Zaloguj się'">
               <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>
             </a>
+            <a routerLink="/ulubione" class="relative flex size-10 items-center justify-center" [attr.aria-label]="'Ulubione, produktów: ' + wishlist.ids().length">
+              <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 20s-7-4.4-9.2-8.6C1.3 8.5 3 5 6.4 5c2 0 3.3 1.1 4.1 2.3h3C14.3 6.1 15.6 5 17.6 5 21 5 22.7 8.5 21.2 11.4 19 15.6 12 20 12 20Z" stroke-linejoin="round"/></svg>
+              @if (wishlist.ids().length > 0) {
+                <span class="absolute -right-0.5 -top-0.5 flex min-w-5 items-center justify-center rounded-full bg-sf-text px-1 text-[11px] font-bold text-sf-bg">{{ wishlist.ids().length }}</span>
+              }
+            </a>
             <a routerLink="/koszyk" class="relative flex size-10 items-center justify-center" [attr.aria-label]="'Koszyk, produktów: ' + cart.count()">
               <svg viewBox="0 0 24 24" class="size-6" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 7h12l-1 13H7L6 7Z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
               @if (cart.count() > 0) {
@@ -151,6 +158,7 @@ const SOCIALS = [
                 </nav>
               </div>
               <div class="border-t border-sf-line p-4">
+                <a routerLink="/ulubione" class="sf-btn-outline mb-2 w-full">Ulubione@if (wishlist.ids().length) { ({{ wishlist.ids().length }})}</a>
                 <a [routerLink]="customer.account() ? '/konto' : '/konto/logowanie'" class="sf-btn-outline w-full">{{ customer.account() ? 'Moje konto' : 'Zaloguj się' }}</a>
               </div>
             </aside>
@@ -240,6 +248,7 @@ export class App {
   protected readonly store = inject(StoreState);
   protected readonly cart = inject(CartState);
   protected readonly customer = inject(CustomerSession);
+  protected readonly wishlist = inject(Wishlist);
   /** Menu items may carry a query (`/szukaj?q=…`): routerLink needs it separately, or it would be encoded into the path. */
   protected readonly menuItems = computed(() => (this.store.store()?.menu ?? []).map((m) => ({ label: m.label, ...routeOf(m.path) })));
   private readonly router = inject(Router);

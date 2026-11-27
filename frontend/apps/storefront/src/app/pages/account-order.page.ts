@@ -6,11 +6,12 @@ import { firstValueFrom } from 'rxjs';
 import { money } from '../core/format';
 import { Seo } from '../core/seo';
 import { StoreState } from '../core/store-state';
+import { ReturnRequestComponent } from '../ui/return-request';
 import { ORDER_STATUS, PAYMENT_STATUS } from './account.page';
 
 @Component({
   selector: 'sf-account-order',
-  imports: [RouterLink],
+  imports: [RouterLink, ReturnRequestComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="sf-container max-w-[760px] py-10">
@@ -46,6 +47,7 @@ import { ORDER_STATUS, PAYMENT_STATUS } from './account.page';
           <h2 class="mt-8 text-[17px] font-semibold">Adres dostawy</h2>
           <address class="mt-2 not-italic leading-relaxed">{{ a.name }}<br />{{ a.line1 }}@if (a.line2) {<br />{{ a.line2 }}}<br />{{ a.postalCode }} {{ a.city }}</address>
         }
+        <sf-return-request [order]="o" />
         @if (o.status === 'COMPLETED') {<a [routerLink]="['/konto']" [queryParams]="{ zakladka: 'opinie' }" class="sf-btn-outline mt-8">Oceń produkty</a>}
       } @else {
         <div class="mt-6 space-y-3" role="status" aria-busy="true"><span class="sr-only">Wczytywanie…</span><span class="sf-shimmer block h-5 w-2/3 rounded-[6px]"></span><span class="sf-shimmer block h-20 rounded-[10px]"></span><span class="sf-shimmer block h-20 rounded-[10px]"></span></div>

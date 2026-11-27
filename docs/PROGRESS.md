@@ -132,6 +132,21 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
 - **Zdarzenia (outbox)**: ponowienia z rosnącą przerwą (5 min → maks. 6 h), najwyżej 10 prób; potem zdarzenie zostaje
   jako „martwe” i jest raportowane w logu raz dziennie; zakończone publikacje usuwane po 30 dniach (test `EventRedeliveryTest`).
 
+## Konto klienta: ulubione, zwroty i reklamacje (2026-11-27)
+
+- **Ulubione:** serduszko na kafelkach i karcie produktu, strona `/ulubione`, licznik w nagłówku. Gość trzyma ulubione w
+  przeglądarce; po zalogowaniu trafiają na konto (dostępne na każdym urządzeniu).
+- **Ostatnio oglądane:** pasek pod kartą produktu (tylko w przeglądarce klienta, bez śledzenia po stronie serwera).
+- **Zwroty i reklamacje:** klient zgłasza je ze strony zamówienia (wybór produktów i liczby sztuk, rodzaj zgłoszenia,
+  opis wady, rachunek do zwrotu); terminy: zwrot 14 dni od doręczenia, reklamacja 2 lata od wysyłki. Zakładka „Zwroty i
+  reklamacje” w koncie pokazuje status i odpowiedź sklepu. W panelu nowa strona „Zwroty i reklamacje”: przyjęcie/odrzucenie
+  z wiadomością, zakończenie; e-mail do klienta przy każdej zmianie, do sklepu przy nowym zgłoszeniu.
+- Testy: `AccountsIT` (ulubione, karty produktów między sklepami, pełny przebieg zwrotu, walidacje, wersje, izolacja
+  sklepów, koniec terminu na zwrot); ręczne E2E (Playwright): ulubione gościa → rejestracja → scalenie na koncie,
+  ostatnio oglądane, zamówienie → wysyłka → zgłoszenie zwrotu → przyjęcie i zakończenie w panelu → status i 3 e-maile u
+  klienta; telefon bez poziomego przewijania; 0 błędów konsoli.
+- Naprawione w trakcie: `null` w parametrach aktualizacji (NPE), typ parametru `NULL` w PostgreSQL.
+
 ## Silnik wyglądu sklepu i edytor (2026-11-27)
 
 - **Sekcje strony głównej** (10 typów, maks. 20): baner (3 układy, zdjęcie), zalety, kategorie ze zdjęciami, listy
@@ -328,6 +343,11 @@ i indeksy zadań (migracja V6). Nowe testy: `ReviewRegressionIT` (5), `Backorder
   przez API — Faza 5b). Brak raportu płatności w panelu (widoczne w historii zamówienia).
 - **Szablony:** 8 szablonów na jednym silniku (ADR-016, ADR-023); miniatury w galerii są rysowane, nie są zrzutami
   prawdziwego sklepu.
+- **Zwroty:** pieniądze sprzedawca zwraca sam (przelew / panel operatora) — platforma tylko prowadzi zgłoszenie; zgłoszenie
+  wymaga konta klienta (gość może założyć konto na e-mail z zamówienia); brak etykiety zwrotnej przewoźnika.
+- **Baner cookies:** nie dodany celowo — witryna nie ładuje skryptów analitycznych ani reklamowych, a ulubione / ostatnio
+  oglądane / koszyk to funkcje, o które klient sam prosi. Baner zgody wejdzie razem z integracją analityki (Faza 7).
+- Budżet ostrzeżenia rozmiaru witryny podniesiony z 500 do 520 kB (surowy rozmiar startowy po dodaniu ulubionych).
 - **Edytor wyglądu:** sekcje tylko na stronie głównej (strony kategorii/produktu mają stały układ); brak cofania zmian
   (undo) poza „odrzuć niezapisane”; newsletter zbiera adresy, ale wysyłka kampanii jest poza zakresem (eksport CSV
   do zewnętrznego narzędzia); zdjęcia motywu nie mają pola tekstu alternatywnego (dekoracyjne, `alt=""`).

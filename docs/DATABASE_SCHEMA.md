@@ -242,12 +242,20 @@ są przechowywane w istniejącym JSON-ie motywu (`store_themes`), więc nie wyma
 |---|---|
 | `newsletter_subscribers` | `email` (unikalny w sklepie), `status` `PENDING`/`CONFIRMED`/`UNSUBSCRIBED`, skróty SHA-256 tokenów potwierdzenia i wypisu (same tokeny nie są zapisywane), `confirm_sent_at` (ponowna wysyłka maks. raz na 24 h), `consent_text` i `confirmed_at` (dowód zgody), `source`, `unsubscribed_at` |
 
+## 5l. Ulubione i zwroty (migracja V18; z RLS)
+
+| Tabela | Opis |
+|---|---|
+| `customer_wishlist` | Ulubione produkty konta klienta (`account_id`, `product_id`, PK z obu); usuwane razem z kontem lub produktem; maks. 200 na konto |
+| `return_requests` | Zgłoszenie klienta: `number` (kolejny w sklepie), `order_id`, `kind` `WITHDRAWAL` (odstąpienie, 14 dni od doręczenia) / `COMPLAINT` (reklamacja, 2 lata od wysyłki), `status` `REQUESTED` → `ACCEPTED`/`REJECTED` → `COMPLETED`, `reason`, `refund_account` (26 cyfr), `merchant_note` (widoczna dla klienta), `version` |
+| `return_request_items` | Pozycje zgłoszenia (`order_item_id`, `quantity`); suma zgłoszeń nieodrzuconych nie przekroczy ilości w zamówieniu |
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |
 |---|---|
 | 2 (pozostałe) | `billing_invoices` (faktury VAT/KSeF — Q-06), `tenant_billing_profiles` (dane do faktury) |
-| 3 (pozostałe) | `returns`, `complaints`, `discounts`, `discount_usage`, `wishlists` |
+| 3 (pozostałe) | `discounts`, `discount_usage` |
 | 5 | `integrations`, `integration_credentials` (szyfrowane), `payments`, `payment_transactions`, `refunds`, `shipments`, `shipment_events`, `shipping_methods`, `shipping_zones` |
 | 6 | rozszerzenia `store_domains`, `domain_checks` |
 | 7 | `abandoned_carts`, `marketing_settings`, `analytics_daily` (agregaty), `ai_usage`, `ai_jobs` |

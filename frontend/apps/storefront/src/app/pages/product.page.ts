@@ -6,6 +6,9 @@ import { StarsComponent } from '../ui/stars';
 import { PublicReview } from '../storefront-api';
 import { firstValueFrom } from 'rxjs';
 import { Seo } from '../core/seo';
+import { RecentlyViewed } from '../core/recently-viewed';
+import { FavouriteButtonComponent } from '../ui/favourite-button';
+import { ProductStripComponent } from '../ui/product-strip';
 import { StoreState } from '../core/store-state';
 import { PublicVariant, StorefrontApi } from '../storefront-api';
 import { BreadcrumbsComponent, Crumb } from '../ui/breadcrumbs';
@@ -13,7 +16,7 @@ import { PriceComponent } from '../ui/price';
 
 @Component({
   selector: 'sf-product',
-  imports: [RouterLink, BreadcrumbsComponent, PriceComponent, StarsComponent],
+  imports: [RouterLink, BreadcrumbsComponent, PriceComponent, StarsComponent, FavouriteButtonComponent, ProductStripComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="sf-container py-8">
@@ -94,6 +97,7 @@ import { PriceComponent } from '../ui/price';
               <button type="button" class="sf-btn flex-1" [disabled]="!variant()?.available || cart.busy()" (click)="add()">
                 {{ cart.busy() ? 'Dodawanie…' : 'Dodaj do koszyka' }}
               </button>
+              <sf-favourite-button [productId]="p.id" [name]="p.name" [big]="true" />
             </div>
             @if (message(); as m) {
               <p class="mt-3 text-[14px]" [class.text-sf-danger]="m.error" role="status">{{ m.text }}
@@ -159,6 +163,7 @@ import { PriceComponent } from '../ui/price';
             }
           }
         </section>
+        <sf-product-strip heading="Ostatnio oglądane" [ids]="recentOthers()" />
       }
     </div>
   `,
@@ -169,6 +174,10 @@ export class ProductPage {
   private readonly seo = inject(Seo);
   private readonly response = inject(RESPONSE_INIT, { optional: true });
   protected readonly cart = inject(CartState);
+  private readonly recent = inject(RecentlyViewed);
+  /** Taken when the page opens, so the list does not jump while browsing. */
+  private readonly recentAtOpen = signal<string[]>([]);
+  protected readonly recentOthers = computed(() => this.recentAtOpen().filter((id) => id !== this.loaded()?.id));
 
   readonly slug = input.required<string>();
   protected readonly product = rxResource({ params: () => this.slug(), stream: ({ params }) => this.api.product(params) });
@@ -201,6 +210,14 @@ export class ProductPage {
   });
 
   constructor() {
+    effect(() => {
+      const p = this.loaded();
+      if (!p) return;
+      untracked(() => {
+        this.recentAtOpen.set(this.recent.ids());
+        this.recent.add(p.id);
+      });
+    });
     // Preselect the first available variant.
     effect(() => {
       const p = this.loaded();

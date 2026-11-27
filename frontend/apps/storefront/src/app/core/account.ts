@@ -12,9 +12,17 @@ export interface SavedAddress {
 export interface CustomerOrder {
   number: number; createdAt: string; status: string; paymentStatus: string; paymentMethod: string; totalMinor: number; currency: string;
   shippingMethodName: string | null; trackingNumber: string | null; shippingAddress: Address | null; subtotalMinor: number; shippingMinor: number;
-  paymentFeeMinor: number; items: { productId: string | null; name: string; variantTitle: string | null; quantity: number; lineTotalMinor: number }[];
+  paymentFeeMinor: number; items: { id: string; productId: string | null; name: string; variantTitle: string | null; quantity: number; lineTotalMinor: number }[];
 }
 export interface Reviewable { orderNumber: number; productId: string; name: string; completedAt: string | null; }
+
+export type ReturnKind = 'WITHDRAWAL' | 'COMPLAINT';
+export interface ReturnOptions { kinds: ReturnKind[]; returnable: Record<string, number>; }
+export interface CustomerReturn {
+  number: number; orderNumber: number; kind: ReturnKind; status: 'REQUESTED' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED'; reason: string | null;
+  merchantNote: string | null; valueMinor: number; currency: string; createdAt: string; decidedAt: string | null; completedAt: string | null;
+  items: { orderItemId: string; name: string; variantTitle: string | null; quantity: number; unitPriceMinor: number }[];
+}
 
 const BASE = '/api/v1/storefront/account';
 
@@ -111,6 +119,30 @@ export class CustomerSession {
 
   payOrder(number: number): Observable<{ redirectUrl: string }> {
     return this.http.post<{ redirectUrl: string }>(`${BASE}/orders/${number}/pay`, null);
+  }
+
+  wishlist(): Observable<string[]> {
+    return this.http.get<string[]>(`${BASE}/wishlist`);
+  }
+
+  addToWishlist(productIds: string[]): Observable<string[]> {
+    return this.http.post<string[]>(`${BASE}/wishlist`, { productIds });
+  }
+
+  removeFromWishlist(productId: string): Observable<string[]> {
+    return this.http.delete<string[]>(`${BASE}/wishlist/${encodeURIComponent(productId)}`);
+  }
+
+  returns(): Observable<CustomerReturn[]> {
+    return this.http.get<CustomerReturn[]>(`${BASE}/returns`);
+  }
+
+  returnOptions(orderNumber: number): Observable<ReturnOptions> {
+    return this.http.get<ReturnOptions>(`${BASE}/orders/${orderNumber}/return-options`);
+  }
+
+  requestReturn(orderNumber: number, input: { kind: ReturnKind; items: { orderItemId: string; quantity: number }[]; reason: string | null; refundAccount: string | null }): Observable<CustomerReturn> {
+    return this.http.post<CustomerReturn>(`${BASE}/orders/${orderNumber}/returns`, input);
   }
 
   reviewable(): Observable<Reviewable[]> {

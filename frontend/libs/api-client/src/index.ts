@@ -14,3 +14,4 @@ export * from './reviews-api';
 export * from './online-payments-api';
 export * from './shipping-api';
 export * from './newsletter-api';
+export * from './returns-api';

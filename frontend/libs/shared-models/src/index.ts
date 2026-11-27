@@ -478,3 +478,13 @@ export interface NewsletterSubscriber {
   id: string; email: string; status: NewsletterStatus; source: string | null;
   createdAt: string; confirmedAt: string | null; unsubscribedAt: string | null;
 }
+
+export type ReturnKind = 'WITHDRAWAL' | 'COMPLAINT';
+export type ReturnStatus = 'REQUESTED' | 'ACCEPTED' | 'REJECTED' | 'COMPLETED';
+
+export interface ReturnRequest {
+  id: string; number: number; orderId: string; orderNumber: number; kind: ReturnKind; status: ReturnStatus; reason: string | null;
+  refundAccount: string | null; merchantNote: string | null; customerEmail: string; customerName: string; valueMinor: number; currency: string;
+  items: { orderItemId: string; name: string; variantTitle: string | null; quantity: number; unitPriceMinor: number }[];
+  createdAt: string; decidedAt: string | null; completedAt: string | null; version: number;
+}

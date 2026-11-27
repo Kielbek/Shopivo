@@ -2,14 +2,16 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { RouterLink } from '@angular/router';
 import { StoreState } from '../core/store-state';
 import { ProductCard } from '../storefront-api';
+import { FavouriteButtonComponent } from './favourite-button';
 import { PriceComponent } from './price';
 
 @Component({
   selector: 'sf-product-card',
-  imports: [RouterLink, PriceComponent],
+  imports: [RouterLink, PriceComponent, FavouriteButtonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let p = product();
+    <div class="relative h-full">
     <a [routerLink]="['/produkt', p.slug]" class="group flex h-full flex-col" [class]="cardClass()">
       <div class="sf-media relative aspect-square">
         @if (p.imageUrl) {
@@ -30,6 +32,8 @@ import { PriceComponent } from './price';
         @if (!p.available) {<span class="text-[12px] text-sf-muted">Chwilowo niedostępny</span>}
       </div>
     </a>
+    <sf-favourite-button class="absolute right-2.5 top-2.5" [productId]="p.id" [name]="p.name" />
+    </div>
   `,
 })
 export class ProductCardComponent {

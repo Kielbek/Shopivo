@@ -18,6 +18,7 @@ export const routes: Routes = [
   { path: 'konto/reset', loadComponent: () => import('./pages/account-auth.pages').then((m) => m.ResetRequestPage) },
   { path: 'konto/nowe-haslo', loadComponent: () => import('./pages/account-auth.pages').then((m) => m.ResetPage) },
   { path: 'konto/zamowienia/:numer', loadComponent: () => import('./pages/account-order.page').then((m) => m.AccountOrderPage) },
+  { path: 'ulubione', loadComponent: () => import('./pages/wishlist.page').then((m) => m.WishlistPage) },
   { path: 'koszyk', loadComponent: () => import('./pages/cart.page').then((m) => m.CartPage) },
   { path: 'zamowienie', loadComponent: () => import('./pages/checkout.page').then((m) => m.CheckoutPage) },
   { path: 'zamowienie/potwierdzenie', loadComponent: () => import('./pages/confirmation.page').then((m) => m.ConfirmationPage) },

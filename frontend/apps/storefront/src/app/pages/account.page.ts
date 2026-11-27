@@ -3,12 +3,12 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { firstValueFrom, of } from 'rxjs';
-import { CustomerOrder, CustomerSession, Reviewable, SavedAddress, apiMessage } from '../core/account';
+import { CustomerOrder, CustomerReturn, CustomerSession, Reviewable, SavedAddress, apiMessage } from '../core/account';
 import { money } from '../core/format';
 import { Seo } from '../core/seo';
 import { StoreState } from '../core/store-state';
 
-type Tab = 'zamowienia' | 'opinie' | 'adresy' | 'ustawienia';
+type Tab = 'zamowienia' | 'zwroty' | 'opinie' | 'adresy' | 'ustawienia';
 
 export const ORDER_STATUS: Record<string, string> = {
   NEW: 'Przyjęte', PROCESSING: 'W realizacji', SHIPPED: 'Wysłane', COMPLETED: 'Zrealizowane', CANCELED: 'Anulowane',
@@ -99,6 +99,31 @@ interface AddressForm { id: string | null; name: string; company: string; line1:
             }
             @if (reviewedNow()) {<p class="mt-4 text-sf-success" role="status">Dziękujemy — opinia została przesłana do sprawdzenia.</p>}
           }
+          @case ('zwroty') {
+            <p class="mt-6 max-w-2xl text-[14px] text-sf-muted">Zwrot (14 dni od otrzymania) lub reklamację zgłosisz na stronie zamówienia —
+              wybierz zamówienie z zakładki <a class="sf-link" routerLink="/konto">Zamówienia</a>.</p>
+            @if (returns.error()) {<p class="mt-6 text-sf-danger" role="alert">Nie udało się wczytać zgłoszeń.</p>}
+            @else if (returnList(); as list) {
+              @if (list.length) {
+                <ul class="mt-5 space-y-3">
+                  @for (r of list; track r.number) {
+                    <li class="sf-panel px-5 py-4">
+                      <div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+                        <span class="font-semibold">{{ r.kind === 'WITHDRAWAL' ? 'Zwrot' : 'Reklamacja' }} nr {{ r.number }}</span>
+                        <a [routerLink]="['/konto/zamowienia', r.orderNumber]" class="sf-link text-[13px]">zamówienie nr {{ r.orderNumber }}</a>
+                        <span class="text-[13px] text-sf-muted">{{ date(r.createdAt) }}</span>
+                        <span class="ml-auto rounded-full px-2.5 py-0.5 text-[12px] font-medium" [class]="returnTone[r.status]">{{ returnStatus[r.status] }}</span>
+                      </div>
+                      <p class="mt-1.5 text-[14px]">@for (i of r.items; track i.orderItemId; let last = $last) {{{ i.quantity }} × {{ i.name }}@if (!last) {, }}</p>
+                      @if (r.merchantNote) {<p class="mt-2 rounded-[8px] bg-sf-soft px-3 py-2 text-[14px]"><span class="font-medium">Sklep:</span> {{ r.merchantNote }}</p>}
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="mt-5">Nie masz zgłoszeń zwrotów ani reklamacji.</p>
+              }
+            } @else {<div class="mt-6 space-y-3" role="status" aria-busy="true"><span class="sr-only">Wczytywanie…</span><span class="sf-shimmer block h-20 rounded-[10px]"></span></div>}
+          }
           @case ('adresy') {
             <div class="mt-6 grid gap-4 md:grid-cols-2">
               @for (ad of addressList(); track ad.id) {
@@ -173,7 +198,7 @@ export class AccountPage {
   private readonly store = inject(StoreState);
   readonly zakladka = input<string>();
   protected readonly tabs: { id: Tab; label: string }[] = [
-    { id: 'zamowienia', label: 'Zamówienia' }, { id: 'opinie', label: 'Do oceny' }, { id: 'adresy', label: 'Adresy' }, { id: 'ustawienia', label: 'Ustawienia' },
+    { id: 'zamowienia', label: 'Zamówienia' }, { id: 'zwroty', label: 'Zwroty i reklamacje' }, { id: 'opinie', label: 'Do oceny' }, { id: 'adresy', label: 'Adresy' }, { id: 'ustawienia', label: 'Ustawienia' },
   ];
   protected readonly tab = computed<Tab>(() => (this.tabs.some((t) => t.id === this.zakladka()) ? (this.zakladka() as Tab) : 'zamowienia'));
   protected readonly status = ORDER_STATUS;
@@ -184,6 +209,15 @@ export class AccountPage {
     stream: () => this.session.orders(),
   });
   protected readonly ordersList = computed<CustomerOrder[] | undefined>(() => (this.orders.hasValue() ? this.orders.value() : undefined));
+  protected readonly returns = rxResource({
+    params: () => (this.session.account() && this.tab() === 'zwroty' ? this.session.account()!.id : undefined),
+    stream: ({ params }) => (params ? this.session.returns() : of([])),
+  });
+  protected readonly returnList = computed<CustomerReturn[] | undefined>(() => (this.returns.hasValue() ? this.returns.value() : undefined));
+  protected readonly returnStatus: Record<string, string> = { REQUESTED: 'Oczekuje', ACCEPTED: 'Przyjęte', REJECTED: 'Odrzucone', COMPLETED: 'Zakończone' };
+  protected readonly returnTone: Record<string, string> = {
+    REQUESTED: 'bg-sf-soft', ACCEPTED: 'bg-sf-soft text-sf-success', REJECTED: 'bg-sf-soft text-sf-danger', COMPLETED: 'bg-sf-soft text-sf-muted',
+  };
   private readonly reviewables = rxResource({
     params: () => (this.session.account() ? this.session.account()!.id : undefined),
     stream: () => this.session.reviewable(),
