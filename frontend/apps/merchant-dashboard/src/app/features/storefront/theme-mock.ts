@@ -25,7 +25,7 @@ import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
       }
       <!-- header -->
       <div class="flex items-center gap-2 px-[6%] py-[3%]" [style.border-bottom]="playful() ? 'none' : '1px solid ' + line()"
-        [style.background]="playful() ? gradient() : null" [style.color]="playful() ? '#fff' : null" [style.margin-bottom.px]="playful() ? -1 : null"
+        [style.background]="playful() ? gradient() : null" [style.color]="playful() ? on(s['accent']) : null" [style.margin-bottom.px]="playful() ? -1 : null"
         [style.position]="playful() ? 'relative' : null" [style.z-index]="playful() ? 1 : null">
         @if (playful()) {
           <span class="truncate py-[1px] font-semibold leading-[1.35]" [style.font-family]="display()" [style.font-size.px]="phone() ? 12 : 13">{{ storeName() || 'Twój sklep' }}</span>
@@ -54,7 +54,7 @@ import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
           </div>
         }
         @case ('playful') {
-          <div class="relative pb-[2%] text-center text-white" [style.background]="gradient()">
+          <div class="relative pb-[2%] text-center" [style.background]="gradient()" [style.color]="on(s['accent'])">
             <span class="block px-[4%] pt-[3%] font-semibold uppercase leading-[1]" [style.font-family]="display()" [style.font-size.px]="phone() ? 14 : 19">{{ title() }}</span>
             <span class="mx-auto mt-1.5 inline-block rounded-full px-2 py-[2px] text-[5px] font-extrabold uppercase" [style.background]="s['background']" [style.color]="s['text']">{{ hero()['cta'] || 'Zobacz' }}</span>
             @if (heroImage(); as img) {<img [src]="img" alt="" class="mx-auto mt-1 block w-[92%] object-contain" [style.max-height.px]="phone() ? 58 : 62" />}

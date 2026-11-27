@@ -15,7 +15,7 @@ export const STYLE_LABELS: Record<ThemeStyle, string> = {
 
 export const THEME_META: Record<string, ThemeMeta> = {
   BAWILOO: { industries: ['TOYS', 'KIDS', 'GIFTS', 'HOBBY'], style: 'colorful',
-    features: ['Własne zdjęcia i 16 przykładowych zabawek', 'Okrągłe kategorie i karuzela promocji', 'Ilustrowane ikony korzyści'] },
+    features: ['Jasny, złoty wygląd i 16 przykładowych zabawek', 'Kategorie ze zdjęciami bez tła i slider promocji', 'Ilustrowane ikony korzyści'] },
   VERA: { industries: ['FASHION', 'FOOTWEAR', 'ACCESSORIES', 'JEWELRY'], style: 'elegant',
     features: ['Własne zdjęcia szablonu (do podmiany)', 'Kafelki działów i filtry produktów', 'Boczny koszyk z progiem darmowej dostawy'] },
 };

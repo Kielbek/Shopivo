@@ -1,7 +1,7 @@
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { firstValueFrom } from 'rxjs';
-import { DISPLAY_FONTS, FONTS, RADII, readableOn } from './format';
+import { DISPLAY_FONTS, FONTS, RADII, contrast, readableOn, readableTint } from './format';
 import { PublicCategory, PublicStore, StorefrontApi, ThemeConfig } from '../storefront-api';
 
 /** Template codes this storefront build knows how to draw (keep in sync with ThemeRegistry.PRESETS). */
@@ -24,6 +24,8 @@ export class StoreState {
   private loading: Promise<void> | null = null;
 
   readonly settings = computed(() => this.store()?.theme.settings ?? {});
+  /** Light or dark page background — some details (blend modes, shadows) differ. */
+  readonly tone = computed<'light' | 'dark'>(() => (readableOn(this.settings()['background'] ?? '#ffffff') === '#ffffff' ? 'dark' : 'light'));
   /** Enabled home-page sections (older configurations without sections get a simple default). */
   readonly sections = computed(() => {
     const list = this.store()?.theme.sections;
@@ -59,6 +61,10 @@ export class StoreState {
       '--sf-font': FONTS[s['font']] ?? FONTS['sans'], '--sf-radius': RADII[s['radius']] ?? RADII['soft'],
       '--sf-font-display': DISPLAY_FONTS[s['font']] ?? FONTS[s['font']] ?? FONTS['sans'],
       // Status colours stay readable on dark templates (WCAG AA on the page background)
+      // Text on the accent colour (header bars): the store's text colour if it reads well there, else black/white
+      '--sf-on-accent': contrast(s['text'], s['accent']) >= 4.5 ? s['text'] : readableOn(s['accent']),
+      // The accent as small text (prices, labels) — darkened/lightened until it is readable on the page background
+      '--sf-accent-ink': readableTint(s['accent'], s['background']),
       '--sf-danger': readableOn(s['background']) === '#ffffff' ? '#ff8a6b' : '#b42318',
       '--sf-success': readableOn(s['background']) === '#ffffff' ? '#5bd68a' : '#087443',
     };

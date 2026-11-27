@@ -145,22 +145,47 @@ produktów w JS, logowanie Google bez Google, przykładowe zamówienia, „check
 
 ## Bawiloo — co ma (drugi szablon, zabawki)
 
-- **Nagłówek i stopka:** złoty gradient (z koloru akcentu); zaokrąglone logo w kroju Baloo 2 (Fredoka z oryginału nie ma polskich liter); pogrubione menu wielkimi literami z pigułką „Promocje”; ciemna stopka ze złotym logo.
+Od 2026-11-27 Bawiloo jest **jasne** (wersja z nowego `index.html` od właściciela projektu): kremowe tło, białe karty, ciemnobrązowy tekst i złoty nagłówek.
+
+- **Nagłówek i stopka:**
+  - złoty gradient z koloru akcentu; tekst w kolorze `--sf-on-accent` (ciemny na jasnym złocie, biały na ciemnym akcencie);
+  - zaokrąglone logo w kroju Baloo 2 (Fredoka z oryginału nie ma polskich liter);
+  - pogrubione menu wielkimi literami z ciemną pigułką „Promocje”;
+  - stopka na kremowym tle (`bg-sf-surface`) z logo w kolorze `--sf-accent-ink`.
 - **Baner „Radosny”:** ogromny napis, ciemny przycisk-pigułka, wycięte zdjęcie zabawek (WebP z przezroczystością) i falowana dolna krawędź.
-- **„Ulubione zabawki dzieci”:** sekcja *Kategorie* w stylu „okrągłe zdjęcia”, czyli prawdziwe kategorie główne sklepu ze zdjęciami kategorii.
-  - W jednej linii mieszczą się 3 kategorie na telefonie, 4 na tablecie i 6 na komputerze.
-  - Przycisk „Zobacz więcej” pokazuje resztę i jest widoczny tylko wtedy, gdy coś się nie zmieściło.
-  - W podglądzie pustego sklepu pokazuje się 6 przykładowych kategorii szablonu.
+- **„Ulubione zabawki dzieci”:** sekcja *Kategorie* w stylu **„Zdjęcia bez tła (w jednej linii)”** (`cutouts`) — prawdziwe kategorie główne sklepu.
+  - Zdjęcie kategorii stoi swobodnie, bez ramki i koła. Na jasnym tle zdjęcie jest mieszane trybem `multiply`, więc białe tło JPEG-a znika (biblioteka zdjęć zapisuje JPEG bez przezroczystości).
+  - Po najechaniu zdjęcie lekko unosi się, a podpis zmienia kolor.
+  - W jednej linii mieszczą się 3 kategorie na telefonie, 4 na tablecie i 6 na komputerze. „Zobacz więcej” pokazuje resztę i jest widoczny tylko wtedy, gdy coś się nie zmieściło.
   - Dodanie przykładowych produktów tworzy te kategorie razem ze zdjęciami.
 - **Produkty:**
   - wyśrodkowany nagłówek z ✦ nadtytułem i przechyloną złotą drugą linią;
-  - ciemne karty z kwadratowym zdjęciem, złotą ceną, pigułką „Do koszyka” i znaczkiem −% przy promocjach;
-  - sekcja promocji jako **karuzela** (przewijanie z przyciągnięciem i strzałki).
+  - białe karty z kwadratowym zdjęciem na pastelowym tle, ceną w kolorze `--sf-accent-ink`, pigułką „Do koszyka” i znaczkiem −% przy promocjach; karta unosi się po najechaniu.
+- **Slider promocji** (styl sekcji *Produkty* „Slider z wyróżnionym produktem”, komponent `ui/spotlight-carousel.ts`):
+  - na kremowym pasie na całą szerokość; jeden duży produkt w środku i mniejsi sąsiedzi po bokach;
+  - strzałki, kropki, klawiatura (← →), przesuwanie palcem lub myszą; lista jest zapętlona;
+  - kliknięcie środkowego produktu otwiera jego stronę, kliknięcie bocznego przesuwa go na środek;
+  - czytnik ekranu dostaje komunikat „Produkt 2 z 8: …”, a boczne slajdy są poza kolejnością Tab;
+  - na telefonie środkowy produkt jest duży, a sąsiedzi tylko wystają zza krawędzi;
+  - bez animacji, gdy system prosi o ograniczenie ruchu.
+  - Ten sam styl działa w każdym szablonie (wcześniej „Karuzela”).
 - **Korzyści:** złote, ilustrowane ikony z wersji „premium” paczki (płatności, zwroty, dostawa, pomoc) — `ui/premium-icon.ts`.
 - **„O nas”:** zdjęcie w kształcie kwiatka. Na zdjęciu szablonu szyld pokazuje nazwę sklepu, bo oryginalny napis na zdjęciu jest nim przykryty.
-- **Newsletter:** duża złota karta z formularzem (double opt-in).
+- **Newsletter:** karta z jasnozłotym gradientem i formularzem (double opt-in).
 - **Przykłady:** 16 przykładowych zabawek: 6 figurek, 5 pluszaków w promocji i 5 zabawek dla maluchów. Widać je w podglądzie demo szablonu albo w sklepie po dodaniu przyciskiem.
-- **Ciemne tło:** kolory statusów (`--sf-danger`, `--sf-success`) rozjaśniają się automatycznie, żeby pozostać czytelne.
+
+### Czytelność kolorów (każdy szablon)
+
+Sprzedawca może ustawić dowolne kolory, więc witryna sama dobiera kolory tekstu:
+- `--sf-on-accent`: tekst na kolorze akcentu. To kolor tekstu sklepu, jeśli ma kontrast co najmniej 4,5:1; w przeciwnym razie biały albo czarny.
+- `--sf-accent-ink`: akcent przyciemniony (albo rozjaśniony na ciemnym tle) do kontrastu 4,5:1 z tłem. Używają go ceny, nadtytuły i złote podpisy, bo jasne złoto na kremowym tle byłoby nieczytelne.
+- `--sf-danger` i `--sf-success` dopasowują się do jasnego lub ciemnego tła (`data-tone` na stronie).
+
+### Sklepy z wcześniejszą, ciemną wersją Bawiloo
+
+Kolory są zapisane w ustawieniach sklepu, więc sklep, który wybrał ciemne Bawiloo, zachowuje swoje kolory i nadal wygląda czytelnie.
+Żeby przejść na jasną wersję, sprzedawca wybiera Bawiloo ponownie w galerii szablonów albo zmienia kolory w edytorze.
+Styl kategorii zostaje taki, jaki był zapisany („Okrągłe zdjęcia”); „Zdjęcia bez tła” wybiera się w edytorze.
 
 ### Czego z HTML-a celowo nie przeniesiono
 

@@ -37,6 +37,7 @@ Moduł `recommendations` układa produkty na podstawie danych samego sklepu: zam
 
 - Wszystkie listy zawierają wyłącznie produkty aktywne i dostępne. Ceny i dostępność są zawsze aktualne, bo pochodzą z katalogu.
 - Rankingi (listy id) są trzymane w pamięci podręcznej przez 2 minuty na sklep. Nowe lub anulowane zamówienie czyści je od razu.
+- Pustych list nie zapamiętujemy: w nowym sklepie (albo pustej kategorii) pierwsze produkty, np. dodane przykłady, pojawiają się od razu. Inne zmiany katalogu widać najpóźniej po 2 minutach.
 - Odpowiedzi HTTP mają `Cache-Control: max-age=60`, a podgląd sklepu ma `no-store`.
 - Indeksy dla tych zapytań dodaje migracja `V23__recommendation_indexes.sql`.
 

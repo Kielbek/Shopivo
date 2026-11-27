@@ -5,7 +5,7 @@ export const OPTION_LABELS: Record<string, string> = {
   sans: 'Bezszeryfowy (nowoczesny)', serif: 'Szeryfowy (elegancki)', rounded: 'Zaokrąglony (przyjazny)', mono: 'Techniczny',
   editorial: 'Magazynowy (szeryfowe nagłówki + nowoczesny tekst)',
   playful: 'Radosny (zaokrąglone nagłówki + przyjazny tekst)',
-  cards: 'Duże kafelki ze zdjęciem', circles: 'Okrągłe zdjęcia z podpisem', grid: 'Siatka', carousel: 'Karuzela (przewijana)',
+  cards: 'Duże kafelki ze zdjęciem', circles: 'Okrągłe zdjęcia z podpisem', cutouts: 'Zdjęcia bez tła (w jednej linii)', grid: 'Siatka', carousel: 'Slider z wyróżnionym produktem',
   flower: 'Kwiatek (zaokrąglone płatki)',
   none: 'Ostre rogi', soft: 'Delikatne', round: 'Mocne',
   plain: 'Bez ramki', bordered: 'Z ramką', shadow: 'Z cieniem',

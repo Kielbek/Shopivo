@@ -19,15 +19,15 @@ const SOCIALS = [
   template: `
     @let s = store.store()!;
     @let ts = store.settings();
-    <footer class="border-t border-sf-line px-5 pb-6 pt-14 text-[14px] sm:px-[6%]" style="background: color-mix(in srgb, var(--sf-bg) 80%, #000)">
+    <footer class="border-t border-sf-line bg-sf-surface px-5 pb-6 pt-14 text-[14px] sm:px-[6%]">
       <div class="mx-auto grid max-w-[1500px] gap-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <a routerLink="/" class="sf-display text-[36px] font-bold text-sf-primary">{{ s.name }}</a>
+          <a routerLink="/" class="sf-display text-[36px] font-bold" style="color: var(--sf-accent-ink)">{{ s.name }}</a>
           @if (ts['footerNote']) {<p class="mt-4 max-w-xs text-sf-muted">{{ ts['footerNote'] }}</p>}
           @if (socials().length) {
             <ul class="mt-5 flex gap-2" aria-label="Media społecznościowe">
               @for (so of socials(); track so.key) {
-                <li><a [href]="so.url" target="_blank" rel="noopener" class="flex size-10 items-center justify-center rounded-full border border-sf-line text-sf-primary hover:border-sf-primary" [attr.aria-label]="so.label">
+                <li><a [href]="so.url" target="_blank" rel="noopener" class="flex size-10 items-center justify-center rounded-full border border-sf-line hover:border-sf-text" [attr.aria-label]="so.label">
                   <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path [attr.d]="so.icon" /></svg></a></li>
               }
             </ul>

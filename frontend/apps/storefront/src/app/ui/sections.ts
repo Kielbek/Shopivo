@@ -11,6 +11,7 @@ import { ProductCardComponent } from './product-card';
 import { RichTextComponent } from './rich-text';
 import { StarsComponent } from './stars';
 import { PremiumIconComponent } from './premium-icon';
+import { SpotlightCarouselComponent } from './spotlight-carousel';
 
 /** Section sources served by the recommendation endpoint (`/collections/{slug}`). */
 const COLLECTIONS: Record<string, string> = {
@@ -64,11 +65,12 @@ const ICONS: Record<string, string> = {
 
 @Component({
   selector: 'sf-section-products',
-  imports: [RouterLink, ProductCardComponent],
+  imports: [RouterLink, ProductCardComponent, SpotlightCarouselComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let d = data();
     @if (items().length || d['filters']) {
+      <div [class]="d['style'] === 'carousel' && centered() ? 'bg-sf-surface py-12 lg:py-16' : ''">
       <section class="sf-container" [attr.aria-label]="d['heading'] || 'Produkty'">
         @if (d['filters']) {
           <div class="flex flex-col justify-between gap-4 border-b border-sf-line pb-8 md:flex-row md:items-end">
@@ -103,14 +105,14 @@ const ICONS: Record<string, string> = {
         } @else if (centered()) {
           <!-- Centred display heading: eyebrow ✦, heading with an optional tilted accent line, short text -->
           <div class="text-center">
-            @if (d['eyebrow']) {<p class="mb-3 text-[12px] font-black uppercase tracking-[0.19em] text-sf-primary sm:text-[14px]"><span aria-hidden="true">✦ </span>{{ d['eyebrow'] }}<span aria-hidden="true"> ✦</span></p>}
+            @if (d['eyebrow']) {<p class="mb-3 text-[12px] font-black uppercase tracking-[0.19em] sm:text-[14px]" style="color: var(--sf-accent-ink)"><span aria-hidden="true">✦ </span>{{ d['eyebrow'] }}<span aria-hidden="true"> ✦</span></p>}
             @if (d['heading'] || d['accent']) {
               <h2 class="text-[30px] font-bold uppercase leading-[1.02] tracking-[-0.035em] sm:text-[48px] lg:text-[68px]">
                 @if (d['heading']) {<span class="block">{{ d['heading'] }}</span>}
                 @if (d['accent']) {<span class="sf-accent-line">{{ d['accent'] }}</span>}
               </h2>
             }
-            @if (d['text']) {<p class="mx-auto mt-3 max-w-xl text-[14px] font-semibold text-sf-muted sm:text-[16px]">{{ d['text'] }}</p>}
+            @if (d['text']) {<p class="mx-auto mt-3 max-w-xl text-[14px] font-bold text-sf-muted sm:text-[16px]">{{ d['text'] }}</p>}
           </div>
         } @else {
           <div class="flex items-end justify-between gap-4">
@@ -123,18 +125,7 @@ const ICONS: Record<string, string> = {
           </div>
         }
         @if (d['style'] === 'carousel' && items().length) {
-          <!-- Carousel: native horizontal scrolling with snap points, arrows for mouse users -->
-          <div class="relative mt-8">
-            <button type="button" class="absolute -left-1 top-[38%] z-10 hidden size-11 items-center justify-center rounded-full border border-sf-line bg-sf-bg/80 transition hover:border-sf-primary hover:bg-sf-primary hover:text-sf-on-primary sm:flex"
-              aria-label="Poprzednie produkty" [attr.aria-controls]="'car-' + uid" (click)="scroll(track, -1)">
-              <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
-            <ul #track [id]="'car-' + uid" class="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-1 pb-3 [scrollbar-width:none] sm:mx-14" aria-label="Karuzela produktów">
-              @for (p of items(); track p.id) {<li class="w-[46%] shrink-0 snap-start sm:w-[31%] lg:w-[23%]"><sf-product-card [product]="p" /></li>}
-            </ul>
-            <button type="button" class="absolute -right-1 top-[38%] z-10 hidden size-11 items-center justify-center rounded-full border border-sf-line bg-sf-bg/80 transition hover:border-sf-primary hover:bg-sf-primary hover:text-sf-on-primary sm:flex"
-              aria-label="Następne produkty" [attr.aria-controls]="'car-' + uid" (click)="scroll(track, 1)">
-              <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
-          </div>
+          <div class="mt-8"><sf-spotlight-carousel [items]="items()" /></div>
         } @else {
           @if (items().length) {
             <ul class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3" [class]="(d['filters'] ? 'mt-10 sm:gap-x-6 sm:gap-y-10' : centered() ? 'mt-10' : 'mt-5') + (threeCols() ? ' lg:grid-cols-3 lg:gap-6' : ' lg:grid-cols-4')">
@@ -144,10 +135,11 @@ const ICONS: Record<string, string> = {
         }
         @if (items().length && d['buttonText'] && (d['filters'] || centered())) {
           <div class="mt-10 text-center">
-            <a [routerLink]="moreLink()" [queryParams]="moreQuery()" [class]="centered() ? 'inline-flex rounded-full bg-sf-primary px-6 py-3 text-[13px] font-extrabold uppercase text-sf-on-primary hover:opacity-90' : 'sf-btn-line'">{{ d['buttonText'] }}</a>
+            <a [routerLink]="moreLink()" [queryParams]="moreQuery()" [class]="centered() ? (d['style'] === 'carousel' ? 'inline-flex rounded-full bg-sf-primary px-6 py-3 text-[13px] font-extrabold uppercase text-sf-on-primary hover:opacity-90' : 'inline-flex rounded-full border border-sf-line bg-sf-bg px-6 py-3 text-[12px] font-extrabold uppercase hover:bg-sf-surface') : 'sf-btn-line'">{{ d['buttonText'] }}</a>
           </div>
         }
       </section>
+      </div>
     }
   `,
 })
@@ -283,7 +275,8 @@ export class SectionBlogComponent {
     @if (playful()) {
       <!-- Playful: big rounded warm card, heading left, form right -->
       <section class="sf-container pb-6" aria-labelledby="nl-h-{{ uid }}">
-        <div class="relative overflow-hidden rounded-[32px] bg-sf-primary px-6 py-10 text-sf-on-primary sm:rounded-[40px] sm:px-12 sm:py-14">
+        <div class="relative overflow-hidden rounded-[32px] px-6 py-10 sm:rounded-[40px] sm:px-12 sm:py-14"
+          style="background: linear-gradient(115deg, color-mix(in srgb, var(--sf-primary) 45%, #fff), var(--sf-primary)); color: var(--sf-on-primary)">
           <span class="absolute -bottom-24 -right-16 size-72 rounded-full border-[28px] border-white/20" aria-hidden="true"></span>
           <div class="relative grid items-center gap-8 lg:grid-cols-[1.1fr_1fr]">
             <div>
@@ -448,12 +441,12 @@ export class SectionFeaturedComponent {
           @let pad = d['height'] === 'large' ? 'py-24 sm:py-36' : d['height'] === 'small' ? 'py-10 sm:py-14' : 'py-16 sm:py-24';
           @if (d['layout'] === 'playful') {
             <!-- Playful: warm gradient, huge rounded heading, dark pill button, cut-out photo, scalloped bottom edge -->
-            <section class="sf-play-gradient relative text-white" [attr.aria-label]="d['heading'] || store.store()?.name">
+            <section class="sf-play-gradient relative" style="color: var(--sf-on-accent)" [attr.aria-label]="d['heading'] || store.store()?.name">
               <h1 class="mx-auto max-w-[1100px] px-3 pt-10 text-center text-[clamp(32px,7.5vw,105px)] font-bold uppercase leading-[0.98] tracking-[-0.025em] sm:pt-16">{{ d['heading'] || store.store()?.name }}</h1>
               @if (d['subheading']) {<p class="mx-auto mt-4 max-w-2xl px-4 text-center text-[16px] font-semibold opacity-95">{{ d['subheading'] }}</p>}
               <div class="mt-6 flex flex-wrap justify-center gap-3 px-4">
-                <sf-section-link [to]="d['link'] || '/produkty'" [text]="d['cta']" cls="inline-flex rounded-full bg-sf-bg px-7 py-3 text-[13px] font-extrabold uppercase text-sf-text transition hover:opacity-85" />
-                <sf-section-link [to]="d['link2']" [text]="d['cta2']" cls="inline-flex rounded-full border-2 border-white px-7 py-3 text-[13px] font-extrabold uppercase text-white transition hover:bg-white/15" />
+                <sf-section-link [to]="d['link'] || '/produkty'" [text]="d['cta']" cls="inline-flex rounded-full bg-sf-text px-7 py-3 text-[13px] font-extrabold uppercase text-sf-bg transition hover:opacity-85" />
+                <sf-section-link [to]="d['link2']" [text]="d['cta2']" cls="inline-flex rounded-full border-2 border-current px-7 py-3 text-[13px] font-extrabold uppercase transition hover:bg-white/20" />
               </div>
               @if (img) {
                 <img [src]="img" alt="" class="relative z-[1] mx-auto mt-4 block h-auto w-full max-w-[1350px] object-contain px-2" [attr.fetchpriority]="first ? 'high' : null" />
@@ -514,7 +507,7 @@ export class SectionFeaturedComponent {
             <section class="sf-container mt-16 lg:mt-24" aria-label="Dlaczego warto">
               <ul class="grid grid-cols-2 gap-3 lg:gap-5" [class.md:grid-cols-4]="(d['items']?.length ?? 0) === 4" [class.md:grid-cols-3]="(d['items']?.length ?? 0) === 3">
                 @for (u of d['items']; track $index) {
-                  <li class="rounded-[20px] border border-sf-line bg-sf-surface px-3 py-6 text-center sm:px-5">
+                  <li class="rounded-[20px] border border-sf-line bg-sf-surface px-3 py-6 text-center shadow-[0_6px_20px_rgba(99,64,26,0.055)] sm:px-5">
                     <svg [sfPremiumIcon]="u.icon" class="mx-auto h-[74px] w-[74px] sm:h-[90px] sm:w-[90px]"></svg>
                     <h3 class="mt-4 font-[family-name:var(--sf-font)] text-[12px] font-bold uppercase tracking-[0.08em] sm:text-[14px]">{{ u.title }}</h3>
                     @if (u.text) {<p class="mt-1 text-[12px] text-sf-muted sm:text-[13px]">{{ u.text }}</p>}
@@ -537,7 +530,29 @@ export class SectionFeaturedComponent {
         }
         @case ('categories') {
           @let cats = categoriesFor(s);
-          @if (d['style'] === 'circles' && cats.length) {
+          @if (d['style'] === 'cutouts' && cats.length) {
+            <!-- Category pictures without a frame (cut-outs on white), one row with "Zobacz więcej" -->
+            @let openC = expanded().has(s.id);
+            <section class="sf-container mt-20 text-center sm:mt-28" [attr.aria-label]="d['heading'] || 'Kategorie'">
+              @if (d['eyebrow']) {<p class="text-[12px] uppercase tracking-[0.2em] text-sf-muted">{{ d['eyebrow'] }}</p>}
+              @if (d['heading']) {<h2 class="mb-8 mt-1 text-[26px] font-bold uppercase tracking-[-0.03em] sm:text-[32px] lg:mb-12 lg:text-[40px]">{{ d['heading'] }}</h2>}
+              <ul class="grid grid-cols-3 gap-x-3 gap-y-8 sm:grid-cols-4 sm:gap-x-6 lg:grid-cols-6" [attr.id]="'cats-' + s.id">
+                @for (c of cats; track c.id; let i = $index) {
+                  <li [class]="openC ? '' : circleHide(i)"><a [routerLink]="['/kategoria', c.slug]" class="group block transition-colors hover:[color:var(--sf-accent-ink)]">
+                    <span class="mx-auto flex h-[120px] w-full max-w-[164px] items-end justify-center sm:h-[150px]">
+                      @if (c.image) {<img [src]="c.image['w400']" alt="" class="sf-on-light-multiply max-h-full w-auto max-w-full object-contain transition-transform duration-300 group-hover:-translate-y-1.5 group-hover:scale-[1.035]" loading="lazy" />}
+                      @else {<span class="sf-display flex size-24 items-center justify-center rounded-full bg-sf-surface text-[40px] font-bold" aria-hidden="true">{{ c.name[0] }}</span>}
+                    </span>
+                    <span class="mt-4 block text-[11px] font-extrabold uppercase sm:text-[13px]">{{ c.name }}</span>
+                  </a></li>
+                }
+              </ul>
+              @if (cats.length > 3) {
+                <button type="button" class="mt-10 inline-flex rounded-full border border-sf-line bg-sf-bg px-6 py-3 text-[12px] font-extrabold uppercase transition hover:bg-sf-surface lg:mt-12"
+                  [class]="openC ? '' : moreVisibility(cats.length)" [attr.aria-expanded]="openC" [attr.aria-controls]="'cats-' + s.id" (click)="toggle(s.id)">{{ openC ? 'Pokaż mniej' : 'Zobacz więcej' }}</button>
+              }
+            </section>
+          } @else if (d['style'] === 'circles' && cats.length) {
             <!-- One row of round category pictures; "Więcej" reveals the rest when they do not fit -->
             @let open = expanded().has(s.id);
             @let total = cats.length;
@@ -665,7 +680,7 @@ export class SectionFeaturedComponent {
                 </div>
               }
               <div>
-                @if (d['eyebrow']) {<p class="mb-4 text-[12px] font-extrabold uppercase tracking-[0.23em] text-sf-primary"><span aria-hidden="true">✦ </span>{{ d['eyebrow'] }}</p>}
+                @if (d['eyebrow']) {<p class="mb-4 text-[12px] font-extrabold uppercase tracking-[0.23em]" style="color: var(--sf-accent-ink)"><span aria-hidden="true">✦ </span>{{ d['eyebrow'] }}</p>}
                 @if (d['heading']) {<h2 class="font-semibold" [class]="flower ? 'text-[32px] !font-bold uppercase leading-[1.05] tracking-[-0.025em] sm:text-[40px] lg:text-[48px]' : 'text-[26px] tracking-tight'">{{ d['heading'] }}</h2>}
                 @if (d['text']) {<p class="mt-3 whitespace-pre-line text-[16px] leading-7 text-sf-muted">{{ d['text'] }}</p>}
                 <sf-section-link class="mt-6 inline-block" [to]="d['link']" [text]="d['cta']"
@@ -745,6 +760,6 @@ export class HomeSectionsComponent {
     const all = this.store.store()?.categories ?? [];
     // "circles" shows every top category (one row + "Zobacz więcej"); the other styles the first 8
     return ids.length ? ids.map((id) => all.find((c) => c.id === id)).filter((c) => !!c)
-      : this.store.topCategories().slice(0, s.data['style'] === 'circles' ? 100 : 8);
+      : this.store.topCategories().slice(0, s.data['style'] === 'circles' || s.data['style'] === 'cutouts' ? 100 : 8);
   }
 }

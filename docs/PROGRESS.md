@@ -71,7 +71,7 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - na życzenie można je dodać do sklepu jako zwykłe produkty (ze zdjęciami, rozmiarami i kategoriami);
   - miniatura Véry w galerii ma ciemny pasek, rozstrzelone logo, zdjęcia produktów i poprawiony widok telefonu;
   - E2E: pusty sklep → 8 przykładów i notka w podglądzie, zero przykładów na żywo → dodanie 8 produktów → podgląd pokazuje prawdziwe produkty; 0 błędów konsoli.
-- **Szablon Bawiloo (zabawki, ciemny):**
+- **Szablon Bawiloo (zabawki, pierwsza, ciemna wersja):**
   - własny nagłówek, stopka i karta produktu; 24 grafiki; 16 przykładowych zabawek;
   - nowe opcje sekcji: baner „Radosny”, kafelki okrągłe z przyciskiem, druga linia nagłówka i opis, karuzela produktów, zdjęcie „kwiatek”, nadtytuły w obrazie z tekstem i newsletterze;
   - grafiki szablonu mogą być w WebP;
@@ -81,6 +81,14 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - W Bawiloo „Ulubione zabawki dzieci” to prawdziwe kategorie w jednej linii z „Zobacz więcej”.
   - Przykładowe kategorie mają zdjęcia.
   - Miniatury w galerii: proporcje jak na stronie, ikony w nagłówku, falowana krawędź z łuków.
+- **Jasne Bawiloo (nowy `index.html`, 2026-11-27):**
+  - kremowe tło, białe karty, złoty nagłówek z ciemnym tekstem, stopka na kremowym tle;
+  - kategorie jako zdjęcia bez tła (`cutouts`) w jednej linii z „Zobacz więcej”; grafiki kategorii wycięte z tła;
+  - slider promocji z wyróżnionym produktem (`ui/spotlight-carousel.ts`): strzałki, kropki, klawiatura, przesuwanie, zapętlenie, komunikaty dla czytnika ekranu;
+  - kolory tekstu dobierane do kontrastu (`--sf-on-accent`, `--sf-accent-ink`), więc działa też z kolorami sprzedawcy;
+  - poprawka rekomendacji: pusta lista nie trafia do pamięci podręcznej (wcześniej w nowym sklepie bestsellery były puste przez 2 minuty po dodaniu produktów) — test `RecommendationsIT`;
+  - E2E: szczegóły szablonu (8 slajdów w demo) → wybór → 16 przykładów → strona sklepu: slider (strzałka, ←, kropka, przesunięcie, klik w środek otwiera produkt), 6 kategorii z `multiply`, 6 bestsellerów, boczny koszyk; telefon: 3 kategorie → 6 po „Zobacz więcej”, bez poziomego przewijania; 0 błędów konsoli i 0 zapytań zewnętrznych.
+  - Ograniczenie: sklepy z ciemnym Bawiloo zachowują zapisane kolory; jasna wersja po ponownym wyborze szablonu.
 - **Poprawka:** lista produktów obsługuje `?promocje=tak`. Wcześniej linki „Promocje” z sekcji pokazywały wszystkie produkty.
 - **E2E (Playwright, poza repo):**
   - **Przepływ:** sklep modowy z 8 produktami → wybór Véry w galerii → edytor → publikacja → strona główna (filtry: Akcesoria 2, Promocje 2) → szybkie dodanie produktu bez wariantów (boczny koszyk) → produkt z rozmiarami prowadzi na stronę produktu → dodanie z wyborem rozmiaru → `/produkty?promocje=tak`.

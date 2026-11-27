@@ -70,6 +70,28 @@ class RecommendationsIT extends IntegrationTest {
     }
 
     @Test
+    void anEmptyListIsNotCachedSoTheFirstProductsShowUpAtOnce() throws Exception {
+        ApiClient owner = registeredUser(uniqueEmail("pusty"));
+        String slug = uniqueSlug("pusty");
+        host = slug + ".shopivo.test";
+        String t = createStore(owner, "Pusty", slug);
+        String toys = owner.post(base(t) + "/categories", Map.of("name", "Zabawki", "visible", true, "version", 0)).json().get("id").asString();
+        String books = owner.post(base(t) + "/categories", Map.of("name", "Książki", "visible", true, "version", 0)).json().get("id").asString();
+        product(owner, t, "Klocki", 1000, null, toys, null);
+        owner.post(base(t) + "/shipping-methods", Map.of("name", "Kurier", "type", "COURIER", "priceMinor", 1000, "active", true, "version", 0));
+        owner.put(base(t) + "/payment-settings", Map.of("bankTransferEnabled", false, "codEnabled", true, "codFeeMinor", 0,
+                "unpaidCancelDays", 7, "version", -1));
+        publishStore(owner, t);
+        // An empty category: the empty answer must not be remembered
+        assertThat(sf("GET", "/collections/bestsellery?kategoria=ksiazki", null, null).json().size()).isZero();
+        assertThat(sf("GET", "/collections/nowosci?kategoria=ksiazki", null, null).json().size()).isZero();
+
+        product(owner, t, "Bajki", 2000, null, books, null);
+        assertThat(names(sf("GET", "/collections/bestsellery?kategoria=ksiazki", null, null).json())).containsExactly("Bajki");
+        assertThat(names(sf("GET", "/collections/nowosci?kategoria=ksiazki", null, null).json())).containsExactly("Bajki");
+    }
+
+    @Test
     void listsAndProductSuggestionsComeFromTheStoresOwnOrders() throws Exception {
         ApiClient owner = registeredUser(uniqueEmail("polecane"));
         String slug = uniqueSlug("polecane");

@@ -40,6 +40,12 @@ Przetworzenie:
 - baner zostawiono w WebP z przezroczystością;
 - pozostałe pliki zapisano jako JPEG, przezroczyste produkty na tle w ich kolorze z szablonu.
 
+Jasna wersja szablonu (nowy `index.html`, 2026-11-27):
+- grafiki kategorii (`cat-*`) to wycięte z tła zabawki na białym tle (JPEG), żeby na stronie wyglądały jak zdjęcia bez tła;
+- wycięto je skryptem z dotychczasowych zdjęć kategorii z paczki: tło usunięto wypełnieniem od krawędzi i maską okręgu;
+- zdjęcia wycięć dołączone później do wiadomości nie były dostępne jako pliki, więc nie trafiły do repozytorium; po przesłaniu ich jako plików można je podmienić;
+- zdjęcia produktów (`p-*`) mają teraz pastelowe tło w kolorze z szablonu, z marginesem i miękkim cieniem.
+
 Prawa do grafik — po stronie dostawcy szablonu.
 Uwaga: na zdjęciu „O nas” jest napis „Whimsy”; szablon przykrywa go szyldem z nazwą sklepu, ale tylko na tym jednym zdjęciu.
 

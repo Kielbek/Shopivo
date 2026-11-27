@@ -73,7 +73,7 @@ public final class SectionRegistry {
             new SectionType("categories", "Kategorie", "Kategorie sklepu: kafelki ze zdjęciami, okrągłe zdjęcia w jednej linii (z „Więcej”) lub przyciski.", List.of(
                     Prop.text("eyebrow", "Nadtytuł", 60), Prop.text("heading", "Nagłówek", 60),
                     Prop.of("categories", "Kategorie", Kind.CATEGORIES, "Puste = kategorie główne w kolejności sklepu."),
-                    Prop.select("style", "Wygląd", "tiles", "chips", "circles"))),
+                    Prop.select("style", "Wygląd", "tiles", "chips", "circles", "cutouts"))),
             new SectionType("products", "Produkty", "Siatka produktów: nowości, promocje albo wybrana kategoria (np. nowa kolekcja).", List.of(
                     Prop.text("eyebrow", "Nadtytuł", 60), Prop.text("heading", "Nagłówek", 60),
                     Prop.text("accent", "Druga linia nagłówka (wyróżniona)", 60), Prop.text("text", "Opis pod nagłówkiem", 160),

@@ -83,7 +83,7 @@ public class Recommendations {
         int n = Math.max(1, Math.min(limit, MAX));
         UUID tenant = TenantContext.requireTenantId();
         String path = categoryPath(categorySlug);
-        List<UUID> ranked = rankings.get(tenant + "|" + source + "|" + path, k -> rank(source, tenant, path));
+        List<UUID> ranked = cached(tenant + "|" + source + "|" + path, () -> rank(source, tenant, path));
         // Deals, last pieces and back-in-stock are promises: never padded with products that are not.
         boolean pad = source == Source.BESTSELLERS || source == Source.TOP_RATED || source == Source.NEWEST;
         return available(ranked, n, pad ? newest(tenant, path) : List.of());
@@ -252,7 +252,19 @@ public class Recommendations {
     }
 
     private List<UUID> newest(UUID tenant, String path) {
-        return rankings.get(tenant + "|" + Source.NEWEST + "|" + path, k -> rank(Source.NEWEST, tenant, path));
+        return cached(tenant + "|" + Source.NEWEST + "|" + path, () -> rank(Source.NEWEST, tenant, path));
+    }
+
+    /**
+     * Empty rankings are not cached: in a new store the first products (e.g. imported examples) must appear at once,
+     * not after the cache expires. A non-empty list may lag behind catalogue changes by up to 2 minutes.
+     */
+    private List<UUID> cached(String key, java.util.function.Supplier<List<UUID>> rank) {
+        List<UUID> hit = rankings.get(key, k -> {
+            List<UUID> r = rank.get();
+            return r.isEmpty() ? null : r;
+        });
+        return hit == null ? List.of() : hit;
     }
 
     private UUID productId(String slug) {

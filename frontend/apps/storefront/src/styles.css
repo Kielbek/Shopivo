@@ -31,6 +31,8 @@
   --sf-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --sf-radius: 10px;
   --sf-font-display: var(--sf-font);
+  --sf-on-accent: #111111;
+  --sf-accent-ink: #0369a1;
 }
 
 /* Derived colours: utilities inline these, so they follow the theme vars set on the app root. Component rules below
@@ -136,8 +138,32 @@ body {
     font-weight: 600; letter-spacing: -0.04em; font-size: clamp(14px, 6.8cqw, 38px); line-height: 1; text-shadow: 0 2px 3px #a84c19;
     overflow: hidden; white-space: nowrap; pointer-events: none;
   }
-  .sf-accent-line { display: block; color: var(--sf-primary); transform: rotate(-1.5deg); padding: 0.06em 0 0.1em;
+  .sf-accent-line { display: block; color: var(--sf-accent-ink); transform: rotate(-1.5deg); padding: 0.06em 0 0.1em;
     text-shadow: 1px 3px 0 color-mix(in srgb, var(--sf-primary) 45%, #5a2c06); }
+  [data-tone="light"] .sf-accent-line { text-shadow: 1px 3px 0 color-mix(in srgb, var(--sf-primary) 45%, #fff); }
+  /* Pictures on white (category cut-outs): on light pages the white disappears into the background */
+  [data-tone="light"] .sf-on-light-multiply { mix-blend-mode: multiply; }
+  .sf-lift { transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.22s, border-color 0.22s; }
+  .sf-lift:hover { transform: translateY(-3px); }
+
+  /* Spotlight slider: one product in the middle, neighbours smaller at the sides (promotions) */
+  .sf-spot-stage { position: relative; overflow: hidden; height: clamp(230px, 43vw, 460px); isolation: isolate; touch-action: pan-y; }
+  .sf-spot-slide {
+    position: absolute; top: 50%; left: 50%; width: 32%; display: flex; flex-direction: column; align-items: center; text-align: center;
+    transform: translate(-50%, -50%) translateX(calc(var(--offset) * 103%)) scale(var(--scale)); opacity: var(--visible);
+    transition: transform 450ms cubic-bezier(0.22, 0.7, 0.25, 1), opacity 400ms ease; will-change: transform, opacity; pointer-events: none;
+  }
+  .sf-spot-slide[data-visible="true"] { pointer-events: auto; }
+  /* Phones: a big middle product, the neighbours only peek in from the edges */
+  @media (max-width: 639px) {
+    .sf-spot-stage { height: clamp(270px, 82vw, 360px); }
+    .sf-spot-slide { width: 58%; transform: translate(-50%, -50%) translateX(calc(var(--offset) * 92%)) scale(var(--scale)); }
+    .sf-spot-slide img { height: clamp(150px, 46vw, 220px); }
+  }
+  .sf-spot-slide img { display: block; width: auto; max-width: 100%; aspect-ratio: 1; height: clamp(110px, 29vw, 295px); object-fit: contain; border-radius: clamp(14px, 2vw, 24px); user-select: none; -webkit-user-drag: none; }
+  [data-tone="light"] .sf-spot-slide img { mix-blend-mode: multiply; filter: drop-shadow(0 8px 10px rgb(109 74 45 / 0.08)); }
+  .sf-spot-dot { width: 8px; height: 8px; border-radius: 20px; background: color-mix(in srgb, var(--sf-text) 20%, var(--sf-bg)); transition: width 0.25s, background 0.25s; }
+  .sf-spot-dot[aria-current="true"] { width: 25px; background: var(--sf-accent-ink); }
   .sf-link { color: var(--sf-primary); text-decoration: underline; text-underline-offset: 2px; }
   .sf-check { @apply size-[18px] shrink-0; accent-color: var(--sf-primary); }
 }
@@ -149,4 +175,5 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .sf-shimmer { animation: none; }
+  .sf-spot-slide, .sf-spot-dot, .sf-lift { transition: none; }
 }

@@ -18,6 +18,42 @@ export function readableOn(hex: string): string {
   return contrastWhite >= contrastBlack ? '#ffffff' : '#111111';
 }
 
+function rgb(hex: string): [number, number, number] | null {
+  const m = /^#([0-9a-f]{6})$/i.exec(hex ?? '');
+  return m ? [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16)) as [number, number, number] : null;
+}
+
+function luminance(c: [number, number, number]): number {
+  const [r, g, b] = c.map((v) => v / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+/** WCAG contrast ratio of two #RRGGBB colours (1 when either is invalid). */
+export function contrast(a: string, b: string): number {
+  const x = rgb(a);
+  const y = rgb(b);
+  if (!x || !y) return 1;
+  const [l1, l2] = [luminance(x), luminance(y)].sort((p, q) => q - p);
+  return (l1 + 0.05) / (l2 + 0.05);
+}
+
+/**
+ * The colour, darkened (on light backgrounds) or lightened (on dark ones) in small steps until text in it keeps 4.5:1
+ * contrast — e.g. a golden accent becomes a readable amber for prices and small labels on white.
+ */
+export function readableTint(color: string, background: string): string {
+  const c = rgb(color);
+  const bg = rgb(background);
+  if (!c || !bg) return color;
+  const target = luminance(bg) > 0.4 ? 0 : 255;
+  for (let k = 0; k <= 1.0001; k += 0.05) {
+    const mixed = c.map((v) => Math.round(v + (target - v) * k)) as [number, number, number];
+    const hex = '#' + mixed.map((v) => v.toString(16).padStart(2, '0')).join('');
+    if (contrast(hex, background) >= 4.5) return hex;
+  }
+  return target ? '#ffffff' : '#111111';
+}
+
 export const FONTS: Record<string, string> = {
   sans: 'ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   serif: 'ui-serif, Georgia, Cambria, "Times New Roman", Times, serif',
