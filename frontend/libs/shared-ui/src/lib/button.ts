@@ -11,7 +11,7 @@ const VARIANTS: Record<ButtonVariant, string> = {
   /** Default action: night fill. */
   primary: 'bg-night text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] hover:bg-night-3 focus-visible:outline-night disabled:bg-[#DADDD6] disabled:text-[#7C8279] disabled:opacity-100 disabled:shadow-none',
   /** The one key action of a screen (publish, create): neon fill, night text. */
-  accent: 'bg-neon text-night shadow-[inset_0_-1px_0_rgba(15,18,16,0.12)] hover:bg-neon-deep focus-visible:outline-night disabled:bg-[#DADDD6] disabled:text-[#7C8279] disabled:opacity-100 disabled:shadow-none',
+  accent: 'bg-neon text-on-neon shadow-[inset_0_-1px_0_rgba(15,18,16,0.12)] hover:bg-neon-deep focus-visible:outline-night disabled:bg-[#DADDD6] disabled:text-[#7C8279] disabled:opacity-100 disabled:shadow-none',
   secondary: 'border border-[#D9DCD5] bg-card text-ink shadow-[0_1px_0_rgba(15,18,16,0.05)] hover:bg-hover hover:border-[#BFC3BB]',
   /** Small in-section action (grey pill), e.g. „Dodaj” next to a section title. */
   tonal: 'bg-[#E6E8E3] text-ink hover:bg-[#DCDFD8]',

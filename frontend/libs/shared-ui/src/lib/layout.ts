@@ -95,7 +95,7 @@ const BADGE: Record<BadgeTone, string> = {
   danger: 'bg-danger-soft text-danger-ink',
   info: 'bg-info-soft text-info-ink',
   violet: 'bg-violet-soft text-violet-ink',
-  brand: 'bg-neon text-night',
+  brand: 'bg-neon text-on-neon',
 };
 
 /** Light status pill. */

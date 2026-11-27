@@ -16,7 +16,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     } @else {
       <span class="inline-flex items-baseline text-[22px] font-bold leading-none tracking-[-0.05em]" aria-hidden="true">shop<span
         class="relative inline-block">ı<span class="absolute left-1/2 top-[0.07em] size-[0.19em] -translate-x-1/2 rounded-full" [class]="dotClass()"></span></span>vo</span>
-      @if (suffix()) {<span class="rounded-full bg-neon px-2 py-0.5 text-[11px] font-semibold text-night">{{ suffix() }}</span>}
+      @if (suffix()) {<span class="rounded-full bg-neon px-2 py-0.5 text-[11px] font-semibold text-on-neon">{{ suffix() }}</span>}
     }
   `,
 })

@@ -166,7 +166,7 @@ export interface NavSection {
             [svTooltip]="rail() ? it.label : null"
             class="group flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] transition-colors"
             [class.lg:justify-center]="rail()" [class.lg:px-0]="rail()"
-            [class]="(rla.isActive || it.active) ? 'bg-nav-active font-medium text-nav-active-text' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
+            [class]="(rla.isActive || it.active) ? 'bg-nav-active font-medium text-nav-active-text shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_1px_2px_rgba(0,0,0,0.4)]' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
             <sv-nav-icon [name]="it.icon" [active]="rla.isActive || !!it.active" [size]="19"
               [class]="(rla.isActive || it.active) ? 'text-nav-active-text' : 'text-nav-muted group-hover:text-nav-strong'" />
             <span class="min-w-0 flex-1 truncate" [class.lg:sr-only]="rail()">{{ it.label }}</span>

@@ -109,7 +109,7 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
           <sv-menu class="block w-full" align="start" label="Wybierz sklep"
             triggerClass="w-full gap-2.5 rounded-[12px] border border-nav-line bg-nav-field px-2.5 py-2 text-left hover:bg-nav-hover">
             <span menu-trigger class="flex w-full min-w-0 items-center gap-2.5">
-              <span class="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-neon text-[12px] font-bold text-night">{{ initials() }}</span>
+              <span class="flex size-8 shrink-0 items-center justify-center rounded-[8px] bg-neon text-[12px] font-bold text-on-neon">{{ initials() }}</span>
               <span class="min-w-0 flex-1">
                 <span class="block truncate text-[13px] font-medium text-nav-strong">{{ store.name }}</span>
                 <span class="flex items-center gap-1.5 truncate text-[11.5px] text-nav-muted" [attr.title]="store.status === 'PUBLISHED' ? null : 'Sklep jest niewidoczny dla klientów do czasu publikacji'">
@@ -145,7 +145,7 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
                     <a [routerLink]="it.link" routerLinkActive #rla="routerLinkActive" [routerLinkActiveOptions]="{ exact: !!it.exact }"
                       [attr.aria-current]="rla.isActive ? 'page' : null"
                       class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] transition-colors"
-                      [class]="rla.isActive ? 'bg-nav-active font-medium text-nav-active-text' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
+                      [class]="rla.isActive ? 'bg-nav-active font-medium text-nav-active-text shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_1px_2px_rgba(0,0,0,0.4)]' : 'text-nav-text hover:bg-nav-hover hover:text-nav-strong'">
                       <sv-nav-icon [name]="it.icon" [active]="rla.isActive" [size]="18" [class]="rla.isActive ? 'text-nav-active-text' : 'text-nav-muted'" />{{ it.label }}</a>
                   } @else {
                     <span class="flex h-9 items-center gap-3 rounded-[10px] px-3 text-[13.5px] text-nav-muted/60" aria-disabled="true">

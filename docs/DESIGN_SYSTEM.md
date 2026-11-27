@@ -12,7 +12,7 @@ sam (po zmianie strony wraca na górę, zmiana filtrów nie przewija).
 
 | Token | Wartość | Użycie |
 |---|---|---|
-| `--nav-bg`, `nav-*` | `#0F1210`; tekst `#E7EAE5`, przygaszony `#8E958D` | tło nawigacji i ramki (czarne, wybrane spośród 5 wariantów), aktywna pozycja `nav-active` = neon; cała paleta paska w jednym miejscu w `theme.css` |
+| `--nav-bg`, `nav-*` | `#0F1210`; tekst `#E7EAE5`, przygaszony `#8E958D` | tło nawigacji i ramki (czarne, wybrane spośród 5 wariantów), aktywna pozycja `nav-active` = jaśniejsze szare podświetlenie (bez koloru); cała paleta paska w jednym miejscu w `theme.css` |
 | `neon` / `neon-deep` | `#41C336` / `#36AE2C` (zieleń marki; tekst na niej zawsze czarny) | aktywna pozycja menu, przycisk `accent`, kropka nad „ı” w logo — **tylko jako wypełnienie z czarnym tekstem**, nigdy tekst na bieli |
 | `night` / `night-3` | `#0F1210` / `#262B27` | przycisk `primary`, przełączniki, ciemne plakietki |
 | `canvas` / `card` | `#F2F3F0` / `#FFFFFF` | tło treści / karty, nagłówek |

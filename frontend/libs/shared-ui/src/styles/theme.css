@@ -37,13 +37,16 @@
   --color-nav-hover: rgba(255, 255, 255, 0.08);
   --color-nav-line: rgba(255, 255, 255, 0.09);
   --color-nav-field: rgba(255, 255, 255, 0.08);
-  --color-nav-active: #41C336;
-  --color-nav-active-text: #0F1210;
+  /* Active item: shading, not colour (like the reference admin). */
+  --color-nav-active: #2B2F2C;
+  --color-nav-active-text: #FFFFFF;
 
   /* Accent */
   --color-neon: #41C336;
   --color-neon-deep: #36AE2C;
   --color-neon-soft: #E7F7E5;
+  /* Text on the accent fill (dark on green, white on blue). */
+  --color-on-neon: #0F1210;
 
   /* Work surface */
   --color-page: #FFFFFF;
