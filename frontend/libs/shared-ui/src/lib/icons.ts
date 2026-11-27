@@ -12,7 +12,7 @@ import {
   LucideShoppingBag, LucideStore, LucideTrendingUp, LucideTruck, LucideUser, LucideUserPlus, LucideUsers, LucideWallet,
   LucideX, LucideShoppingCart, LucideBox, LucideCircleDollarSign, LucideEllipsis, LucideImage, LucideDownload, LucideCopy,
   LucideArrowLeft, LucideArrowRight, LucideStar, LucideChevronUp, LucideExternalLink, LucideEye, LucideFolderPlus, LucideTrash2, LucideHistory, LucidePencil, LucideEyeOff, LucideTablet, LucideRefreshCw, LucideScale,
-  LucideShirt, LucideFootprints, LucideSmartphone, LucideMonitor, LucideSofa, LucideHouse, LucideSprout, LucideSparkles, LucideSprayCan, LucideGem, LucideDumbbell, LucideCar, LucidePawPrint, LucideToyBrick, LucideBaby, LucideShoppingBasket, LucideWrench, LucideHardHat, LucideHammer, LucidePenLine, LucideMusic, LucideGamepad2, LucideScissors, LucideGift, LucideWatch, LucideGlasses, LucideHeartPulse, LucideLeaf, LucideApple, LucideBriefcase, LucideTent, LucideLayoutGrid, LucideImagePlus, LucideUpload, LucideGripVertical, LucideLightbulb, LucideRuler, LucideWeight, LucideTag, LucideUndo2,
+  LucideShirt, LucideFootprints, LucideSmartphone, LucideMonitor, LucideSofa, LucideHouse, LucideSprout, LucideSparkles, LucideSprayCan, LucideGem, LucideDumbbell, LucideCar, LucidePawPrint, LucideToyBrick, LucideBaby, LucideShoppingBasket, LucideWrench, LucideHardHat, LucideHammer, LucidePenLine, LucideMusic, LucideGamepad2, LucideScissors, LucideGift, LucideWatch, LucideGlasses, LucideHeartPulse, LucideLeaf, LucideApple, LucideBriefcase, LucideTent, LucideLayoutGrid, LucideImagePlus, LucideUpload, LucideGripVertical, LucideLightbulb, LucideRuler, LucideWeight, LucideTag, LucideUndo2, LucideLockKeyhole,
 } from '@lucide/angular';
 
 export const icons = {
@@ -21,6 +21,7 @@ export const icons = {
   footprints: LucideFootprints,
   smartphone: LucideSmartphone,
   monitor: LucideMonitor,
+  lock: LucideLockKeyhole,
   sofa: LucideSofa,
   house: LucideHouse,
   sprout: LucideSprout,
