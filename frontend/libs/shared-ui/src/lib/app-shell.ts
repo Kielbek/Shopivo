@@ -84,7 +84,7 @@ export interface NavSection {
       <div class="relative flex h-16 shrink-0 items-center" [class]="rail() ? 'justify-between px-5 lg:justify-center lg:px-0' : 'justify-between px-5'">
         <a [routerLink]="homeLink()" aria-label="Strona główna panelu" class="flex items-center">
           @if (rail()) {
-            <span class="hidden lg:inline-flex"><sv-logo [mark]="true" /></span>
+            <span class="hidden lg:inline-flex"><sv-logo [mark]="true" tone="light" /></span>
             <span class="lg:hidden"><sv-logo [suffix]="logoSuffix()" tone="light" /></span>
           } @else {
             <sv-logo [suffix]="logoSuffix()" tone="light" />

@@ -55,7 +55,7 @@ function newId(type: string): string {
     <sv-toast-outlet />
     <!-- Collapsed panel navigation (desktop): the editor keeps the way back to every part of the store. -->
     <nav class="hidden w-[68px] shrink-0 flex-col items-center lg:flex" aria-label="Panel sklepu">
-      <a [routerLink]="['/sklep', tenantId()]" class="flex h-16 items-center" aria-label="Przegląd sklepu" (click)="go($event, [])"><sv-logo [mark]="true" /></a>
+      <a [routerLink]="['/sklep', tenantId()]" class="flex h-16 items-center" aria-label="Przegląd sklepu" (click)="go($event, [])"><sv-logo [mark]="true" tone="light" /></a>
       <ul class="flex flex-1 flex-col items-center gap-1 pt-2">
         @for (r of rail; track r.label) {
           <li>

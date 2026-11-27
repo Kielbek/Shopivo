@@ -13,7 +13,7 @@ sam (po zmianie strony wraca na górę, zmiana filtrów nie przewija).
 | Token | Wartość | Użycie |
 |---|---|---|
 | `--nav-bg`, `nav-*` | `#0F1210`; tekst `#E7EAE5`, przygaszony `#8E958D` | tło nawigacji i ramki (czarne, wybrane spośród 5 wariantów), aktywna pozycja `nav-active` = neon; cała paleta paska w jednym miejscu w `theme.css` |
-| `neon` / `neon-deep` | `#B5F23D` / `#9FDE24` | aktywna pozycja menu, przycisk `accent`, logo — **tylko jako wypełnienie z czarnym tekstem**, nigdy tekst na bieli |
+| `neon` / `neon-deep` | `#B5F23D` / `#9FDE24` | aktywna pozycja menu, przycisk `accent`, kropka nad „ı” w logo — **tylko jako wypełnienie z czarnym tekstem**, nigdy tekst na bieli |
 | `night` / `night-3` | `#0F1210` / `#262B27` | przycisk `primary`, przełączniki, ciemne plakietki |
 | `canvas` / `card` | `#F2F3F0` / `#FFFFFF` | tło treści / karty, nagłówek |
 | `ink` / `ink-soft` / `ink-muted` | `#161916` / `#575D58` / `#8A8F88` | tekst / tekst drugorzędny (AA) / meta i ikony |
@@ -40,6 +40,10 @@ wiersze `.settings-item` (ikona, nazwa, szara plakietka statusu `.settings-pill`
 `.sv-empty-box` (przerywana ramka + mały szary przycisk `variant="tonal"`); zmiany w formularzu — jeden pływający pasek
 „Niezapisane zmiany · Odrzuć · Zapisz”. Sposoby dostawy i metody płatności są oddzielone od **Integracji** (konta
 przewoźników i operatorów płatności).
+
+Logo: sam napis „shopıvo” w kroju Inter (bez sygnetu), kropka nad „ı” neonowa na ciemnym tle i zielona na jasnym;
+w zwiniętej nawigacji skrót „s.”. Ikona aplikacji (favicon, apple-touch, PWA): czarny kwadrat, białe „s”, neonowa
+kropka — `public/favicon.svg|.ico`, `apple-touch-icon.png`, `icon-192/512.png`, `manifest.webmanifest`.
 
 ## Komponenty
 
