@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import {
-  Customer, DailySales, Order, OrderAddress, OrderBilling, OrderPaymentMethod, OrderPaymentStatus, OrderRow, OrderStats, OrderStatus,
+  Customer, CustomerImportResult, CustomerInput, DailySales, Order, OrderAddress, OrderBilling, OrderPaymentMethod, OrderPaymentStatus, OrderRow, OrderStats, OrderStatus,
   Page, ShippingMethod, ShippingType, StorePaymentSettings,
 } from '@shopivo/shared-models';
 import { Observable } from 'rxjs';
@@ -93,10 +93,11 @@ export class OrdersApi {
     return this.http.put<StorePaymentSettings>(`${this.base(t)}/payment-settings`, s);
   }
 
-  customers(t: string, q: string, marketing: boolean, sort: string, page: number): Observable<Page<Customer>> {
+  customers(t: string, q: string, marketing: boolean, sort: string, page: number, tag?: string | null): Observable<Page<Customer>> {
     let params = new HttpParams().set('page', page).set('size', 25).set('sort', sort);
     if (q.trim()) params = params.set('q', q.trim());
     if (marketing) params = params.set('marketing', true);
+    if (tag) params = params.set('tag', tag);
     return this.http.get<Page<Customer>>(`${this.base(t)}/customers`, { params });
   }
 
@@ -106,6 +107,33 @@ export class OrdersApi {
 
   updateCustomerNote(t: string, id: string, note: string, version: number): Observable<Customer> {
     return this.http.patch<Customer>(`${this.base(t)}/customers/${encodeURIComponent(id)}/note`, { note, version });
+  }
+
+  createCustomer(t: string, input: CustomerInput): Observable<Customer> {
+    return this.http.post<Customer>(`${this.base(t)}/customers`, input);
+  }
+
+  updateCustomer(t: string, id: string, customer: CustomerInput, version: number): Observable<Customer> {
+    return this.http.put<Customer>(`${this.base(t)}/customers/${encodeURIComponent(id)}`, { customer, version });
+  }
+
+  customerTags(t: string): Observable<string[]> {
+    return this.http.get<string[]>(`${this.base(t)}/customers/tags`);
+  }
+
+  tagCustomers(t: string, ids: string[], tag: string): Observable<{ changed: number }> {
+    return this.http.post<{ changed: number }>(`${this.base(t)}/customers/tags`, { ids, tag });
+  }
+
+  /** All customers, or only `ids`. */
+  customersExport(t: string, ids: string[] = []): Observable<Blob> {
+    return this.http.post(`${this.base(t)}/customers/export.csv`, { ids }, { responseType: 'blob' });
+  }
+
+  importCustomers(t: string, file: File, consentConfirmed: boolean): Observable<CustomerImportResult> {
+    const body = new FormData();
+    body.append('file', file);
+    return this.http.post<CustomerImportResult>(`${this.base(t)}/customers/import`, body, { params: new HttpParams().set('consentConfirmed', consentConfirmed) });
   }
 
   marketingExport(t: string): Observable<Blob> {

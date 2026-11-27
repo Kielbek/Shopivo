@@ -129,7 +129,7 @@ type Pending = { kind: 'ship' } | { kind: 'cancel' } | null;
             <p class="text-[13px] text-ink-soft"><a class="sv-link" [href]="'mailto:' + o.email">{{ o.email }}</a></p>
             @if (o.phone) {<p class="text-[13px] text-ink-soft">{{ o.phone }}</p>}
             @if (o.customerId) {
-              <a class="sv-link mt-2 inline-block text-[13px]" [routerLink]="['/sklep', t(), 'klienci']" [queryParams]="{ klient: o.customerId }">Karta klienta</a>
+              <a class="sv-link mt-2 inline-block text-[13px]" [routerLink]="['/sklep', t(), 'klienci', o.customerId]">Karta klienta</a>
             }
             @if (o.customerNote) {
               <div class="mt-3 rounded-[8px] bg-canvas px-3 py-2 text-[13px]"><p class="text-[12px] font-medium text-ink-muted">Uwagi klienta</p>{{ o.customerNote }}</div>

@@ -7,7 +7,7 @@ Ostatnia aktualizacja: 2026-11-27 · Ukończone: **Faza 0**, **Faza 1**, **Faza 
 | Zestaw | Polecenie | Wynik |
 |---|---|---|
 | Backend — testy jednostkowe (surefire) | `cd backend && ./mvnw verify` | 49/49 ✔ (+1 pominięty: test S3 uruchamiany tylko z `SHOPIVO_TEST_S3_ENDPOINT`) |
-| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 79/79 ✔ |
+| Backend — testy integracyjne (failsafe, Testcontainers PostgreSQL 17 + Redis 7) | jw. | 81/81 ✔ |
 | Backend — `S3ObjectStorageTest` na serwerze zgodnym z S3 (moto) | `SHOPIVO_TEST_S3_ENDPOINT=… ./mvnw test -Dtest=S3ObjectStorageTest` | ✔ (uruchomiony ręcznie; MinIO niedostępne w tym środowisku) |
 | Frontend — Vitest (3 aplikacje) | `cd frontend && npm test` | 74/74 ✔ (panel 60, admin 3, witryna 11) |
 | Frontend — build produkcyjny 3 aplikacji | `npm run build` | ✔ (panel: 85 kB gzip initial) |
@@ -183,6 +183,17 @@ linki z parametrami w menu i treści. Szczegóły: `docs/SECURITY.md` §13.
 - Panel: oznaczenie klientów z potwierdzonym kontem (lista i karta klienta).
 - Błędy znalezione w E2E i naprawione: serwer SSR nie przekazywał nagłówka `X-Captcha-Token` (test integracyjny trafiał
   bezpośrednio w API); widget był resetowany dopiero po odświeżeniu koszyka, co mogło skasować ponowne potwierdzenie.
+
+## Klienci w panelu (2026-11-27)
+
+- Lista jak w Shopify: zaznaczanie, kolumny subskrypcja e-maili / lokalizacja / zamówienia / wydana kwota, tagi, filtr tagu,
+  akcje „Dodaj tag” i „Eksportuj zaznaczonych”; przyciski Eksportuj (wszyscy / zaznaczeni / tylko subskrybenci), Importuj (CSV
+  z przykładowym plikiem i raportem błędów), Dodaj klienta.
+- Strona klienta (`klienci/nowy`, `klienci/:id`) zamiast okienka: dane, zgoda z datą i źródłem, adres domyślny, zamówienia,
+  notatki, tagi, pasek „Niezapisane zmiany”.
+- Backend: V19, `POST/PUT /customers`, tagi, import/eksport CSV (testy `CustomersIT`).
+- Pominięte celowo: język powiadomień (e-maile są tylko po polsku), zgody SMS/WhatsApp (brak takich kanałów), segment opisywany
+  przez AI, usuwanie klientów (wymaga procesu RODO powiązanego z zamówieniami).
 
 ## Faza 4d — konta klientów (2026-11-26)
 

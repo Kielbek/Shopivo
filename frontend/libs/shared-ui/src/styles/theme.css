@@ -205,6 +205,18 @@
     @apply flex w-full items-center gap-3 px-5 py-3.5 text-[13.5px] text-ink transition-colors
       [&:not(:last-child)]:border-b [&:not(:last-child)]:border-line enabled:hover:bg-hover disabled:cursor-default;
   }
+  /* Tag chip (customers, filters). */
+  .sv-chip {
+    @apply inline-flex items-center gap-1 rounded-full bg-[#ECEDE9] px-2 py-0.5 text-[11.5px] font-medium leading-[1.35] text-ink-soft;
+  }
+  .sv-radio {
+    @apply mt-0.5 size-4 shrink-0 accent-night;
+  }
+  /* A radio/checkbox option as a full-width row. */
+  .sv-choice {
+    @apply flex cursor-pointer items-start gap-3 rounded-[var(--radius-control)] px-3 py-2.5 text-[13.5px] hover:bg-hover;
+  }
+
   .settings-pill {
     @apply rounded-full bg-[#ECEDE9] px-2.5 py-0.5 text-[12px] font-medium text-ink-soft;
   }

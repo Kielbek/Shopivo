@@ -160,8 +160,13 @@ Warianty zwracają `lowestPrice30dMinor` — najniższą cenę z 30 dni przed bi
 | POST | `/orders/{id}/paid`, `/refunded`, `/notes` | `ORDERS_WRITE` | Płatność, zwrot (po anulowaniu), notatka wewnętrzna |
 | GET/POST/PUT/DELETE | `/shipping-methods[/{id}]` | odczyt `ORDERS_READ`, zmiany `STORE_SETTINGS_WRITE` | Sposoby dostawy (cena, próg darmowej) |
 | GET/PUT | `/payment-settings` | `STORE_READ` / `STORE_SETTINGS_WRITE` | Przelew (IBAN mod-97), pobranie, termin płatności |
-| GET | `/customers?q&marketing&sort`, `/customers/{id}` | `CUSTOMERS_READ` | Klienci |
+| GET | `/customers?q&marketing&tag&sort`, `/customers/{id}`, `/customers/tags` | `CUSTOMERS_READ` | Klienci (szukanie także po mieście i tagach), lista tagów |
+| POST | `/customers` | `CUSTOMERS_WRITE` | Dodanie klienta ręcznie (409 `EMAIL_TAKEN`); zaznaczona zgoda zapisuje się ze źródłem `PANEL` |
+| PUT | `/customers/{id}` `{customer, version}` | `CUSTOMERS_WRITE` | Edycja danych, adresu domyślnego, tagów, zgody (odznaczenie = wycofanie); e-mail klienta z kontem jest jego loginem (422 `EMAIL_IS_LOGIN`) |
 | PATCH | `/customers/{id}/note` | `CUSTOMERS_WRITE` | Notatka |
+| POST | `/customers/tags` `{ids, tag}` | `CUSTOMERS_WRITE` | Tag dla zaznaczonych (do 500) |
+| POST | `/customers/export.csv` `{ids?}` | `CUSTOMERS_WRITE` | Eksport wszystkich lub zaznaczonych (dane osobowe — audyt); kolumny takie jak w imporcie |
+| POST | `/customers/import` (multipart `file`, `consentConfirmed`) | `CUSTOMERS_WRITE` | CSV `;` lub `,`, maks. 5 MB / 10 000 wierszy; aktualizuje po e-mailu (puste pola nic nie kasują, tagi dopisywane); zgoda z pliku tylko po potwierdzeniu sprzedawcy, import nigdy jej nie wycofuje |
 | GET | `/customers/marketing-export.csv` | `MARKETING_WRITE` | Tylko osoby ze zgodą |
 
 ### Storefront `/api/v1/storefront` (sklep z nagłówka `Host`, bez sesji i CSRF)

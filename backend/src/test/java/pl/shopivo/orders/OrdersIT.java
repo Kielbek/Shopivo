@@ -206,6 +206,8 @@ class OrdersIT extends IntegrationTest {
         assertThat(customers.get(0).get("email").asString()).isEqualTo("anna@example.com");
         assertThat(customers.get(0).get("ordersCount").asInt()).isEqualTo(1);
         assertThat(customers.get(0).get("totalSpentMinor").asLong()).isEqualTo(total);
+        // The first shipping address becomes the customer's default address
+        assertThat(customers.get(0).get("address").get("city").asString()).isEqualTo("Łódź");
         assertThat(s.owner().get(base(s.tenant()) + "/customers/marketing-export.csv").body()).contains("anna@example.com");
         assertThat(s.owner().get(base(s.tenant()) + "/orders/stats").json().get("orders30d").asInt()).isEqualTo(1);
     }

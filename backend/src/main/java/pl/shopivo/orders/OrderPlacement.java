@@ -214,7 +214,8 @@ public class OrderPlacement {
         long total = subtotal + shipping + fee;
         String currency = stores.current().defaultCurrency();
 
-        UUID customerId = customers.upsertFromOrder(email, firstName, lastName, phone, c.marketingConsent());
+        UUID customerId = customers.upsertFromOrder(email, firstName, lastName, phone, c.marketingConsent(), address == null ? null
+                : new Customers.Address(address.company(), address.line1(), address.line2(), address.postalCode(), address.city(), address.countryCode()));
         long number = nextNumber(tenant);
         String token = Tokens.newToken();
         Instant now = Instant.now();

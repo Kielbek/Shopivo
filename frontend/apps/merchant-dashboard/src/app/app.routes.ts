@@ -39,6 +39,8 @@ export const routes: Routes = [
       { path: 'zamowienia/:orderId', title: 'Zamówienie', loadComponent: () => import('./features/sales/order-detail.page').then((m) => m.OrderDetailPage) },
       { path: 'zwroty', title: 'Zwroty i reklamacje', loadComponent: () => import('./features/sales/returns.page').then((m) => m.ReturnsPage) },
       { path: 'klienci', title: 'Klienci', loadComponent: () => import('./features/sales/customers.page').then((m) => m.CustomersPage) },
+      { path: 'klienci/nowy', title: 'Nowy klient', loadComponent: () => import('./features/sales/customer-edit.page').then((m) => m.CustomerEditPage) },
+      { path: 'klienci/:customerId', title: 'Klient', loadComponent: () => import('./features/sales/customer-edit.page').then((m) => m.CustomerEditPage) },
       { path: 'wysylka', title: 'Wysyłka', loadComponent: () => import('./features/sales/shipping.page').then((m) => m.ShippingPage) },
       { path: 'integracje', title: 'Integracje', loadComponent: () => import('./features/sales/integrations.page').then((m) => m.IntegrationsPage) },
       { path: 'platnosci', title: 'Płatności', loadComponent: () => import('./features/sales/payments.page').then((m) => m.PaymentsPage) },

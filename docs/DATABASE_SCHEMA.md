@@ -250,6 +250,13 @@ są przechowywane w istniejącym JSON-ie motywu (`store_themes`), więc nie wyma
 | `return_requests` | Zgłoszenie klienta: `number` (kolejny w sklepie), `order_id`, `kind` `WITHDRAWAL` (odstąpienie, 14 dni od doręczenia) / `COMPLAINT` (reklamacja, 2 lata od wysyłki), `status` `REQUESTED` → `ACCEPTED`/`REJECTED` → `COMPLETED`, `reason`, `refund_account` (26 cyfr), `merchant_note` (widoczna dla klienta), `version` |
 | `return_request_items` | Pozycje zgłoszenia (`order_item_id`, `quantity`); suma zgłoszeń nieodrzuconych nie przekroczy ilości w zamówieniu |
 
+## 5m. Profil klienta (migracja V19)
+
+Kolumny w `customers` (RLS jak w V5): adres domyślny (`company`, `address_line1`, `address_line2`, `postal_code`, `city`,
+`country_code`) — przy pierwszym zamówieniu uzupełniany adresem dostawy; `tags text[]` (maks. 20, indeks GIN);
+`marketing_consent_source` `CHECKOUT` / `PANEL` / `IMPORT` (skąd pochodzi zgoda — rozliczalność RODO). Migracja uzupełnia
+adres z ostatniego zamówienia i źródło `CHECKOUT` dla istniejących zgód.
+
 ## 6. Tabele — kolejne fazy (projekt)
 
 | Faza | Tabele |

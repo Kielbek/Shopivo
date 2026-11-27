@@ -386,12 +386,25 @@ export interface OrderStats { newOrders: number; processing: number; unpaid: num
 export interface DailySales { day: string; orders: number; revenueMinor: number; }
 export interface ShippingMethod { id: string; name: string; description: string | null; type: ShippingType; priceMinor: number; freeFromMinor: number | null; active: boolean; position: number; version: number; carrier: string | null; requiresPickupPoint: boolean; }
 export interface StorePaymentSettings { bankTransferEnabled: boolean; bankAccountHolder: string | null; bankAccountNumber: string | null; bankName: string | null; codEnabled: boolean; codFeeMinor: number; unpaidCancelDays: number; version: number; }
+export interface CustomerAddress {
+  company: string | null; line1: string | null; line2: string | null; postalCode: string | null; city: string | null; countryCode: string | null;
+}
+/** Where a marketing consent came from (RODO accountability). */
+export type ConsentSource = 'CHECKOUT' | 'PANEL' | 'IMPORT';
+export const CONSENT_SOURCE_LABELS: Record<ConsentSource, string> = { CHECKOUT: 'przy zamówieniu', PANEL: 'dodana w panelu', IMPORT: 'z importu' };
 export interface Customer {
   id: string; email: string; firstName: string | null; lastName: string | null; phone: string | null; acceptsMarketing: boolean;
-  marketingConsentAt: string | null; note: string | null; ordersCount: number; totalSpentMinor: number; lastOrderAt: string | null; createdAt: string; version: number;
+  marketingConsentAt: string | null; marketingConsentSource: ConsentSource | null; note: string | null; address: CustomerAddress; tags: string[];
+  ordersCount: number; totalSpentMinor: number; lastOrderAt: string | null; createdAt: string; version: number;
   /** Set when the customer has a confirmed account in the store. */
   accountCreatedAt: string | null;
 }
+/** What the merchant enters when adding or editing a customer. */
+export interface CustomerInput {
+  email: string; firstName: string | null; lastName: string | null; phone: string | null; acceptsMarketing: boolean; note: string | null;
+  address: CustomerAddress | null; tags: string[];
+}
+export interface CustomerImportResult { created: number; updated: number; skipped: number; errors: string[]; }
 
 export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = { NEW: 'Nowe', PROCESSING: 'W realizacji', SHIPPED: 'Wysłane', COMPLETED: 'Zrealizowane', CANCELED: 'Anulowane' };
 export const PAYMENT_STATUS_LABELS: Record<OrderPaymentStatus, string> = { UNPAID: 'Nieopłacone', PAID: 'Opłacone', REFUNDED: 'Zwrócone' };
