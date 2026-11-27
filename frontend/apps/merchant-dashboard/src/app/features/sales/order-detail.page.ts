@@ -32,7 +32,7 @@ type Pending = { kind: 'ship' } | { kind: 'cancel' } | null;
         <div class="flex min-w-0 items-center gap-3">
           <a sv-button variant="ghost" size="icon" [routerLink]="['/sklep', ctx.tenantId(), 'zamowienia']" aria-label="Wróć do zamówień"><svg [lucideIcon]="icons.arrowLeft" /></a>
           <div class="min-w-0">
-            <h1 class="text-[22px] font-semibold tracking-[-0.01em] text-ink">Zamówienie #{{ o.number }}</h1>
+            <h1 class="text-[24px] font-semibold tracking-[-0.02em] text-ink">Zamówienie #{{ o.number }}</h1>
             <p class="mt-0.5 flex flex-wrap items-center gap-1.5 text-[13px] text-ink-muted">
               <sv-badge [tone]="orderTone[o.status]">{{ statusLabels[o.status] }}</sv-badge>
               <sv-badge [tone]="paymentTone[o.paymentStatus]">{{ paymentLabels[o.paymentStatus] }}</sv-badge>

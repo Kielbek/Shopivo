@@ -6,20 +6,20 @@ export interface TabOption {
 }
 
 /**
- * Segmented control used as page tabs (WAI-ARIA tabs pattern: roving focus with arrow keys).
+ * Pill tabs (Shopify-like filter views) (WAI-ARIA tabs pattern: roving focus with arrow keys).
  * Panels should use `role="tabpanel"` with `id="panel-<id>"` and `aria-labelledby="tab-<id>"`.
  */
 @Component({
   selector: 'sv-tabs',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'inline-flex max-w-full overflow-x-auto rounded-full bg-[#E9EBE6] p-1', role: 'tablist', '[attr.aria-label]': 'label()' },
+  host: { class: 'inline-flex max-w-full gap-1 overflow-x-auto',  role: 'tablist', '[attr.aria-label]': 'label()' },
   template: `
     @for (t of tabs(); track t.id) {
       <button type="button" role="tab" [id]="'tab-' + t.id" [attr.aria-selected]="active() === t.id"
         [attr.aria-controls]="'panel-' + t.id" [tabIndex]="active() === t.id ? 0 : -1"
         (click)="active.set(t.id)" (keydown)="onKey($event)"
-        class="h-8 whitespace-nowrap rounded-full px-4 text-[13px] font-medium transition-colors"
-        [class]="active() === t.id ? 'bg-card text-ink shadow-[0_1px_2px_rgba(15,18,16,0.1)]' : 'text-ink-muted hover:text-ink'">
+        class="h-8 whitespace-nowrap rounded-full px-3.5 text-[13px] font-medium transition-colors"
+        [class]="active() === t.id ? 'bg-[#E3E6E0] text-ink' : 'text-ink-soft hover:bg-[#EEF0EC] hover:text-ink'">
         {{ t.label }}
       </button>
     }

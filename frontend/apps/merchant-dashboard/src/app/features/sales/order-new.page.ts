@@ -25,7 +25,7 @@ interface Line { variantId: string; name: string; title: string; unitMinor: numb
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="flex items-center gap-3">
           <a sv-button variant="ghost" size="icon" [routerLink]="['/sklep', ctx.tenantId(), 'zamowienia']" aria-label="Wróć do zamówień"><svg [lucideIcon]="icons.arrowLeft" /></a>
-          <h1 class="text-[22px] font-semibold tracking-[-0.01em] text-ink">Nowe zamówienie</h1>
+          <h1 class="text-[24px] font-semibold tracking-[-0.02em] text-ink">Nowe zamówienie</h1>
         </div>
         <button sv-button type="submit" [loading]="saving()" [disabled]="!lines().length">Utwórz zamówienie</button>
       </div>

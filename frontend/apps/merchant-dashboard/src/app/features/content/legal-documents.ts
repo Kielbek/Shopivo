@@ -57,7 +57,7 @@ import { StoreContext } from '../store/store-context';
               @if (l.requiredForPublish) {<sv-badge tone="warning">Wymagany</sv-badge>}
               @if (!l.entry) {
                 @if (canWrite) {
-                  <button sv-button size="sm" class="relative z-[1]" [loading]="creating() === l.key" (click)="create(l.key)"><svg [lucideIcon]="icons.plus" />Utwórz ze wzoru</button>
+                  <button sv-button variant="tonal" size="sm" class="relative z-[1]" [loading]="creating() === l.key" (click)="create(l.key)"><svg [lucideIcon]="icons.plus" />Utwórz ze wzoru</button>
                 } @else {<sv-badge>Nie utworzono</sv-badge>}
               } @else {
                 <sv-badge [tone]="l.entry.status === 'PUBLISHED' ? 'success' : 'neutral'">{{ l.entry.status === 'PUBLISHED' ? 'Opublikowany' : 'Szkic' }}</sv-badge>

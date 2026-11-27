@@ -9,15 +9,15 @@ import { AvatarComponent, LogoComponent, MenuComponent, MenuItemComponent, Toast
   selector: 'sv-top-bar',
   imports: [RouterLink, LucideDynamicIcon, LogoComponent, MenuComponent, MenuItemComponent, AvatarComponent, ToastOutletComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block border-b border-line bg-card' },
+  host: { class: 'block bg-forest text-white' },
   template: `
     <div class="mx-auto flex h-16 max-w-[1120px] items-center justify-between px-4 sm:px-6">
-      <a routerLink="/sklepy" aria-label="Moje sklepy"><sv-logo /></a>
-      <sv-menu label="Menu użytkownika" triggerClass="gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-hover">
+      <a routerLink="/sklepy" aria-label="Moje sklepy"><sv-logo tone="light" /></a>
+      <sv-menu label="Menu użytkownika" triggerClass="gap-2 rounded-full py-1 pl-1 pr-2 hover:bg-white/10">
         <span menu-trigger class="flex items-center gap-2">
           <sv-avatar [name]="fullName()" size="sm" />
-          <span class="hidden text-[13px] font-medium text-ink sm:inline">{{ fullName() }}</span>
-          <svg [lucideIcon]="icons.chevronDown" [size]="14" class="hidden text-ink-muted sm:block" />
+          <span class="hidden text-[13px] font-medium text-white sm:inline">{{ fullName() }}</span>
+          <svg [lucideIcon]="icons.chevronDown" [size]="14" class="hidden text-forest-muted sm:block" />
         </span>
         <div class="px-2.5 pb-2 pt-1.5">
           <p class="truncate text-[13px] font-medium text-ink">{{ fullName() }}</p>

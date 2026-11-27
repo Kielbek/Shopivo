@@ -38,7 +38,7 @@ export function contrast(a: string, b: string): number {
       @let d = data.value();
       <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 class="text-[22px] font-semibold tracking-[-0.01em] text-ink">Wygląd sklepu</h1>
+          <h1 class="text-[24px] font-semibold tracking-[-0.02em] text-ink">Wygląd sklepu</h1>
           <p class="mt-1 text-[13px] text-ink-muted">Szablon, strona główna, nagłówek, stopka i kolory. Zmiany robisz w edytorze i publikujesz, gdy są gotowe.</p>
         </div>
         <div class="flex flex-wrap gap-2">

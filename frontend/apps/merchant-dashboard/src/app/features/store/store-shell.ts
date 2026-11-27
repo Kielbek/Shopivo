@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { rxResource, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { LucideDynamicIcon } from '@lucide/angular';
-import { SessionStore } from '@shopivo/api-client';
+import { SessionStore, StoresApi } from '@shopivo/api-client';
 import { STORE_ROLE_LABELS, StorePermission } from '@shopivo/shared-models';
 import {
   AlertComponent, AppShellComponent, AvatarComponent, BadgeComponent, ButtonComponent, LoadingComponent, LogoComponent,
@@ -128,6 +128,16 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
             </ul>
           </div>
         }
+        <div shell-header-start class="flex min-w-0 items-center gap-2.5">
+          <span class="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium"
+            [class]="store.status === 'PUBLISHED' ? 'bg-success-soft text-success-ink' : 'bg-[#EEEFEB] text-ink-soft'">
+            <span class="size-1.5 rounded-full" [class]="store.status === 'PUBLISHED' ? 'bg-success' : 'bg-warning'"></span>
+            {{ store.status === 'PUBLISHED' ? 'Sklep otwarty' : 'Szkic — sklep niewidoczny dla klientów' }}</span>
+          @if (store.status === 'PUBLISHED' && storeUrl()) {
+            <a [href]="storeUrl()" target="_blank" rel="noopener" class="inline-flex items-center gap-1 truncate text-[13px] font-medium text-ink-soft hover:text-ink">
+              {{ store.primaryHostname }}<svg [lucideIcon]="icons.external" [size]="13" /></a>
+          }
+        </div>
         <ng-container shell-header-end>
           <sv-menu label="Wybierz sklep" triggerClass="h-9 gap-2 rounded-[var(--radius-control)] border border-line px-2.5 hover:bg-hover">
             <span menu-trigger class="flex items-center gap-2">
@@ -195,12 +205,18 @@ const NAV_BOTTOM: { title?: string; items: MerchantNavItem[] }[] = [
 export class StoreShell {
   protected readonly ctx = inject(StoreContext);
   protected readonly session = inject(SessionStore);
+  private readonly storesApi = inject(StoresApi);
   private readonly router = inject(Router);
   protected readonly icons = icons;
 
   readonly tenantId = input.required<string>();
 
   protected readonly base = computed(() => ['/sklep', this.tenantId()]);
+  private readonly platformConfig = rxResource({ stream: () => this.storesApi.config() });
+  protected readonly storeUrl = computed(() => {
+    const host = this.ctx.store()?.primaryHostname;
+    return host ? (this.platformConfig.value()?.storefrontUrlTemplate ?? 'https://{host}').replace('{host}', host) : null;
+  });
   private readonly url = toSignal(this.router.events.pipe(filter((e) => e instanceof NavigationEnd), map(() => this.router.url)),
     { initialValue: this.router.url });
   protected readonly onSubscriptionPage = computed(() => this.url().split('?')[0].endsWith('/subskrypcja'));

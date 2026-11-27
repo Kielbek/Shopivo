@@ -16,7 +16,7 @@ import { TopBar } from './top-bar';
     <main class="mx-auto max-w-[880px] px-4 py-10 sm:px-6">
       <div class="flex items-end justify-between gap-4">
         <div>
-          <h1 class="text-[22px] font-semibold tracking-[-0.01em]">Moje sklepy</h1>
+          <h1 class="text-[24px] font-semibold tracking-[-0.02em]">Moje sklepy</h1>
           <p class="mt-1 text-[13px] text-ink-soft">Sklepy, w których jesteś właścicielem lub członkiem zespołu.</p>
         </div>
         <a sv-button routerLink="/nowy-sklep"><svg [lucideIcon]="icons.plus" />Nowy sklep</a>

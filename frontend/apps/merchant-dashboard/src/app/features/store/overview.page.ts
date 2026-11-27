@@ -59,14 +59,14 @@ const ORDER_TONE: Record<OrderStatus, BadgeTone> = {
     <!-- Setup guide -->
     @if (showGuide()) {
       <section class="sv-card mt-6 overflow-hidden" aria-labelledby="guide-h">
-        <div class="flex flex-wrap items-center gap-4 px-5 py-4">
-          <div class="min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-3 px-5 py-4">
+          <div class="min-w-[240px] flex-1">
             <h2 id="guide-h" class="text-[15px] font-semibold text-ink">Przewodnik konfiguracji</h2>
             <p class="mt-0.5 text-[13px] text-ink-soft">Kilka kroków, po których sklep jest gotowy do sprzedaży.</p>
           </div>
-          <div class="flex items-center gap-3">
+          <div class="flex w-full items-center gap-3 sm:w-auto">
             <span class="text-[12.5px] font-medium tabular-nums text-ink-soft">{{ doneCount() }} z {{ steps().length }} ukończonych</span>
-            <span class="h-1.5 w-28 overflow-hidden rounded-full bg-canvas" role="progressbar" [attr.aria-valuenow]="doneCount()"
+            <span class="h-1.5 flex-1 overflow-hidden rounded-full bg-canvas sm:w-28 sm:flex-none" role="progressbar" [attr.aria-valuenow]="doneCount()"
               aria-valuemin="0" [attr.aria-valuemax]="steps().length" aria-label="Postęp konfiguracji">
               <span class="block h-full rounded-full bg-night transition-[width]" [style.width.%]="(doneCount() / steps().length) * 100"></span>
             </span>

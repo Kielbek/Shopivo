@@ -9,8 +9,8 @@ import { IconName, icons } from './icons';
   host: { class: 'flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between' },
   template: `
     <div class="min-w-0">
-      <h1 class="text-[22px] font-semibold leading-tight tracking-[-0.01em] text-ink">{{ title() }}</h1>
-      @if (description()) {<p class="mt-1 max-w-2xl text-[13px] text-ink-muted">{{ description() }}</p>}
+      <h1 class="text-[24px] font-semibold leading-tight tracking-[-0.02em] text-ink">{{ title() }}</h1>
+      @if (description()) {<p class="mt-1 max-w-2xl text-[13.5px] leading-[1.55] text-ink-soft">{{ description() }}</p>}
     </div>
     <div class="flex shrink-0 flex-wrap items-center gap-2"><ng-content /></div>
   `,

@@ -26,7 +26,7 @@ type Msg = { tone: 'success' | 'error'; text: string } | null;
     <main class="mx-auto max-w-[880px] px-4 py-8 sm:px-6">
       <a routerLink="/" class="inline-flex items-center gap-1 text-[13px] text-ink-muted hover:text-ink"><svg [lucideIcon]="icons.chevronLeft" [size]="16" />Wróć do panelu</a>
       <div class="mt-3 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <h1 class="text-[22px] font-semibold tracking-[-0.01em] text-ink">Konto</h1>
+        <h1 class="text-[24px] font-semibold tracking-[-0.02em] text-ink">Konto</h1>
         <sv-tabs label="Sekcje konta" [tabs]="tabs" [(active)]="tab" />
       </div>
 
