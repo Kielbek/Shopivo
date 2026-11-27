@@ -263,6 +263,21 @@ function newId(type: string): string {
                 <iframe #frame [src]="src" title="Podgląd sklepu na żywo" class="block size-full border-0 bg-white" sandbox="allow-scripts allow-same-origin allow-forms" (load)="framed()"></iframe>
               </div>
             </div>
+            @if (frameBroken()) {
+              <!-- The storefront did not answer inside the frame (not running, or it refuses to be framed by this panel) -->
+              <div class="absolute inset-0 z-10 flex items-center justify-center bg-canvas/95 p-6" role="alert">
+                <div class="max-w-md rounded-[14px] border border-line bg-card p-6 text-center shadow-sm">
+                  <p class="text-[15px] font-semibold text-ink">Nie udało się wyświetlić podglądu sklepu</p>
+                  <p class="mt-2 text-[13px] leading-relaxed text-ink-soft">Witryna pod adresem <span class="font-medium text-ink">{{ frameHost() }}</span> nie odpowiada w podglądzie.
+                    Sprawdź, czy działa, i czy zezwala panelowi na osadzenie podglądu (ustawienie <code class="text-[12px]">SHOPIVO_PANEL_ORIGIN</code> witryny).
+                    Zmiany w edytorze możesz dalej zapisywać.</p>
+                  <div class="mt-4 flex flex-wrap justify-center gap-2">
+                    <button sv-button variant="secondary" size="sm" type="button" (click)="retryFrame()">Spróbuj ponownie</button>
+                    @if (previewHref(); as href) {<a sv-button size="sm" [href]="href" target="_blank" rel="noopener">Otwórz podgląd w nowej karcie</a>}
+                  </div>
+                </div>
+              </div>
+            }
           } @else {
             <div class="h-full p-6"><span class="sv-shimmer block h-full rounded-[14px]"></span></div>
           }
@@ -364,6 +379,17 @@ export class ThemeEditorPage {
     const u = this.previewUrl();
     return u && /^https?:\/\//.test(u) ? this.sanitizer.bypassSecurityTrustResourceUrl(u) : null;
   });
+  /** The storefront in the frame said "shopivo:ready" — only then do we send it the draft. */
+  private readonly frameReady = signal(false);
+  protected readonly frameBroken = signal(false);
+  private frameTimer: ReturnType<typeof setTimeout> | null = null;
+  protected readonly previewHref = computed(() => {
+    const u = this.previewUrl();
+    return u && /^https?:\/\//.test(u) ? u : null;
+  });
+  protected readonly frameHost = computed(() => {
+    try { return this.previewUrl() ? new URL(this.previewUrl()!).host : ''; } catch { return ''; }
+  });
   private readonly frameOrigin = computed(() => {
     const u = this.previewUrl();
     try { return u ? new URL(u).origin : null; } catch { return null; }
@@ -396,6 +422,8 @@ export class ThemeEditorPage {
     const destroyRef = inject(DestroyRef);
     const onMessage = (e: MessageEvent) => {
       if (e.origin === this.frameOrigin() && e.data?.type === 'shopivo:ready') {
+        this.frameReady.set(true);
+        this.frameBroken.set(false);
         this.post({ type: 'shopivo:theme', theme: { code: this.code(), settings: this.settings(), sections: this.sections() }, images: this.images() });
       }
     };
@@ -419,14 +447,26 @@ export class ThemeEditorPage {
   }
 
   private post(message: unknown): void {
+    // A frame that failed to load holds the browser's error page (another origin) — posting there only logs errors.
+    if (!this.frameReady()) return;
     const win = this.frame()?.nativeElement.contentWindow;
     const origin = this.frameOrigin();
     if (win && origin) win.postMessage(message, origin);
   }
 
   protected framed(): void {
-    // The storefront announces itself ("shopivo:ready"); this is a fallback for a slow handshake.
-    setTimeout(() => this.post({ type: 'shopivo:theme', theme: { code: this.code(), settings: this.settings(), sections: this.sections() }, images: this.images() }), 400);
+    // The storefront announces itself ("shopivo:ready") once it has started; no answer = the preview is not shown.
+    if (this.frameTimer) clearTimeout(this.frameTimer);
+    this.frameTimer = setTimeout(() => this.frameBroken.set(!this.frameReady()), 6000);
+  }
+
+  protected retryFrame(): void {
+    this.frameReady.set(false);
+    this.frameBroken.set(false);
+    const el = this.frame()?.nativeElement;
+    const href = this.previewHref();
+    if (el && href) el.src = href; // same URL — force the frame to load again
+    this.link.reload();
   }
 
   /** The store's library plus the templates' own images (`tpl:…`), so both show in the editor and the live preview. */

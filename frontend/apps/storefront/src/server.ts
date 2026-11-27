@@ -124,6 +124,16 @@ app.get('/robots.txt', (req, res, next) => void proxy(req, res, next, '/api/v1/s
  */
 const PANEL_ORIGINS = (process.env['SHOPIVO_PANEL_ORIGIN'] ?? '')
   .split(',').map((o) => o.trim()).filter((o) => /^https?:\/\/[a-z0-9.-]+(:\d+)?$/i.test(o));
+/**
+ * Local development without SHOPIVO_PANEL_ORIGIN: stores on `*.localhost` (which never resolve outside this machine)
+ * may be previewed by the panel's dev server. Real hosts still need the variable.
+ */
+const LOCAL_PANEL_ORIGINS = ['http://localhost:4200', 'http://127.0.0.1:4200'];
+
+function previewFramers(hostname: string): string[] {
+  if (PANEL_ORIGINS.length) return PANEL_ORIGINS;
+  return hostname === 'localhost' || hostname.endsWith('.localhost') ? LOCAL_PANEL_ORIGINS : [];
+}
 
 // Baseline security headers for every page.
 app.use((req, res, next) => {
@@ -142,7 +152,7 @@ app.use((req, res, next) => {
     "font-src 'self'",
     "connect-src 'self' https://challenges.cloudflare.com",
     'frame-src https://challenges.cloudflare.com',
-    'podglad' in req.query && PANEL_ORIGINS.length ? `frame-ancestors 'self' ${PANEL_ORIGINS.join(' ')}` : "frame-ancestors 'self'",
+    'podglad' in req.query && previewFramers(req.hostname).length ? `frame-ancestors 'self' ${previewFramers(req.hostname).join(' ')}` : "frame-ancestors 'self'",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

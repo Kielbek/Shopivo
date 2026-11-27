@@ -48,7 +48,7 @@ Baza lokalna: skrypt `docker/postgres/init/01-roles.sql` tworzy role `shopivo_ow
 | `SHOPIVO_MEDIA_MAX_CONCURRENT_PROCESSING` | nie | równoległe dekodowania zdjęć na instancję (domyślnie 2; każde do ~320 MB sterty — dobierz do `-Xmx`, min. 1 GB przy 2) |
 | `SHOPIVO_CAPTCHA_PROVIDER` | tak (prod) | `turnstile` — w profilach `prod`/`staging` aplikacja nie wystartuje bez CAPTCHA |
 | `SHOPIVO_CAPTCHA_SITE_KEY` / `SHOPIVO_CAPTCHA_SECRET_KEY` | tak (prod) | klucze widgetu Cloudflare Turnstile; w ustawieniach widgetu dodaj domenę platformy (obejmuje subdomeny sklepów) — domeny własne sklepów wymagają dopisania lub planu Enterprise |
-| `SHOPIVO_PANEL_ORIGIN` | tak (witryna SSR) | adres(y) panelu sprzedawcy, np. `https://panel.shopivo.pl` (po przecinku) — tylko te strony mogą osadzać **podgląd** sklepu (`?podglad=`) w ramce; strony publiczne pozostają `frame-ancestors 'self'`. Lokalnie `http://localhost:4200` |
+| `SHOPIVO_PANEL_ORIGIN` | tak (witryna SSR) | adres(y) panelu sprzedawcy, np. `https://panel.shopivo.pl` (po przecinku) — tylko te strony mogą osadzać **podgląd** sklepu (`?podglad=`) w ramce; strony publiczne pozostają `frame-ancestors 'self'`. Lokalnie można pominąć: dla sklepów na `*.localhost` podgląd mogą osadzać `http://localhost:4200` i `http://127.0.0.1:4200` |
 | `SHOPIVO_STOREFRONT_URL_TEMPLATE` | nie | publiczny adres witryny, domyślnie `https://{host}` (sitemap, robots, link „Otwórz sklep”, podgląd); lokalnie `http://{host}:4000` |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ZONE_ID` | Faza 6 | domeny własne (Cloudflare for SaaS) |
 | `SHOPIVO_PUBLIC_API_URL` | tak (Faza 2) | publiczny adres API widziany przez operatorów płatności (adres powiadomień `…/api/v1/webhooks/billing/<operator>`); domyślnie `SHOPIVO_APP_URL` |
