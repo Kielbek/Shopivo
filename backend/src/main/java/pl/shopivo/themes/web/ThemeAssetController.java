@@ -17,13 +17,13 @@ import pl.shopivo.themes.ThemeAssets;
 @Tag(name = "Themes")
 class ThemeAssetController {
 
-    @GetMapping("/api/v1/theme-assets/{template:[a-z0-9]{2,20}}/{file:[a-z0-9-]{2,60}\\.jpg}")
+    @GetMapping("/api/v1/theme-assets/{template:[a-z0-9]{2,20}}/{file:[a-z0-9-]{2,60}\\.(?:jpg|webp)}")
     ResponseEntity<Resource> asset(@PathVariable String template, @PathVariable String file) {
         return ThemeAssets.resource(template, file)
                 .map(ClassPathResource::new)
                 .filter(Resource::exists)
                 .<ResponseEntity<Resource>>map(r -> ResponseEntity.ok()
-                        .contentType(MediaType.IMAGE_JPEG)
+                        .contentType(file.endsWith(".webp") ? MediaType.parseMediaType("image/webp") : MediaType.IMAGE_JPEG)
                         .cacheControl(CacheControl.maxAge(Duration.ofDays(30)).cachePublic())
                         .header("X-Content-Type-Options", "nosniff")
                         .body(r))

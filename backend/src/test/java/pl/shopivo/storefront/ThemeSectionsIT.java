@@ -85,8 +85,10 @@ class ThemeSectionsIT extends IntegrationTest {
         assertThat(vera.get("defaults").get("font").asString()).isEqualTo("editorial");
         assertThat(vera.get("sections").get(0).get("data").get("image").asString()).isEqualTo("tpl:vera/hero");
         var assets = theme.get("templateImages");
-        assertThat(assets.size()).isEqualTo(13);
+        assertThat(assets.size()).isEqualTo(37);
         assertThat(theme.get("sampleProducts").get("VERA").size()).isEqualTo(8);
+        assertThat(theme.get("sampleProducts").get("BAWILOO").size()).isEqualTo(16);
+        assertThat(theme.get("presets").get(1).get("code").asString()).isEqualTo("BAWILOO");
         assertThat(assets.get(0).get("urls").get("w1200").asString()).isEqualTo("/api/v1/theme-assets/vera/hero-w1200.jpg");
 
         // The template's own sections (with its images) are accepted as they are
@@ -127,6 +129,11 @@ class ThemeSectionsIT extends IntegrationTest {
         assertThat(file.getContentType()).isEqualTo("image/jpeg");
         assertThat(file.getHeader("Cache-Control")).contains("max-age");
         assertThat(file.getContentAsByteArray().length).isGreaterThan(5_000);
+        var webp = mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get("/api/v1/theme-assets/bawiloo/hero-w400.webp"))
+                .andReturn().getResponse();
+        assertThat(webp.getStatus()).isEqualTo(200);
+        assertThat(webp.getContentType()).isEqualTo("image/webp");
+        assertThat(anon.get("/api/v1/theme-assets/bawiloo/hero-w400.jpg").status()).as("only the registered format").isEqualTo(404);
         assertThat(anon.get("/api/v1/theme-assets/vera/secret-w400.jpg").status()).isEqualTo(404);
         assertThat(anon.get("/api/v1/theme-assets/other/hero-w400.jpg").status()).isEqualTo(404);
         assertThat(anon.get("/api/v1/theme-assets/vera/..%2F..%2Fapplication.yml").status()).isIn(400, 404);
@@ -160,6 +167,14 @@ class ThemeSectionsIT extends IntegrationTest {
         assertThat(coat.get("variants").size()).isEqualTo(5);
         assertThat(coat.get("images").size()).isEqualTo(1);
         assertThat(coat.get("images").get(0).get("urls").get("w400").asString()).contains(t);
+
+        // The toy template: its sections are accepted and its 16 example products can be added too
+        var bawiloo = owner.get(base(t) + "/theme").json().get("presets").get(1);
+        List<Object> bSections = jsonMapper.convertValue(bawiloo.get("sections"), List.class);
+        long v = owner.get(base(t) + "/theme").json().get("state").get("version").asLong();
+        var savedB = owner.put(base(t) + "/theme", Map.of("code", "BAWILOO", "settings", Map.of(), "sections", bSections, "version", v));
+        assertThat(savedB.status()).as(savedB.body()).isEqualTo(200);
+        assertThat(owner.post(base(t) + "/theme/sample-products", Map.of("code", "BAWILOO")).json().get("created").asInt()).isEqualTo(16);
 
         ApiClient other = registeredUser(uniqueEmail("obcy2"));
         assertThat(other.post(base(t) + "/theme/sample-products", Map.of("code", "VERA")).status()).isEqualTo(404);

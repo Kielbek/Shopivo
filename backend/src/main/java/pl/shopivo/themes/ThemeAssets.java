@@ -28,8 +28,13 @@ public final class ThemeAssets {
     }
 
     private static Asset asset(String template, String name, String label) {
+        return asset(template, name, label, "jpg");
+    }
+
+    /** {@code webp} only for images that need transparency (e.g. a cut-out banner); everything else is JPEG. */
+    private static Asset asset(String template, String name, String label, String ext) {
         Map<String, String> urls = new LinkedHashMap<>();
-        for (String v : VARIANTS) urls.put(v, "/api/v1/theme-assets/" + template + "/" + name + "-" + v + ".jpg");
+        for (String v : VARIANTS) urls.put(v, "/api/v1/theme-assets/" + template + "/" + name + "-" + v + "." + ext);
         return new Asset(PREFIX + template + "/" + name, template, label, Map.copyOf(urls));
     }
 
@@ -46,7 +51,31 @@ public final class ThemeAssets {
             asset("vera", "p-shirt", "Produkt — koszula"),
             asset("vera", "p-dress", "Produkt — sukienka"),
             asset("vera", "p-chinos", "Produkt — spodnie"),
-            asset("vera", "p-jacket", "Produkt — kurtka"));
+            asset("vera", "p-jacket", "Produkt — kurtka"),
+            asset("bawiloo", "hero", "Baner — zabawki (przezroczyste tło)", "webp"),
+            asset("bawiloo", "cat-pluszaki", "Kategoria — pluszaki"),
+            asset("bawiloo", "cat-outdoor", "Kategoria — na dworze"),
+            asset("bawiloo", "cat-kapiel", "Kategoria — do kąpieli"),
+            asset("bawiloo", "cat-plastyczne", "Kategoria — plastyka"),
+            asset("bawiloo", "cat-figurki", "Kategoria — figurki"),
+            asset("bawiloo", "cat-ukladanki", "Kategoria — układanki"),
+            asset("bawiloo", "about", "O nas — sklep"),
+            asset("bawiloo", "p-pingwin-lotek", "Produkt — pingwin"),
+            asset("bawiloo", "p-kotka-kokardka", "Produkt — kotka"),
+            asset("bawiloo", "p-dinozaur-gucio", "Produkt — dinozaur"),
+            asset("bawiloo", "p-piesek-bosman", "Produkt — piesek"),
+            asset("bawiloo", "p-robot-bolek", "Produkt — robot"),
+            asset("bawiloo", "p-jednorozec-iskierka", "Produkt — jednorożec"),
+            asset("bawiloo", "p-zabawka-01", "Produkt — piramidka"),
+            asset("bawiloo", "p-zabawka-02", "Produkt — kostka"),
+            asset("bawiloo", "p-zabawka-03", "Produkt — piesek na kółkach"),
+            asset("bawiloo", "p-zabawka-04", "Produkt — kaczuszka"),
+            asset("bawiloo", "p-zabawka-05", "Produkt — słonik"),
+            asset("bawiloo", "p-maskotka-krolik", "Produkt — króliczek"),
+            asset("bawiloo", "p-maskotka-mis", "Produkt — miś"),
+            asset("bawiloo", "p-maskotka-lis", "Produkt — lisek"),
+            asset("bawiloo", "p-maskotka-osmiornica", "Produkt — ośmiorniczka"),
+            asset("bawiloo", "p-maskotka-dinozaur", "Produkt — dinozaur pluszowy"));
 
     public static boolean isRef(String value) {
         return value != null && value.startsWith(PREFIX);
@@ -60,9 +89,8 @@ public final class ThemeAssets {
     public static Optional<String> resource(String template, String file) {
         for (Asset a : ALL) {
             if (!a.template().equals(template)) continue;
-            for (String v : VARIANTS) {
-                String name = a.ref().substring(a.ref().indexOf('/') + 1) + "-" + v + ".jpg";
-                if (name.equals(file)) return Optional.of("themes/" + template + "/" + file);
+            for (String url : a.urls().values()) {
+                if (url.endsWith("/" + template + "/" + file)) return Optional.of("themes/" + template + "/" + file);
             }
         }
         return Optional.empty();

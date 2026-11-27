@@ -4,6 +4,9 @@ import { IconName } from '@shopivo/shared-ui';
 export const OPTION_LABELS: Record<string, string> = {
   sans: 'Bezszeryfowy (nowoczesny)', serif: 'Szeryfowy (elegancki)', rounded: 'Zaokrąglony (przyjazny)', mono: 'Techniczny',
   editorial: 'Magazynowy (szeryfowe nagłówki + nowoczesny tekst)',
+  playful: 'Radosny (zaokrąglone nagłówki + przyjazny tekst)',
+  cards: 'Duże kafelki ze zdjęciem', circles: 'Okrągłe zdjęcia z podpisem', grid: 'Siatka', carousel: 'Karuzela (przewijana)',
+  flower: 'Kwiatek (zaokrąglone płatki)',
   none: 'Ostre rogi', soft: 'Delikatne', round: 'Mocne',
   plain: 'Bez ramki', bordered: 'Z ramką', shadow: 'Z cieniem',
   classic: 'Logo po lewej, menu obok', centered: 'Logo na środku, menu pod spodem',
@@ -21,6 +24,8 @@ export const OPTION_LABELS: Record<string, string> = {
 export function optionLabel(prop: string, value: string): string {
   if (prop === 'layout' && value === 'centered') return 'Wyśrodkowany tekst';
   if (prop === 'layout' && value === 'editorial') return 'Magazyn: tekst, dwa przyciski i wysokie zdjęcie';
+  if (prop === 'shape' && value === 'rounded') return 'Prostokąt z zaokrągleniem';
+  if (prop === 'layout' && value === 'playful') return 'Radosny: duży napis, zdjęcie i falowana krawędź';
   if (prop === 'align' && value === 'left') return 'Do lewej';
   if (prop === 'count') return value;
   return OPTION_LABELS[value] ?? value;

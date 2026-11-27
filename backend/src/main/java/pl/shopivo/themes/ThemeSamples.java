@@ -47,7 +47,28 @@ public class ThemeSamples {
             new Sample("Koszula z organicznej bawełny", "Mężczyźni", 19900, 24900L, List.of("S", "M", "L", "XL"), "tpl:vera/p-shirt", DESC),
             new Sample("Sukienka maxi Lyon", "Kobiety", 38900, null, LETTERS, "tpl:vera/p-dress", DESC),
             new Sample("Spodnie chino Torino", "Mężczyźni", 27900, null, List.of("30", "32", "34", "36"), "tpl:vera/p-chinos", DESC),
-            new Sample("Kurtka utility Bergen", "Kobiety", 52900, null, LETTERS, "tpl:vera/p-jacket", DESC)));
+            new Sample("Kurtka utility Bergen", "Kobiety", 52900, null, LETTERS, "tpl:vera/p-jacket", DESC)),
+            "BAWILOO", List.of(
+            toy("Pingwin Lotek", "Figurki", 1799, 2299L, "p-pingwin-lotek"),
+            toy("Kotka Kokardka", "Figurki", 1499, 1979L, "p-kotka-kokardka"),
+            toy("Dinozaur Gucio", "Figurki", 1799, 2399L, "p-dinozaur-gucio"),
+            toy("Piesek Bosman", "Figurki", 1399, 1899L, "p-piesek-bosman"),
+            toy("Robot Bolek", "Figurki", 1699, 2299L, "p-robot-bolek"),
+            toy("Jednorożec Iskierka", "Figurki", 1979, null, "p-jednorozec-iskierka"),
+            toy("Króliczek Miętus", "Pluszaki", 1999, 2499L, "p-maskotka-krolik"),
+            toy("Miś Morelek", "Pluszaki", 2999, 3999L, "p-maskotka-mis"),
+            toy("Lisek Rudek", "Pluszaki", 2499, 3299L, "p-maskotka-lis"),
+            toy("Ośmiorniczka Lila", "Pluszaki", 1699, 2199L, "p-maskotka-osmiornica"),
+            toy("Dinozaur Groszek", "Pluszaki", 2299, 2999L, "p-maskotka-dinozaur"),
+            toy("Piramidka Misio", "Puzzle i łamigłówki", 1999, null, "p-zabawka-01"),
+            toy("Kostka Odkrywca", "Puzzle i łamigłówki", 2999, null, "p-zabawka-02"),
+            toy("Piesek Tuptuś", "Zabawa na dworze", 2499, null, "p-zabawka-03"),
+            toy("Kaczuszka Klara", "Do kąpieli", 1699, null, "p-zabawka-04"),
+            toy("Słonik Trąbuś", "Zabawa na dworze", 2299, null, "p-zabawka-05")));
+
+    private static Sample toy(String name, String category, long price, Long compareAt, String image) {
+        return new Sample(name, category, price, compareAt, List.of(), "tpl:bawiloo/" + image, DESC);
+    }
 
     private final Products products;
     private final Categories categories;
@@ -80,8 +101,15 @@ public class ThemeSamples {
         for (CatalogViews.CategoryView c : categories.list()) cats.putIfAbsent(c.name().toLowerCase(Locale.ROOT), c.id());
         var existing = products.search(null, null, null, false, Products.Sort.NAME, org.springframework.data.domain.PageRequest.of(0, 1000))
                 .map(r -> r.name().toLowerCase(Locale.ROOT)).toSet();
-        int created = 0;
+        // Categories first, in the template's order (the menu follows category order)
         for (Sample s : list) {
+            if (existing.contains(s.name().toLowerCase(Locale.ROOT))) continue;
+            cats.computeIfAbsent(s.category().toLowerCase(Locale.ROOT),
+                    k -> categories.create(new Categories.CategoryInput(s.category(), null, null, null, null, true, null, null, 0)).id());
+        }
+        int created = 0;
+        // Created last-to-first: "newest" listings then show them in the template's order
+        for (Sample s : list.reversed()) {
             if (existing.contains(s.name().toLowerCase(Locale.ROOT))) continue;
             UUID category = cats.computeIfAbsent(s.category().toLowerCase(Locale.ROOT),
                     k -> categories.create(new Categories.CategoryInput(s.category(), null, null, null, null, true, null, null, 0)).id());

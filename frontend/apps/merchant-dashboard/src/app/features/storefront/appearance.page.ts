@@ -7,6 +7,7 @@ import { AlertComponent, BadgeComponent, ButtonComponent, DatePipe, IconName, Lo
 import { firstValueFrom } from 'rxjs';
 import { StoreContext } from '../store/store-context';
 import { ThemeMockComponent } from './theme-mock';
+import { templateImageMap } from './theme-meta';
 
 function luminance(hex: string): number {
   const m = /^#([0-9a-f]{6})$/i.exec(hex ?? '');
@@ -51,10 +52,10 @@ export function contrast(a: string, b: string): number {
         <a [routerLink]="['/sklep', ctx.tenantId(), 'edytor-wygladu']" class="group block overflow-hidden rounded-[12px] border border-line bg-canvas p-4" aria-label="Otwórz edytor wyglądu">
           <div class="relative mx-auto max-w-[92%]">
             <div class="overflow-hidden rounded-t-[10px] shadow-[0_6px_24px_rgba(15,18,16,0.12)] transition-transform group-hover:-translate-y-1">
-              <sv-theme-mock [settings]="d.state.draft.settings" [sections]="d.state.draft.sections" [storeName]="storeName()" />
+              <sv-theme-mock [settings]="d.state.draft.settings" [sections]="d.state.draft.sections" [storeName]="storeName()" [templateImages]="tplImages()" />
             </div>
             <div class="absolute -bottom-4 -right-3 w-[24%] overflow-hidden rounded-[12px] border-[3px] border-[#0F1210] shadow-lg">
-              <sv-theme-mock [settings]="d.state.draft.settings" [sections]="d.state.draft.sections" [storeName]="storeName()" [phone]="true" />
+              <sv-theme-mock [settings]="d.state.draft.settings" [sections]="d.state.draft.sections" [storeName]="storeName()" [templateImages]="tplImages()" [phone]="true" />
             </div>
           </div>
         </a>
@@ -95,6 +96,7 @@ export class AppearancePage {
   protected readonly canWrite = this.ctx.can('THEMES_WRITE');
   protected readonly storeName = computed(() => this.ctx.store()?.name ?? '');
   protected readonly data = rxResource({ params: () => this.ctx.tenantId(), stream: ({ params }) => this.api.theme(params) });
+  protected readonly tplImages = computed(() => templateImageMap(this.data.hasValue() ? this.data.value().templateImages : []));
   protected readonly publishing = signal(false);
 
   protected readonly preset = computed(() => {

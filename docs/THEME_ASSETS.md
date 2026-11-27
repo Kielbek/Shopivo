@@ -28,11 +28,28 @@ Zdjęcia przykładowych produktów (`tpl:vera/p-*`, kadr 3:4) — to samo źród
 
 Pominięto zdjęcie koszulki z cudzą grafiką/napisem z pierwotnego HTML-a, bo był na niej nadruk innej marki.
 
+## Bawiloo (backend/src/main/resources/themes/bawiloo/)
+
+Grafiki dostarczone przez właściciela projektu razem z szablonem (paczka „bawiloo-kompletny-sklep(-premium)”, 2026-11-27):
+- banner z zabawkami, 6 grafik kategorii, zdjęcie sklepu „O nas”;
+- 16 zdjęć produktów;
+- ilustrowane ikony korzyści (SVG, w kodzie `ui/premium-icon.ts`).
+
+Przetworzenie:
+- przeskalowano do wariantów 400/1200 px;
+- baner zostawiono w WebP z przezroczystością;
+- pozostałe pliki zapisano jako JPEG, przezroczyste produkty na tle w ich kolorze z szablonu.
+
+Prawa do grafik — po stronie dostawcy szablonu.
+Uwaga: na zdjęciu „O nas” jest napis „Whimsy”; szablon przykrywa go szyldem z nazwą sklepu, ale tylko na tym jednym zdjęciu.
+
 ## Fonty (frontend/apps/storefront/public/fonts/)
 
 | Krój | Pliki | Licencja | Źródło |
 |---|---|---|---|
 | Cormorant Garamond 500/600/700 | `cormorant-garamond-latin(-ext)-*.woff2` | SIL Open Font License 1.1 (`OFL-cormorant-garamond.txt`) | npm `@fontsource/cormorant-garamond@5.3.0` |
+| Fredoka (zmienna 300–700) | `fredoka-latin(-ext)-wght-normal.woff2` | SIL OFL 1.1 (`OFL-fredoka.txt`) | npm `@fontsource-variable/fredoka@5.3.0` |
+| Nunito Sans (zmienna 200–1000) | `nunito-sans-latin(-ext)-wght-normal.woff2` | SIL OFL 1.1 (`OFL-nunito-sans.txt`) | npm `@fontsource-variable/nunito-sans@5.3.0` |
 | Plus Jakarta Sans (zmienna 200–800) | `plus-jakarta-sans-latin(-ext)-wght-normal.woff2` | SIL Open Font License 1.1 (`OFL-plus-jakarta-sans.txt`) | npm `@fontsource-variable/plus-jakarta-sans@5.3.0` |
 
 Fonty są serwowane przez witrynę sklepu, bez zapytań do Google Fonts (adres IP odwiedzającego nie trafia do podmiotów trzecich).

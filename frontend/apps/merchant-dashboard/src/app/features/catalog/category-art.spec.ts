@@ -35,7 +35,7 @@ describe('industry graphics', () => {
     const ids = new Set(ART_MOTIFS.map((m) => m.id));
     for (const i of INDUSTRIES) expect(ids.has(industryArtId(i.id)), i.id).toBe(true);
     expect(ids.size).toBe(ART_MOTIFS.length);
-  });
+  }, 30_000); // imports the industry picker (a large component) on first use
 
   it('new motifs are found by category names too', () => {
     expect(suggestMotif('Gry wideo').id).toBe('gamepad');

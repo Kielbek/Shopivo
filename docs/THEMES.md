@@ -119,9 +119,25 @@ produktów w JS, logowanie Google bez Google, przykładowe zamówienia, „check
   - newsletter;
   - dane sprzedawcy.
 
+## Bawiloo — co ma (drugi szablon, zabawki)
+
+- **Nagłówek i stopka:** złoty gradient (z koloru akcentu); zaokrąglone logo Fredoka; pogrubione menu wielkimi literami z pigułką „Promocje”; ciemna stopka ze złotym logo.
+- **Baner „Radosny”:** ogromny napis, ciemny przycisk-pigułka, wycięte zdjęcie zabawek (WebP z przezroczystością) i falowana dolna krawędź.
+- **Kafelki „okrągłe”:** 6 działów ze zdjęciami w kółkach i przyciskiem „Zobacz więcej”.
+- **Produkty:**
+  - wyśrodkowany nagłówek z ✦ nadtytułem i przechyloną złotą drugą linią;
+  - ciemne karty z kwadratowym zdjęciem, złotą ceną, pigułką „Do koszyka” i znaczkiem −% przy promocjach;
+  - sekcja promocji jako **karuzela** (przewijanie z przyciągnięciem i strzałki).
+- **Korzyści:** złote, ilustrowane ikony z wersji „premium” paczki (płatności, zwroty, dostawa, pomoc) — `ui/premium-icon.ts`.
+- **„O nas”:** zdjęcie w kształcie kwiatka. Na zdjęciu szablonu szyld pokazuje nazwę sklepu, bo oryginalny napis na zdjęciu jest nim przykryty.
+- **Newsletter:** duża złota karta z formularzem (double opt-in).
+- **Przykłady:** 16 przykładowych zabawek: 6 figurek, 5 pluszaków w promocji i 5 zabawek dla maluchów.
+- **Ciemne tło:** kolory statusów (`--sf-danger`, `--sf-success`) rozjaśniają się automatycznie, żeby pozostać czytelne.
+
 ### Czego z HTML-a celowo nie przeniesiono
 
-Z pierwotnego HTML-a pominęliśmy atrapy, bo w sklepie są już prawdziwe funkcje:
+Z pierwotnego HTML-a Véry pominęliśmy atrapy, bo w sklepie są już prawdziwe funkcje.
+W Bawiloo podobnie: demonstracyjne logowanie, zamówienia, „Dostawa (demo) — gratis” i newsletter zastępują prawdziwe funkcje sklepu, a hasło „Darmowa dostawa” w korzyściach zmieniliśmy na „Szybka dostawa”, żeby szablon niczego nie obiecywał za sprzedawcę.
 
 - **Logowanie przez Google:** nie ma tu prawdziwego OAuth; jest prawdziwe konto klienta.
 - **Modal z przykładowymi zamówieniami:** zamówienia są na stronie konta.

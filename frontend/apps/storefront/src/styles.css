@@ -12,6 +12,10 @@
 @font-face { font-family: "Cormorant Garamond"; font-style: normal; font-weight: 700; font-display: swap; src: url(/fonts/cormorant-garamond-latin-700-normal.woff2) format("woff2"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 200 800; font-display: swap; src: url(/fonts/plus-jakarta-sans-latin-ext-wght-normal.woff2) format("woff2-variations"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
 @font-face { font-family: "Plus Jakarta Sans"; font-style: normal; font-weight: 200 800; font-display: swap; src: url(/fonts/plus-jakarta-sans-latin-wght-normal.woff2) format("woff2-variations"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Fredoka"; font-style: normal; font-weight: 300 700; font-display: swap; src: url(/fonts/fredoka-latin-ext-wght-normal.woff2) format("woff2-variations"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Fredoka"; font-style: normal; font-weight: 300 700; font-display: swap; src: url(/fonts/fredoka-latin-wght-normal.woff2) format("woff2-variations"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family: "Nunito Sans"; font-style: normal; font-weight: 200 1000; font-display: swap; src: url(/fonts/nunito-sans-latin-ext-wght-normal.woff2) format("woff2-variations"); unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family: "Nunito Sans"; font-style: normal; font-weight: 200 1000; font-display: swap; src: url(/fonts/nunito-sans-latin-wght-normal.woff2) format("woff2-variations"); unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
 
 /*
  * Theme engine: every visual decision comes from CSS custom properties set by the store's theme
@@ -41,8 +45,8 @@
   --color-sf-muted: color-mix(in srgb, var(--sf-text) 64%, var(--sf-bg));
   --color-sf-line: color-mix(in srgb, var(--sf-text) 12%, var(--sf-bg));
   --color-sf-soft: color-mix(in srgb, var(--sf-primary) 8%, var(--sf-bg));
-  --color-sf-danger: #b42318;
-  --color-sf-success: #087443;
+  --color-sf-danger: var(--sf-danger, #b42318);
+  --color-sf-success: var(--sf-success, #087443);
 }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -96,7 +100,7 @@ body {
     color: var(--sf-text);
   }
   .sf-input:focus { border-color: var(--sf-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sf-primary) 18%, transparent); }
-  .sf-input[aria-invalid="true"] { border-color: var(--color-sf-danger); }
+  .sf-input[aria-invalid="true"] { border-color: var(--sf-danger, #b42318); }
   .sf-label { @apply mb-1.5 block text-[13px] font-medium; }
   .sf-panel { background: var(--sf-surface); border-radius: var(--sf-radius); border: 1px solid color-mix(in srgb, var(--sf-text) 12%, var(--sf-bg)); }
   .sf-card-plain { }
@@ -113,6 +117,25 @@ body {
   }
   .sf-btn-line:hover { background: var(--sf-text); color: var(--sf-bg); }
   .sf-eyebrow { @apply text-[12px] font-semibold uppercase tracking-[0.25em]; color: var(--sf-accent); }
+  /* Playful layouts (Bawiloo): warm gradient from the accent colour, scalloped edge, flower-shaped photo, tilted accent line. */
+  .sf-play-gradient {
+    background-image: linear-gradient(to right, var(--sf-accent) 0%, color-mix(in srgb, var(--sf-accent) 55%, #ffd36b) 50%,
+      color-mix(in srgb, var(--sf-accent) 65%, #ffcf7a) 100%);
+  }
+  .sf-scallops {
+    position: absolute; left: 0; right: 0; top: calc(100% - 1px); height: calc(clamp(16px, 4vw, 48px) + 1px); pointer-events: none;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 50' preserveAspectRatio='none'%3E%3Cpath fill='white' d='M0 0H1200V1A50 49 0 0 1 1100 1A50 49 0 0 1 1000 1A50 49 0 0 1 900 1A50 49 0 0 1 800 1A50 49 0 0 1 700 1A50 49 0 0 1 600 1A50 49 0 0 1 500 1A50 49 0 0 1 400 1A50 49 0 0 1 300 1A50 49 0 0 1 200 1A50 49 0 0 1 100 1A50 49 0 0 1 0 1Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 50' preserveAspectRatio='none'%3E%3Cpath fill='white' d='M0 0H1200V1A50 49 0 0 1 1100 1A50 49 0 0 1 1000 1A50 49 0 0 1 900 1A50 49 0 0 1 800 1A50 49 0 0 1 700 1A50 49 0 0 1 600 1A50 49 0 0 1 500 1A50 49 0 0 1 400 1A50 49 0 0 1 300 1A50 49 0 0 1 200 1A50 49 0 0 1 100 1A50 49 0 0 1 0 1Z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  }
+  .sf-flower { aspect-ratio: 1 / 1; overflow: hidden; position: relative; container-type: inline-size; clip-path: polygon(88.306% 5.515%, 82.759% 2.322%, 78.261% 0.871%, 74.513% 0.290%, 68.216% 0.726%, 63.418% 2.177%, 58.921% 4.644%, 56.522% 6.531%, 53.523% 9.724%, 50.525% 14.514%, 48.576% 14.514%, 45.127% 9.144%, 42.429% 6.386%, 39.130% 3.919%, 33.283% 1.306%, 29.685% 0.581%, 25.037% 0.435%, 19.640% 1.451%, 14.993% 3.338%, 11.544% 5.515%, 7.196% 9.579%, 4.648% 13.062%, 4.198% 15.239%, 3.298% 15.385%, 1.499% 19.739%, 0.300% 25.544%, 0.450% 31.060%, 1.649% 35.994%, 3.598% 40.203%, 6.597% 44.412%, 9.295% 47.025%, 12.294% 49.057%, 12.294% 50.798%, 10.045% 52.250%, 7.046% 55.007%, 2.849% 61.103%, 0.900% 66.473%, 0.300% 70.392%, 0.300% 74.891%, 1.649% 80.842%, 3.448% 84.906%, 6.747% 89.840%, 10.045% 93.179%, 14.243% 96.081%, 17.541% 97.678%, 20.690% 98.694%, 25.337% 99.419%, 30.585% 99.129%, 35.832% 97.533%, 40.480% 94.920%, 44.828% 91.001%, 47.376% 87.518%, 48.426% 85.341%, 50.525% 85.196%, 54.123% 90.711%, 57.421% 93.904%, 60.570% 96.081%, 63.718% 97.678%, 68.366% 99.129%, 74.663% 99.565%, 79.460% 98.694%, 84.108% 96.952%, 88.906% 93.904%, 93.103% 89.840%, 95.952% 85.776%, 98.351% 80.406%, 99.550% 74.746%, 99.400% 68.795%, 98.501% 64.731%, 96.402% 59.942%, 93.103% 55.298%, 89.805% 52.250%, 87.556% 50.798%, 87.556% 49.057%, 90.855% 46.734%, 92.954% 44.702%, 95.802% 40.929%, 97.151% 38.316%, 99.250% 31.785%, 99.550% 25.544%, 98.351% 19.594%, 96.252% 19.303%, 96.252% 17.562%, 97.301% 17.417%, 96.102% 14.514%, 92.504% 9.434%); }
+  .sf-flower-sign {
+    position: absolute; top: 30.3%; left: 35.3%; width: 39.5%; height: 11%; display: flex; align-items: center; justify-content: center;
+    border-radius: 12% / 25%; background: linear-gradient(155deg, #ed8a24, #db6d18); color: #fff2c7; font-family: var(--sf-font-display);
+    font-weight: 600; letter-spacing: -0.04em; font-size: clamp(14px, 6.8cqw, 38px); line-height: 1; text-shadow: 0 2px 3px #a84c19;
+    overflow: hidden; white-space: nowrap; pointer-events: none;
+  }
+  .sf-accent-line { display: block; color: var(--sf-primary); transform: rotate(-1.5deg); padding: 0.06em 0 0.1em;
+    text-shadow: 1px 3px 0 color-mix(in srgb, var(--sf-primary) 45%, #5a2c06); }
   .sf-link { color: var(--sf-primary); text-decoration: underline; text-underline-offset: 2px; }
   .sf-check { @apply size-[18px] shrink-0; accent-color: var(--sf-primary); }
 }

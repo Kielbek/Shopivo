@@ -9,7 +9,7 @@ import { BackIconComponent } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { INDUSTRIES, industryLabels, industryOf, storeIndustries } from '../catalog/industries';
 import { StoreContext } from '../store/store-context';
-import { STYLE_LABELS, ThemeStyle, metaOf } from './theme-meta';
+import { STYLE_LABELS, ThemeStyle, metaOf, templateImageMap } from './theme-meta';
 import { ThemeMockComponent } from './theme-mock';
 
 /** Texts the merchant may have written; kept when switching templates (colours and layout come from the new one). */
@@ -90,10 +90,10 @@ function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
                   <button type="button" class="relative block bg-canvas p-5 pb-0 text-left" [attr.aria-label]="'Szczegóły szablonu ' + p.name" (click)="details.set(p)">
                     <div class="relative mx-auto max-w-[92%]">
                       <div class="overflow-hidden rounded-t-[10px] shadow-[0_6px_24px_rgba(15,18,16,0.12)] transition-transform group-hover:-translate-y-1">
-                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [productImages]="samplesOf(p.code)" />
+                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [templateImages]="tplImages()" [productImages]="samplesOf(p.code)" />
                       </div>
                       <div class="absolute -bottom-0 -right-3 w-[24%] overflow-hidden rounded-t-[12px] border-[3px] border-b-0 border-[#0F1210] shadow-lg transition-transform group-hover:-translate-y-2">
-                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [phone]="true" [productImages]="samplesOf(p.code)" />
+                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [templateImages]="tplImages()" [phone]="true" [productImages]="samplesOf(p.code)" />
                       </div>
                     </div>
                     @if (isCurrent(p)) {<span class="absolute left-3 top-3"><sv-badge tone="info">Twój szablon</sv-badge></span>}
@@ -132,7 +132,7 @@ function pick(data: Record<string, any>, keys: string[]): Record<string, any> {
     <sv-dialog [heading]="details()?.name ?? ''" [open]="!!details()" (closed)="details.set(null)">
       @if (details(); as p) {
         @let meta = metaFor(p.code);
-        <div class="overflow-hidden rounded-[12px] border border-line"><sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [productImages]="samplesOf(p.code)" /></div>
+        <div class="overflow-hidden rounded-[12px] border border-line"><sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [templateImages]="tplImages()" [productImages]="samplesOf(p.code)" /></div>
         <p class="mt-4 text-[14px] text-ink-soft">{{ p.description }}</p>
         <dl class="mt-4 grid gap-3 text-[13px] sm:grid-cols-2">
           <div><dt class="font-medium text-ink">Najlepiej sprawdzi się w</dt><dd class="mt-1 text-ink-soft">{{ industryNames(meta.industries) }}</dd></div>
@@ -166,6 +166,7 @@ export class ThemeGalleryPage {
   protected readonly industries = INDUSTRIES;
 
   protected readonly data = rxResource({ params: () => this.ctx.tenantId(), stream: ({ params }) => this.api.theme(params) });
+  protected readonly tplImages = computed(() => templateImageMap(this.data.hasValue() ? this.data.value().templateImages : []));
   protected readonly style = signal<ThemeStyle | null>(null);
   protected readonly industry = signal<StoreIndustry | null>(null);
   protected readonly details = signal<ThemePreset | null>(null);

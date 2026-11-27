@@ -10,6 +10,7 @@ import { SampleCard, StorefrontApi, ThemeSection } from '../storefront-api';
 import { ProductCardComponent } from './product-card';
 import { RichTextComponent } from './rich-text';
 import { StarsComponent } from './stars';
+import { PremiumIconComponent } from './premium-icon';
 
 /** Internal path (router link) or external https URL (new tab). */
 function linkOf(value: string | undefined): { route: string; query: Record<string, string> | null } | { href: string } | null {
@@ -66,6 +67,18 @@ const ICONS: Record<string, string> = {
   template: `
     @let p = product();
     @let sale = !!p.compareAtMinor && p.compareAtMinor > p.priceMinor;
+    @if (playful()) {
+      <div class="relative flex h-full flex-col rounded-[20px] border border-sf-line p-1 pb-3 text-center" [attr.aria-label]="'Przykładowy produkt: ' + p.name">
+        <span class="relative block aspect-square overflow-hidden rounded-[16px] bg-sf-surface">
+          @if (p.imageUrl) {<img [src]="p.imageUrl" alt="" class="size-full object-cover" loading="lazy" />}
+          <span class="absolute right-2.5 top-2.5 rounded-full bg-sf-bg/85 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider">Przykład</span>
+          @if (sale) {<span class="absolute left-2.5 top-2.5 rotate-[-6deg] rounded-full bg-[#d36420] px-2.5 py-1 text-[12px] font-black text-white">−{{ off(p) }}%</span>}
+        </span>
+        <span class="mt-3 block px-2 text-[15px] font-extrabold leading-snug sm:text-[17px]">{{ p.name }}</span>
+        <span class="mt-1 block text-[14px] font-bold text-sf-primary">{{ fmt(p.priceMinor) }}@if (sale) {<del class="ml-1 text-[12px] font-semibold text-sf-muted">{{ fmt(p.compareAtMinor!) }}</del>}</span>
+        <span class="mx-auto mt-3 rounded-full bg-sf-primary px-5 py-2 text-[13px] font-extrabold text-sf-on-primary opacity-60">Do koszyka</span>
+      </div>
+    } @else {
     <div class="flex h-full flex-col" [attr.aria-label]="'Przykładowy produkt: ' + p.name">
       <div class="relative mb-3.5 overflow-hidden bg-sf-surface" [class]="vera() ? 'aspect-[3/4] rounded-xl' : 'sf-media aspect-square'">
         @if (p.imageUrl) {<img [src]="p.imageUrl" alt="" class="size-full object-cover" loading="lazy" />}
@@ -83,15 +96,21 @@ const ICONS: Record<string, string> = {
         </div>
       </div>
     </div>
+    }
   `,
 })
 export class SampleCardComponent {
   private readonly store = inject(StoreState);
   readonly product = input.required<SampleCard>();
   protected readonly vera = computed(() => this.store.layout() === 'vera');
+  protected readonly playful = computed(() => this.store.layout() === 'bawiloo');
 
   protected fmt(minor: number): string {
     return money(minor, 'PLN');
+  }
+
+  protected off(p: SampleCard): number {
+    return p.compareAtMinor ? Math.round((1 - p.priceMinor / p.compareAtMinor) * 100) : 0;
   }
 }
 
@@ -137,27 +156,58 @@ export class SampleCardComponent {
           } @else if (!items().length && !samples().length) {
             <p class="mt-10 text-center text-sf-muted">Brak produktów w tym wyborze.</p>
           }
+        } @else if (centered()) {
+          <!-- Centred display heading: eyebrow ✦, heading with an optional tilted accent line, short text -->
+          <div class="text-center">
+            @if (d['eyebrow']) {<p class="mb-3 text-[12px] font-black uppercase tracking-[0.19em] text-sf-primary sm:text-[14px]"><span aria-hidden="true">✦ </span>{{ d['eyebrow'] }}<span aria-hidden="true"> ✦</span></p>}
+            @if (d['heading'] || d['accent']) {
+              <h2 class="text-[30px] font-bold uppercase leading-[1.02] tracking-[-0.035em] sm:text-[48px] lg:text-[68px]">
+                @if (d['heading']) {<span class="block">{{ d['heading'] }}</span>}
+                @if (d['accent']) {<span class="sf-accent-line">{{ d['accent'] }}</span>}
+              </h2>
+            }
+            @if (d['text']) {<p class="mx-auto mt-3 max-w-xl text-[14px] font-semibold text-sf-muted sm:text-[16px]">{{ d['text'] }}</p>}
+          </div>
         } @else {
           <div class="flex items-end justify-between gap-4">
             <div>
               @if (d['eyebrow']) {<p class="sf-eyebrow">{{ d['eyebrow'] }}</p>}
-              @if (d['heading']) {<h2 class="text-[24px] font-semibold tracking-tight">{{ d['heading'] }}</h2>}
+              @if (d['heading']) {<h2 class="text-[24px] font-semibold tracking-tight">{{ d['heading'] }}@if (d['accent']) { <span class="text-sf-accent">{{ d['accent'] }}</span>}</h2>}
+              @if (d['text']) {<p class="mt-1 text-[14px] text-sf-muted">{{ d['text'] }}</p>}
             </div>
             @if (d['buttonText']) {<a [routerLink]="moreLink()" [queryParams]="moreQuery()" class="shrink-0 text-[14px] font-medium hover:underline">{{ d['buttonText'] }} →</a>}
           </div>
         }
-        @if (samples().length) {
-          <ul class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4" [class]="d['filters'] ? 'mt-10 sm:gap-x-6 sm:gap-y-10' : 'mt-5'">
-            @for (p of samples(); track p.name) {<li><sf-sample-card [product]="p" /></li>}
-          </ul>
-        }
-        @if (items().length) {
-          <ul class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4" [class]="d['filters'] ? 'mt-10 sm:gap-x-6 sm:gap-y-10 md:!grid-cols-3 lg:!grid-cols-4' : 'mt-5'">
-            @for (p of items(); track p.id) {<li><sf-product-card [product]="p" /></li>}
-          </ul>
-          @if (d['filters'] && d['buttonText']) {
-            <div class="mt-10 text-center"><a [routerLink]="moreLink()" [queryParams]="moreQuery()" class="sf-btn-line">{{ d['buttonText'] }}</a></div>
+        @if (d['style'] === 'carousel' && (samples().length || items().length)) {
+          <!-- Carousel: native horizontal scrolling with snap points, arrows for mouse users -->
+          <div class="relative mt-8">
+            <button type="button" class="absolute -left-1 top-[38%] z-10 hidden size-11 items-center justify-center rounded-full border border-sf-line bg-sf-bg/80 transition hover:border-sf-primary hover:bg-sf-primary hover:text-sf-on-primary sm:flex"
+              aria-label="Poprzednie produkty" [attr.aria-controls]="'car-' + uid" (click)="scroll(track, -1)">
+              <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
+            <ul #track [id]="'car-' + uid" class="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-1 pb-3 [scrollbar-width:none] sm:mx-14" aria-label="Karuzela produktów">
+              @for (p of samples(); track p.name) {<li class="w-[46%] shrink-0 snap-start sm:w-[31%] lg:w-[23%]"><sf-sample-card [product]="p" /></li>}
+              @for (p of items(); track p.id) {<li class="w-[46%] shrink-0 snap-start sm:w-[31%] lg:w-[23%]"><sf-product-card [product]="p" /></li>}
+            </ul>
+            <button type="button" class="absolute -right-1 top-[38%] z-10 hidden size-11 items-center justify-center rounded-full border border-sf-line bg-sf-bg/80 transition hover:border-sf-primary hover:bg-sf-primary hover:text-sf-on-primary sm:flex"
+              aria-label="Następne produkty" [attr.aria-controls]="'car-' + uid" (click)="scroll(track, 1)">
+              <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
+          </div>
+        } @else {
+          @if (samples().length) {
+            <ul class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3" [class]="(d['filters'] ? 'mt-10 sm:gap-x-6 sm:gap-y-10' : centered() ? 'mt-10' : 'mt-5') + (threeCols() ? ' lg:grid-cols-3 lg:gap-6' : ' lg:grid-cols-4')">
+              @for (p of samples(); track p.name) {<li><sf-sample-card [product]="p" /></li>}
+            </ul>
           }
+          @if (items().length) {
+            <ul class="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3" [class]="(d['filters'] ? 'mt-10 sm:gap-x-6 sm:gap-y-10' : centered() ? 'mt-10' : 'mt-5') + (threeCols() ? ' lg:grid-cols-3 lg:gap-6' : ' lg:grid-cols-4')">
+              @for (p of items(); track p.id) {<li><sf-product-card [product]="p" /></li>}
+            </ul>
+          }
+        }
+        @if ((items().length || samples().length) && d['buttonText'] && (d['filters'] || centered())) {
+          <div class="mt-10 text-center">
+            <a [routerLink]="moreLink()" [queryParams]="moreQuery()" [class]="centered() ? 'inline-flex rounded-full bg-sf-primary px-6 py-3 text-[13px] font-extrabold uppercase text-sf-on-primary hover:opacity-90' : 'sf-btn-line'">{{ d['buttonText'] }}</a>
+          </div>
         }
       </section>
     }
@@ -189,9 +239,10 @@ export class SectionProductsComponent {
   protected readonly total = computed(() => (this.res.hasValue() ? this.res.value().totalItems : 0));
   /** Preview of an empty store: the template's example products (filtered by the visitor's category pill by name). */
   protected readonly samples = computed<SampleCard[]>(() => {
-    if (!this.res.hasValue() || this.res.value().totalItems > 0 || this.filter() !== null && this.filter() !== 'sale') return [];
+    if (this.filter() !== null && this.filter() !== 'sale') return [];
     const all = this.store.samples();
-    const list = this.filter() === 'sale' ? all.filter((p) => p.compareAtMinor) : all;
+    const sale = this.filter() === 'sale' || (this.filter() === null && this.data()['source'] === 'sale');
+    const list = sale ? all.filter((p) => p.compareAtMinor) : all;
     return list.slice(0, Number(this.data()['count'] ?? 8));
   });
   protected readonly moreLink = computed(() => {
@@ -205,6 +256,14 @@ export class SectionProductsComponent {
     const n = this.total() || this.samples().length;
     const word = n === 1 ? 'produkt' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 'produkty' : 'produktów';
     return `${n} ${word}`;
+  }
+
+  /** Playful layouts centre the heading block and use three wide columns. */
+  protected readonly centered = computed(() => this.store.layout() === 'bawiloo');
+  protected readonly threeCols = computed(() => this.store.layout() === 'bawiloo' && !this.data()['filters']);
+
+  protected scroll(el: HTMLElement, dir: number): void {
+    el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: 'smooth' });
   }
 
   protected pill(active: boolean): string {
@@ -279,8 +338,40 @@ export class SectionBlogComponent {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let d = data();
+    @if (playful()) {
+      <!-- Playful: big rounded warm card, heading left, form right -->
+      <section class="sf-container pb-6" aria-labelledby="nl-h-{{ uid }}">
+        <div class="relative overflow-hidden rounded-[32px] bg-sf-primary px-6 py-10 text-sf-on-primary sm:rounded-[40px] sm:px-12 sm:py-14">
+          <span class="absolute -bottom-24 -right-16 size-72 rounded-full border-[28px] border-white/20" aria-hidden="true"></span>
+          <div class="relative grid items-center gap-8 lg:grid-cols-[1.1fr_1fr]">
+            <div>
+              @if (d['eyebrow']) {<p class="mb-3 text-[12px] font-black uppercase tracking-[0.2em]"><span aria-hidden="true">✦ </span>{{ d['eyebrow'] }}</p>}
+              <h2 id="nl-h-{{ uid }}" class="text-[clamp(34px,5vw,60px)] font-semibold leading-[0.98] tracking-[-0.035em]">{{ d['heading'] || 'Newsletter' }}</h2>
+              @if (d['text']) {<p class="mt-4 max-w-md text-[15px] font-bold opacity-85">{{ d['text'] }}</p>}
+            </div>
+            <div>
+              @if (state() === 'sent') {
+                <p class="text-[16px] font-bold" role="status">Dziękujemy! Sprawdź skrzynkę i potwierdź zapis, klikając link w wiadomości.</p>
+              } @else {
+                <form (ngSubmit)="submit()">
+                  <label class="mb-2 block text-[13px] font-bold" for="nl-{{ uid }}">Twój adres e-mail</label>
+                  <div class="flex flex-col gap-2 rounded-[28px] bg-white p-1.5 sm:flex-row sm:rounded-full">
+                    <input id="nl-{{ uid }}" name="email" type="email" required autocomplete="email" class="h-11 min-w-0 flex-1 rounded-full bg-transparent px-4 text-[15px] text-[#151513] outline-none placeholder:text-[#151513]/45" placeholder="np. twoj@email.pl" [(ngModel)]="email" />
+                    <button type="submit" class="h-11 shrink-0 rounded-full bg-sf-bg px-6 text-[14px] font-extrabold text-sf-text disabled:opacity-60" [disabled]="state() === 'busy'">{{ d['button'] || 'Zapisz się' }} ↗</button>
+                  </div>
+                  @if (error(); as e) {<p class="mt-2 text-[14px] font-bold" role="alert">{{ e }}</p>}
+                  <p class="mt-3 text-[12px] font-semibold opacity-80">Zapisując się, zgadzasz się na otrzymywanie informacji handlowych e-mailem.
+                    Szczegóły w <a routerLink="/strona/polityka-prywatnosci" class="underline">polityce prywatności</a>.</p>
+                </form>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+    } @else {
     <section class="bg-sf-soft">
       <div class="sf-container max-w-2xl py-14 text-center">
+        @if (d['eyebrow']) {<p class="sf-eyebrow mb-2">{{ d['eyebrow'] }}</p>}
         <h2 class="text-[26px] font-semibold tracking-tight">{{ d['heading'] || 'Newsletter' }}</h2>
         @if (d['text']) {<p class="mt-2 text-sf-muted">{{ d['text'] }}</p>}
         @if (state() === 'sent') {
@@ -291,16 +382,19 @@ export class SectionBlogComponent {
             <input id="nl-{{ uid }}" name="email" type="email" required autocomplete="email" class="sf-input flex-1" placeholder="Twój adres e-mail" [(ngModel)]="email" />
             <button type="submit" class="sf-btn shrink-0" [disabled]="state() === 'busy'">{{ d['button'] || 'Zapisz się' }}</button>
           </form>
-          @if (error(); as e) {<p class="mt-2 text-[14px] text-red-700" role="alert">{{ e }}</p>}
+          @if (error(); as e) {<p class="mt-2 text-[14px] text-sf-danger" role="alert">{{ e }}</p>}
           <p class="mx-auto mt-3 max-w-md text-[12px] text-sf-muted">Zapisując się, zgadzasz się na otrzymywanie informacji handlowych e-mailem.
             Szczegóły w <a routerLink="/strona/polityka-prywatnosci" class="underline">polityce prywatności</a>.</p>
         }
       </div>
     </section>
+    }
   `,
 })
 export class SectionNewsletterComponent {
   private readonly api = inject(StorefrontApi);
+  private readonly store = inject(StoreState);
+  protected readonly playful = computed(() => this.store.layout() === 'bawiloo');
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   readonly data = input.required<Record<string, any>>();
   protected readonly uid = Math.random().toString(36).slice(2, 8);
@@ -339,7 +433,7 @@ export class SectionNewsletterComponent {
         <input id="nl-footer" name="email" type="email" required autocomplete="email" class="sf-input !h-11 flex-1" placeholder="Twój e-mail" [(ngModel)]="email" />
         <button type="submit" class="sf-btn !h-11 shrink-0" [disabled]="state() === 'busy'">Zapisz</button>
       </form>
-      @if (error(); as e) {<p class="mt-1 text-[13px] text-red-700" role="alert">{{ e }}</p>}
+      @if (error(); as e) {<p class="mt-1 text-[13px] text-sf-danger" role="alert">{{ e }}</p>}
     }
   `,
 })
@@ -398,7 +492,7 @@ export class SectionFeaturedComponent {
   private readonly api = inject(StorefrontApi);
   private readonly store = inject(StoreState);
   private readonly res = rxResource({ stream: () => this.api.products({ size: 6, sort: 'NEWEST' }) });
-  protected readonly sample = computed(() => (this.res.hasValue() && this.res.value().totalItems === 0 ? this.store.samples()[0] ?? null : null));
+  protected readonly sample = computed(() => this.store.samples()[0] ?? null);
   protected readonly product = computed(() => (this.res.hasValue() ? this.res.value().items.find((p) => p.available && p.imageUrl) ?? null : null));
 
   protected price(minor: number, currency: string): string {
@@ -412,7 +506,7 @@ export class SectionFeaturedComponent {
  */
 @Component({
   selector: 'sf-home-sections',
-  imports: [RouterLink, RichTextComponent, SectionLinkComponent, SectionProductsComponent, SectionFeaturedComponent,
+  imports: [RouterLink, RichTextComponent, SectionLinkComponent, SectionProductsComponent, SectionFeaturedComponent, PremiumIconComponent,
     SectionReviewsComponent, SectionBlogComponent, SectionNewsletterComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -422,7 +516,21 @@ export class SectionFeaturedComponent {
         @case ('hero') {
           @let img = store.image(d['image']);
           @let pad = d['height'] === 'large' ? 'py-24 sm:py-36' : d['height'] === 'small' ? 'py-10 sm:py-14' : 'py-16 sm:py-24';
-          @if (d['layout'] === 'editorial') {
+          @if (d['layout'] === 'playful') {
+            <!-- Playful: warm gradient, huge rounded heading, dark pill button, cut-out photo, scalloped bottom edge -->
+            <section class="sf-play-gradient relative text-white" [attr.aria-label]="d['heading'] || store.store()?.name">
+              <h1 class="mx-auto max-w-[1300px] px-3 pt-10 text-center text-[clamp(32px,7.5vw,105px)] font-semibold uppercase leading-[0.98] tracking-[-0.025em] sm:pt-16">{{ d['heading'] || store.store()?.name }}</h1>
+              @if (d['subheading']) {<p class="mx-auto mt-4 max-w-2xl px-4 text-center text-[16px] font-semibold opacity-95">{{ d['subheading'] }}</p>}
+              <div class="mt-6 flex flex-wrap justify-center gap-3 px-4">
+                <sf-section-link [to]="d['link'] || '/produkty'" [text]="d['cta']" cls="inline-flex rounded-full bg-sf-bg px-7 py-3 text-[13px] font-extrabold uppercase text-sf-text transition hover:opacity-85" />
+                <sf-section-link [to]="d['link2']" [text]="d['cta2']" cls="inline-flex rounded-full border-2 border-white px-7 py-3 text-[13px] font-extrabold uppercase text-white transition hover:bg-white/15" />
+              </div>
+              @if (img) {
+                <img [src]="img" alt="" class="relative z-[1] mx-auto mt-4 block h-auto w-full max-w-[1350px] object-contain px-2" [attr.fetchpriority]="first ? 'high' : null" />
+              } @else {<div class="h-10"></div>}
+              <span class="sf-play-gradient sf-scallops" aria-hidden="true"></span>
+            </section>
+          } @else if (d['layout'] === 'editorial') {
             <!-- Magazine-style split: eyebrow, large display heading, two square buttons, tall photo with a product card -->
             <section class="overflow-hidden bg-sf-surface" [attr.aria-label]="d['heading'] || store.store()?.name">
               <div class="sf-container grid items-center gap-10 py-12 lg:grid-cols-12 lg:py-20">
@@ -472,6 +580,19 @@ export class SectionFeaturedComponent {
           }
         }
         @case ('usp') {
+          @if (store.layout() === 'bawiloo') {
+            <section class="sf-container mt-16 lg:mt-24" aria-label="Dlaczego warto">
+              <ul class="grid grid-cols-2 gap-3 lg:gap-5" [class.md:grid-cols-4]="(d['items']?.length ?? 0) === 4" [class.md:grid-cols-3]="(d['items']?.length ?? 0) === 3">
+                @for (u of d['items']; track $index) {
+                  <li class="rounded-[20px] border border-sf-line bg-sf-surface px-3 py-6 text-center sm:px-5">
+                    <svg [sfPremiumIcon]="u.icon" class="mx-auto h-[74px] w-[74px] sm:h-[90px] sm:w-[90px]"></svg>
+                    <h3 class="mt-4 font-[family-name:var(--sf-font)] text-[12px] font-bold uppercase tracking-[0.08em] sm:text-[14px]">{{ u.title }}</h3>
+                    @if (u.text) {<p class="mt-1 text-[12px] text-sf-muted sm:text-[13px]">{{ u.text }}</p>}
+                  </li>
+                }
+              </ul>
+            </section>
+          } @else {
           <section class="sf-container mt-12" aria-label="Dlaczego warto">
             <ul class="grid gap-4 sm:grid-cols-2" [class.lg:grid-cols-3]="(d['items']?.length ?? 3) === 3" [class.lg:grid-cols-4]="d['items']?.length === 4">
               @for (u of d['items']; track $index) {
@@ -482,6 +603,7 @@ export class SectionFeaturedComponent {
               }
             </ul>
           </section>
+          }
         }
         @case ('categories') {
           @let cats = categoriesFor(s);
@@ -512,29 +634,48 @@ export class SectionFeaturedComponent {
         }
         @case ('tiles') {
           @if (d['items']?.length) {
-            <section class="sf-container mt-16" [attr.aria-label]="d['heading'] || 'Kafelki'">
+            @let circles = d['style'] === 'circles';
+            <section class="sf-container" [class]="circles ? 'mt-20 text-center sm:mt-28' : 'mt-16'" [attr.aria-label]="d['heading'] || 'Kafelki'">
               @if (d['eyebrow'] || d['heading']) {
-                <div class="mb-8">
+                <div [class]="circles ? 'mb-8 lg:mb-12' : 'mb-8'">
                   @if (d['eyebrow']) {<p class="text-[12px] uppercase tracking-[0.2em] text-sf-muted">{{ d['eyebrow'] }}</p>}
-                  @if (d['heading']) {<h2 class="mt-1 text-[32px] font-semibold">{{ d['heading'] }}</h2>}
+                  @if (d['heading']) {<h2 class="mt-1 text-[28px] font-semibold" [class.uppercase]="circles" [class.lg:text-[40px]]="circles">{{ d['heading'] }}</h2>}
                 </div>
               }
-              <ul class="grid gap-4 sm:gap-6" [class]="tileCols(d['items'].length)">
-                @for (t of d['items']; track $index) {
-                  @let timg = store.image(t.image, 'w1200');
-                  @let l = tileLink(t.link);
-                  <li>
-                    <a [routerLink]="l.path" [queryParams]="l.query" class="group relative block h-80 overflow-hidden rounded-xl bg-sf-line text-white">
-                      @if (timg) {<img [src]="timg" alt="" class="size-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />}
-                      <span class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" aria-hidden="true"></span>
-                      <span class="absolute bottom-6 left-6 right-6">
-                        <span class="sf-display block text-[26px] font-semibold leading-tight">{{ t.title }}</span>
-                        @if (t.text) {<span class="mt-1 block text-[12px] uppercase tracking-wider text-white/85 group-hover:underline">{{ t.text }} →</span>}
+              @if (circles) {
+                <ul class="grid grid-cols-3 gap-x-3 gap-y-6 sm:gap-x-6" [class.lg:grid-cols-6]="d['items'].length >= 6" [class.lg:grid-cols-4]="d['items'].length === 4">
+                  @for (t of d['items']; track $index) {
+                    @let timg = store.image(t.image, 'w400');
+                    @let l = tileLink(t.link);
+                    <li><a [routerLink]="l.path" [queryParams]="l.query" class="group block">
+                      <span class="mx-auto block aspect-square w-full max-w-[170px] overflow-hidden rounded-full bg-white ring-4 ring-transparent transition group-hover:ring-sf-primary">
+                        @if (timg) {<img [src]="timg" alt="" class="size-full object-cover transition duration-300 group-hover:scale-105" loading="lazy" />}
                       </span>
-                    </a>
-                  </li>
-                }
-              </ul>
+                      <span class="mt-3 block text-[11px] font-semibold uppercase sm:text-[13px]">{{ t.title }}</span>
+                    </a></li>
+                  }
+                </ul>
+              } @else {
+                <ul class="grid gap-4 sm:gap-6" [class]="tileCols(d['items'].length)">
+                  @for (t of d['items']; track $index) {
+                    @let timg = store.image(t.image, 'w1200');
+                    @let l = tileLink(t.link);
+                    <li>
+                      <a [routerLink]="l.path" [queryParams]="l.query" class="group relative block h-80 overflow-hidden rounded-xl bg-sf-line text-white">
+                        @if (timg) {<img [src]="timg" alt="" class="size-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />}
+                        <span class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" aria-hidden="true"></span>
+                        <span class="absolute bottom-6 left-6 right-6">
+                          <span class="sf-display block text-[26px] font-semibold leading-tight">{{ t.title }}</span>
+                          @if (t.text) {<span class="mt-1 block text-[12px] uppercase tracking-wider text-white/85 group-hover:underline">{{ t.text }} →</span>}
+                        </span>
+                      </a>
+                    </li>
+                  }
+                </ul>
+              }
+              @if (d['cta']) {
+                <div class="mt-10 text-center"><sf-section-link [to]="d['link'] || '/produkty'" [text]="d['cta']" [cls]="circles ? 'inline-flex rounded-full border border-sf-text px-6 py-2.5 text-[12px] font-extrabold uppercase hover:bg-sf-text hover:text-sf-bg' : 'sf-btn-line'" /></div>
+              }
             </section>
           }
         }
@@ -556,15 +697,26 @@ export class SectionFeaturedComponent {
         @case ('products') {<sf-section-products class="mt-14 block" [data]="d" />}
         @case ('image_text') {
           @let img = store.image(d['image']);
-          <section class="sf-container mt-16">
-            <div class="grid items-center gap-8 md:grid-cols-2">
-              <div class="sf-media aspect-[4/3]" [class.md:order-2]="d['imageSide'] === 'right'">
-                @if (img) {<img [src]="img" alt="" class="size-full object-cover" loading="lazy" />}
-              </div>
+          @let flower = d['shape'] === 'flower';
+          <section class="sf-container mt-16" [class.lg:mt-24]="flower">
+            <div class="grid items-center gap-10 md:grid-cols-2" [class.lg:gap-20]="flower">
+              @if (flower) {
+                <figure class="sf-flower mx-auto w-full max-w-[500px]" [class.md:order-2]="d['imageSide'] === 'right'">
+                  @if (img) {<img [src]="img" alt="" class="block size-full object-cover" loading="lazy" />}
+                  <!-- the template's own photo has an empty shop sign: it carries the store's name -->
+                  @if (d['image'] === 'tpl:bawiloo/about') {<span class="sf-flower-sign" aria-hidden="true">{{ store.store()?.name }}</span>}
+                </figure>
+              } @else {
+                <div class="sf-media aspect-[4/3]" [class.md:order-2]="d['imageSide'] === 'right'">
+                  @if (img) {<img [src]="img" alt="" class="size-full object-cover" loading="lazy" />}
+                </div>
+              }
               <div>
-                @if (d['heading']) {<h2 class="text-[26px] font-semibold tracking-tight">{{ d['heading'] }}</h2>}
+                @if (d['eyebrow']) {<p class="mb-4 text-[12px] font-extrabold uppercase tracking-[0.23em] text-sf-primary"><span aria-hidden="true">✦ </span>{{ d['eyebrow'] }}</p>}
+                @if (d['heading']) {<h2 class="font-semibold" [class]="flower ? 'text-[32px] uppercase leading-[1.05] tracking-[-0.025em] sm:text-[40px] lg:text-[48px]' : 'text-[26px] tracking-tight'">{{ d['heading'] }}</h2>}
                 @if (d['text']) {<p class="mt-3 whitespace-pre-line text-[16px] leading-7 text-sf-muted">{{ d['text'] }}</p>}
-                <sf-section-link class="mt-6 inline-block" [to]="d['link']" [text]="d['cta']" cls="sf-btn-outline" />
+                <sf-section-link class="mt-6 inline-block" [to]="d['link']" [text]="d['cta']"
+                  [cls]="flower ? 'inline-flex items-center gap-3 rounded-full bg-sf-primary px-6 py-3 text-[14px] font-extrabold text-sf-on-primary hover:opacity-90' : 'sf-btn-outline'" />
               </div>
             </div>
           </section>

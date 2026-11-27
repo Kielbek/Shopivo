@@ -37,7 +37,7 @@ public final class ThemeRegistry {
             new Field("background", "Tło strony", FieldType.COLOR, null, 7, "Kolory"),
             new Field("surface", "Tło sekcji", FieldType.COLOR, null, 7, "Kolory"),
             new Field("text", "Kolor tekstu", FieldType.COLOR, null, 7, "Kolory"),
-            new Field("font", "Krój pisma", FieldType.SELECT, List.of("sans", "serif", "rounded", "mono", "editorial"), 0, "Typografia"),
+            new Field("font", "Krój pisma", FieldType.SELECT, List.of("sans", "serif", "rounded", "mono", "editorial", "playful"), 0, "Typografia"),
             new Field("radius", "Zaokrąglenia", FieldType.SELECT, List.of("none", "soft", "round"), 0, "Typografia"),
             new Field("productCard", "Karty produktów", FieldType.SELECT, List.of("plain", "bordered", "shadow"), 0, "Typografia"),
             new Field("logoImage", "Logo", FieldType.IMAGE, null, 36, "Nagłówek"),
@@ -131,9 +131,49 @@ public final class ThemeRegistry {
                 Map.copyOf(d), sections);
     }
 
+    /** Bawiloo: dark, playful toy-shop template with its own images, carousel and illustrated benefits. */
+    private static Preset bawiloo() {
+        Map<String, String> d = new LinkedHashMap<>(preset("#F8BF73", "#EBA32B", "#151513", "#1F1F1C", "#FFFFFF", "playful", "round", "playful", "bordered", null, null));
+        d.put("headerStyle", "classic");
+        d.put("mobileNav", "drawer");
+        d.put("announcement", "");
+        d.put("footerNote", "Każda zabawka to nowa radość. Trochę więcej wyobraźni, jeszcze więcej zabawy.");
+        String link = "/produkty";
+        List<SectionRegistry.Section> sections = List.of(
+                SectionRegistry.section("hero", "hero", Map.of("heading", "Każda zabawka to nowa radość", "cta", "Kupuj teraz", "link", link,
+                        "image", "tpl:bawiloo/hero", "layout", "playful", "height", "medium")),
+                SectionRegistry.section("tiles1", "tiles", Map.of("heading", "Ulubione zabawki dzieci", "style", "circles",
+                        "cta", "Zobacz więcej", "link", link, "items", List.of(
+                        Map.of("image", "tpl:bawiloo/cat-pluszaki", "title", "Pluszaki", "link", link),
+                        Map.of("image", "tpl:bawiloo/cat-outdoor", "title", "Zabawa na dworze", "link", link),
+                        Map.of("image", "tpl:bawiloo/cat-kapiel", "title", "Do kąpieli", "link", link),
+                        Map.of("image", "tpl:bawiloo/cat-plastyczne", "title", "Plastyka i rękodzieło", "link", link),
+                        Map.of("image", "tpl:bawiloo/cat-figurki", "title", "Figurki", "link", link),
+                        Map.of("image", "tpl:bawiloo/cat-ukladanki", "title", "Puzzle i łamigłówki", "link", link)))),
+                SectionRegistry.section("products2", "products", Map.of("eyebrow", "Hity do zabawy", "heading", "Małe figurki,",
+                        "accent", "wielkie przygody!", "text", "Poznaj bohaterów, z którymi zabawa nie ma końca.", "style", "grid",
+                        "source", "newest", "count", "6", "buttonText", "Zobacz więcej")),
+                SectionRegistry.section("usp3", "usp", Map.of("items", List.of(
+                        Map.of("icon", "shield", "title", "Bezpieczne płatności", "text", "Bezpieczne płatności przy każdym zakupie."),
+                        Map.of("icon", "return", "title", "Łatwe zwroty", "text", "Prosty i wygodny proces zwrotu."),
+                        Map.of("icon", "truck", "title", "Szybka dostawa", "text", "Radość prosto pod Twoje drzwi."),
+                        Map.of("icon", "chat", "title", "Pomoc online", "text", "Jesteśmy tu, aby Ci pomóc.")))),
+                SectionRegistry.section("deals4", "products", Map.of("eyebrow", "Wyjątkowe oferty", "heading", "Wielka radość,", "accent", "małe ceny!",
+                        "text", "Więcej zabawy. Więcej uśmiechu. Mniej wydatków.", "style", "carousel", "source", "sale", "count", "8",
+                        "buttonText", "Zobacz wszystkie promocje")),
+                SectionRegistry.section("about5", "image_text", Map.of("eyebrow", "O nas", "heading", "Zrodzone z dziecięcej radości",
+                        "text", "Wierzymy, że każde dziecko zasługuje na świat pełen wyobraźni, śmiechu i przygód. Nasze zabawki inspirują małych odkrywców i wnoszą radość do każdej chwili zabawy.",
+                        "cta", "Poznaj nasze zabawki", "link", link, "image", "tpl:bawiloo/about", "imageSide", "right", "shape", "flower")),
+                SectionRegistry.section("newsletter6", "newsletter", Map.of("eyebrow", "Klub rodziców", "heading", "Radość prosto do Twojej skrzynki!",
+                        "text", "Dołącz do newslettera i odkrywaj nowości, wyjątkowe promocje oraz pomysły na wspólną zabawę.", "button", "Zapisz się")));
+        return new Preset("BAWILOO", "Bawiloo", "Radosny sklep z zabawkami na ciemnym tle: złoty nagłówek, okrągłe kategorie, karuzela promocji i ilustrowane korzyści.",
+                Map.copyOf(d), sections);
+    }
+
     /** Button colours are chosen so white text keeps at least 4.5:1 contrast (WCAG AA). */
     public static final List<Preset> PRESETS = List.of(
             vera(),
+            bawiloo(),
             new Preset("FASHION", "Atelier", "Elegancka typografia szeryfowa i duże zdjęcia — odzież, obuwie, dodatki.",
                     preset("#111111", "#C8A27C", "#FFFFFF", "#F6F4F1", "#1A1A1A", "serif", "none", "image", "plain", null, null),
                     plan("image", "Nowa kolekcja", "Ponadczasowe fasony w najlepszej jakości.", "categories:tiles", "products:8:Nowa kolekcja", "image_text", "newsletter")),

@@ -162,7 +162,7 @@ class StorefrontIT extends IntegrationTest {
         owner.post(base(t) + "/products", product("Produkt", "ACTIVE", "P-1", 1000, 1, List.of()));
 
         var theme = owner.get(base(t) + "/theme").json();
-        assertThat(theme.get("presets").size()).isEqualTo(9);
+        assertThat(theme.get("presets").size()).isEqualTo(10);
         assertThat(owner.put(base(t) + "/theme", Map.of("code", "JEWELRY", "settings", Map.of("primary", "red"), "version", -1)).code())
                 .isEqualTo("INVALID_THEME");
         assertThat(owner.put(base(t) + "/theme", Map.of("code", "JEWELRY", "settings", Map.of("hack", "x"), "version", -1)).code())

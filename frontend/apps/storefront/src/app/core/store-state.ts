@@ -34,17 +34,22 @@ export class StoreState {
    * Layout code of the template: templates with their own header, footer and product card ship their components in
    * app/themes/<code>; the rest share the standard layout.
    */
-  readonly layout = computed<'vera' | 'standard'>(() => (this.store()?.theme.code === 'VERA' ? 'vera' : 'standard'));
+  readonly layout = computed<'vera' | 'bawiloo' | 'standard'>(() => {
+    const code = this.store()?.theme.code;
+    return code === 'VERA' ? 'vera' : code === 'BAWILOO' ? 'bawiloo' : 'standard';
+  });
 
   /** URL of a theme image: the store's library (uuid) or the template's own images (`tpl:…`); null when unknown. */
   image(id: string | null | undefined, variant: 'w400' | 'w1200' = 'w1200'): string | null {
     return id ? this.store()?.themeImages?.[id]?.[variant] ?? null : null;
   }
 
-  /** Example products of the current template (preview only; empty for customers). */
+  /** Preview only: whether the store has no products yet (then the template's example products are shown). */
+  private readonly catalogEmpty = signal(false);
+  /** Example products of the current template (preview of an empty store only; always empty for customers). */
   readonly samples = computed(() => {
     const s = this.store();
-    return s?.preview ? s.sampleProducts?.[s.theme.code] ?? [] : [];
+    return s?.preview && this.catalogEmpty() ? s.sampleProducts?.[s.theme.code] ?? [] : [];
   });
 
   readonly topCategories = computed(() => (this.store()?.categories ?? []).filter((c) => c.depth === 0));
@@ -58,6 +63,9 @@ export class StoreState {
       '--sf-bg': s['background'], '--sf-surface': s['surface'], '--sf-text': s['text'],
       '--sf-font': FONTS[s['font']] ?? FONTS['sans'], '--sf-radius': RADII[s['radius']] ?? RADII['soft'],
       '--sf-font-display': DISPLAY_FONTS[s['font']] ?? FONTS[s['font']] ?? FONTS['sans'],
+      // Status colours stay readable on dark templates (WCAG AA on the page background)
+      '--sf-danger': readableOn(s['background']) === '#ffffff' ? '#ff8a6b' : '#b42318',
+      '--sf-success': readableOn(s['background']) === '#ffffff' ? '#5bd68a' : '#087443',
     };
     return Object.entries(vars).map(([k, v]) => `${k}:${v}`).join(';');
   });
@@ -67,6 +75,9 @@ export class StoreState {
       (store) => {
         this.loaded.set(store);
         this.status.set('ready');
+        if (store.preview && store.sampleProducts && Object.keys(store.sampleProducts).length) {
+          this.api.products({ size: 1 }).subscribe({ next: (p) => this.catalogEmpty.set(p.totalItems === 0), error: () => this.catalogEmpty.set(false) });
+        }
         if (this.browser && store.preview && store.panelOrigin) this.listenToEditor(store.panelOrigin);
       },
       (e) => this.status.set(e?.status === 404 ? 'not-found' : 'error'),

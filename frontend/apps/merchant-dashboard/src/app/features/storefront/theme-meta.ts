@@ -14,6 +14,8 @@ export const STYLE_LABELS: Record<ThemeStyle, string> = {
 };
 
 export const THEME_META: Record<string, ThemeMeta> = {
+  BAWILOO: { industries: ['TOYS', 'KIDS', 'GIFTS', 'HOBBY'], style: 'colorful',
+    features: ['Własne zdjęcia i 16 przykładowych zabawek', 'Okrągłe kategorie i karuzela promocji', 'Ilustrowane ikony korzyści'] },
   VERA: { industries: ['FASHION', 'FOOTWEAR', 'ACCESSORIES', 'JEWELRY'], style: 'elegant',
     features: ['Własne zdjęcia szablonu (do podmiany)', 'Kafelki działów i filtry produktów', 'Boczny koszyk z progiem darmowej dostawy'] },
   FASHION: { industries: ['FASHION', 'FOOTWEAR', 'ACCESSORIES', 'HANDMADE'], style: 'elegant', features: ['Duży baner ze zdjęciem', 'Szeryfowe nagłówki', 'Ostre krawędzie'] },
@@ -34,17 +36,17 @@ export const FONT_STACKS: Record<string, string> = {
   sans: 'ui-sans-serif, system-ui, sans-serif', serif: 'ui-serif, Georgia, serif',
   rounded: 'ui-rounded, "Segoe UI", system-ui, sans-serif', mono: 'ui-monospace, Menlo, monospace',
   editorial: 'ui-sans-serif, system-ui, sans-serif',
+  playful: 'ui-rounded, "Segoe UI", system-ui, sans-serif',
 };
 
 /** Heading font of the miniature (editorial pairs a serif heading with a sans body). */
 export function displayStack(key: string | undefined): string {
-  return key === 'editorial' ? 'ui-serif, Georgia, serif' : fontStack(key);
+  return key === 'editorial' ? 'ui-serif, Georgia, serif' : key === 'playful' ? 'ui-rounded, "Arial Rounded MT Bold", system-ui, sans-serif' : fontStack(key);
 }
 
-/** URL of a template image reference (`tpl:vera/hero` → its small variant); null for anything else. */
-export function templateImageUrl(ref: unknown): string | null {
-  const m = typeof ref === 'string' ? /^tpl:([a-z0-9]{2,20})\/([a-z0-9-]{2,40})$/.exec(ref) : null;
-  return m ? `/api/v1/theme-assets/${m[1]}/${m[2]}-w400.jpg` : null;
+/** Template image reference → its small variant URL, from the theme API response. */
+export function templateImageMap(list: { ref: string; urls: Record<string, string> }[] | undefined): Record<string, string> {
+  return Object.fromEntries((list ?? []).map((i) => [i.ref, i.urls['w400']]));
 }
 
 export function fontStack(key: string | undefined): string {

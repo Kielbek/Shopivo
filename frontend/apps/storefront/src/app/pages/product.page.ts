@@ -338,7 +338,7 @@ export class ProductPage {
     try {
       await this.cart.add(v.id, this.quantity());
       this.message.set({ text: 'Dodano do koszyka.', error: false });
-      if (this.vera()) this.cart.drawer.set(true);
+      if (this.store.layout() !== 'standard') this.cart.drawer.set(true);
     } catch (e: unknown) {
       const err = e as { error?: { detail?: string } };
       this.message.set({ text: err.error?.detail ?? 'Nie udało się dodać produktu. Spróbuj ponownie.', error: true });

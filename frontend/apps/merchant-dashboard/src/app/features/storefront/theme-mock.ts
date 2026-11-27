@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { ThemeSection } from '@shopivo/shared-models';
-import { displayStack, fontStack, onColor, radiusOf, templateImageUrl } from './theme-meta';
+import { displayStack, fontStack, onColor, radiusOf } from './theme-meta';
 
 /**
  * A miniature storefront drawn from a template's settings (colours, font, corners, home layout, product cards) —
@@ -22,8 +22,11 @@ import { displayStack, fontStack, onColor, radiusOf, templateImageUrl } from './
         }
       }
       <!-- header -->
-      <div class="flex items-center gap-2 px-[6%] py-[3%]" [style.border-bottom]="'1px solid ' + line()">
-        @if (editorial()) {
+      <div class="flex items-center gap-2 px-[6%] py-[3%]" [style.border-bottom]="playful() ? 'none' : '1px solid ' + line()"
+        [style.background]="playful() ? gradient() : null" [style.color]="playful() ? '#fff' : null">
+        @if (playful()) {
+          <span class="truncate font-semibold" [style.font-family]="display()" [style.font-size.px]="phone() ? 10 : 12">{{ storeName() || 'Twój sklep' }}</span>
+        } @else if (editorial()) {
           <span class="truncate font-bold uppercase tracking-[0.16em]" [style.font-family]="display()" [style.font-size.px]="phone() ? 9 : 11">{{ storeName() || 'Twój sklep' }}<span [style.color]="s['accent']">.</span></span>
         } @else {
           <span class="truncate font-semibold" [style.font-size.px]="phone() ? 9 : 10">{{ storeName() || 'Twój sklep' }}</span>
@@ -44,6 +47,14 @@ import { displayStack, fontStack, onColor, radiusOf, templateImageUrl } from './
             <span class="mt-1 text-[7px] opacity-80">{{ hero()['subheading'] }}</span>
             <span class="mt-2 w-fit px-2 py-1 text-[7px] font-semibold" [style.background]="s['background']" [style.color]="s['text']" [style.border-radius]="radius()">{{ hero()['cta'] || 'Zobacz' }}</span>
           </div>
+        }
+        @case ('playful') {
+          <div class="relative pb-[2%] text-center text-white" [style.background]="gradient()">
+            <span class="block px-[4%] pt-[3%] font-semibold uppercase leading-[1]" [style.font-family]="display()" [style.font-size.px]="phone() ? 10 : 15">{{ title() }}</span>
+            <span class="mx-auto mt-1.5 inline-block rounded-full px-2 py-[2px] text-[5px] font-extrabold uppercase" [style.background]="s['background']" [style.color]="s['text']">{{ hero()['cta'] || 'Zobacz' }}</span>
+            @if (heroImage(); as img) {<img [src]="img" alt="" class="mx-auto mt-1 block w-[92%] object-contain" [style.max-height.px]="phone() ? 40 : 62" />}
+          </div>
+          <div class="h-[6px]" [style.background]="'radial-gradient(circle at 50% 0, ' + s['accent'] + ' 3px, transparent 3.5px) 0 0 / 8px 6px repeat-x'"></div>
         }
         @case ('editorial') {
           <div class="grid items-center gap-[5%] px-[6%] py-[3%]" [class]="phone() ? 'grid-cols-1' : 'grid-cols-2'" [style.background]="s['surface']">
@@ -82,7 +93,17 @@ import { displayStack, fontStack, onColor, radiusOf, templateImageUrl } from './
         }
       }
       <!-- products -->
-      @if (editorial() && productImages().length) {
+      @if (playful() && productImages().length) {
+        <div class="mx-[6%] mt-[3%] grid gap-[3%]" [class]="phone() ? 'grid-cols-2' : 'grid-cols-4'">
+          @for (img of productImages().slice(0, 4); track img) {
+            <div class="rounded-[5px] border p-[3%] text-center" [style.border-color]="line()">
+              <img [src]="img" alt="" class="block aspect-square w-full rounded-[4px] object-cover" loading="lazy" />
+              <span class="mx-auto mt-[6%] block h-[3px] w-3/5 rounded-full opacity-70" [style.background]="s['text']"></span>
+              <span class="mx-auto mt-[5%] block h-[5px] w-2/5 rounded-full" [style.background]="s['primary']"></span>
+            </div>
+          }
+        </div>
+      } @else if (editorial() && productImages().length) {
         <div class="mx-[6%] mt-[3%] grid gap-[3%]" [class]="phone() ? 'grid-cols-2' : 'grid-cols-4'">
           @for (img of productImages().slice(0, 4); track img) {
             <div>
@@ -126,13 +147,17 @@ export class ThemeMockComponent {
   readonly storeName = input('');
   /** Photos of the template's example products (drawn as product cards in magazine-style templates). */
   readonly productImages = input<string[]>([]);
+  /** Template image reference → small URL (from the theme API; the store's own photos are not drawn here). */
+  readonly templateImages = input<Record<string, string>>({});
   protected readonly editorial = computed(() => this.settings()['font'] === 'editorial');
+  protected readonly playful = computed(() => this.settings()['font'] === 'playful');
+  protected readonly gradient = computed(() => `linear-gradient(to right, ${this.settings()['accent']}, color-mix(in srgb, ${this.settings()['accent']} 55%, #ffd36b))`);
   readonly phone = input(false);
 
   protected readonly font = computed(() => fontStack(this.settings()['font']));
   protected readonly display = computed(() => displayStack(this.settings()['font']));
   /** Only the template's own photos can be drawn here (the store's library needs a request per store). */
-  protected readonly heroImage = computed(() => templateImageUrl(this.hero()['image']));
+  protected readonly heroImage = computed(() => this.templateImages()[this.hero()['image']] ?? null);
   protected readonly radius = computed(() => radiusOf(this.settings()['radius'], 0.45));
   protected readonly title = computed(() => this.hero()['heading'] || this.storeName() || 'Witaj w sklepie');
   protected readonly cards = computed(() => (this.phone() ? [1, 2, 3, 4] : [1, 2, 3, 4]));
