@@ -37,9 +37,12 @@ class OrderMailer {
     private final ShopivoProperties properties;
     private final TransactionTemplate tx;
     private final org.springframework.beans.factory.ObjectProvider<pl.shopivo.orders.ShippingCarriers> carriers;
+    private final pl.shopivo.orders.Returns returnsRef;
 
     OrderMailer(Orders orders, Stores stores, PaymentSettings payments, EmailTemplates templates, EmailSender sender,
-            ShopivoProperties properties, TransactionTemplate tx, org.springframework.beans.factory.ObjectProvider<pl.shopivo.orders.ShippingCarriers> carriers) {
+            ShopivoProperties properties, TransactionTemplate tx, org.springframework.beans.factory.ObjectProvider<pl.shopivo.orders.ShippingCarriers> carriers,
+            pl.shopivo.orders.Returns returnsRef) {
+        this.returnsRef = returnsRef;
         this.carriers = carriers;
         this.orders = orders;
         this.stores = stores;
@@ -108,6 +111,55 @@ class OrderMailer {
                 + (d.order().cancelReason() == null ? "." : ": " + d.order().cancelReason() + "."));
         if (d.order().paymentStatus() == PaymentStatus.PAID) lines.add("Zwrot płatności zostanie zrealizowany przez sklep.");
         send(d, d.order().email(), "Zamówienie nr " + d.order().number() + " zostało anulowane", "Zamówienie anulowane", lines, false);
+    }
+
+    @Async
+    @TransactionalEventListener
+    void on(pl.shopivo.orders.Returns.ReturnChanged e) {
+        var r = TenantContext.callInTenant(e.tenantId(), () -> tx.execute(s -> returnsRef.get(e.returnId())));
+        Data d = load(e.tenantId(), r.orderId());
+        String what = r.kind() == pl.shopivo.orders.Returns.Kind.WITHDRAWAL ? "zwrot" : "reklamację";
+        String label = (r.kind() == pl.shopivo.orders.Returns.Kind.WITHDRAWAL ? "Zwrot" : "Reklamacja") + " nr " + r.number();
+        List<String> lines = new ArrayList<>();
+        switch (e.status()) {
+            case REQUESTED -> {
+                lines.add("Otrzymaliśmy Twoje zgłoszenie (" + label.toLowerCase() + ") do zamówienia nr " + r.orderNumber() + ". Odpowiemy najszybciej, jak to możliwe"
+                        + (r.kind() == pl.shopivo.orders.Returns.Kind.COMPLAINT ? " — na reklamację odpowiadamy w ciągu 14 dni." : "."));
+                r.items().forEach(i -> lines.add("• " + i.name() + (i.variantTitle() == null ? "" : " — " + i.variantTitle()) + " × " + i.quantity()));
+                if (r.kind() == pl.shopivo.orders.Returns.Kind.WITHDRAWAL) {
+                    lines.add("Odeślij produkty w ciągu 14 dni od zgłoszenia. Zwrot pieniędzy nastąpi po otrzymaniu przesyłki.");
+                }
+                String owner = d.orderEmail() != null ? d.orderEmail() : d.store().contactEmail();
+                if (owner != null) {
+                    send(d, owner, "Nowe zgłoszenie: " + label + " (zamówienie nr " + r.orderNumber() + ")", "Klient zgłosił " + what,
+                            List.of(r.customerEmail() + " zgłosił(a) " + what + " do zamówienia nr " + r.orderNumber() + ".",
+                                    "Rozpatrz: " + properties.appUrl() + "/sklep/" + e.tenantId() + "/zwroty"), false);
+                }
+            }
+            case ACCEPTED -> {
+                lines.add("Przyjęliśmy zgłoszenie: " + label.toLowerCase() + " do zamówienia nr " + r.orderNumber() + ".");
+                if (r.merchantNote() != null) lines.add("Wiadomość od sklepu: " + r.merchantNote());
+            }
+            case REJECTED -> {
+                lines.add("Niestety nie możemy przyjąć zgłoszenia (" + label.toLowerCase() + ") do zamówienia nr " + r.orderNumber() + ".");
+                if (r.merchantNote() != null) lines.add("Uzasadnienie: " + r.merchantNote());
+                lines.add("Jeśli masz pytania, odpowiedz na tę wiadomość lub skontaktuj się ze sklepem.");
+            }
+            case COMPLETED -> {
+                lines.add("Zakończyliśmy obsługę zgłoszenia (" + label.toLowerCase() + ") do zamówienia nr " + r.orderNumber() + ".");
+                if (r.merchantNote() != null) lines.add("Wiadomość od sklepu: " + r.merchantNote());
+            }
+        }
+        send(d, r.customerEmail(), label + " — " + statusText(e.status()), statusText(e.status()), lines, false);
+    }
+
+    private static String statusText(pl.shopivo.orders.Returns.Status s) {
+        return switch (s) {
+            case REQUESTED -> "Przyjęliśmy zgłoszenie";
+            case ACCEPTED -> "Zgłoszenie zaakceptowane";
+            case REJECTED -> "Zgłoszenie odrzucone";
+            case COMPLETED -> "Zgłoszenie zakończone";
+        };
     }
 
     private Data load(java.util.UUID tenantId, java.util.UUID orderId) {

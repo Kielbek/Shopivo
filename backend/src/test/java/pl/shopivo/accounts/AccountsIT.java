@@ -249,4 +249,119 @@ class AccountsIT extends IntegrationTest {
         assertThat(acc(HttpMethod.GET, s.host(), "/account/me", session, null).status()).isEqualTo(204);
         assertThat(acc(HttpMethod.POST, s.host(), "/account/login", null, Map.of("email", email, "password", PW)).code()).isEqualTo("INVALID_CREDENTIALS");
     }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    private String signedIn(Shop s, String email) throws Exception {
+        acc(HttpMethod.POST, s.host(), "/account/register", null, registration(email, PW));
+        return acc(HttpMethod.POST, s.host(), "/account/verify", null,
+                Map.of("token", link(email, "Potwierdź konto", "/konto/potwierdz"), "password", PW)).session();
+    }
+
+    @Test
+    void favouritesAndProductCards() throws Exception {
+        Shop s = shop("acc-wish");
+        String session = signedIn(s, uniqueEmail("ulubione"));
+        String product = s.owner().get(base(s.tenant()) + "/products").json().get("items").get(0).get("id").asString();
+        String foreign = java.util.UUID.randomUUID().toString();
+
+        assertThat(acc(HttpMethod.GET, s.host(), "/account/wishlist", null, null).code()).isEqualTo("NOT_SIGNED_IN");
+        // Unknown ids are ignored; adding twice keeps one entry
+        JsonNode list = acc(HttpMethod.POST, s.host(), "/account/wishlist", session, Map.of("productIds", List.of(product, foreign))).json();
+        assertThat(list.size()).isEqualTo(1);
+        assertThat(acc(HttpMethod.POST, s.host(), "/account/wishlist", session, Map.of("productIds", List.of(product))).json().size()).isEqualTo(1);
+
+        // Another store's account cannot see or add this store's products
+        Shop other = shop("acc-wish-b");
+        String otherSession = signedIn(other, uniqueEmail("ulubione-b"));
+        assertThat(acc(HttpMethod.POST, other.host(), "/account/wishlist", otherSession, Map.of("productIds", List.of(product))).json().size()).isZero();
+
+        // Public cards by id: only this store's active products
+        JsonNode cards = sf(HttpMethod.GET, s.host(), "/product-cards?ids=" + product + "," + foreign, null, null, null).json();
+        assertThat(cards.size()).isEqualTo(1);
+        assertThat(cards.get(0).get("name").asString()).isEqualTo("Świeca Sojowa");
+        assertThat(sf(HttpMethod.GET, other.host(), "/product-cards?ids=" + product, null, null, null).json().size()).isZero();
+
+        assertThat(acc(HttpMethod.DELETE, s.host(), "/account/wishlist/" + product, session, null).json().size()).isZero();
+    }
+
+    @Test
+    void returnsAndComplaintsFromTheAccountAndTheirHandlingInThePanel() throws Exception {
+        Shop s = shop("acc-ret");
+        String email = uniqueEmail("zwrot");
+        String session = signedIn(s, email);
+        long number = order(s, email);
+        JsonNode o = acc(HttpMethod.GET, s.host(), "/account/orders/" + number, session, null).json();
+        String orderId = s.owner().get(base(s.tenant()) + "/orders?q=" + number).json().get("items").get(0).get("id").asString();
+        String item = s.owner().get(base(s.tenant()) + "/orders/" + orderId).json().get("items").get(0).get("id").asString();
+        Map<String, Object> one = Map.of("kind", "WITHDRAWAL", "items", List.of(Map.of("orderItemId", item, "quantity", 1)));
+
+        // Not shipped yet: nothing to return
+        assertThat(acc(HttpMethod.GET, s.host(), "/account/orders/" + number + "/return-options", session, null).json().get("kinds").size()).isZero();
+        assertThat(acc(HttpMethod.POST, s.host(), "/account/orders/" + number + "/returns", session, one).code()).isEqualTo("ORDER_NOT_SHIPPED");
+        complete(s, number);
+        JsonNode options = acc(HttpMethod.GET, s.host(), "/account/orders/" + number + "/return-options", session, null).json();
+        assertThat(options.get("kinds").toString()).contains("WITHDRAWAL").contains("COMPLAINT");
+        assertThat(options.get("returnable").get(item).asInt()).isEqualTo(2);
+
+        // Validation: quantity, foreign line, complaint reason, bank account
+        assertThat(acc(HttpMethod.POST, s.host(), "/account/orders/" + number + "/returns", session,
+                Map.of("kind", "WITHDRAWAL", "items", List.of(Map.of("orderItemId", item, "quantity", 3)))).code()).isEqualTo("INVALID_QUANTITY");
+        assertThat(acc(HttpMethod.POST, s.host(), "/account/orders/" + number + "/returns", session,
+                Map.of("kind", "WITHDRAWAL", "items", List.of(Map.of("orderItemId", java.util.UUID.randomUUID().toString(), "quantity", 1)))).code())
+                .isEqualTo("INVALID_ITEM");
+        assertThat(acc(HttpMethod.POST, s.host(), "/account/orders/" + number + "/returns", session,
+                Map.of("kind", "COMPLAINT", "reason", "zła", "items", List.of(Map.of("orderItemId", item, "quantity", 1)))).code()).isEqualTo("REASON_REQUIRED");
+        assertThat(acc(HttpMethod.POST, s.host(), "/account/orders/" + number + "/returns", session,
+                Map.of("kind", "WITHDRAWAL", "refundAccount", "123", "items", List.of(Map.of("orderItemId", item, "quantity", 1)))).code())
+                .isEqualTo("INVALID_ACCOUNT");
+        // Someone else's order: 404
+        long foreign = order(s, uniqueEmail("inny"));
+        assertThat(acc(HttpMethod.POST, s.host(), "/account/orders/" + foreign + "/returns", session, one).status()).isEqualTo(404);
+
+        Res created = acc(HttpMethod.POST, s.host(), "/account/orders/" + number + "/returns", session,
+                Map.of("kind", "WITHDRAWAL", "refundAccount", "61 1090 1014 0000 0712 1981 2874", "items", List.of(Map.of("orderItemId", item, "quantity", 1))));
+        assertThat(created.status()).isEqualTo(201);
+        assertThat(created.json().get("status").asString()).isEqualTo("REQUESTED");
+        assertThat(created.json().get("valueMinor").asLong()).isEqualTo(4000);
+        assertThat(created.json().has("refundAccount")).isFalse();
+        emails.awaitEmail(email, "Zwrot nr");
+        // One item is left to return
+        assertThat(acc(HttpMethod.GET, s.host(), "/account/orders/" + number + "/return-options", session, null).json().get("returnable").get(item).asInt())
+                .isEqualTo(1);
+        assertThat(acc(HttpMethod.GET, s.host(), "/account/returns", session, null).json().size()).isEqualTo(1);
+
+        // Panel: list, decision (rejection needs a reason), completion, versioning
+        JsonNode row = s.owner().get(base(s.tenant()) + "/returns?status=REQUESTED").json().get("items").get(0);
+        String id = row.get("id").asString();
+        assertThat(row.get("refundAccount").asString()).isEqualTo("61109010140000071219812874");
+        assertThat(s.owner().get(base(s.tenant()) + "/returns/open-count").json().get("count").asLong()).isEqualTo(1);
+        assertThat(s.owner().post(base(s.tenant()) + "/returns/" + id + "/complete", Map.of("version", 0)).json().get("code").asString()).isEqualTo("NOT_ACCEPTED");
+        assertThat(s.owner().post(base(s.tenant()) + "/returns/" + id + "/decision", Map.of("accept", false, "version", 0)).json().get("code").asString())
+                .isEqualTo("NOTE_REQUIRED");
+        assertThat(s.owner().post(base(s.tenant()) + "/returns/" + id + "/decision", Map.of("accept", true, "note", "Prosimy odesłać paczkę", "version", 5))
+                .status()).isEqualTo(409);
+        JsonNode accepted = s.owner().post(base(s.tenant()) + "/returns/" + id + "/decision", Map.of("accept", true, "note", "Prosimy odesłać paczkę", "version", 0)).json();
+        assertThat(accepted.get("status").asString()).isEqualTo("ACCEPTED");
+        emails.awaitEmail(email, "Zgłoszenie zaakceptowane");
+        JsonNode done = s.owner().post(base(s.tenant()) + "/returns/" + id + "/complete", Map.of("version", accepted.get("version").asLong())).json();
+        assertThat(done.get("status").asString()).isEqualTo("COMPLETED");
+        assertThat(acc(HttpMethod.GET, s.host(), "/account/returns", session, null).json().get(0).get("merchantNote").asString()).isEqualTo("Prosimy odesłać paczkę");
+
+        // Another store's owner cannot see it
+        Shop other = shop("acc-ret-b");
+        assertThat(other.owner().get(base(s.tenant()) + "/returns/" + id).status()).isEqualTo(404);
+        assertThat(other.owner().get(base(other.tenant()) + "/returns/" + id).status()).isEqualTo(404);
+
+        // After the 14 days from delivery only a complaint is possible
+        pl.shopivo.shared.tenancy.TenantContext.runAsSystem(() -> jdbc.update(
+                "update orders set completed_at = now() - interval '15 days' where id = ?::uuid", orderId));
+        options = acc(HttpMethod.GET, s.host(), "/account/orders/" + number + "/return-options", session, null).json();
+        assertThat(options.get("kinds").toString()).doesNotContain("WITHDRAWAL").contains("COMPLAINT");
+        assertThat(acc(HttpMethod.POST, s.host(), "/account/orders/" + number + "/returns", session, one).code()).isEqualTo("PERIOD_OVER");
+        assertThat(acc(HttpMethod.POST, s.host(), "/account/orders/" + number + "/returns", session, Map.of("kind", "COMPLAINT",
+                "reason", "Knot odpadł po pierwszym użyciu", "items", List.of(Map.of("orderItemId", item, "quantity", 1)))).status()).isEqualTo(201);
+        assertThat(o.get("number").asLong()).isEqualTo(number);
+    }
 }

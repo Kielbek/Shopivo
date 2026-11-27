@@ -306,6 +306,69 @@ class StorefrontAccountController {
         return ResponseEntity.status(HttpStatus.CREATED).cacheControl(CacheControl.noStore()).build();
     }
 
+    // ------------------------------------------------------------------------------------------------ returns
+
+    /** What the customer sees about a return (no internal data). */
+    record CustomerReturn(long number, long orderNumber, String kind, String status, String reason, String merchantNote,
+            long valueMinor, String currency, List<pl.shopivo.orders.Returns.Item> items, Instant createdAt, Instant decidedAt, Instant completedAt) {
+        static CustomerReturn of(pl.shopivo.orders.Returns.ReturnView r) {
+            return new CustomerReturn(r.number(), r.orderNumber(), r.kind().name(), r.status().name(), r.reason(), r.merchantNote(),
+                    r.valueMinor(), r.currency(), r.items(), r.createdAt(), r.decidedAt(), r.completedAt());
+        }
+    }
+
+    @GetMapping("/returns")
+    ResponseEntity<List<CustomerReturn>> returns(HttpServletRequest request) {
+        UUID tenant = guard(request);
+        UUID id = signedIn(tenant, request).id();
+        return noStore(run(tenant, () -> accounts.returns(id).stream().map(CustomerReturn::of).toList()));
+    }
+
+    @GetMapping("/orders/{number}/return-options")
+    ResponseEntity<CustomerAccounts.ReturnOptions> returnOptions(HttpServletRequest request, @PathVariable long number) {
+        UUID tenant = guard(request);
+        UUID id = signedIn(tenant, request).id();
+        return noStore(run(tenant, () -> accounts.returnOptions(id, number)));
+    }
+
+    @PostMapping("/orders/{number}/returns")
+    ResponseEntity<CustomerReturn> requestReturn(HttpServletRequest request, @PathVariable long number,
+            @RequestBody pl.shopivo.orders.Returns.ReturnInput body) {
+        UUID tenant = guard(request);
+        UUID id = signedIn(tenant, request).id();
+        rateLimiter.consume("acc-return:" + id, 10, Duration.ofHours(1));
+        CustomerReturn created = run(tenant, () -> CustomerReturn.of(accounts.requestReturn(id, number, body)));
+        return ResponseEntity.status(HttpStatus.CREATED).cacheControl(CacheControl.noStore()).body(created);
+    }
+
+    // ------------------------------------------------------------------------------------------------ favourites
+
+    record WishlistRequest(List<UUID> productIds) {
+    }
+
+    @GetMapping("/wishlist")
+    ResponseEntity<List<UUID>> wishlist(HttpServletRequest request) {
+        UUID tenant = guard(request);
+        UUID id = signedIn(tenant, request).id();
+        return noStore(run(tenant, () -> accounts.wishlist(id)));
+    }
+
+    /** Adds products (one heart click, or the favourites gathered before signing in). */
+    @PostMapping("/wishlist")
+    ResponseEntity<List<UUID>> addToWishlist(HttpServletRequest request, @RequestBody WishlistRequest body) {
+        UUID tenant = guard(request);
+        UUID id = signedIn(tenant, request).id();
+        rateLimiter.consume("acc-wish:" + id, 120, Duration.ofMinutes(10));
+        return noStore(run(tenant, () -> accounts.addToWishlist(id, body == null ? List.of() : body.productIds())));
+    }
+
+    @DeleteMapping("/wishlist/{productId}")
+    ResponseEntity<List<UUID>> removeFromWishlist(HttpServletRequest request, @PathVariable UUID productId) {
+        UUID tenant = guard(request);
+        UUID id = signedIn(tenant, request).id();
+        return noStore(run(tenant, () -> accounts.removeFromWishlist(id, productId)));
+    }
+
     // ------------------------------------------------------------------------------------------------ helpers
 
     /** Rate-limit keys never contain the e-mail address itself (no personal data in Redis). */

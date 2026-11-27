@@ -131,6 +131,14 @@ class StorefrontController {
         return cached(result, storefront.isPreview(request, tenant));
     }
 
+    /** Cards of the given products (`ids=a,b,…`, max 60; unknown or inactive ids are skipped) — favourites, recently viewed. */
+    @GetMapping("/product-cards")
+    ResponseEntity<List<PublicCatalog.ProductCard>> cards(HttpServletRequest request, @RequestParam List<UUID> ids) {
+        UUID tenant = storefront.resolvePublished(request);
+        if (ids.size() > 60) throw new pl.shopivo.shared.error.BusinessRuleException("TOO_MANY_IDS", "Za dużo produktów naraz.");
+        return cached(inTenant(tenant, () -> catalog.cards(ids)), storefront.isPreview(request, tenant));
+    }
+
     @GetMapping("/reviews/latest")
     ResponseEntity<List<pl.shopivo.reviews.Reviews.FeaturedReview>> latestReviews(HttpServletRequest request) {
         UUID tenant = storefront.resolvePublished(request);

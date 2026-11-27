@@ -94,9 +94,28 @@ public class PublicCatalog {
     /** {@code onSale}: only products with a variant priced below its "before discount" price. */
     @Transactional(readOnly = true)
     public Page<ProductCard> products(String categorySlug, String query, Sort sort, boolean onSale, Pageable pageable) {
+        return products(categorySlug, query, sort, onSale, null, pageable);
+    }
+
+    /** Cards of these products (active ones only), in the order given — favourites, recently viewed. */
+    @Transactional(readOnly = true)
+    public List<ProductCard> cards(List<UUID> ids) {
+        if (ids == null || ids.isEmpty()) return List.of();
+        List<UUID> wanted = ids.stream().distinct().limit(60).toList();
+        Map<UUID, ProductCard> found = new HashMap<>();
+        products(null, null, Sort.NEWEST, false, wanted, org.springframework.data.domain.PageRequest.of(0, wanted.size()))
+                .forEach(c -> found.put(c.id(), c));
+        return wanted.stream().map(found::get).filter(java.util.Objects::nonNull).toList();
+    }
+
+    private Page<ProductCard> products(String categorySlug, String query, Sort sort, boolean onSale, List<UUID> ids, Pageable pageable) {
         UUID tenant = TenantContext.requireTenantId();
         StringBuilder where = new StringBuilder(" where p.tenant_id = ? and p.status = 'ACTIVE'");
         List<Object> args = new ArrayList<>(List.of(tenant));
+        if (ids != null) {
+            where.append(" and p.id = any(?)");
+            args.add(ids.toArray(UUID[]::new));
+        }
         if (onSale) {
             where.append(" and exists (select 1 from product_variants sv where sv.product_id = p.id and sv.compare_at_minor is not null and sv.compare_at_minor > sv.price_minor)");
         }

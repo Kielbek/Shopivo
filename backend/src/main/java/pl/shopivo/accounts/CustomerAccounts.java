@@ -47,12 +47,14 @@ public class CustomerAccounts {
     private final PasswordPolicy policy;
     private final Orders orders;
     private final Reviews reviews;
+    private final pl.shopivo.orders.Returns returns;
     private final ApplicationEventPublisher events;
     /** Compared against when the e-mail is unknown, so that response time does not reveal registered addresses. */
     private final String dummyHash;
 
     CustomerAccounts(JdbcTemplate jdbc, PasswordEncoder encoder, PasswordPolicy policy, Orders orders, Reviews reviews,
-            ApplicationEventPublisher events) {
+            pl.shopivo.orders.Returns returns, ApplicationEventPublisher events) {
+        this.returns = returns;
         this.jdbc = jdbc;
         this.encoder = encoder;
         this.policy = policy;
@@ -314,6 +316,64 @@ public class CustomerAccounts {
     @Transactional(readOnly = true)
     public OrderView order(UUID accountId, long number) {
         return orders.byNumberForEmail(number, verifiedEmail(accountId));
+    }
+
+    // ------------------------------------------------------------------------------------------------ returns
+
+    /** What an order allows: the kinds of request still possible and, per order line, how many items can be returned. */
+    public record ReturnOptions(List<pl.shopivo.orders.Returns.Kind> kinds, java.util.Map<UUID, Integer> returnable) {
+    }
+
+    @Transactional(readOnly = true)
+    public ReturnOptions returnOptions(UUID accountId, long orderNumber) {
+        OrderView order = order(accountId, orderNumber);
+        return new ReturnOptions(returns.allowedKinds(order), returns.returnable(order));
+    }
+
+    @Transactional
+    public pl.shopivo.orders.Returns.ReturnView requestReturn(UUID accountId, long orderNumber, pl.shopivo.orders.Returns.ReturnInput input) {
+        return returns.request(order(accountId, orderNumber), input);
+    }
+
+    @Transactional(readOnly = true)
+    public List<pl.shopivo.orders.Returns.ReturnView> returns(UUID accountId) {
+        return returns.forOrders(orders(accountId).stream().map(OrderView::id).toList());
+    }
+
+    // ------------------------------------------------------------------------------------------------ favourites
+
+    static final int MAX_WISHLIST = 200;
+
+    /** Favourite product ids, newest first (products that were deleted disappear with them). */
+    @Transactional(readOnly = true)
+    public List<UUID> wishlist(UUID accountId) {
+        return jdbc.query("select product_id from customer_wishlist where tenant_id = ? and account_id = ? order by created_at desc",
+                (rs, i) -> rs.getObject(1, UUID.class), TenantContext.requireTenantId(), accountId);
+    }
+
+    /** Adds active products of this store (other ids are ignored); returns the new list. */
+    @Transactional
+    public List<UUID> addToWishlist(UUID accountId, List<UUID> productIds) {
+        UUID tenant = TenantContext.requireTenantId();
+        if (productIds == null || productIds.isEmpty()) return wishlist(accountId);
+        if (productIds.size() > MAX_WISHLIST) throw new pl.shopivo.shared.error.BusinessRuleException("TOO_MANY", "Za dużo produktów naraz.");
+        jdbc.update("""
+                insert into customer_wishlist (tenant_id, account_id, product_id)
+                select ?, ?, p.id from products p where p.tenant_id = ? and p.id = any(?) and p.status = 'ACTIVE'
+                on conflict do nothing
+                """, tenant, accountId, tenant, productIds.toArray(UUID[]::new));
+        Integer n = jdbc.queryForObject("select count(*) from customer_wishlist where tenant_id = ? and account_id = ?", Integer.class, tenant, accountId);
+        if (n != null && n > MAX_WISHLIST) {
+            throw new pl.shopivo.shared.error.BusinessRuleException("WISHLIST_FULL", "Ulubione mogą mieć najwyżej " + MAX_WISHLIST + " produktów.");
+        }
+        return wishlist(accountId);
+    }
+
+    @Transactional
+    public List<UUID> removeFromWishlist(UUID accountId, UUID productId) {
+        jdbc.update("delete from customer_wishlist where tenant_id = ? and account_id = ? and product_id = ?",
+                TenantContext.requireTenantId(), accountId, productId);
+        return wishlist(accountId);
     }
 
     @Transactional(readOnly = true)
