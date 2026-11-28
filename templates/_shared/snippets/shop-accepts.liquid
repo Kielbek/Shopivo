@@ -1,0 +1,4 @@
+{%- comment -%} Small logos of what an online payment operator takes (BLIK, Visa…). Param: accepts (list of brands). {%- endcomment -%}
+{%- if accepts.size > 0 -%}
+<span class="shop-accepts">{% for a in accepts %}{% if a.logo %}<img src="{{ a.logo }}" alt="{{ a.name }}" title="{{ a.name }}" loading="lazy" decoding="async">{% else %}<span>{{ a.name }}</span>{% endif %}{% endfor %}</span>
+{%- endif -%}

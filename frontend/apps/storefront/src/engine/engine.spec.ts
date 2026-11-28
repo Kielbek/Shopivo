@@ -7,7 +7,7 @@ import { routeOf } from './routes';
 import { isShown, toTplDate, warsawToUtc } from './schedule';
 import { safeLink, settingValue, settingsOf } from './settings';
 import type { ApiCard, ApiStore, StoreApi } from './store-data';
-import { ApiError, StoreApi as Api, groupAccount, toCart, toProduct } from './store-data';
+import { ApiError, StoreApi as Api, groupAccount, toCart, toCheckout, toProduct } from './store-data';
 import { PAGE_TYPES, loadAll, loadShared, templatesDir, type TemplatePackage } from './template-package';
 
 const packages = loadAll(templatesDir());
@@ -174,6 +174,37 @@ describe('rendering', () => {
       expect(on, p.code).toContain('role="alert">Logowanie przez Google zostało przerwane.</p>');
       const off = await render(null);
       expect(off, p.code).not.toContain('account/google');
+    }
+  });
+});
+
+describe('checkout logos', () => {
+  it('show the courier and payment operator logos in every template, and name the operator on the order button', async () => {
+    const checkout = toCheckout({
+      shippingMethods: [
+        { id: 's1', name: 'Paczkomat', description: null, type: 'PARCEL_LOCKER', priceMinor: 1299, freeFromMinor: null, requiresPickupPoint: true, brand: 'inpost' },
+        { id: 's2', name: 'Kurier', description: null, type: 'COURIER', priceMinor: 1599, freeFromMinor: null, requiresPickupPoint: false, brand: 'dpd' },
+        { id: 's3', name: 'Odbiór osobisty', description: null, type: 'PICKUP', priceMinor: 0, freeFromMinor: null, requiresPickupPoint: false, brand: null },
+        { id: 's4', name: 'Kurier X', description: null, type: 'COURIER', priceMinor: 0, freeFromMinor: null, requiresPickupPoint: false, brand: 'a"><b' },
+      ],
+      paymentMethods: [
+        { method: 'ONLINE', label: 'Płatność online (Przelewy24)', feeMinor: 0, brand: 'przelewy24', accepts: ['blik', 'visa', 'mastercard'] },
+        { method: 'COD', label: 'Za pobraniem', feeMinor: 500 },
+      ],
+    });
+    expect(checkout.shipping_methods[3].brand).toBeNull(); // unsafe code dropped
+    const cart = toCart({ currency: 'PLN', itemCount: 1, subtotalMinor: 1000, checkoutReady: true, lines: [{ variantId: 'v', productId: 'p', name: 'Kubek',
+      variantTitle: null, quantity: 1, unitPriceMinor: 1000, lineTotalMinor: 1000, available: true, productSlug: 'kubek', imageUrl: null, imageColor: null }] } as never);
+    for (const p of packages.values()) {
+      const r = new TemplateRenderer(p, '/_t/x/1');
+      const html = await r.renderPage({ pkg: p, api: fakeApi([]), store, pageType: 'checkout', page: { checkout }, cart, head: '', footer: '' });
+      expect(html, p.code).toContain('<img src="/_shop/brands/inpost.svg" alt="InPost"');
+      expect(html, p.code).toContain('<img src="/_shop/brands/dpd.svg" alt="DPD"');
+      expect(html, p.code).toContain('<img src="/_shop/brands/przelewy24.png" alt="Przelewy24"');
+      expect(html, p.code).toContain('alt="BLIK"');
+      expect(html, p.code).toContain('data-submit-label="Zamawiam i płacę przez Przelewy24"');
+      expect(html, p.code).toContain('shop-brand-icon'); // pickup and cash on delivery: neutral pictograms
+      expect(html, p.code).not.toContain('a"><b');
     }
   });
 });

@@ -30,7 +30,7 @@
 <fieldset class="nd-card grid gap-3">
 <legend class="checkout-legend">Dostawa</legend>
 {%- for m in checkout.shipping_methods %}
-<label class="checkout-choice"><input type="radio" name="shippingMethodId" value="{{ m.id }}" required data-price="{{ m.price }}" data-free-from="{{ m.free_from }}"{% if m.pickup_point %} data-pickup{% endif %}{% if forloop.first %} checked{% endif %}><span class="checkout-choice-text"><strong>{{ m.name }}</strong>{% if m.description != blank %}<span class="checkout-muted">{{ m.description }}</span>{% endif %}</span><span class="checkout-price" data-shop-shipping-price>{{ m.price | money: cart.currency }}</span></label>
+<label class="checkout-choice"><input type="radio" name="shippingMethodId" value="{{ m.id }}" required data-price="{{ m.price }}" data-free-from="{{ m.free_from }}"{% if m.pickup_point %} data-pickup{% endif %}{% if forloop.first %} checked{% endif %}>{% render 'shop-brand-logo', brand: m.brand, icon: m.kind %}<span class="checkout-choice-text"><strong>{{ m.name }}</strong>{% if m.description != blank %}<span class="checkout-muted">{{ m.description }}</span>{% endif %}</span><span class="checkout-price" data-shop-shipping-price>{{ m.price | money: cart.currency }}</span></label>
 {%- if m.pickup_point %}
 <div class="checkout-pickup" data-shop-pickup="{{ m.id }}" hidden>
 <p class="font-bold">Wybierz paczkomat</p>
@@ -46,7 +46,7 @@
 <fieldset class="nd-card grid gap-3">
 <legend class="checkout-legend">Płatność</legend>
 {%- for p in checkout.payment_methods %}
-<label class="checkout-choice"><input type="radio" name="paymentMethod" value="{{ p.method }}" required data-fee="{{ p.fee }}"{% if forloop.first %} checked{% endif %}><span class="checkout-choice-text"><strong>{{ p.label }}</strong></span>{% if p.fee > 0 %}<span class="checkout-price">+ {{ p.fee | money: cart.currency }}</span>{% endif %}</label>
+<label class="checkout-choice"><input type="radio" name="paymentMethod" value="{{ p.method }}" required data-fee="{{ p.fee }}"{% if p.submit_label %} data-submit-label="{{ p.submit_label }}"{% endif %}{% if forloop.first %} checked{% endif %}>{% render 'shop-brand-logo', brand: p.brand, icon: p.method %}<span class="checkout-choice-text"><strong>{{ p.label }}</strong>{% render 'shop-accepts', accepts: p.accepts %}</span>{% if p.fee > 0 %}<span class="checkout-price">+ {{ p.fee | money: cart.currency }}</span>{% endif %}</label>
 {%- else %}
 <p class="text-sm nd-muted">Sklep nie ma jeszcze metod płatności.</p>
 {%- endfor %}

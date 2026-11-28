@@ -18,4 +18,9 @@ public interface ShippingCarriers {
 
     /** Public tracking page of a parcel, if the carrier has one. */
     java.util.Optional<String> trackingUrl(String carrier, String trackingNumber);
+
+    /** Brand of the courier behind a carrier reference (inpost, dpd, dhl…) for its logo; empty when unknown or not enabled. */
+    default java.util.Optional<String> brand(String carrier) {
+        return java.util.Optional.empty();
+    }
 }

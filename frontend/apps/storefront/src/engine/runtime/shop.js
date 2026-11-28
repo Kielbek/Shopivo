@@ -415,6 +415,12 @@
     const feeRow = form.querySelector('[data-shop-fee-row]');
     if (feeRow) feeRow.hidden = !st.fee;
     set('total', fmt(st.total));
+    // Online payment: the order button says where the customer goes next ("…przez Przelewy24")
+    const submit = form.querySelector('button[type="submit"]');
+    if (submit && !submit.disabled) {
+      submit.dataset.defaultLabel ??= submit.textContent;
+      submit.textContent = st.pay?.dataset.submitLabel || submit.dataset.defaultLabel;
+    }
     form.querySelectorAll('[data-shop-pickup]').forEach((box) => { box.hidden = !st.ship || st.ship.value !== box.dataset.shopPickup; });
     form.querySelectorAll('[data-shop-toggle]').forEach((t) => {
       form.querySelectorAll(`[data-shop-when="${CSS.escape(t.dataset.shopToggle)}"]`).forEach((el) => { el.hidden = !t.checked; });

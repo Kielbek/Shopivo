@@ -94,3 +94,11 @@
 .shop-auth-error{margin:0 0 16px;padding:12px 14px;border-radius:12px;background:#fdecea;color:#8a1c12;font-size:14px;line-height:1.45}
 .shop-oauth-note{margin:4px 0 0;font-size:11px;line-height:1.5;color:var(--shop-muted,#6b6b66)}
 .shop-oauth-note a{text-decoration:underline}
+
+/* Checkout: courier and payment operator logos (shop-brand-logo, shop-accepts) */
+.shop-brand{display:inline-flex;flex-shrink:0;align-items:center;justify-content:center;width:3.5rem;height:2.25rem;overflow:hidden;border:1px solid var(--shop-line,#e5e5e5);border-radius:.6rem;background:#fff;color:var(--shop-muted,#6b6b6b)}
+.shop-brand img{max-width:80%;max-height:62%;object-fit:contain}
+.shop-brand-name{padding:0 .25rem;font-size:.68rem;font-weight:700;line-height:1.1;text-align:center;color:#3a3a3a}
+.shop-brand-icon{background:var(--shop-surface,#f6f6f4)}
+.shop-accepts{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;margin-top:.35rem}
+.shop-accepts img,.shop-accepts span{height:1.2rem;width:auto;max-width:2.6rem;border:1px solid var(--shop-line,#e5e5e5);border-radius:.25rem;background:#fff;padding:.12rem .2rem;object-fit:contain;font-size:.62rem;font-weight:700;line-height:.95rem;color:#3a3a3a}

@@ -51,6 +51,11 @@ class StoreOnlinePayments implements OnlinePayments {
     }
 
     @Override
+    public Optional<String> activeOperatorId() {
+        return tx.execute(s -> providers.active()).filter(a -> a.enabled()).map(a -> a.gateway().descriptor().id());
+    }
+
+    @Override
     public String start(OrderView order, String customerIp) {
         UUID tenant = TenantContext.requireTenantId();
         var active = tx.execute(s -> providers.active()).filter(a -> a.enabled())

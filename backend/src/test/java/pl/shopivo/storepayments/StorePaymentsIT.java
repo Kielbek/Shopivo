@@ -114,6 +114,8 @@ class StorePaymentsIT extends IntegrationTest {
         JsonNode options = sf("GET", s.host(), "/checkout/options", Map.of(), null).json().get("paymentMethods");
         assertThat(options.get(0).get("method").asString()).isEqualTo("ONLINE");
         assertThat(options.get(0).get("label").asString()).contains("Symulator");
+        assertThat(options.get(0).get("brand").asString()).isEqualTo("fake");
+        assertThat(options.get(0).get("accepts")).isEmpty();
 
         // Checkout → pay → operator page (the simulator returns straight to the store)
         Res placed = order(s, "ONLINE");

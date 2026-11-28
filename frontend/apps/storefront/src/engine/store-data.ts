@@ -3,6 +3,8 @@
  * templates see. Templates never get raw API objects: everything goes through the `to*` functions below, so the
  * template contract (docs/TEMPLATE_FORMAT.md) stays stable when the API changes.
  */
+import { toBrand, type TplBrand } from './brands';
+
 export interface RequestInfo {
   host: string;
   proto: string;
@@ -102,8 +104,11 @@ export interface ApiReturn {
 }
 export interface ApiAddress { line1: string; line2: string | null; postalCode: string; city: string; isDefault: boolean; }
 export interface ApiCheckoutOptions {
-  shippingMethods: { id: string; name: string; description: string | null; type: string; priceMinor: number; freeFromMinor: number | null; requiresPickupPoint: boolean }[];
-  paymentMethods: { method: 'BANK_TRANSFER' | 'COD' | 'ONLINE'; label: string; feeMinor: number }[];
+  shippingMethods: { id: string; name: string; description: string | null; type: string; priceMinor: number; freeFromMinor: number | null; requiresPickupPoint: boolean;
+    /** Courier of a linked carrier (inpost, dpd…), for its logo. */
+    brand?: string | null }[];
+  /** brand: operator of online payments; accepts: payment means it takes for sure (blik, visa…). */
+  paymentMethods: { method: 'BANK_TRANSFER' | 'COD' | 'ONLINE'; label: string; feeMinor: number; brand?: string | null; accepts?: string[] }[];
 }
 export interface ApiOrder {
   number: number; status: string; paymentStatus: string; paymentMethod: string;
@@ -209,8 +214,18 @@ export function toCheckout(o: ApiCheckoutOptions) {
   return {
     shipping_methods: o.shippingMethods.map((m) => ({
       id: m.id, name: m.name, description: m.description, price: m.priceMinor, free_from: m.freeFromMinor, pickup_point: m.requiresPickupPoint,
+      brand: toBrand(m.brand),
+      kind: m.type,
     })),
-    payment_methods: o.paymentMethods.map((p) => ({ method: p.method, label: p.label, fee: p.feeMinor })),
+    payment_methods: o.paymentMethods.map((p) => {
+      const brand = toBrand(p.brand);
+      return {
+        method: p.method, label: p.label, fee: p.feeMinor, brand,
+        accepts: (p.accepts ?? []).map(toBrand).filter((b): b is TplBrand => b !== null),
+        // The order button names where the customer goes next
+        submit_label: p.method === 'ONLINE' ? (brand ? `Zamawiam i płacę przez ${brand.name}` : 'Zamawiam i przechodzę do płatności') : null,
+      };
+    }),
   };
 }
 

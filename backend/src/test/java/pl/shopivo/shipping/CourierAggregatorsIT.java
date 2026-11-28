@@ -157,6 +157,11 @@ class CourierAggregatorsIT extends IntegrationTest {
         String method = null;
         for (JsonNode m : s.owner().get(base(t) + "/shipping-methods").json()) if ("furgonetka:7001".equals(m.path("carrier").asString())) method = m.get("id").asString();
         publishStore(s.owner(), t);
+        // Checkout shows the courier behind the aggregator service (its logo)
+        for (JsonNode m : sf("GET", s.host(), "/checkout/options", Map.of(), null).get("shippingMethods")) {
+            if ("furgonetka:7001".equals(m.path("carrier").asString())) assertThat(m.get("brand").asString()).isEqualTo("inpost");
+            else assertThat(m.get("brand").isNull()).isTrue();
+        }
         assertThat(sf("GET", s.host(), "/pickup-points?metoda=" + method + "&q=krakow", Map.of(), null).get(0).get("code").asString()).isEqualTo("KRA01M");
         String cart = sf("POST", s.host(), "/cart", Map.of(), null).get("token").asString();
         sf("POST", s.host(), "/cart/items", Map.of("X-Cart-Token", cart), Map.of("variantId", s.variant(), "quantity", 1));

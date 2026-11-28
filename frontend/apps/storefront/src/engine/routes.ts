@@ -1,4 +1,5 @@
 import express from 'express';
+import { BRANDS_URL, brandsDir } from './brands';
 import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
@@ -108,6 +109,10 @@ export function templateEngine(apiOrigin: string) {
     res.type('text/css').setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     res.send(sharedCss);
   });
+
+  // Courier and payment operator logos at checkout (templates/_shared/brands)
+  const brands = brandsDir();
+  if (brands) router.use(BRANDS_URL, express.static(brands, { maxAge: '7d', index: false, redirect: false, dotfiles: 'deny' }));
 
   // Template files: versioned URLs, cached for a year. Only files inside the package's assets/ are reachable.
   for (const p of packages.values()) {

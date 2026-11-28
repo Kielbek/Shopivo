@@ -78,7 +78,7 @@ Zapisana wartość, która nie pasuje do schematu (np. po zmianie szablonu), jes
 - **strona produktu:** `product` (z `variants`, `images`, `breadcrumbs`, `category_name`, `description`) i `related`.
 - **katalog:** `catalog` (`items`, `total`, `page`, `total_pages`, `q`, `category`, `category_name`, `sort`, `sale`, `prev_url`, `next_url`).
 - **ulubione:** `favorites`.
-- **zamówienie:** `checkout` (`shipping_methods[]` z `price`, `free_from`, `pickup_point`; `payment_methods[]` z `method`, `label`, `fee`; `customer` z danymi zalogowanego klienta i jego domyślnym adresem; `captcha_site_key`).
+- **zamówienie:** `checkout` (`shipping_methods[]` z `price`, `free_from`, `pickup_point`, `kind` (COURIER, PARCEL_LOCKER…), `brand`; `payment_methods[]` z `method`, `label`, `fee`, `brand`, `accepts[]`, `submit_label`; `brand` = `{code, name, logo}` podłączonego kuriera lub operatora albo `nil` — gotowe: `{% render 'shop-brand-logo', brand: m.brand, icon: m.kind %}` (bez marki rysuje neutralny piktogram) i `{% render 'shop-accepts', accepts: p.accepts %}`; `customer` z danymi zalogowanego klienta i jego domyślnym adresem; `captcha_site_key`).
 - **potwierdzenie:** `order` (`number`, `items`, `total`, `paid`, `awaiting_online`, `bank_transfer`, `pickup_point`…) albo nic, gdy brak ciasteczka zamówienia.
 - **strona i wpis:** `entry` (`kind`, `title`, `blocks` — treść jako dane: nagłówki, akapity, listy, linki; snippet `rich-text` ją rysuje).
 - **blog:** `blog` (`posts`, `page`, `total_pages`, `prev_url`, `next_url`).
@@ -112,7 +112,7 @@ Skrypt platformy (`engine/runtime/shop.js`, adres `/_shop/runtime.js`) podpina s
 | `form[data-shop-newsletter]` (pole `email`, zgoda) + `[data-shop-status]` | zapis do newslettera (double opt-in) |
 | `form[data-shop-filter]` + `[data-shop-region]` | filtry katalogu: wyniki podmieniają się bez przeładowania, adres się aktualizuje |
 | `[data-shop-toast]` | komunikaty „Dodano do koszyka” |
-| `form[data-shop-checkout]` | zamówienie: pola `email`, `phone`, `firstName`, `lastName`, `line1`, `postalCode`, `city`, `shippingMethodId` (`data-price`, `data-free-from`, `data-pickup`), `paymentMethod` (`data-fee`), `invoice`, `companyName`, `taxId`, `customerNote`, `termsAccepted`, `marketingConsent`; sumy w `[data-shop-total="shipping|fee|total"]`; paczkomaty w `[data-shop-pickup=methodId]`; błędy w `[data-shop-error]`; walidacja jak na serwerze |
+| `form[data-shop-checkout]` | zamówienie: pola `email`, `phone`, `firstName`, `lastName`, `line1`, `postalCode`, `city`, `shippingMethodId` (`data-price`, `data-free-from`, `data-pickup`), `paymentMethod` (`data-fee`; `data-submit-label` zmienia napis przycisku zamówienia, np. „Zamawiam i płacę przez Przelewy24”), `invoice`, `companyName`, `taxId`, `customerNote`, `termsAccepted`, `marketingConsent`; sumy w `[data-shop-total="shipping|fee|total"]`; paczkomaty w `[data-shop-pickup=methodId]`; błędy w `[data-shop-error]`; walidacja jak na serwerze |
 | `[data-shop-toggle=x]` + `[data-shop-when=x]` | pokazuje część formularza po zaznaczeniu pola (np. faktura) |
 | `[data-shop-captcha="klucz"]` | Cloudflare Turnstile, gdy sklep ma włączone zabezpieczenie (zamówienie, newsletter) |
 | `[data-shop-order]` (`data-wait`), `[data-shop-order-pay]` | potwierdzenie: czeka na płatność online, ponowna płatność |

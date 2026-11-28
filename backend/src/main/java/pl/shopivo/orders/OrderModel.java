@@ -29,7 +29,17 @@ public final class OrderModel {
     }
 
     public record ShippingMethodView(UUID id, String name, String description, ShippingType type, long priceMinor,
-            Long freeFromMinor, boolean active, int position, long version, String carrier) {
+            Long freeFromMinor, boolean active, int position, long version, String carrier, String brand) {
+
+        public ShippingMethodView(UUID id, String name, String description, ShippingType type, long priceMinor, Long freeFromMinor,
+                boolean active, int position, long version, String carrier) {
+            this(id, name, description, type, priceMinor, freeFromMinor, active, position, version, carrier, null);
+        }
+
+        /** The same method with the logo brand of its courier (checkout). */
+        public ShippingMethodView withBrand(String brand) {
+            return new ShippingMethodView(id, name, description, type, priceMinor, freeFromMinor, active, position, version, carrier, brand);
+        }
 
         /** Linked to a carrier's parcel lockers: the customer picks a point at checkout. */
         @com.fasterxml.jackson.annotation.JsonProperty("requiresPickupPoint")

@@ -57,6 +57,11 @@ public class PickupPoints implements ShippingCarriers {
     }
 
     @Override
+    public java.util.Optional<String> brand(String carrier) {
+        return carrier == null ? java.util.Optional.empty() : tx.execute(s -> accounts.brand(carrier));
+    }
+
+    @Override
     public PickupPoint pickupPoint(String carrier, String code) {
         var active = accounts.active(carrier)
                 .orElseThrow(() -> new BusinessRuleException("SHIPPING_UNAVAILABLE", "Wybrany sposób dostawy jest niedostępny."));

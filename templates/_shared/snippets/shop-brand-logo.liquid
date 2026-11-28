@@ -1,0 +1,21 @@
+{%- comment -%}
+  Logo tile of a courier or payment operator at checkout (brand: {code, name, logo}). Without a brand, `icon` draws a neutral
+  pictogram instead, so all tiles line up: courier, parcel_locker, post, pickup, digital, online, bank_transfer, cod.
+{%- endcomment -%}
+{%- if brand -%}
+<span class="shop-brand">{% if brand.logo %}<img src="{{ brand.logo }}" alt="{{ brand.name }}" loading="lazy" decoding="async">{% else %}<span class="shop-brand-name">{{ brand.name }}</span>{% endif %}</span>
+{%- elsif icon -%}
+{%- assign k = icon | downcase -%}
+<span class="shop-brand shop-brand-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+{%- case k -%}
+{%- when 'parcel_locker' -%}<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M12 3v18"/>
+{%- when 'post' -%}<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/>
+{%- when 'pickup' -%}<path d="M4 10 6 4h12l2 6M4 10v10h16V10M4 10h16M9 20v-5h6v5"/>
+{%- when 'digital' -%}<path d="M12 3v12m-5-5 5 5 5-5M5 21h14"/>
+{%- when 'online' -%}<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/>
+{%- when 'bank_transfer' -%}<path d="M3 10 12 4l9 6M5 10v8M9 10v8M15 10v8M19 10v8M3 20h18"/>
+{%- when 'cod' -%}<rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9v.01M18 15v.01"/>
+{%- else -%}<path d="M3 7h11v9H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>
+{%- endcase -%}
+</svg></span>
+{%- endif -%}

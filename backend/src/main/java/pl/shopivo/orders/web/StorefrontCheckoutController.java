@@ -55,12 +55,14 @@ class StorefrontCheckoutController {
     private final RateLimiter rateLimiter;
     private final pl.shopivo.shared.captcha.Captcha captcha;
     private final List<OnlinePayments> online;
+    private final List<pl.shopivo.orders.ShippingCarriers> carriers;
     private final TransactionTemplate tx;
 
     StorefrontCheckoutController(StorefrontTenants storefront, Carts carts, OrderPlacement placement, Orders orders,
             ShippingMethods shipping, PaymentSettings payments, RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha, TransactionTemplate tx,
-            List<OnlinePayments> online) {
+            List<OnlinePayments> online, List<pl.shopivo.orders.ShippingCarriers> carriers) {
         this.online = online;
+        this.carriers = carriers;
         this.storefront = storefront;
         this.carts = carts;
         this.placement = placement;
@@ -78,7 +80,24 @@ class StorefrontCheckoutController {
     record QuantityRequest(@Min(0) @Max(999) int quantity) {
     }
 
-    record PaymentOption(PaymentMethod method, String label, long feeMinor) {
+    /**
+     * {@code brand}: operator whose logo the storefront shows (online payments); {@code accepts}: payment means the operator
+     * takes for sure (logos next to it). Both null/empty for offline methods.
+     */
+    record PaymentOption(PaymentMethod method, String label, long feeMinor, String brand, List<String> accepts) {
+
+        PaymentOption(PaymentMethod method, String label, long feeMinor) {
+            this(method, label, feeMinor, null, List.of());
+        }
+    }
+
+    /** Payment means every supported operator accepts (cards everywhere; BLIK at the Polish operators). */
+    private static List<String> accepts(String operator) {
+        return switch (operator) {
+            case "przelewy24", "payu", "tpay" -> List.of("blik", "visa", "mastercard");
+            case "stripe" -> List.of("visa", "mastercard");
+            default -> List.of();
+        };
     }
 
     record CheckoutOptions(List<ShippingMethodView> shippingMethods, List<PaymentOption> paymentMethods) {
@@ -118,9 +137,15 @@ class StorefrontCheckoutController {
             List<PaymentOption> methods = new ArrayList<>();
             if (settings.bankTransferEnabled()) methods.add(new PaymentOption(PaymentMethod.BANK_TRANSFER, "Przelew tradycyjny", 0));
             if (settings.codEnabled()) methods.add(new PaymentOption(PaymentMethod.COD, "Za pobraniem", settings.codFeeMinor()));
-            online.stream().map(OnlinePayments::activeOperatorName).flatMap(java.util.Optional::stream).findFirst()
-                    .ifPresent(name -> methods.add(0, new PaymentOption(PaymentMethod.ONLINE, "Płatność online (" + name + ")", 0)));
-            return new CheckoutOptions(shipping.list(true), methods);
+            online.stream().filter(o -> o.activeOperatorName().isPresent()).findFirst().ifPresent(o -> {
+                String brand = o.activeOperatorId().orElse(null);
+                methods.add(0, new PaymentOption(PaymentMethod.ONLINE, "Płatność online (" + o.activeOperatorName().orElseThrow() + ")", 0,
+                        brand, brand == null ? List.of() : accepts(brand)));
+            });
+            List<ShippingMethodView> shippingMethods = shipping.list(true).stream()
+                    .map(m -> m.carrier() == null ? m : m.withBrand(carriers.stream().flatMap(c -> c.brand(m.carrier()).stream()).findFirst().orElse(null)))
+                    .toList();
+            return new CheckoutOptions(shippingMethods, methods);
         });
     }
 

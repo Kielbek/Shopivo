@@ -167,6 +167,23 @@ public class CarrierAccounts {
         return names;
     }
 
+    /**
+     * Courier brand of an enabled carrier reference: the courier of an aggregator service ("furgonetka:123" → dpd), or the
+     * carrier itself (inpost). Development simulators have none.
+     */
+    java.util.Optional<String> brand(String carrierRef) {
+        String[] ref = split(carrierRef);
+        return stored(ref[0]).filter(Stored::enabled).flatMap(s -> {
+            CarrierAdapter a = adapters.get(s.carrierId());
+            if (a == null) return java.util.Optional.empty();
+            if (ref[1] != null) {
+                return services(s).stream().filter(x -> x.id().equals(ref[1])).findFirst().map(CarrierService::courier)
+                        .filter(c -> c != null && c.matches("[a-z0-9_-]{2,30}"));
+            }
+            return a.descriptor().aggregator() || "fake".equals(a.id()) ? java.util.Optional.empty() : java.util.Optional.of(a.id());
+        });
+    }
+
     /** Whether the referenced carrier/service delivers this kind of method. */
     boolean supports(String carrierRef, pl.shopivo.orders.OrderModel.ShippingType type) {
         String[] ref = split(carrierRef);

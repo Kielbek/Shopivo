@@ -4,6 +4,10 @@ Pliki w `frontend/apps/merchant-dashboard/public/brands/`. Pokazujemy je wyłąc
 jest podłączony) — to znaki towarowe ich właścicieli. Nie rysujemy zamienników: marki bez pliku
 panel pokazuje nazwą na neutralnym kafelku (`sv-brand-logo`). Pliki SVG sprawdzone pod kątem skryptów (brak).
 
+Kopia plików kurierów i płatności jest też w `templates/_shared/brands/` — sklep pokazuje je w zamówieniu przy
+podłączonych kurierach i operatorze płatności (`/_shop/brands/…`, fragmenty `shop-brand-logo` i `shop-accepts`). Logo
+nośnika płatności (BLIK, Visa, Mastercard) pojawia się tylko przy operatorze, który na pewno je obsługuje.
+
 | Plik | Źródło | Licencja pliku |
 |---|---|---|
 | `blik.jpg` | [File:Blik logo.jpg](https://commons.wikimedia.org/wiki/File%3ABlik_logo.jpg) | Public domain |

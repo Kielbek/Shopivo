@@ -101,6 +101,12 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - pole „Wysokość” banera nie wpływa na układ „Magazyn”;
   - zdjęcia z HTML-a są z Unsplash — dobre jako start, ale sprzedawca powinien użyć własnych.
 
+## Loga kurierów i operatorów płatności w zamówieniu (2026-11-28)
+
+- **Backend:** `/checkout/options` podaje `brand` sposobu dostawy (kurier usługi agregatora, np. `furgonetka:7001` → inpost, albo sam przewoźnik) i płatności online (operator) oraz `accepts` (BLIK/Visa/Mastercard — tylko to, co operator na pewno przyjmuje).
+- **Sklep (4 szablony):** logo kuriera/operatora na kafelku wyboru, neutralne piktogramy dla odbioru osobistego, przelewu i pobrania, małe loga BLIK/kart; przycisk zamówienia mówi, dokąd prowadzi („Zamawiam i płacę przez Stripe”).
+- **Testy:** test silnika (loga w 4 szablonach, odrzucony niebezpieczny kod marki), `CourierAggregatorsIT`, `StorePaymentsIT`, `OrdersIT`, `StripeConnectIT` ✔. E2E (Playwright): Stripe (atrapa) + Apaczka (DPD, InPost) w 4 sklepach → loga i napis przycisku na komputerze i telefonie, bez poziomego przewijania.
+
 ## Logowanie klientów przez Google (2026-11-28)
 
 - **Panel (Integracje):** identyfikator i tajny klucz klienta OAuth sprzedawcy, przełącznik „Pokaż przycisk”, instrukcja dla Google Cloud z adresami przekierowania do skopiowania, „Usuń klucze”. Tajny klucz szyfrowany (AES-256-GCM) i nigdy nie zwracany.
