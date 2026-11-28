@@ -19,6 +19,7 @@
 <input type="checkbox" name="consent" required class="mt-0.5 size-4 shrink-0 accent-[#151513]">
 <span>Chcę otrzymywać newsletter {{ shop.name }}. Zapoznałem się z <a href="{{ 'legal:PRIVACY' | link }}" class="font-bold underline">polityką prywatności</a>.</span>
 </label>
+{%- if shop.captcha_site_key %}<div class="mt-4" data-shop-captcha="{{ shop.captcha_site_key }}"></div>{% endif %}
 <p role="status" aria-live="polite" class="mt-3 text-sm font-extrabold" data-shop-status></p>
 </form>
 </div>

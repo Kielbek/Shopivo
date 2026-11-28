@@ -2,8 +2,10 @@ import express from 'express';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { TemplateRenderer, escapeHtml, type RenderContext } from './renderer';
+import { parseRichText } from '@shopivo/shared-models';
 import {
-  ApiError, StoreApi, toCart, toProduct, toProductDetail, type ApiCard, type ApiPage, type ApiProduct, type ApiStore, type RequestInfo,
+  ApiError, StoreApi, toCart, toCheckout, toOrder, toProduct, toProductDetail, type ApiAddress, type ApiCard, type ApiCheckoutOptions,
+  type ApiEntry, type ApiPage, type ApiPostCard, type ApiProduct, type ApiStore, type RequestInfo,
 } from './store-data';
 import { loadAll, type PageType, type TemplatePackage } from './template-package';
 
@@ -14,6 +16,8 @@ import { loadAll, type PageType, type TemplatePackage } from './template-package
  */
 export const CART_COOKIE = 'shopivo_cart';
 export const FAV_COOKIE = 'shopivo_fav';
+export const ORDER_COOKIE = 'shopivo_order';
+const CUSTOMER_COOKIE = 'shopivo_customer';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SORTS = new Set(['PRICE_ASC', 'PRICE_DESC', 'NAME']);
@@ -34,7 +38,7 @@ export function cookie(header: string | undefined, name: string): string | null 
   return null;
 }
 
-interface Route { type: PageType; slug?: string; }
+interface Route { type: PageType; slug?: string; post?: boolean; }
 
 /** Paths this engine renders; null = not ours (Angular handles it). */
 export function routeOf(path: string): Route | null {
@@ -42,10 +46,14 @@ export function routeOf(path: string): Route | null {
   if (path === '/produkty' || path === '/szukaj') return { type: 'catalog' };
   if (path === '/koszyk') return { type: 'cart' };
   if (path === '/ulubione') return { type: 'favorites' };
-  const m = /^\/(kategoria|produkt)\/([^/]+)$/.exec(path);
+  if (path === '/zamowienie') return { type: 'checkout' };
+  if (path === '/zamowienie/potwierdzenie') return { type: 'order' };
+  if (path === '/blog') return { type: 'blog' };
+  const m = /^\/(kategoria|produkt|strona|blog)\/([^/]+)$/.exec(path);
   if (m) {
     const slug = decodeURIComponent(m[2]);
-    return SLUG.test(slug) ? { type: m[1] === 'kategoria' ? 'catalog' : 'product', slug } : { type: 'not_found' };
+    const type: PageType = m[1] === 'kategoria' ? 'catalog' : m[1] === 'produkt' ? 'product' : 'page';
+    return SLUG.test(slug) ? { type, slug, ...(m[1] === 'blog' ? { post: true } : {}) } : { type: 'not_found' };
   }
   return null;
 }
@@ -79,7 +87,10 @@ export function templateEngine(apiOrigin: string) {
   function requestInfo(req: express.Request, t: Target): RequestInfo {
     const preview = typeof t.query['podglad'] === 'string' && /^[A-Za-z0-9._-]{10,600}$/.test(t.query['podglad']) ? t.query['podglad'] : null;
     const cart = cookie(req.headers.cookie, CART_COOKIE);
-    return { host: req.hostname, proto: req.protocol, ip: req.ip ?? '', preview, cartToken: cart && /^[A-Za-z0-9_-]{16,200}$/.test(cart) ? cart : null };
+    const customer = cookie(req.headers.cookie, CUSTOMER_COOKIE);
+    const order = cookie(req.headers.cookie, ORDER_COOKIE);
+    const token = (v: string | null) => (v && /^[A-Za-z0-9_-]{16,200}$/.test(v) ? v : null);
+    return { host: req.hostname, proto: req.protocol, ip: req.ip ?? '', preview, cartToken: token(cart), customer: token(customer), orderToken: token(order) };
   }
 
   /** The store's template, when it is a package this engine has. */
@@ -148,6 +159,50 @@ export function templateEngine(apiOrigin: string) {
       }
       case 'cart':
         return { type: 'cart', status: 200, title: 'Koszyk', data: {} };
+      case 'checkout': {
+        const [options, account] = await Promise.all([
+          api.optional<ApiCheckoutOptions>('/checkout/options', { shippingMethods: [], paymentMethods: [] }), api.account()]);
+        const address = account ? (await api.optional<ApiAddress[]>('/account/addresses', [])).find((a) => a.isDefault) ?? null : null;
+        return {
+          type: 'checkout', status: 200, title: 'Zamówienie', data: {
+            checkout: {
+              ...toCheckout(options), captcha_site_key: store.captchaSiteKey ?? null,
+              customer: account ? { email: account.email, first_name: account.firstName, last_name: account.lastName, phone: account.phone ?? '',
+                line1: address ? address.line1 + (address.line2 ? ', ' + address.line2 : '') : '', postal_code: address?.postalCode ?? '', city: address?.city ?? '' } : null,
+            },
+          },
+        };
+      }
+      case 'order': {
+        const order = await api.order();
+        return { type: 'order', status: 200, title: 'Potwierdzenie zamówienia', data: { order: order ? toOrder(order) : null } };
+      }
+      case 'page': {
+        let entry: ApiEntry;
+        try {
+          entry = await api.get<ApiEntry>(`/${route.post ? 'posts' : 'pages'}/${encodeURIComponent(route.slug!)}`);
+        } catch (e) {
+          if (e instanceof ApiError && e.status === 404) return { type: 'not_found', data: {}, title: 'Nie znaleziono strony', status: 404 };
+          throw e;
+        }
+        return {
+          type: 'page', status: 200, title: entry.seoTitle || entry.title, data: {
+            entry: { kind: entry.kind === 'POST' ? 'post' : 'page', title: entry.title, slug: entry.slug, excerpt: entry.excerpt,
+              published_at: entry.publishedAt, blocks: parseRichText(entry.body), seo_description: entry.seoDescription },
+          },
+        };
+      }
+      case 'blog': {
+        const page = Math.min(500, Math.max(1, Number(t.query['strona']) || 1));
+        const posts = await api.get<ApiPage<ApiPostCard>>(`/posts?page=${page - 1}&size=12`);
+        return {
+          type: 'blog', status: 200, title: 'Blog', data: {
+            blog: { posts: posts.items.map((p) => ({ title: p.title, excerpt: p.excerpt, url: '/blog/' + encodeURIComponent(p.slug), published_at: p.publishedAt })),
+              page, total_pages: posts.totalPages, prev_url: page > 1 ? (page === 2 ? '/blog' : `/blog?strona=${page - 1}`) : null,
+              next_url: page < posts.totalPages ? `/blog?strona=${page + 1}` : null },
+          },
+        };
+      }
       case 'not_found':
         return { type: 'not_found', status: 404, title: 'Nie znaleziono strony', data: {} };
       default:
@@ -171,7 +226,8 @@ export function templateEngine(apiOrigin: string) {
 
   function footer(pkg: TemplatePackage, store: ApiStore): string {
     const base = `/_t/${pkg.code.toLowerCase()}/${pkg.version}`;
-    const config = JSON.stringify({ currency: store.currency, cartCookie: CART_COOKIE, favCookie: FAV_COOKIE }).replace(/</g, '\\u003c');
+    const config = JSON.stringify({ currency: store.currency, cartCookie: CART_COOKIE, favCookie: FAV_COOKIE, orderCookie: ORDER_COOKIE })
+      .replace(/</g, '\\u003c');
     return [
       `<script type="application/json" id="shop-config">${config}</script>`,
       '<script src="/_shop/runtime.js" defer></script>',
@@ -214,7 +270,13 @@ export function templateEngine(apiOrigin: string) {
           const desc = (p.seo_description || p.description || p.name).slice(0, 300);
           ld += `\n<meta name="description" content="${escapeHtml(desc)}">`;
         }
-        const noindex = !!info.preview || page.status === 404 || (page.type === 'catalog' && !!req.query['q']);
+        const noindex = !!info.preview || page.status === 404 || (page.type === 'catalog' && !!req.query['q'])
+          || page.type === 'checkout' || page.type === 'order' || page.type === 'cart' || page.type === 'favorites';
+        if (page.type === 'page') {
+          const e = page.data['entry'] as { seo_description: string | null; excerpt: string | null };
+          const desc = e.seo_description || e.excerpt;
+          if (desc) ld += `\n<meta name="description" content="${escapeHtml(desc.slice(0, 300))}">`;
+        }
         ctx.head = head(renderer.pkg, ctx.store, page.title, req, noindex, ld);
         ctx.footer = footer(renderer.pkg, ctx.store);
         const html = await renderer.renderPage(ctx);

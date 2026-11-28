@@ -74,8 +74,8 @@
 
   // ------------------------------------------------------------------------------------------- API
 
-  async function api(method, path, body, token) {
-    const headers = { Accept: 'application/json' };
+  async function api(method, path, body, token, extra) {
+    const headers = { Accept: 'application/json', ...(extra || {}) };
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (token) headers['X-Cart-Token'] = token;
     if (preview) headers['X-Store-Preview'] = preview;
@@ -285,12 +285,20 @@
         return;
       }
       const email = String(new FormData(form).get('email') || '').trim();
-      api('POST', '/newsletter', { email })
+      const captcha = captchaToken(form);
+      if (captcha === undefined) {
+        say('Potwierdź, że nie jesteś robotem.');
+        return;
+      }
+      api('POST', '/newsletter', { email }, null, captcha ? { 'X-Captcha-Token': captcha } : undefined)
         .then(() => {
           form.reset();
           say('Dziękujemy! Sprawdź skrzynkę i potwierdź zapis.');
         })
-        .catch((err) => say(err.message));
+        .catch((err) => {
+          resetCaptcha(form);
+          say(err.message);
+        });
       return;
     }
 
@@ -324,6 +332,299 @@
     if (!form || e.target.type !== 'search') return;
     clearTimeout(filterTimer);
     filterTimer = setTimeout(() => applyFilter(form), 350);
+  });
+
+
+  // ------------------------------------------------------------------------------------------- captcha
+
+  /** Cloudflare Turnstile, only where a form has [data-shop-captcha="site key"] (the store has protection on). */
+  const captchas = new WeakMap();
+  function loadTurnstile() {
+    if (window.turnstile) return Promise.resolve(window.turnstile);
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+      s.async = true;
+      s.onload = () => (window.turnstile ? resolve(window.turnstile) : reject(new Error('turnstile')));
+      s.onerror = () => reject(new Error('turnstile'));
+      document.head.appendChild(s);
+    });
+  }
+  function setupCaptcha(box) {
+    const state = { token: null, widget: null };
+    captchas.set(box, state);
+    loadTurnstile().then((t) => {
+      state.widget = t.render(box, {
+        sitekey: box.dataset.shopCaptcha, language: 'pl',
+        callback: (token) => { state.token = token; },
+        'expired-callback': () => { state.token = null; },
+      });
+    }).catch(() => { box.textContent = 'Nie udało się wczytać zabezpieczenia formularza. Odśwież stronę.'; });
+  }
+  /** The form's one-time captcha token (null when the form has no captcha; undefined when it is not solved yet). */
+  function captchaToken(form) {
+    const box = form.querySelector('[data-shop-captcha]');
+    if (!box) return null;
+    const state = captchas.get(box);
+    return state && state.token ? state.token : undefined;
+  }
+  function resetCaptcha(form) {
+    const box = form.querySelector('[data-shop-captcha]');
+    const state = box && captchas.get(box);
+    if (state && state.widget !== null && window.turnstile) {
+      state.token = null;
+      window.turnstile.reset(state.widget);
+    }
+  }
+  document.querySelectorAll('[data-shop-captcha]').forEach(setupCaptcha);
+
+  // ------------------------------------------------------------------------------------------- checkout
+
+  const moneyFormat = new Intl.NumberFormat('pl-PL', { style: 'currency', currency: config.currency || 'PLN' });
+  const fmt = (minor) => moneyFormat.format(minor / 100);
+
+  function checkoutState(form) {
+    const totals = form.querySelector('[data-shop-totals]');
+    const subtotal = Number(totals?.dataset.subtotal || 0);
+    const ship = form.querySelector('input[name="shippingMethodId"]:checked');
+    const pay = form.querySelector('input[name="paymentMethod"]:checked');
+    const freeFrom = ship && ship.dataset.freeFrom !== '' ? Number(ship.dataset.freeFrom) : null;
+    const shipping = ship ? (freeFrom !== null && subtotal >= freeFrom ? 0 : Number(ship.dataset.price || 0)) : null;
+    const fee = pay ? Number(pay.dataset.fee || 0) : 0;
+    return { subtotal, ship, pay, shipping, fee, total: subtotal + (shipping || 0) + fee };
+  }
+
+  function updateCheckout(form) {
+    const st = checkoutState(form);
+    // "Gratis" next to methods that are free for this cart
+    form.querySelectorAll('input[name="shippingMethodId"]').forEach((input) => {
+      const label = input.closest('label')?.querySelector('[data-shop-shipping-price]');
+      if (!label) return;
+      const free = input.dataset.freeFrom !== '' && st.subtotal >= Number(input.dataset.freeFrom);
+      label.textContent = free || Number(input.dataset.price) === 0 ? 'Gratis' : fmt(Number(input.dataset.price));
+    });
+    const set = (k, v) => { const el = form.querySelector(`[data-shop-total="${k}"]`); if (el) el.textContent = v; };
+    set('shipping', st.shipping === null ? '—' : st.shipping === 0 ? 'Gratis' : fmt(st.shipping));
+    set('fee', fmt(st.fee));
+    const feeRow = form.querySelector('[data-shop-fee-row]');
+    if (feeRow) feeRow.hidden = !st.fee;
+    set('total', fmt(st.total));
+    form.querySelectorAll('[data-shop-pickup]').forEach((box) => { box.hidden = !st.ship || st.ship.value !== box.dataset.shopPickup; });
+    form.querySelectorAll('[data-shop-toggle]').forEach((t) => {
+      form.querySelectorAll(`[data-shop-when="${CSS.escape(t.dataset.shopToggle)}"]`).forEach((el) => { el.hidden = !t.checked; });
+    });
+  }
+
+  // Parcel lockers: search by postal code / city, or type the code
+  async function searchPickup(box) {
+    const q = box.querySelector('[data-shop-pickup-query]').value.trim();
+    const list = box.querySelector('[data-shop-pickup-results]');
+    const status = box.querySelector('[data-shop-pickup-status]');
+    if (q.length < 2) return;
+    status.textContent = 'Szukam…';
+    list.replaceChildren();
+    try {
+      const points = await api('GET', `/pickup-points?metoda=${encodeURIComponent(box.dataset.shopPickup)}&q=${encodeURIComponent(q)}`);
+      status.textContent = points.length ? '' : 'Nie znaleźliśmy paczkomatów — spróbuj innej frazy albo wpisz kod paczkomatu.';
+      for (const p of points) {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.code = p.code;
+        const strong = document.createElement('strong');
+        strong.textContent = p.code;
+        b.append(strong, ` · ${p.address}`);
+        if (p.description) {
+          const small = document.createElement('span');
+          small.className = 'checkout-muted';
+          small.style.display = 'block';
+          small.textContent = p.description;
+          b.append(small);
+        }
+        li.append(b);
+        list.append(li);
+      }
+    } catch (e) {
+      status.textContent = e.message || 'Nie udało się wyszukać paczkomatów. Wpisz kod paczkomatu.';
+    }
+  }
+
+  function pickupCode(form) {
+    const st = checkoutState(form);
+    if (!st.ship || !('pickup' in st.ship.dataset)) return null;
+    const box = form.querySelector(`[data-shop-pickup="${CSS.escape(st.ship.value)}"]`);
+    return box ? box.querySelector('[data-shop-pickup-code]').value.trim().toUpperCase() : '';
+  }
+
+  /** Same rules as the server (which checks everything again). Returns the first problem or null. */
+  function validateCheckout(form) {
+    const v = (name) => String(form.elements[name]?.value ?? '').trim();
+    const mark = (name, bad) => { const el = form.elements[name]; if (el && el.setAttribute) el.setAttribute('aria-invalid', String(bad)); return bad; };
+    const shipping = !!form.querySelector('[data-shop-needs-shipping]');
+    const invoice = !!form.elements['invoice']?.checked;
+    const bad = [
+      mark('email', !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v('email'))),
+      mark('firstName', !v('firstName')),
+      mark('lastName', !v('lastName')),
+      shipping && mark('line1', !v('line1')),
+      shipping && mark('postalCode', !/^\d{2}-\d{3}$/.test(v('postalCode'))),
+      shipping && mark('city', !v('city')),
+      invoice && mark('companyName', !v('companyName')),
+      invoice && mark('taxId', v('taxId').replace(/\D/g, '').length !== 10),
+      mark('termsAccepted', !form.elements['termsAccepted']?.checked),
+    ].some(Boolean);
+    if (bad) return 'Uzupełnij zaznaczone pola i zaakceptuj regulamin.';
+    const st = checkoutState(form);
+    if (shipping && !st.ship) return 'Wybierz sposób dostawy.';
+    if (pickupCode(form) === '') return 'Wybierz paczkomat.';
+    if (!st.pay) return 'Wybierz metodę płatności.';
+    return null;
+  }
+
+  function busy(button, on) {
+    if (!button) return;
+    if (on) {
+      button.dataset.label = button.textContent;
+      if (button.dataset.busyLabel) button.textContent = button.dataset.busyLabel;
+    } else if (button.dataset.label) {
+      button.textContent = button.dataset.label;
+    }
+    button.disabled = on;
+  }
+
+  function rememberOrder(token) {
+    const secure = location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${config.orderCookie || 'shopivo_order'}=${encodeURIComponent(token)}; Path=/; Max-Age=86400; SameSite=Lax${secure}`;
+    try { sessionStorage.setItem('shopivo.lastOrder', token); } catch { /* the cookie is enough */ }
+  }
+
+  async function submitCheckout(form) {
+    const error = form.querySelector('[data-shop-error]');
+    const say = (t) => { if (error) error.textContent = t || ''; };
+    const problem = validateCheckout(form);
+    if (problem) {
+      say(problem);
+      form.querySelector('[aria-invalid="true"]')?.focus();
+      return;
+    }
+    const captcha = captchaToken(form);
+    if (captcha === undefined) {
+      say('Potwierdź, że nie jesteś robotem (pole nad przyciskiem).');
+      return;
+    }
+    const token = cartToken();
+    if (!token) {
+      location.href = '/koszyk';
+      return;
+    }
+    const v = (name) => String(form.elements[name]?.value ?? '').trim();
+    const st = checkoutState(form);
+    const shipping = !!form.querySelector('[data-shop-needs-shipping]');
+    const invoice = !!form.elements['invoice']?.checked;
+    const body = {
+      email: v('email'), phone: v('phone') || null, firstName: v('firstName'), lastName: v('lastName'),
+      shippingAddress: shipping ? { name: `${v('firstName')} ${v('lastName')}`.trim(), company: invoice ? v('companyName') : null,
+        line1: v('line1'), line2: null, postalCode: v('postalCode'), city: v('city'), countryCode: 'PL', phone: v('phone') || null } : null,
+      billing: invoice ? { invoice: true, companyName: v('companyName'), taxId: v('taxId'), address: null } : null,
+      shippingMethodId: shipping && st.ship ? st.ship.value : null, paymentMethod: st.pay.value,
+      customerNote: v('customerNote') || null, termsAccepted: true, marketingConsent: !!form.elements['marketingConsent']?.checked,
+      pickupPointCode: pickupCode(form) || null,
+    };
+    const button = form.querySelector('[type="submit"]');
+    busy(button, true);
+    say('');
+    try {
+      const headers = { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Cart-Token': token };
+      if (captcha) headers['X-Captcha-Token'] = captcha;
+      if (preview) headers['X-Store-Preview'] = preview;
+      const res = await fetch(API + '/checkout', { method: 'POST', headers, body: JSON.stringify(body) });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) throw new Error((data && data.detail) || 'Nie udało się złożyć zamówienia. Spróbuj ponownie.');
+      rememberOrder(data.orderToken);
+      saveCartToken(null);
+      if (st.pay.value === 'ONLINE') {
+        try {
+          const pay = await api('POST', '/orders/pay', null, null, { 'X-Order-Token': data.orderToken });
+          location.assign(pay.redirectUrl);
+          return;
+        } catch {
+          // the confirmation page offers "Zapłać" again
+        }
+      }
+      location.assign('/zamowienie/potwierdzenie');
+    } catch (e) {
+      resetCaptcha(form); // tokens are single-use
+      say(e.message);
+      busy(button, false);
+    }
+  }
+
+  document.querySelectorAll('form[data-shop-checkout]').forEach((form) => {
+    updateCheckout(form);
+    form.addEventListener('change', () => updateCheckout(form));
+    form.addEventListener('input', (e) => {
+      if (e.target.getAttribute && e.target.getAttribute('aria-invalid') === 'true') e.target.setAttribute('aria-invalid', 'false');
+    });
+    form.addEventListener('click', (e) => {
+      const t = e.target instanceof Element ? e.target : null;
+      const search = t && t.closest('[data-shop-pickup-search]');
+      if (search) void searchPickup(search.closest('[data-shop-pickup]'));
+      const choice = t && t.closest('[data-shop-pickup-results] button');
+      if (choice) {
+        const box = choice.closest('[data-shop-pickup]');
+        box.querySelector('[data-shop-pickup-code]').value = choice.dataset.code;
+        box.querySelector('[data-shop-pickup-status]').textContent = 'Wybrano: ' + choice.textContent;
+      }
+    });
+    form.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.matches && e.target.matches('[data-shop-pickup-query]')) {
+        e.preventDefault();
+        void searchPickup(e.target.closest('[data-shop-pickup]'));
+      }
+    });
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      void submitCheckout(form);
+    });
+  });
+
+  // Order confirmation: after an online payment the operator's notice usually arrives within seconds
+  document.querySelectorAll('[data-shop-order]').forEach((box) => {
+    const waiting = box.querySelector('[data-shop-order-waiting]');
+    const retry = box.querySelector('[data-shop-order-retry]');
+    const orderToken = getCookie(config.orderCookie || 'shopivo_order');
+    if ('wait' in box.dataset && orderToken) {
+      let tries = 0;
+      const poll = async () => {
+        try {
+          const o = await api('GET', '/orders/status', undefined, null, { 'X-Order-Token': orderToken });
+          if (o.paymentStatus !== 'UNPAID' || o.status === 'CANCELED') {
+            location.reload();
+            return;
+          }
+        } catch {
+          tries = 99;
+        }
+        if (++tries < 6) setTimeout(poll, 2500);
+        else {
+          if (waiting) waiting.hidden = true;
+          if (retry) retry.hidden = false;
+        }
+      };
+      setTimeout(poll, 2500);
+    }
+    box.querySelector('[data-shop-order-pay]')?.addEventListener('click', async (e) => {
+      const button = e.currentTarget;
+      busy(button, true);
+      try {
+        const pay = await api('POST', '/orders/pay', null, null, { 'X-Order-Token': orderToken });
+        location.assign(pay.redirectUrl);
+      } catch (err) {
+        const error = box.querySelector('[data-shop-error]');
+        if (error) error.textContent = err.message;
+        busy(button, false);
+      }
+    });
   });
 
   // ------------------------------------------------------------------------------------------- start

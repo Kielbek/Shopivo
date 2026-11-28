@@ -101,6 +101,26 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - pole „Wysokość” banera nie wpływa na układ „Magazyn”;
   - zdjęcia z HTML-a są z Unsplash — dobre jako start, ale sprzedawca powinien użyć własnych.
 
+## Silnik szablonów v2 — etap 2: zamówienie, potwierdzenie, strony, blog (2026-11-28)
+
+- **Zamówienie w wyglądzie szablonu** (`/zamowienie`):
+  - dane z konta zalogowanego klienta i jego domyślny adres;
+  - dostawy z progiem darmowej dostawy i paczkomaty (wyszukiwanie lub kod);
+  - płatności z opłatą za pobranie; faktura na firmę; uwagi;
+  - zgody z linkami do regulaminu i polityki prywatności;
+  - captcha, gdy sklep ją włączył;
+  - sumy liczone na bieżąco, walidacja jak na serwerze;
+  - płatność online przekierowuje do operatora.
+- **Potwierdzenie:** numer, pozycje, dane do przelewu, czekanie na płatność online i „Zapłać” ponownie. Token zamówienia jest w ciasteczku sesyjnym.
+- **Strony informacyjne i blog:** treść jako dane (bez HTML od sprzedawcy), lista wpisów ze stronicowaniem.
+- **E2E:**
+  - zamówienie kurierem za pobraniem: 2 × 17,99 zł + 15 zł + 5 zł = 55,98 zł, nr 1001, koszyk pusty po zamówieniu;
+  - zamówienie przelewem: dane do przelewu;
+  - walidacja zaznacza 7 pól;
+  - faktura, polityka prywatności, blog, telefon bez przewijania w bok;
+  - 0 błędów konsoli.
+- **Zostaje w Angularze (etap 2c):** konto klienta (logowanie, rejestracja, zamówienia, adresy, zwroty).
+
 ## Silnik szablonów v2 — etap 1 (2026-11-28)
 
 - **Format szablonu** (`templates/<nazwa>/`, docs/TEMPLATE_FORMAT.md): HTML i CSS projektanta podzielone na sekcje Liquid z opisem ustawień; strony i grupy w JSON; wszystkie wpisy wypisywane są escapowane.

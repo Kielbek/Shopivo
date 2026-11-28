@@ -9,6 +9,10 @@ export interface RequestInfo {
   ip: string;
   preview: string | null;
   cartToken: string | null;
+  /** Customer session cookie (HttpOnly; forwarded only to the account API). */
+  customer: string | null;
+  /** Token of the visitor's last order (confirmation page). */
+  orderToken: string | null;
 }
 
 export class ApiError extends Error {
@@ -26,6 +30,7 @@ export class StoreApi {
       'x-forwarded-for': this.req.ip, ...extra,
     };
     if (this.req.preview) headers['x-store-preview'] = this.req.preview;
+    if (this.req.customer && path.startsWith('/account/')) headers['cookie'] = `shopivo_customer=${this.req.customer}`;
     const res = await fetch(this.origin + '/api/v1/storefront' + path, { headers, signal: AbortSignal.timeout(8_000) });
     if (!res.ok) throw new ApiError(res.status, path);
     return (await res.json()) as T;
@@ -39,6 +44,15 @@ export class StoreApi {
       if (!(e instanceof ApiError) || e.status >= 500) console.warn('Storefront API', (e as Error).message);
       return fallback;
     }
+  }
+
+  /** The signed-in customer, or null for guests. */
+  account(): Promise<ApiAccount | null> {
+    return this.req.customer ? this.optional<ApiAccount | null>('/account/me', null) : Promise.resolve(null);
+  }
+
+  order(): Promise<ApiOrder | null> {
+    return this.req.orderToken ? this.optional<ApiOrder | null>('/orders/status', null, { 'x-order-token': this.req.orderToken }) : Promise.resolve(null);
   }
 
   cart(): Promise<ApiCart | null> {
@@ -56,7 +70,27 @@ export interface ApiStore {
   footerLinks: { title: string; path: string; systemKey: string | null }[];
   themeImages: Record<string, Record<string, string>>;
   panelOrigin: string | null;
+  captchaSiteKey?: string | null;
+  blog?: boolean;
 }
+export interface ApiAccount { email: string; firstName: string; lastName: string; phone: string | null; }
+export interface ApiAddress { line1: string; line2: string | null; postalCode: string; city: string; isDefault: boolean; }
+export interface ApiCheckoutOptions {
+  shippingMethods: { id: string; name: string; description: string | null; type: string; priceMinor: number; freeFromMinor: number | null; requiresPickupPoint: boolean }[];
+  paymentMethods: { method: 'BANK_TRANSFER' | 'COD' | 'ONLINE'; label: string; feeMinor: number }[];
+}
+export interface ApiOrder {
+  number: number; status: string; paymentStatus: string; paymentMethod: string;
+  items: { name: string; variantTitle: string | null; quantity: number; lineTotalMinor: number }[];
+  subtotalMinor: number; shippingMinor: number; paymentFeeMinor: number; totalMinor: number; currency: string; shippingMethodName: string | null;
+  bankTransfer: { bankAccountHolder: string; bankAccountNumber: string; bankName: string | null; unpaidCancelDays: number } | null;
+  pickupPoint: { code: string; address: string } | null;
+}
+export interface ApiEntry {
+  kind: 'PAGE' | 'POST'; systemKey: string | null; slug: string; title: string; excerpt: string | null; body: string;
+  seoTitle: string | null; seoDescription: string | null; publishedAt: string | null; updatedAt: string;
+}
+export interface ApiPostCard { slug: string; title: string; excerpt: string | null; publishedAt: string; }
 export interface ApiCard {
   id: string; slug: string; name: string; brand: string | null; priceMinor: number; maxPriceMinor: number; compareAtMinor: number | null;
   lowestPrice30dMinor: number | null; currency: string; available: boolean; imageUrl: string | null; imageAlt: string | null; imageColor?: string | null;
@@ -142,5 +176,35 @@ export function toCategory(c: ApiCategory) {
   return {
     id: c.id, name: c.name, slug: c.slug, url: '/kategoria/' + encodeURIComponent(c.slug), depth: c.depth,
     image: c.image ? { w400: c.image['w400'], w1200: c.image['w1200'], alt: c.name } : null,
+  };
+}
+
+export function toCheckout(o: ApiCheckoutOptions) {
+  return {
+    shipping_methods: o.shippingMethods.map((m) => ({
+      id: m.id, name: m.name, description: m.description, price: m.priceMinor, free_from: m.freeFromMinor, pickup_point: m.requiresPickupPoint,
+    })),
+    payment_methods: o.paymentMethods.map((p) => ({ method: p.method, label: p.label, fee: p.feeMinor })),
+  };
+}
+
+/** IBAN-style groups of four for reading a bank account number aloud. */
+export function groupAccount(n: string): string {
+  const m = /^([A-Z]{2})?(\d{26})$/.exec(n.replace(/\s/g, ''));
+  if (!m) return n;
+  return (m[1] ?? '') + m[2].slice(0, 2) + ' ' + m[2].slice(2).replace(/(.{4})/g, '$1 ').trim();
+}
+
+export function toOrder(o: ApiOrder) {
+  return {
+    number: o.number, status: o.status, payment_status: o.paymentStatus, payment_method: o.paymentMethod,
+    paid: o.paymentStatus === 'PAID', canceled: o.status === 'CANCELED',
+    awaiting_online: o.paymentMethod === 'ONLINE' && o.paymentStatus === 'UNPAID' && o.status !== 'CANCELED',
+    items: o.items.map((i) => ({ name: i.name, variant_title: i.variantTitle, quantity: i.quantity, line_total: i.lineTotalMinor })),
+    subtotal: o.subtotalMinor, shipping: o.shippingMinor, payment_fee: o.paymentFeeMinor, total: o.totalMinor, currency: o.currency,
+    shipping_method: o.shippingMethodName,
+    bank_transfer: o.bankTransfer ? { holder: o.bankTransfer.bankAccountHolder, account: groupAccount(o.bankTransfer.bankAccountNumber),
+      bank: o.bankTransfer.bankName, cancel_days: o.bankTransfer.unpaidCancelDays } : null,
+    pickup_point: o.pickupPoint,
   };
 }

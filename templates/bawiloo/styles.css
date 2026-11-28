@@ -1696,3 +1696,39 @@ body,#store,#pageView{background:#fff;color:var(--ink)}
 .category-initial{font-size:3.75rem;line-height:1;color:#f8bf73}
 .cart-warning{color:#a8491a}
 .cart-note{background:#ffffffb3}
+/* Checkout, order confirmation, pages (not in the design: styled from its form and card patterns) */
+.checkout-legend{float:left;width:100%;margin-bottom:.25rem;font-size:1.25rem;font-weight:800}
+.checkout-grid{display:grid;gap:1.25rem}
+@media(min-width:40rem){.checkout-grid{grid-template-columns:1fr 1fr}.checkout-grid-postal{grid-template-columns:160px 1fr}}
+.checkout-choice{display:flex;cursor:pointer;align-items:center;gap:.75rem;border:1px solid #e7ddd0;border-radius:1rem;background:#fff;padding:.85rem 1rem;transition:border-color .15s,box-shadow .15s}
+.checkout-choice:has(input:checked){border-color:#c9802c;box-shadow:0 0 0 3px #f8bf7340}
+.checkout-choice input{width:1rem;height:1rem;flex-shrink:0;accent-color:#151513}
+.checkout-choice-text{display:grid;flex:1}
+.checkout-muted{font-size:.8125rem;color:#00000099}
+.checkout-price{font-weight:800;white-space:nowrap}
+.checkout-pickup{display:grid;gap:.75rem;border:1px dashed #dfcbb5;border-radius:1rem;padding:1rem}
+.checkout-pickup-search{display:flex;gap:.5rem}
+.checkout-pickup-list{display:grid;gap:.4rem;max-height:16rem;overflow-y:auto}
+.checkout-pickup-list button{width:100%;border:1px solid #e7ddd0;border-radius:.75rem;background:#fff;padding:.5rem .75rem;text-align:left;font-size:.875rem}
+.checkout-pickup-list button:hover{border-color:#c9802c}
+.checkout-upper{text-transform:uppercase}
+.checkout-error{color:#a8491a}
+.checkout-error:empty{display:none}
+@media(min-width:64rem){.checkout-summary{position:sticky;top:6rem}}
+[aria-invalid="true"]{border-color:#a8491a!important;box-shadow:0 0 0 3px #a8491a26}
+.order-transfer{grid-template-columns:140px 1fr}
+.rich-text{display:grid;gap:1rem;font-size:1rem;line-height:1.7;color:#3d322b}
+.rich-text h2{padding-top:1rem;font-size:1.5rem;font-weight:800;color:var(--ink)}
+.rich-text h3{padding-top:.5rem;font-size:1.15rem;font-weight:800;color:var(--ink)}
+.rich-text ul{list-style:disc;padding-left:1.5rem}
+.rich-text ol{list-style:decimal;padding-left:1.5rem}
+.rich-text a{color:var(--amber);text-decoration:underline}
+.rich-text hr{border-color:var(--line)}
+.blog-grid{}
+@media(min-width:48rem){.blog-grid{grid-template-columns:1fr 1fr}}
+.stack-6{gap:1.5rem}
+.pt-pad-4{padding-top:1rem}
+.py-pad-4{padding-top:1rem;padding-bottom:1rem}
+.narrow-2xl{max-width:42rem}
+.narrow-3xl{max-width:48rem}
+.rule-y{border-top:1px solid #0000001a;border-bottom:1px solid #0000001a}

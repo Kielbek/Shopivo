@@ -29,8 +29,9 @@ export interface SectionDoc {
 }
 export interface PageDoc { sections: Record<string, SectionDoc>; order: string[]; }
 
-export type PageType = 'index' | 'catalog' | 'product' | 'cart' | 'favorites' | 'not_found';
-export const PAGE_TYPES: PageType[] = ['index', 'catalog', 'product', 'cart', 'favorites', 'not_found'];
+export type PageType = 'index' | 'catalog' | 'product' | 'cart' | 'favorites' | 'not_found' | 'checkout' | 'order' | 'page' | 'blog';
+/** Every package provides all of these (each template styles its own checkout too). */
+export const PAGE_TYPES: PageType[] = ['index', 'catalog', 'product', 'cart', 'favorites', 'not_found', 'checkout', 'order', 'page', 'blog'];
 
 export interface TemplatePackage {
   code: string;

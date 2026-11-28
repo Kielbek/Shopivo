@@ -3,10 +3,19 @@
   "name": "Bawiloo",
   "version": "2.0.0",
   "description": "Radosny, jasny sklep z zabawkami: złoty nagłówek, kategorie ze zdjęciami bez tła, slider promocji i ilustrowane korzyści.",
-  "industries": ["TOYS", "KIDS", "GIFTS", "HOBBY"],
+  "industries": [
+    "TOYS",
+    "KIDS",
+    "GIFTS",
+    "HOBBY"
+  ],
   "source": "bawiloo-sklep-jasny-premium.html (2026-11-28)",
-  "styles": ["styles.css"],
-  "scripts": ["template.js"],
+  "styles": [
+    "styles.css"
+  ],
+  "scripts": [
+    "template.js"
+  ],
   "groups": {
     "header": "groups/header.json",
     "footer": "groups/footer.json"
@@ -17,6 +26,10 @@
     "product": "pages/product.json",
     "cart": "pages/cart.json",
     "favorites": "pages/favorites.json",
-    "not_found": "pages/404.json"
+    "not_found": "pages/404.json",
+    "checkout": "pages/checkout.json",
+    "order": "pages/order.json",
+    "page": "pages/page.json",
+    "blog": "pages/blog.json"
   }
 }

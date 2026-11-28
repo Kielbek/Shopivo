@@ -186,7 +186,7 @@ export class TemplateRenderer {
     const s = ctx.store;
     return {
       shop: {
-        name: s.name, currency: s.currency, hostname: s.hostname,
+        name: s.name, currency: s.currency, hostname: s.hostname, captcha_site_key: s.captchaSiteKey ?? null,
         categories: s.categories.map(toCategory).filter((c) => c.depth === 0),
         all_categories: s.categories.map(toCategory),
         legal_links: s.footerLinks.filter((l) => l.systemKey).map((l) => ({ title: l.title, url: l.path, key: l.systemKey })),
