@@ -1,0 +1,71 @@
+{%- assign field = 'field' -%}
+{%- assign gold = 'pill' -%}
+{%- assign outline = 'pill light' -%}
+{%- assign card = 'nd-card' -%}
+<div class="nd-wide">
+<div class="flex flex-wrap items-end justify-between gap-3">
+{%- assign hello = 'Cześć, ' | append: account.first_name -%}
+<div>{% render 'page-title', text: hello %}<p class="pull-up nd-muted">{{ account.email }}</p></div>
+<form data-shop-form="logout"><button type="submit" class="{{ outline }}">Wyloguj się</button></form>
+</div>
+<nav class="account-tabs" aria-label="Konto">{% for t in account.tabs %}<a href="{{ t.url }}"{% if t.current %} aria-current="page"{% endif %}>{{ t.label }}</a>{% endfor %}</nav>
+{%- case account.tab %}
+{%- when 'zamowienia' %}
+{%- if account.orders.size > 0 %}
+<ul class="grid gap-3">{% for o in account.orders %}<li class="account-row"><a href="{{ o.url }}" class="nd-strong underline">Zamówienie nr {{ o.number }}</a><span class="text-sm nd-muted">{{ o.date }}</span><span class="text-sm">{{ o.status }} · {{ o.payment }}</span><strong class="account-row-end">{{ o.total | money: o.currency }}</strong></li>{% endfor %}</ul>
+{%- else %}{% render 'empty', text: 'Nie masz jeszcze zamówień złożonych na ten adres e-mail.' %}{% endif %}
+{%- when 'zwroty' %}
+<p class="mb-6 narrow-2xl text-sm nd-muted">Zwrot (14 dni od otrzymania) lub reklamację zgłosisz na stronie zamówienia — wybierz je w zakładce <a class="font-bold underline" href="/konto">Zamówienia</a>.</p>
+{%- if account.returns.size > 0 %}
+<ul class="grid gap-3">{% for r in account.returns %}<li class="{{ card }}"><div class="flex flex-wrap items-center gap-3"><strong>{{ r.kind }} nr {{ r.number }}</strong><a href="{{ r.order_url }}" class="text-sm underline">zamówienie nr {{ r.order_number }}</a><span class="text-sm nd-muted">{{ r.date }}</span><span class="account-badge account-row-end">{{ r.status }}</span></div><p class="mt-2 text-sm">{{ r.items }}</p>{% if r.merchant_note != blank %}<p class="mt-2 text-sm"><strong>Sklep:</strong> {{ r.merchant_note }}</p>{% endif %}</li>{% endfor %}</ul>
+{%- else %}<p>Nie masz zgłoszeń zwrotów ani reklamacji.</p>{% endif %}
+{%- when 'opinie' %}
+<p class="mb-6 narrow-2xl text-sm nd-muted">Oceniać możesz produkty z Twoich zamówień, które zostały zrealizowane i opłacone. Opinie pojawiają się w sklepie po sprawdzeniu, z oznaczeniem „Zweryfikowany zakup”.</p>
+{%- if account.reviews.size > 0 %}
+<ul class="grid gap-4">{% for r in account.reviews %}<li class="{{ card }}"><p class="nd-strong">{{ r.name }}</p><p class="text-xs nd-muted">Zamówienie nr {{ r.order_number }}</p>
+<form class="mt-4 grid gap-4" data-shop-form="review"><input type="hidden" name="orderNumber" value="{{ r.order_number }}"><input type="hidden" name="productId" value="{{ r.product_id }}">
+<fieldset><legend class="mb-2 text-sm font-bold">Ocena</legend><div class="account-stars">{% for n in (1..5) %}<label><input type="radio" name="rating" value="{{ n }}" aria-label="{{ n }} na 5"><span aria-hidden="true">★</span></label>{% endfor %}</div></fieldset>
+<label class="grid gap-2 text-sm">Opinia (opcjonalnie)<textarea name="body" maxlength="2000" rows="3" class="{{ field }}"></textarea></label>
+<p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p>
+<button type="submit" class="{{ gold }} self-start-x">Wyślij opinię</button></form>
+<p class="mt-3 font-bold nd-accent" role="status" hidden data-shop-done>Dziękujemy — opinia została przesłana do sprawdzenia.</p></li>{% endfor %}</ul>
+{%- else %}<p>Nie masz produktów do oceny.</p>{% endif %}
+{%- when 'adresy' %}
+<div class="account-addresses">{% for a in account.addresses %}<div class="{{ card }} text-sm">{% if a.is_default %}<p class="mb-tiny text-xs nd-strong nd-accent">Domyślny</p>{% endif %}<address class="leading-relaxed">{{ a.name }}{% if a.company %}<br>{{ a.company }}{% endif %}<br>{{ a.line1 }}{% if a.line2 %}<br>{{ a.line2 }}{% endif %}<br>{{ a.postal_code }} {{ a.city }}{% if a.phone %}<br>{{ a.phone }}{% endif %}</address>
+<div class="mt-3 flex gap-4 text-sm"><button type="button" class="underline" data-shop-address-edit='{"id":{{ a.id | json }},"name":{{ a.name | json }},"company":{{ a.company | json }},"line1":{{ a.line1 | json }},"line2":{{ a.line2 | json }},"postalCode":{{ a.postal_code | json }},"city":{{ a.city | json }},"phone":{{ a.phone | json }},"isDefault":{{ a.is_default | json }}}'>Edytuj</button><form data-shop-form="address-delete"><input type="hidden" name="id" value="{{ a.id }}"><button type="submit" class="underline">Usuń</button></form></div></div>{% endfor %}</div>
+<button type="button" class="{{ outline }} mt-6" data-shop-address-edit="">Dodaj adres</button>
+<form class="{{ card }} account-address-form mt-6" data-shop-form="address" hidden>
+<h2 class="nd-h3" data-shop-address-title>Nowy adres</h2><input type="hidden" name="id">
+<label class="grid gap-2">Imię i nazwisko<input name="name" required autocomplete="name" class="{{ field }}"></label>
+<label class="grid gap-2">Firma (opcjonalnie)<input name="company" class="{{ field }}"></label>
+<label class="grid gap-2">Ulica i numer<input name="line1" required autocomplete="address-line1" class="{{ field }}"></label>
+<label class="grid gap-2">Kod pocztowy<input name="postalCode" required placeholder="00-000" autocomplete="postal-code" class="{{ field }}"></label>
+<label class="grid gap-2">Miejscowość<input name="city" required autocomplete="address-level2" class="{{ field }}"></label>
+<label class="grid gap-2">Telefon (opcjonalnie)<input name="phone" autocomplete="tel" class="{{ field }}"></label>
+<label class="flex items-center gap-2 text-sm"><input type="checkbox" name="isDefault" class="size-4 nd-check">Adres domyślny</label>
+<input type="hidden" name="line2">
+<p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p>
+<div class="flex gap-3"><button type="submit" class="{{ gold }}">Zapisz adres</button><button type="button" class="{{ outline }}" data-shop-hide-form>Anuluj</button></div>
+</form>
+{%- when 'ustawienia' %}
+<div class="account-settings">
+<form class="{{ card }} grid gap-4" data-shop-form="profile"><h2 class="nd-h3">Dane</h2>
+<label class="grid gap-2">Imię<input name="firstName" value="{{ account.first_name }}" class="{{ field }}"></label>
+<label class="grid gap-2">Nazwisko<input name="lastName" value="{{ account.last_name }}" class="{{ field }}"></label>
+<label class="grid gap-2">Telefon<input name="phone" value="{{ account.phone }}" class="{{ field }}"></label>
+<p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p><p class="text-sm font-bold nd-accent" role="status" data-shop-status></p>
+<button type="submit" class="{{ gold }} self-start-x">Zapisz</button></form>
+<form class="{{ card }} grid gap-4" data-shop-form="password"><h2 class="nd-h3">Hasło</h2>
+<label class="grid gap-2">Obecne hasło<input name="currentPassword" type="password" required autocomplete="current-password" class="{{ field }}"></label>
+<label class="grid gap-2">Nowe hasło<input name="newPassword" type="password" required minlength="10" autocomplete="new-password" class="{{ field }}"></label>
+<p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p><p class="text-sm font-bold nd-accent" role="status" data-shop-status></p>
+<button type="submit" class="{{ gold }} self-start-x">Zmień hasło</button></form>
+</div>
+<details class="{{ card }} mt-6"><summary class="cursor-pointer font-bold">Usuń konto</summary><p class="mt-2 text-sm nd-muted">Usuniemy konto, zapisane adresy i sesje. Złożone zamówienia sklep przechowuje nadal — wymagają tego przepisy podatkowe.</p>
+<form class="mt-4 flex flex-wrap items-end gap-3" data-shop-form="delete-account"><label class="grid gap-2">Hasło<input name="password" type="password" required autocomplete="current-password" class="{{ field }}"></label><button type="submit" class="account-danger">Usuń konto na stałe</button><p class="checkout-error w-full text-sm font-bold" role="alert" data-shop-error></p></form></details>
+{%- endcase %}
+</div>
+
+{% schema %}
+{ "name": "Moje konto", "settings": [] }
+{% endschema %}

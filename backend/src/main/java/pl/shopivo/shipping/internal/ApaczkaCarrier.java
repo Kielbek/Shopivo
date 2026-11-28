@@ -209,7 +209,7 @@ class ApaczkaCarrier implements CarrierAdapter {
     private List<Point> all(CarrierContext ctx, CarrierService service) {
         if (service == null || service.courier() == null) return List.of();
         String type = service.courier().toUpperCase(Locale.ROOT);
-        return points.get(ctx.sandbox() + ":" + type, k -> {
+        return pl.shopivo.shared.cache.Caches.get(points, ctx.sandbox() + ":" + type, k -> {
             List<Point> out = new ArrayList<>();
             for (JsonNode p : iterable(call(ctx, "points/" + safe(type) + "/", Map.of("country_code", "PL")).path("points"))) {
                 if (p.has("option_deliver") && !p.path("option_deliver").asBoolean()) continue;

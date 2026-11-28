@@ -1,0 +1,45 @@
+<header class="header">
+<div class="wrap header-inner">
+<a href="/" class="logo">{% render 'logo', text: section.settings.logo_text, mark: section.settings.logo_mark, shop: shop %}</a>
+<nav class="nav" aria-label="Menu główne">
+{%- for block in section.blocks %}
+<a href="{{ block.settings.url | link }}"{{ block | block_attrs }}{{ block | edit: 'label' }}>{{ block.settings.label }}</a>
+{%- endfor %}
+</nav>
+<div class="tools">
+<button class="iconbtn" type="button" aria-label="Szukaj" aria-controls="searchbar" aria-expanded="false" data-search-toggle>{% render 'icon', name: 'search' %}</button>
+<a class="iconbtn" href="/ulubione" aria-label="Ulubione" data-shop-fav-label="Ulubione ({count})">{% render 'icon', name: 'heart' %}<span class="count" data-shop-fav-count data-count="0">0</span></a>
+<a class="iconbtn" href="/koszyk" aria-label="Koszyk ({{ cart.item_count }})" data-shop-cart-label="Koszyk ({count})">{% render 'icon', name: 'cart' %}<span class="count" data-shop-cart-count data-count="{{ cart.item_count }}">{{ cart.item_count }}</span></a>
+<a class="iconbtn" href="/konto" aria-label="Konto">{% render 'icon', name: 'user' %}</a>
+<button class="iconbtn menuBtn" type="button" aria-label="Menu" aria-controls="mobileNav" aria-expanded="false" data-menu>{% render 'icon', name: 'menu' %}</button>
+</div>
+</div>
+<div class="searchbar" id="searchbar" hidden>
+<form class="wrap" action="/produkty" method="get" role="search">
+<input class="field" name="q" placeholder="{{ section.settings.search_placeholder }}" aria-label="{{ section.settings.search_placeholder }}" required maxlength="100">
+<button class="pill" type="submit">Szukaj</button>
+</form>
+</div>
+<nav id="mobileNav" class="mobile-nav" aria-label="Menu" hidden>
+{%- for block in section.blocks %}
+<a href="{{ block.settings.url | link }}">{{ block.settings.label }}</a>
+{%- endfor %}
+</nav>
+</header>
+
+{% schema %}
+{
+  "name": "Nagłówek",
+  "settings": [
+    { "id": "logo_text", "type": "text", "label": "Nazwa w logo", "default": "", "max": 30, "info": "Puste pole: nazwa sklepu." },
+    { "id": "logo_mark", "type": "text", "label": "Znak po nazwie (kolor akcentu)", "default": ".", "max": 3 },
+    { "id": "search_placeholder", "type": "text", "label": "Podpowiedź w wyszukiwarce", "default": "Szukaj mebli…", "max": 40 }
+  ],
+  "blocks": [
+    { "type": "link", "name": "Link w menu", "settings": [
+      { "id": "label", "type": "text", "label": "Tekst", "default": "Link", "max": 30 },
+      { "id": "url", "type": "url", "label": "Adres", "default": "/produkty" } ] }
+  ],
+  "max_blocks": 8
+}
+{% endschema %}

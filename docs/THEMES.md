@@ -11,7 +11,7 @@ swój wygląd, własne komponenty i własne zdjęcia. Sprzedawca widzi je od raz
 | **Grafiki** | `backend/src/main/resources/themes/<kod>/<nazwa>-w400.jpg` i `-w1200.jpg`, rejestr w `ThemeAssets.java` | zdjęcia dostarczane z szablonem (baner, kafelki, baner „pracownia”…); źródła i licencje w [THEME_ASSETS.md](THEME_ASSETS.md) |
 | **Kod** | `frontend/apps/storefront/src/app/themes/<kod>/` + wspólne sekcje w `ui/sections.ts` | komponenty, które szablon ma inne niż standardowy układ (u Véry: nagłówek, stopka, boczny koszyk); karta produktu i strona produktu mają wariant zależny od `StoreState.layout()` |
 
-W ofercie są szablony **Véra** (domyślny), **Bawiloo**, **Velmira** (kosmetyki) i **Lullora** (produkty dla maluszków); Velmira i Lullora działają w silniku v2 (docs/TEMPLATE_FORMAT.md). Wcześniejsze presety (Atelier, Róża, Volt, Bajka, Ostoja, Sprint, Tor, Kruszec) wycofano 2026-11-27. Sklepy, które je miały, zachowują swoje teksty, sekcje i ustawienia: `ThemeRegistry.RETIRED` przenosi zabawkowy szablon na Bawiloo, kosmetyczny na Velmirę, a resztę na Vérę.
+W ofercie są szablony **Véra** (domyślny), **Bawiloo**, **Velmira** (kosmetyki), **Lullora** (produkty dla maluszków) i **Nordivo** (meble, ceny na zdjęciu aranżacji); Velmira, Lullora i Nordivo działają w silniku v2 (docs/TEMPLATE_FORMAT.md). Wcześniejsze presety (Atelier, Róża, Volt, Bajka, Ostoja, Sprint, Tor, Kruszec) wycofano 2026-11-27. Sklepy, które je miały, zachowują swoje teksty, sekcje i ustawienia: `ThemeRegistry.RETIRED` przenosi zabawkowy szablon na Bawiloo, kosmetyczny na Velmirę, „HOME” na Nordivo, a resztę na Vérę.
 
 ## Grafiki szablonu: odnośnik zamiast kopii
 

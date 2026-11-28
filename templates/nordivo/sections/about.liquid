@@ -1,0 +1,36 @@
+<section id="{{ section.settings.anchor | default: 'about' }}" class="section wrap about">
+<div>
+<div class="eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</div>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading | lines }}</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+<div class="stats">
+{%- for block in section.blocks %}
+<div{{ block | block_attrs }}><strong{{ block | edit: 'number' }}>{{ block.settings.number }}</strong><p{{ block | edit: 'text' }}>{{ block.settings.text }}</p></div>
+{%- endfor %}
+</div>
+{%- if section.settings.button_label != blank %}<a href="{{ section.settings.button_url | link }}" class="pill light" style="margin-top:25px"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>{% endif %}
+</div>
+{%- if section.settings.image %}<img class="story-image" src="{{ section.settings.image | image_url: 'w1200' }}" alt="{{ section.settings.image_alt }}" loading="lazy"{{ section | edit: 'image' }}>{% endif %}
+</section>
+
+{% schema %}
+{
+  "name": "O nas z punktami",
+  "settings": [
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "Nasza filozofia", "max": 40 },
+    { "id": "heading", "type": "textarea", "label": "Nagłówek", "default": "STYL SPOTYKA\nWYGODĘ", "max": 80 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "", "max": 600 },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Poznaj kolekcję ↗", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "/produkty" },
+    { "id": "image", "type": "image", "label": "Zdjęcie", "default": "asset:about.webp" },
+    { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "", "max": 160 },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "about", "max": 30 }
+  ],
+  "blocks": [
+    { "type": "stat", "name": "Punkt", "settings": [
+      { "id": "number", "type": "text", "label": "Numer", "default": "01.", "max": 10 },
+      { "id": "text", "type": "text", "label": "Tekst", "default": "", "max": 120 } ] }
+  ],
+  "max_blocks": 4
+}
+{% endschema %}

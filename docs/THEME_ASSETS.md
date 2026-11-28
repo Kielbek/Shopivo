@@ -28,6 +28,12 @@ Zdjęcia przykładowych produktów (`tpl:vera/p-*`, kadr 3:4) — to samo źród
 
 Pominięto zdjęcie koszulki z cudzą grafiką/napisem z pierwotnego HTML-a, bo był na niej nadruk innej marki.
 
+## Nordivo (templates/nordivo/assets/, backend/src/main/resources/themes/nordivo/)
+
+Zdjęcia z pliku projektu `nordivo-sklep-newsletter.html` dostarczonego przez właściciela projektu (2026-11-28):
+- baner aranżacji 1728×864, „O nas”, dwa zdjęcia zestawów (WebP);
+- 9 zdjęć mebli i zdjęcie zestawu zapisano jako JPEG `w400` i `w1200` (oryginał 720 px).
+
 ## Lullora (templates/lullora/assets/, backend/src/main/resources/themes/lullora/)
 
 Zdjęcia z pliku projektu `lullora-sklep-osobne-widoki.html` dostarczonego przez właściciela projektu (2026-11-28):

@@ -97,7 +97,19 @@ public final class ThemeAssets {
             asset("velmira", "preview", "Podgląd szablonu — komputer"),
             asset("velmira", "preview-phone", "Podgląd szablonu — telefon"),
             asset("lullora", "preview", "Podgląd szablonu — komputer"),
-            asset("lullora", "preview-phone", "Podgląd szablonu — telefon"));
+            asset("lullora", "preview-phone", "Podgląd szablonu — telefon"),
+            asset("nordivo", "p-fotel-chester", "Produkt — fotel Chester"),
+            asset("nordivo", "p-stolik-orbit", "Produkt — stolik Orbit"),
+            asset("nordivo", "p-biurko-elmo", "Produkt — biurko Elmo"),
+            asset("nordivo", "p-fotel-bujany", "Produkt — fotel bujany"),
+            asset("nordivo", "p-komoda-rustic", "Produkt — komoda Rustic"),
+            asset("nordivo", "p-regal-cascade", "Produkt — regał Cascade"),
+            asset("nordivo", "p-lozko-aurora", "Produkt — łóżko Aurora"),
+            asset("nordivo", "p-krzeslo-maple", "Produkt — krzesło Maple"),
+            asset("nordivo", "p-fotel-coastal", "Produkt — fotel Coastal"),
+            asset("nordivo", "p-zestaw-salon", "Produkt — zestaw salonowy"),
+            asset("nordivo", "preview", "Podgląd szablonu — komputer"),
+            asset("nordivo", "preview-phone", "Podgląd szablonu — telefon"));
 
     public static boolean isRef(String value) {
         return value != null && value.startsWith(PREFIX);

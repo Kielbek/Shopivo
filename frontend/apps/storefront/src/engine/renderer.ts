@@ -104,6 +104,18 @@ export class TemplateRenderer {
       },
       raw: true,
     });
+    // A point the merchant drags on a picture in the editor: {{ block | pin: 'position', 'position_mobile' }}
+    l.registerFilter('pin', {
+      handler: function (this: { context: { getSync(path: string[]): unknown } }, target: unknown, setting: unknown, mobile: unknown) {
+        if (!this.context.getSync(['editing'])) return '';
+        const t = target as { id?: string; section_id?: string } | null;
+        const ok = (v: unknown) => typeof v === 'string' && /^[a-z0-9_]+$/.test(v);
+        if (!t?.id || !ok(setting)) return '';
+        const path = t.section_id ? `${t.section_id}/${t.id}` : t.id;
+        return ` data-shop-pin="${escapeHtml(path)}" data-shop-pin-setting="${setting}"${ok(mobile) ? ` data-shop-pin-mobile="${mobile}"` : ''}`;
+      },
+      raw: true,
+    });
     l.registerFilter('block_attrs', {
       handler: function (this: { context: { getSync(path: string[]): unknown } }, block: unknown) {
         if (!this.context.getSync(['editing'])) return '';

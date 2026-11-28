@@ -1,0 +1,38 @@
+<footer class="footer" id="contact">
+<div class="wrap">
+<div class="footer-grid">
+<div>
+<a class="logo" href="/">{% render 'logo', text: section.settings.logo_text, mark: section.settings.logo_mark, shop: shop %}</a>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+</div>
+{%- for block in section.blocks %}
+<div{{ block | block_attrs }}>
+<h3{{ block | edit: 'title' }}>{{ block.settings.title }}</h3>
+{%- for link in block.settings.links %}<a href="{{ link.url | link }}">{{ link.label }}</a>{% endfor %}
+</div>
+{%- endfor %}
+</div>
+<div class="footer-bottom">
+<span>© {{ 'now' | date: '%Y' }} {{ shop.name }}{% if section.settings.note != blank %} · {{ section.settings.note }}{% endif %}</span>
+<span>Polska · {{ shop.currency }}</span>
+</div>
+</div>
+</footer>
+
+{% schema %}
+{
+  "name": "Stopka",
+  "settings": [
+    { "id": "logo_text", "type": "text", "label": "Nazwa w logo", "default": "", "max": 30, "info": "Puste pole: nazwa sklepu." },
+    { "id": "logo_mark", "type": "text", "label": "Znak po nazwie (kolor akcentu)", "default": ".", "max": 3 },
+    { "id": "text", "type": "textarea", "label": "Tekst pod logo", "default": "Meble do życia w pięknym stylu.", "max": 200 },
+    { "id": "note", "type": "text", "label": "Dopisek przy prawach autorskich", "default": "", "max": 80 }
+  ],
+  "blocks": [
+    { "type": "links", "name": "Kolumna z linkami", "settings": [
+      { "id": "title", "type": "text", "label": "Tytuł", "default": "Kolekcje", "max": 40 },
+      { "id": "links", "type": "link_list", "label": "Linki", "default": [], "max": 8 } ] }
+  ],
+  "max_blocks": 4
+}
+{% endschema %}

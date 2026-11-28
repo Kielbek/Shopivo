@@ -1,0 +1,37 @@
+<section class="wrap newsletter" id="newsletter" aria-labelledby="newsletter-title-{{ section.id }}">
+<div class="newsletter-panel">
+<div class="newsletter-copy">
+<div class="newsletter-kicker">{% render 'icon', name: 'mail', px: 18 %} <span{{ section | edit: 'kicker' }}>{{ section.settings.kicker }}</span></div>
+<h2 id="newsletter-title-{{ section.id }}"><span{{ section | edit: 'heading' }}>{{ section.settings.heading }}</span><br>
+<em{{ section | edit: 'accent' }}>{{ section.settings.accent }}</em>
+</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+</div>
+<form class="newsletter-form" data-shop-newsletter novalidate>
+<label class="newsletter-label" for="newsletterEmail-{{ section.id }}">Twój adres e-mail</label>
+<div class="newsletter-entry">
+<input id="newsletterEmail-{{ section.id }}" name="email" class="field" type="email" placeholder="np. anna@email.pl" autocomplete="email" required maxlength="254">
+<button type="submit" class="pill"><span{{ section | edit: 'button' }}>{{ section.settings.button }}</span> {% render 'icon', name: 'arrow', px: 17 %}</button>
+</div>
+<label class="newsletter-consent">
+<input name="consent" type="checkbox" required>
+<span>Chcę otrzymywać newsletter {{ shop.name }}. Zapoznałem się z <a href="{{ 'legal:PRIVACY' | link }}">polityką prywatności</a>.</span>
+</label>
+{%- if shop.captcha_site_key %}<div data-shop-captcha="{{ shop.captcha_site_key }}"></div>{% endif %}
+<p class="newsletter-status nd-status" role="status" aria-live="polite" data-shop-status></p>
+</form>
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "LISTY OD NAS", "max": 40 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "Piękne wnętrza.", "max": 60 },
+    { "id": "accent", "type": "text", "label": "Druga linia (kursywa)", "default": "Piękne inspiracje.", "max": 60 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "Odkrywaj nowe kolekcje, pomysły na aranżacje i wyjątkowe oferty. Prosto do Twojej skrzynki.", "max": 300 },
+    { "id": "button", "type": "text", "label": "Tekst przycisku", "default": "Dołącz do nas", "max": 30 }
+  ]
+}
+{% endschema %}

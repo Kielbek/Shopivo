@@ -28,7 +28,7 @@ public class ThemeUsage {
     }
 
     public Map<String, Long> counts() {
-        return cache.get("all", k -> {
+        return pl.shopivo.shared.cache.Caches.get(cache, "all", k -> {
             // Cross-store aggregate: the only place that reads every store's theme, and it returns counts only.
             Map<String, Long> out = new HashMap<>();
             TenantContext.runAsSystem(() -> tx.executeWithoutResult(s -> jdbc.query("""

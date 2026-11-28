@@ -57,6 +57,14 @@ export function settingValue(schema: SettingSchema, stored: unknown): unknown {
       return schema.options?.some((o) => o.value === value) ? value : fallback();
     case 'product':
       return typeof value === 'string' && (value === '' || SLUG.test(value)) ? value : fallback();
+    case 'point': {
+      if (value === null) return null;
+      const v = value as { x?: unknown; y?: unknown } | undefined;
+      const x = Number(v?.x), y = Number(v?.y);
+      if (!v || typeof v !== 'object' || !Number.isFinite(x) || !Number.isFinite(y)) return fallback();
+      const pct = (n: number) => Math.round(Math.min(100, Math.max(0, n)) * 10) / 10;
+      return { x: pct(x), y: pct(y) };
+    }
     case 'product_list': {
       const v = (value ?? {}) as Partial<ProductListSetting>;
       if (!v || typeof v !== 'object' || !PRODUCT_SOURCES.includes(v.source as ProductSource)) return fallback();
@@ -93,6 +101,7 @@ function emptyOf(schema: SettingSchema): unknown {
     case 'category_list': return { mode: 'top' };
     case 'product_list': return { source: 'newest', count: 4 };
     case 'select': return schema.options?.[0]?.value ?? '';
+    case 'point': return null;
     default: return '';
   }
 }

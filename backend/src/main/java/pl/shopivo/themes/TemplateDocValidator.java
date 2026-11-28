@@ -226,6 +226,14 @@ final class TemplateDocValidator {
                 }
                 return o;
             }
+            case "point" -> {
+                // A position on a picture, in percent of its width and height (0.1 precision); null = not set
+                if (v.isNull()) return v;
+                if (!v.isObject() || !v.path("x").isNumber() || !v.path("y").isNumber()) throw bad(label);
+                double x = v.path("x").asDouble(), y = v.path("y").asDouble();
+                if (x < 0 || x > 100 || y < 0 || y > 100) throw new IllegalArgumentException(label + ": położenie od 0 do 100%.");
+                return json.createObjectNode().put("x", Math.round(x * 10) / 10.0).put("y", Math.round(y * 10) / 10.0);
+            }
             case "product" -> {
                 String slug = v.isString() ? v.asString().strip() : null;
                 if (slug == null || (!slug.isEmpty() && !SLUG.matcher(slug).matches())) throw bad(label);

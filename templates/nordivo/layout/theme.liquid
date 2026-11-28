@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+{{ content_for_header }}
+</head>
+<body>
+{{ header_group }}
+<main>
+{%- if page_type == 'index' %}
+<div id="homeView">
+{{ content_for_layout }}
+</div>
+{%- else %}
+<section class="wrap page" id="pageView">
+{{ content_for_layout }}
+</section>
+{%- endif %}
+</main>
+{{ footer_group }}
+<div id="toast" class="toast" role="status" aria-live="polite" hidden data-shop-toast></div>
+{{ content_for_footer }}
+</body>
+</html>

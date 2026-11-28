@@ -1,0 +1,132 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {},
+      "blocks": {
+        "hotspot-1": {
+          "type": "hotspot",
+          "settings": {
+            "product": "komoda-rustic",
+            "position": {
+              "x": 20,
+              "y": 59
+            }
+          }
+        },
+        "hotspot-2": {
+          "type": "hotspot",
+          "settings": {
+            "product": "zestaw-salonowy-nordic",
+            "prefix": "Zestaw",
+            "position": {
+              "x": 66,
+              "y": 58
+            },
+            "position_mobile": {
+              "x": 67,
+              "y": 53
+            }
+          }
+        },
+        "hotspot-3": {
+          "type": "hotspot",
+          "settings": {
+            "product": "stolik-kawowy-orbit",
+            "position": {
+              "x": 49,
+              "y": 79
+            }
+          }
+        }
+      },
+      "block_order": [
+        "hotspot-1",
+        "hotspot-2",
+        "hotspot-3"
+      ]
+    },
+    "new": {
+      "type": "new-arrivals",
+      "settings": {
+        "text": "Starannie dobrane materiały i dopracowane detale.\nMeble, które nadają wnętrzom niepowtarzalny charakter."
+      }
+    },
+    "catalog": {
+      "type": "catalog",
+      "settings": {}
+    },
+    "about": {
+      "type": "about",
+      "settings": {
+        "eyebrow": "Filozofia Nordivo",
+        "text": "Wierzymy, że dobre wnętrze zaczyna się od prostych form i naturalnych materiałów. Kolekcja Nordivo łączy ciepło drewna, funkcjonalność i nowoczesny charakter, by stworzyć przestrzeń, w której naprawdę chce się być.",
+        "image_alt": "Jasna jadalnia z drewnianym stołem i tapicerowanymi krzesłami"
+      },
+      "blocks": {
+        "stat-1": {
+          "type": "stat",
+          "settings": {
+            "number": "01.",
+            "text": "Przemyślany design i ponadczasowy styl."
+          }
+        },
+        "stat-2": {
+          "type": "stat",
+          "settings": {
+            "number": "02.",
+            "text": "Wygoda, która towarzyszy Ci każdego dnia."
+          }
+        }
+      },
+      "block_order": [
+        "stat-1",
+        "stat-2"
+      ]
+    },
+    "combo": {
+      "type": "combo",
+      "settings": {},
+      "blocks": {
+        "slide-1": {
+          "type": "slide",
+          "settings": {
+            "title": "STREFA RELAKSU\nZ DREWNEM I TKANINĄ",
+            "image": "asset:combo-1.webp",
+            "image_alt": "Jasny salon z kremową sofą, drewnianą komodą i stolikiem",
+            "link_label": "Zobacz kolekcję ↗",
+            "url": "/produkty"
+          }
+        },
+        "slide-2": {
+          "type": "slide",
+          "settings": {
+            "title": "SPOKOJNA SYPIALNIA\nW NATURALNYCH TONACH",
+            "image": "asset:combo-2.webp",
+            "image_alt": "Przytulna sypialnia z tapicerowanym łóżkiem i drewnianymi szafkami nocnymi",
+            "link_label": "Zobacz łóżko ↗",
+            "url": "/produkt/lozko-aurora"
+          }
+        }
+      },
+      "block_order": [
+        "slide-1",
+        "slide-2"
+      ]
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "kicker": "LISTY OD NORDIVO"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "new",
+    "catalog",
+    "about",
+    "combo",
+    "newsletter"
+  ]
+}

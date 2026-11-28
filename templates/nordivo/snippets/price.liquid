@@ -1,0 +1,2 @@
+{%- comment -%} Price as the design shows it (whole złoty without ",00"). Param: product {%- endcomment -%}
+{%- if product.has_range %}od {% endif %}{{ product.price | money: product.currency | remove: ',00' }}

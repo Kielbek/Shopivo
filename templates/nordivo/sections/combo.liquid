@@ -1,0 +1,43 @@
+{%- comment -%} Full-width slider of arrangements. The background continues the photo's top edge (template.js samples it), so any photo blends in. {%- endcomment -%}
+<section class="combo" id="combo" aria-label="{{ section.settings.eyebrow }}" aria-roledescription="karuzela" data-combo>
+{%- assign total = section.blocks.size -%}
+{%- for block in section.blocks %}
+<div class="nd-slide" data-combo-slide="{{ forloop.index0 }}"{% unless forloop.first %} hidden{% endunless %}{{ block | block_attrs }}>
+<div class="wrap combo-top">
+<div>
+<div class="eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</div>
+{%- if total > 1 %}
+<div class="flex items-center gap-3">
+<button class="arrow" type="button" data-combo-prev aria-label="Poprzedni zestaw">{% render 'icon', name: 'left', px: 16 %}</button>
+<span class="combo-count" aria-live="polite">{% if forloop.index < 10 %}0{% endif %}{{ forloop.index }} / {% if total < 10 %}0{% endif %}{{ total }}</span>
+<button class="arrow" type="button" data-combo-next aria-label="Następny zestaw">{% render 'icon', name: 'right', px: 16 %}</button>
+</div>
+{%- endif %}
+</div>
+<div>
+<h2{{ block | edit: 'title' }}>{{ block.settings.title | lines }}</h2>
+{%- if block.settings.link_label != blank %}<a class="pill" href="{{ block.settings.url | link }}"{{ block | edit: 'link_label' }}>{{ block.settings.link_label }}</a>{% endif %}
+</div>
+</div>
+{%- if block.settings.image %}<img class="nd-combo-image" src="{{ block.settings.image | image_url: 'w1200' }}" srcset="{{ block.settings.image | image_srcset }}" sizes="100vw" alt="{{ block.settings.image_alt }}" loading="lazy" data-tone-source{{ block | edit: 'image' }}>{% endif %}
+</div>
+{%- endfor %}
+</section>
+
+{% schema %}
+{
+  "name": "Slider zestawów",
+  "settings": [
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "Przemyślane połączenia", "max": 40 }
+  ],
+  "blocks": [
+    { "type": "slide", "name": "Zestaw", "settings": [
+      { "id": "title", "type": "textarea", "label": "Tytuł", "default": "NOWY ZESTAW", "max": 80 },
+      { "id": "image", "type": "image", "label": "Zdjęcie (najlepiej 2:1)", "default": "asset:combo-1.webp" },
+      { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "", "max": 160 },
+      { "id": "link_label", "type": "text", "label": "Tekst przycisku", "default": "Zobacz kolekcję ↗", "max": 30 },
+      { "id": "url", "type": "url", "label": "Link przycisku", "default": "/produkty" } ] }
+  ],
+  "max_blocks": 6
+}
+{% endschema %}

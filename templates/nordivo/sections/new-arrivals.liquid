@@ -1,0 +1,30 @@
+<section class="section wrap" id="{{ section.settings.anchor | default: 'new' }}" data-arrivals>
+<div class="heading">
+{%- if section.settings.eyebrow != blank %}<div class="eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</div>{% endif %}
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+{%- if section.settings.text != blank %}<p{{ section | edit: 'text' }}>{{ section.settings.text | lines }}</p>{% endif %}
+</div>
+<div class="arrival-window" data-arrival-window>
+<div class="arrival-track" data-arrival-track>
+{%- for product in section.settings.products.items %}{% render 'product-card', product: product, note: section.settings.note %}{% endfor -%}
+</div>
+</div>
+<div class="arrows">
+<button class="arrow" type="button" data-arrival-prev aria-label="Poprzedni produkt">{% render 'icon', name: 'left', px: 16 %}</button>
+<button class="arrow" type="button" data-arrival-next aria-label="Następny produkt">{% render 'icon', name: 'right', px: 16 %}</button>
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Karuzela produktów",
+  "settings": [
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "Wybrane dla Ciebie", "max": 40 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "NOWOŚCI", "max": 60 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "", "max": 240 },
+    { "id": "products", "type": "product_list", "label": "Produkty", "default": { "source": "newest", "count": 6 } },
+    { "id": "note", "type": "text", "label": "Dopisek pod nazwą produktu", "default": "Nowość w kolekcji", "max": 40 },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "new", "max": 30 }
+  ]
+}
+{% endschema %}

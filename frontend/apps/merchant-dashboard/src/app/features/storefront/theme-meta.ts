@@ -20,6 +20,8 @@ export const THEME_META: Record<string, ThemeMeta> = {
     features: ['Duży slider z bocznym kafelkiem', 'Karuzela produktów z zakładkami i rytuały krok po kroku', 'Pytania i odpowiedzi, wyróżniony zestaw z ceną'] },
   LULLORA: { industries: ['KIDS', 'TOYS', 'COSMETICS', 'GIFTS'], style: 'colorful',
     features: ['Zdjęcie z wycięciami i kafelki pod banerem', 'Katalog z filtrem kategorii na stronie głównej', 'Osobne, spójne widoki koszyka, konta i zamówienia'] },
+  NORDIVO: { industries: ['FURNITURE', 'HOME', 'GARDEN', 'HANDMADE'], style: 'minimal',
+    features: ['Zdjęcie aranżacji z cenami produktów (przeciągasz je w edytorze)', 'Karuzela nowości i katalog z filtrem kategorii', 'Slider zestawów, którego tło dopasowuje się do zdjęcia'] },
   VERA: { industries: ['FASHION', 'FOOTWEAR', 'ACCESSORIES', 'JEWELRY'], style: 'elegant',
     features: ['Własne zdjęcia szablonu (do podmiany)', 'Kafelki działów i filtry produktów', 'Boczny koszyk z progiem darmowej dostawy'] },
 };

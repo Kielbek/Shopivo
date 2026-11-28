@@ -35,7 +35,7 @@ public class PickupPoints implements ShippingCarriers {
         String q = query == null ? "" : query.strip().toLowerCase(Locale.ROOT);
         if (q.length() < 2 || q.length() > 60) return List.of();
         try {
-            return searches.get(carrier + ":" + active.sandbox() + ":" + q, k -> active.adapter().searchPoints(active.context(), active.service(), q));
+            return pl.shopivo.shared.cache.Caches.get(searches, carrier + ":" + active.sandbox() + ":" + q, k -> active.adapter().searchPoints(active.context(), active.service(), q));
         } catch (CarrierException e) {
             throw new BusinessRuleException("POINTS_UNAVAILABLE", "Nie udało się wyszukać paczkomatów. Spróbuj ponownie lub wpisz kod paczkomatu.");
         }

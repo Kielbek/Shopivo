@@ -1,0 +1,78 @@
+{
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "settings": {},
+      "blocks": {
+        "links-1": {
+          "type": "links",
+          "settings": {
+            "title": "Kolekcje",
+            "links": [
+              {
+                "label": "Wszystkie meble",
+                "url": "/produkty"
+              },
+              {
+                "label": "Nowości",
+                "url": "/#new"
+              },
+              {
+                "label": "Zestawy",
+                "url": "/#combo"
+              }
+            ]
+          }
+        },
+        "links-2": {
+          "type": "links",
+          "settings": {
+            "title": "Twoje konto",
+            "links": [
+              {
+                "label": "Moje konto",
+                "url": "/konto"
+              },
+              {
+                "label": "Koszyk",
+                "url": "/koszyk"
+              },
+              {
+                "label": "Ulubione",
+                "url": "/ulubione"
+              }
+            ]
+          }
+        },
+        "links-3": {
+          "type": "links",
+          "settings": {
+            "title": "Informacje",
+            "links": [
+              {
+                "label": "O nas",
+                "url": "/#about"
+              },
+              {
+                "label": "Dostawa i zwroty",
+                "url": "legal:SHIPPING"
+              },
+              {
+                "label": "Prywatność",
+                "url": "legal:PRIVACY"
+              }
+            ]
+          }
+        }
+      },
+      "block_order": [
+        "links-1",
+        "links-2",
+        "links-3"
+      ]
+    }
+  },
+  "order": [
+    "footer"
+  ]
+}

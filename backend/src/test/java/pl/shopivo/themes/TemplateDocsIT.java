@@ -127,6 +127,31 @@ class TemplateDocsIT extends IntegrationTest {
         assertThat(other.put(base(t) + "/template/draft", Map.of("doc", Map.of(), "version", 0)).status()).isEqualTo(404);
     }
 
+    /** Prices on the Nordivo photo: points in percent, rounded to 0.1; an optional phone point may be null. */
+    @Test
+    void pointsOnAPictureAreValidatedAndRounded() throws Exception {
+        ApiClient owner = registeredUser(uniqueEmail("nordivo"));
+        String t = createStore(owner, "Nordivo", uniqueSlug("nordivo"));
+        var theme = owner.get(base(t) + "/theme").json();
+        owner.put(base(t) + "/theme", Map.of("code", "NORDIVO", "settings", Map.of(), "version", theme.get("state").get("version").asLong()));
+        java.util.function.Function<Object, Map<String, Object>> home = (mobile) -> {
+            Map<String, Object> settings = new java.util.HashMap<>(Map.of("product", "komoda-rustic", "position", Map.of("x", 33.333, "y", 12)));
+            settings.put("position_mobile", mobile);
+            return Map.of("pages", Map.of("index", Map.of("order", List.of("hero"), "sections", Map.of("hero", Map.of("type", "hero", "settings", Map.of(),
+                    "blocks", Map.of("hotspot-1", Map.of("type", "hotspot", "settings", settings)), "block_order", List.of("hotspot-1"))))));
+        };
+        var saved = owner.put(base(t) + "/template/draft", Map.of("doc", home.apply(null), "version", -1));
+        assertThat(saved.status()).isEqualTo(200);
+        var s = saved.json().get("draft").get("pages").get("index").get("sections").get("hero").get("blocks").get("hotspot-1").get("settings");
+        assertThat(s.get("position").get("x").asDouble()).isEqualTo(33.3);
+        assertThat(s.get("position_mobile").isNull()).isTrue();
+        long v = saved.json().get("version").asLong();
+        assertThat(owner.put(base(t) + "/template/draft", Map.of("doc", home.apply(Map.of("x", 120, "y", 5)), "version", v)).code())
+                .isEqualTo("INVALID_TEMPLATE_DOC");
+        assertThat(owner.put(base(t) + "/template/draft", Map.of("doc", home.apply("środek"), "version", v)).code())
+                .isEqualTo("INVALID_TEMPLATE_DOC");
+    }
+
     @Test
     void templatesOfTheOldEngineHaveNoDocument() throws Exception {
         ApiClient owner = registeredUser(uniqueEmail("vera"));

@@ -67,6 +67,22 @@ const SOURCES: { value: string; label: string }[] = [
                   <div class="flex items-center gap-2"><input [id]="fid" type="color" class="h-9 w-12 rounded-[8px] border border-line" [value]="v || '#000000'" (input)="emit(s, $any($event.target).value)" />
                     <span class="font-mono text-[12px] text-ink-soft">{{ v }}</span></div>
                 }
+                @case ('point') {
+                  @let pt = $any(v);
+                  @if (s.defaultValue === null) {
+                    <label class="mb-2 flex items-center gap-2 text-[12px] text-ink-soft"><input type="checkbox" class="size-4" [checked]="!!pt"
+                      (change)="emit(s, $any($event.target).checked ? pointFrom(s) : null)" />Ustaw osobno</label>
+                  }
+                  @if (pt) {
+                    <div class="flex items-center gap-2 text-[12px] text-ink-soft">
+                      <label class="flex items-center gap-1">Od lewej <input [id]="fid" type="number" min="0" max="100" step="0.1" class="sv-input w-20" [value]="pt.x"
+                        (change)="emit(s, { x: pct($any($event.target).value), y: pt.y })" />%</label>
+                      <label class="flex items-center gap-1">Od góry <input type="number" min="0" max="100" step="0.1" class="sv-input w-20" [value]="pt.y"
+                        (change)="emit(s, { x: pt.x, y: pct($any($event.target).value) })" />%</label>
+                    </div>
+                    <p class="mt-1 text-[11px] text-ink-muted">Albo przeciągnij punkt na zdjęciu w podglądzie.</p>
+                  }
+                }
                 @case ('product') {
                   <select [id]="fid" class="sv-input" (change)="emit(s, $any($event.target).value)">
                     <option value="" [selected]="!v">— wybierz produkt —</option>
@@ -144,6 +160,18 @@ export class SettingFieldsComponent {
 
   protected emit(s: TemplateSetting, value: unknown): void {
     this.changed.emit({ id: s.id, value });
+  }
+
+  /** Percent of a picture, one decimal. */
+  protected pct(v: string): number {
+    return Math.round(Math.max(0, Math.min(100, Number(v) || 0)) * 10) / 10;
+  }
+
+  /** A separate point starts where the main one is (the other point setting of the same element), else in the middle. */
+  protected pointFrom(s: TemplateSetting): { x: number; y: number } {
+    const main = this.settings().find((x) => x.type === 'point' && x.id !== s.id);
+    const v = main ? (valueOf(this.values(), main.id, main.defaultValue ?? null) as { x: number; y: number } | null) : null;
+    return v ? { ...v } : { x: 50, y: 50 };
   }
 
   protected clamp(v: string, min: number, max: number): number {

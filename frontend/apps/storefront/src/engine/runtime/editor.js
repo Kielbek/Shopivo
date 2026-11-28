@@ -7,6 +7,7 @@
  * script swaps in the page re-rendered by the server. Nothing is saved from here.
  *
  * Messages to the panel:   shop:ready {page}, shop:select {section, block?}, shop:text {section, block?, setting, value},
+ *                          shop:pin {section, block?, setting, value: {x, y}} (a point dragged on a picture),
  *                          shop:action {action, section, block?}, shop:image {section, block?, setting}
  * Messages from the panel: shop:names {sections: {type: name}}, shop:render {doc}, shop:selected {section, block?}
  */
@@ -223,6 +224,56 @@
   }
   makeEditable(document);
 
+  // Points on a picture ({{ block | pin: 'position', 'position_mobile' }} inside [data-shop-pin-area]): drag to move.
+  // Positions are percent of the area; with a separate phone position set, dragging at phone width moves that one.
+  function preparePins(root) {
+    root.querySelectorAll('[data-shop-pin]').forEach((pin) => {
+      pin.style.cursor = 'grab';
+      pin.style.touchAction = 'none';
+      pin.title = 'Przeciągnij, aby przesunąć';
+    });
+  }
+  preparePins(document);
+  let drag = null;
+  document.addEventListener('pointerdown', (e) => {
+    const pin = e.target instanceof Element ? e.target.closest('[data-shop-pin]') : null;
+    const area = pin?.closest('[data-shop-pin-area]');
+    if (!pin || !area || e.button !== 0) return;
+    e.preventDefault();
+    const media = area.dataset.shopPinMedia;
+    const mobile = !!(pin.dataset.shopPinMobile && pin.style.getPropertyValue('--xm') && media && window.matchMedia(media).matches);
+    drag = { pin, area, mobile, x0: e.clientX, y0: e.clientY, moved: false, point: null };
+    pin.setPointerCapture(e.pointerId);
+    pin.style.cursor = 'grabbing';
+  }, true);
+  document.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 4) return;
+    drag.moved = true;
+    hoverBox.hidden = true;
+    const r = drag.area.getBoundingClientRect();
+    const pct = (v) => Math.round(Math.max(0, Math.min(100, v)) * 10) / 10;
+    drag.point = { x: pct(((e.clientX - r.left) / r.width) * 100), y: pct(((e.clientY - r.top) / r.height) * 100) };
+    drag.pin.style.setProperty(drag.mobile ? '--xm' : '--x', drag.point.x + '%');
+    drag.pin.style.setProperty(drag.mobile ? '--ym' : '--y', drag.point.y + '%');
+    drawSelection();
+  });
+  document.addEventListener('pointerup', () => {
+    if (!drag) return;
+    const { pin, mobile, moved, point } = drag;
+    drag = null;
+    pin.style.cursor = 'grab';
+    if (!moved || !point) return;
+    const [section, block] = pin.dataset.shopPin.split('/');
+    selected = block ? { section, block } : { section };
+    drawSelection();
+    send('shop:pin', { section, ...(block ? { block } : {}), setting: mobile ? pin.dataset.shopPinMobile : pin.dataset.shopPinSetting, value: point });
+    // the click that ends a drag does not count as a click
+    const swallow = (e) => { e.preventDefault(); e.stopPropagation(); };
+    window.addEventListener('click', swallow, { capture: true, once: true });
+    setTimeout(() => window.removeEventListener('click', swallow, { capture: true }), 80);
+  });
+
   // ------------------------------------------------------------------------------------------- re-rendering
 
   /** Swaps one group's sections (between its markers) for the server's new rendering. */
@@ -238,6 +289,7 @@
     end.before(tpl.content);
     for (const node of nodes) {
       makeEditable(node);
+      preparePins(node);
       node.dispatchEvent(new CustomEvent('shop:section-load', { bubbles: true }));
     }
     if (active) document.querySelector(`[data-shop-edit="${CSS.escape(active)}"]`)?.focus();

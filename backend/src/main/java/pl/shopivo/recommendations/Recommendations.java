@@ -161,7 +161,7 @@ public class Recommendations {
         int n = Math.max(1, Math.min(limit, 12));
         UUID tenant = TenantContext.requireTenantId();
         UUID id = productId(slug);
-        List<UUID> ranked = rankings.get(tenant + "|bt|" + id, k -> jdbc.queryForList("""
+        List<UUID> ranked = pl.shopivo.shared.cache.Caches.get(rankings, tenant + "|bt|" + id, k -> jdbc.queryForList("""
                 with mine as (select distinct oi.order_id from order_items oi join orders o on o.id = oi.order_id
                               where oi.tenant_id = ? and oi.product_id = ? and o.status <> 'CANCELED' and o.created_at > now() - interval '365 days'),
                      pairs as (select oi.product_id, count(distinct oi.order_id) as together from order_items oi
@@ -187,7 +187,7 @@ public class Recommendations {
     }
 
     private List<UUID> similarIds(UUID tenant, UUID id) {
-        return rankings.get(tenant + "|sim|" + id, k -> jdbc.queryForList("""
+        return pl.shopivo.shared.cache.Caches.get(rankings, tenant + "|sim|" + id, k -> jdbc.queryForList("""
                 with me as (select p.id, p.brand_id, (select min(price_minor) from product_variants where product_id = p.id) as price
                             from products p where p.tenant_id = ? and p.id = ?),
                      my_cats as (select category_id from product_categories where product_id = ?)
@@ -260,7 +260,7 @@ public class Recommendations {
      * not after the cache expires. A non-empty list may lag behind catalogue changes by up to 2 minutes.
      */
     private List<UUID> cached(String key, java.util.function.Supplier<List<UUID>> rank) {
-        List<UUID> hit = rankings.get(key, k -> {
+        List<UUID> hit = pl.shopivo.shared.cache.Caches.get(rankings, key, k -> {
             List<UUID> r = rank.get();
             return r.isEmpty() ? null : r;
         });

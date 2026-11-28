@@ -634,6 +634,17 @@ export class TemplateEditorPage {
         this.change(g, setSetting(doc, target, m.setting, m.value), { mergeKey: `${m.section}/${m.block ?? ''}:${m.setting}`, render: false });
         break;
       }
+      case 'shop:pin': {
+        // A point dragged on a picture in the preview: already on screen, saved without re-rendering
+        const p = m.value as { x?: unknown; y?: unknown } | undefined;
+        if (typeof m.section !== 'string' || typeof m.setting !== 'string' || !p || typeof p.x !== 'number' || typeof p.y !== 'number') return;
+        const pct = (n: number) => Math.round(Math.max(0, Math.min(100, n)) * 10) / 10;
+        const g = group(m.section);
+        const target: Target = { section: m.section, ...(typeof m.block === 'string' ? { block: m.block } : {}) };
+        this.sel.set({ group: g, ...target });
+        this.change(g, setSetting(this.docs()[this.keyOf(g)], target, m.setting, { x: pct(p.x), y: pct(p.y) }), { render: false });
+        break;
+      }
       case 'shop:action':
         if (typeof m.section === 'string' && typeof m.action === 'string') {
           this.act(m.action, { group: group(m.section), section: m.section, ...(typeof m.block === 'string' ? { block: m.block } : {}) });

@@ -101,6 +101,48 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - pole „Wysokość” banera nie wpływa na układ „Magazyn”;
   - zdjęcia z HTML-a są z Unsplash — dobre jako start, ale sprzedawca powinien użyć własnych.
 
+## Silnik szablonów v2 — etap 4c: Nordivo i ceny na zdjęciu (2026-11-28)
+
+- **Nordivo** (`templates/nordivo/`, meble) przeniesione z `nordivo-sklep-newsletter.html` 1:1:
+  - zdjęcie aranżacji z cenami produktów, karuzela nowości, katalog z filtrem kategorii;
+  - „Styl spotyka wygodę” z punktami, slider zestawów, redakcyjny newsletter, stopka;
+  - wszystkie 15 typów stron w stylu szablonu.
+- **Ceny na zdjęciu (punkty):**
+  - nowy typ ustawienia `point`: `{x, y}` w % zdjęcia (0,1 %); opcjonalny punkt może być pusty;
+  - każda cena to element sekcji: produkt (cena, link i nazwa z katalogu, bez wpisywania) i położenie;
+  - opcjonalne osobne położenie na telefonie;
+  - zdjęcie pokazujemy w całości, więc procenty trafiają w to samo miejsce na każdej szerokości ekranu;
+  - po zmianie zdjęcia ceny przeciąga się w podglądzie;
+  - ukryty albo usunięty produkt znika ze zdjęcia; w edytorze zostaje ramka „Wybierz produkt”.
+- **Edytor:**
+  - punkty (`{{ block | pin: 'position', 'position_mobile' }}` w `[data-shop-pin-area]`) przeciąga się myszą lub palcem w podglądzie (`shop:pin`) — w podglądzie telefonu zmienia się położenie na telefonie, jeśli jest ustawione;
+  - w formularzu: pola „Od lewej / Od góry” i „Ustaw osobno” dla telefonu.
+- **Tło dopasowane do zdjęcia:** slider zestawów i nagłówek baneru na telefonie biorą kolory z górnej krawędzi zdjęcia (skrypt szablonu). Tak zrobił projektant, ale u nas działa to dla każdego zdjęcia sprzedawcy.
+- **Poważny błąd backendu naprawiony:**
+  - przy wielu równoczesnych zapytaniach do jednego sklepu serwer przestawał odpowiadać;
+  - przyczyna: odczyt z bazy wewnątrz blokady pamięci podręcznej (Caffeine `get(key, loader)`) przy wątkach wirtualnych Javy 21;
+  - `shared/cache/Caches.get` ładuje poza blokadą; poprawione wszystkie takie miejsca (status sklepu, domeny, rekomendacje, rozliczenia, paczkomaty, statystyki szablonów);
+  - test `CachesTest`.
+- **Backend:**
+  - preset `NORDIVO`;
+  - 10 przykładowych mebli i 7 kategorii;
+  - wycofany szablon „HOME” przechodzi na Nordivo;
+  - zrzuty do galerii.
+- **Testy:**
+  - `engine.spec.ts` (28): klasy CSS, punkty;
+  - `TemplateDocsIT`: zaokrąglanie i odrzucanie złych punktów;
+  - `ThemeRegistryTest`, `ThemeSectionsIT`, `StorefrontIT`, `RecommendationsIT`, `CachesTest`; panel 71.
+- **E2E:**
+  - podgląd demo, komputer: wysokość 5516 px, jak oryginał;
+  - telefon: zgodny, łącznie z osobnym położeniem ceny zestawu;
+  - edytor: przeciągnięcie ceny → 30/40 % w formularzu i w szkicu; w podglądzie telefonu zmienia się tylko położenie na telefonie;
+  - prawdziwy sklep: ceny 1199/3999/849 zł z katalogu, koszyk +/−, zamówienie → „Dziękujemy!”;
+  - 0 błędów konsoli.
+- **Różnice względem oryginału:**
+  - lista „Wszystkie” w katalogu pokazuje bestsellery sklepu;
+  - pod nazwą produktu jest pierwsza linia opisu;
+  - stopka nie ma dopisku „sklep demonstracyjny”.
+
 ## Silnik szablonów v2 — etap 4b: Lullora (2026-11-28)
 
 - **Lullora** (`templates/lullora/`, produkty dla maluszków) przeniesiona z `lullora-sklep-osobne-widoki.html` 1:1:

@@ -1,0 +1,40 @@
+{
+  "code": "NORDIVO",
+  "name": "Nordivo",
+  "version": "2.0.0",
+  "description": "Jasny sklep meblowy: zdjęcie aranżacji z cenami produktów, karuzela nowości, katalog z filtrem kategorii, slider zestawów i redakcyjny newsletter.",
+  "industries": [
+    "FURNITURE",
+    "HOME",
+    "GARDEN",
+    "HANDMADE"
+  ],
+  "source": "nordivo-sklep-newsletter.html (2026-11-28)",
+  "styles": [
+    "styles.css"
+  ],
+  "scripts": [
+    "template.js"
+  ],
+  "groups": {
+    "header": "groups/header.json",
+    "footer": "groups/footer.json"
+  },
+  "pages": {
+    "index": "pages/index.json",
+    "catalog": "pages/catalog.json",
+    "product": "pages/product.json",
+    "cart": "pages/cart.json",
+    "favorites": "pages/favorites.json",
+    "not_found": "pages/404.json",
+    "checkout": "pages/checkout.json",
+    "order": "pages/order.json",
+    "page": "pages/page.json",
+    "blog": "pages/blog.json",
+    "auth": "pages/auth.json",
+    "account": "pages/account.json",
+    "account_order": "pages/account_order.json",
+    "newsletter": "pages/newsletter.json",
+    "review": "pages/review.json"
+  }
+}

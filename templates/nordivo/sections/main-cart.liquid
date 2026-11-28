@@ -1,0 +1,18 @@
+{% render 'page-title', text: section.settings.title %}
+{%- if cart.lines.size == 0 %}
+{% render 'empty', text: 'Twój koszyk jest pusty.', label: 'Zobacz meble' %}
+{%- else %}
+{%- for line in cart.lines %}
+<div class="cartline"><a href="{{ line.url }}">{% if line.image %}<img src="{{ line.image | image_url: 'w400' }}" alt="{{ line.name }}">{% else %}<span class="nd-placeholder nd-thumb">—</span>{% endif %}</a><div><a href="{{ line.url }}"><strong>{{ line.name }}</strong></a>{% if line.variant_title != blank and line.variant_title != line.name %}<p class="tiny">{{ line.variant_title }}</p>{% endif %}<p class="tiny">{{ line.unit_price | money: cart.currency }} / szt.</p>{% unless line.available %}<p class="nd-error">Niedostępny w tej ilości</p>{% endunless %}</div><div class="quantity"><button type="button" data-shop-cart-set="{{ line.variant_id }}" data-quantity="{{ line.quantity | minus: 1 }}" aria-label="Zmniejsz ilość: {{ line.name }}">−</button><span>{{ line.quantity }}</span><button type="button" data-shop-cart-set="{{ line.variant_id }}" data-quantity="{{ line.quantity | plus: 1 }}" aria-label="Zwiększ ilość: {{ line.name }}">+</button></div><div class="remove"><strong>{{ line.line_total | money: cart.currency }}</strong> <button class="iconbtn" type="button" data-shop-cart-set="{{ line.variant_id }}" data-quantity="0" aria-label="Usuń: {{ line.name }}">×</button></div></div>
+{%- endfor %}
+<div class="summary"><p><strong>Suma</strong><strong>{{ cart.subtotal | money: cart.currency }}</strong></p><p class="tiny">Koszt dostawy wybierzesz w następnym kroku.</p>{% if cart.checkout_ready %}<a class="pill" href="/zamowienie">Przejdź do zamówienia ↗</a>{% else %}<p class="nd-error">Zmień ilość produktów oznaczonych jako niedostępne, aby przejść dalej.</p>{% endif %}</div>
+{%- endif %}
+
+{% schema %}
+{
+  "name": "Koszyk",
+  "settings": [
+    { "id": "title", "type": "text", "label": "Tytuł", "default": "Twój koszyk", "max": 40 }
+  ]
+}
+{% endschema %}

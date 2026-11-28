@@ -1,0 +1,57 @@
+{%- comment -%}
+  Photo of an arrangement with product prices on it. Each price is an element: a product (its current price comes from
+  the catalogue) and a point in percent of the photo, so it stays in place on every screen width; the photo is never
+  cropped. A separate phone position is optional. In the editor the prices are dragged on the photo.
+{%- endcomment -%}
+<section class="hero" id="home">
+<div class="hero-copy">
+{%- if section.settings.eyebrow != blank %}<div class="eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</div>{% endif %}
+<h1{{ section | edit: 'heading' }}>{{ section.settings.heading | lines }}</h1>
+{%- if section.settings.button_label != blank %}<a class="pill" href="{{ section.settings.button_url | link }}"><span{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</span> <span aria-hidden="true">↗</span></a>{% endif %}
+</div>
+<div class="hero-visual" data-shop-pin-area data-shop-pin-media="(max-width: 540px)">
+{%- if section.settings.image %}<img src="{{ section.settings.image | image_url: 'w1200' }}" srcset="{{ section.settings.image | image_srcset }}" sizes="100vw" width="{{ section.settings.image.width | default: 1728 }}" height="{{ section.settings.image.height | default: 864 }}" alt="{{ section.settings.image_alt }}" fetchpriority="high" data-tone-source{{ section | edit: 'image' }}>{% endif %}
+{%- for block in section.blocks %}
+{%- assign p = block.settings.product -%}
+{%- assign pos = block.settings.position -%}
+{%- assign mob = block.settings.position_mobile -%}
+{%- capture style -%}--x:{{ pos.x }}%;--y:{{ pos.y }}%{% if mob %};--xm:{{ mob.x }}%;--ym:{{ mob.y }}%{% endif %}{%- endcapture -%}
+{%- if p %}
+{%- assign price = p.price | money: p.currency | remove: ',00' -%}
+<a class="hotspot" href="{{ p.url }}" style="{{ style }}" aria-label="{{ p.name }} — {% if p.has_range %}od {% endif %}{{ price }}"{{ block | block_attrs }}{{ block | pin: 'position', 'position_mobile' }}>
+<span class="hotspot-price">{% if block.settings.prefix != blank %}{{ block.settings.prefix }} · {% endif %}{% if p.has_range %}od {% endif %}{{ price }}</span>
+<span class="hotspot-plus" aria-hidden="true">+</span>
+</a>
+{%- elsif editing %}
+<span class="hotspot nd-hotspot-empty" style="{{ style }}"{{ block | block_attrs }}{{ block | pin: 'position', 'position_mobile' }}><span class="hotspot-price">Wybierz produkt</span><span class="hotspot-plus" aria-hidden="true">+</span></span>
+{%- endif %}
+{%- endfor %}
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Zdjęcie aranżacji z cenami",
+  "settings": [
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "Naturalne materiały · ponadczasowe wzornictwo", "max": 60 },
+    { "id": "heading", "type": "textarea", "label": "Nagłówek", "default": "NOWOCZESNE MEBLE\nDO TWOJEGO WNĘTRZA", "max": 80 },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Odkryj kolekcję", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "/#catalog" },
+    { "id": "image", "type": "image", "label": "Zdjęcie aranżacji", "default": "asset:hero.webp", "info": "Zdjęcie pokazujemy w całości (bez przycinania), więc ceny zostają na swoich miejscach na każdym ekranie. Po zmianie zdjęcia przeciągnij ceny w podglądzie." },
+    { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "Jasna aranżacja salonu: drewniana komoda, kremowy narożnik i stolik kawowy", "max": 160 }
+  ],
+  "blocks": [
+    {
+      "type": "hotspot",
+      "name": "Cena na zdjęciu",
+      "settings": [
+        { "id": "product", "type": "product", "label": "Produkt", "default": "", "info": "Cena i link pochodzą z produktu. Ukryty albo usunięty produkt nie pojawi się na zdjęciu." },
+        { "id": "prefix", "type": "text", "label": "Dopisek przed ceną (opcjonalnie)", "default": "", "max": 20 },
+        { "id": "position", "type": "point", "label": "Położenie na zdjęciu", "default": { "x": 50, "y": 50 } },
+        { "id": "position_mobile", "type": "point", "label": "Położenie na telefonie", "default": null, "info": "Gdy na wąskim ekranie cena zasłania ważny fragment zdjęcia albo inną cenę." }
+      ]
+    }
+  ],
+  "max_blocks": 6
+}
+{% endschema %}

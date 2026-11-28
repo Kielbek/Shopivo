@@ -31,7 +31,7 @@ public final class ThemeRegistry {
      * keep their texts, sections and settings and are shown with the closest current template.
      */
     static final Map<String, String> RETIRED = Map.of("FASHION", "VERA", "BEAUTY", "VELMIRA", "ELECTRONICS", "VERA", "TOYS", "BAWILOO",
-            "HOME", "VERA", "SPORTS", "VERA", "AUTOMOTIVE", "VERA", "JEWELRY", "VERA");
+            "HOME", "NORDIVO", "SPORTS", "VERA", "AUTOMOTIVE", "VERA", "JEWELRY", "VERA");
 
     /** Current template code for a stored one (retired codes map to their successor). */
     public static String current(String code) {
@@ -176,12 +176,23 @@ public final class ThemeRegistry {
                 Map.copyOf(d), List.of());
     }
 
+    /** Nordivo: light furniture template (warm wood accent); pages defined by {@code templates/nordivo}. */
+    private static Preset nordivo() {
+        Map<String, String> d = new LinkedHashMap<>(preset("#1F201E", "#A7683D", "#FFFFFF", "#F7F5F1", "#22221F", "sans", "soft", "editorial", "plain", null, null));
+        d.put("headerStyle", "classic");
+        d.put("mobileNav", "drawer");
+        d.put("footerNote", "Meble do życia w pięknym stylu.");
+        return new Preset("NORDIVO", "Nordivo", "Jasny sklep meblowy: zdjęcie aranżacji z cenami produktów, karuzela nowości, katalog z filtrem kategorii i slider zestawów.",
+                Map.copyOf(d), List.of());
+    }
+
     /** Button colours are chosen so white text keeps at least 4.5:1 contrast (WCAG AA). */
     public static final List<Preset> PRESETS = List.of(
             vera(),
             bawiloo(),
             velmira(),
-            lullora());
+            lullora(),
+            nordivo());
 
     public static Optional<Preset> preset(String code) {
         return PRESETS.stream().filter(p -> p.code().equals(code)).findFirst();

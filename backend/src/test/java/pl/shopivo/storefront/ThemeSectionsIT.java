@@ -94,11 +94,12 @@ class ThemeSectionsIT extends IntegrationTest {
         assertThat(vera.get("defaults").get("font").asString()).isEqualTo("editorial");
         assertThat(vera.get("sections").get(0).get("data").get("image").asString()).isEqualTo("tpl:vera/hero");
         var assets = theme.get("templateImages");
-        assertThat(assets.size()).isEqualTo(58);
+        assertThat(assets.size()).isEqualTo(70);
         assertThat(theme.get("sampleProducts").get("VERA").size()).isEqualTo(8);
         assertThat(theme.get("sampleProducts").get("BAWILOO").size()).isEqualTo(16);
         assertThat(theme.get("sampleProducts").get("VELMIRA").size()).isEqualTo(4);
         assertThat(theme.get("sampleProducts").get("LULLORA").size()).isEqualTo(9);
+        assertThat(theme.get("sampleProducts").get("NORDIVO").size()).isEqualTo(10);
         assertThat(theme.get("presets").get(1).get("code").asString()).isEqualTo("BAWILOO");
         assertThat(assets.get(0).get("urls").get("w1200").asString()).isEqualTo("/api/v1/theme-assets/vera/hero-w1200.jpg");
 

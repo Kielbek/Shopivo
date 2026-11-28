@@ -103,7 +103,7 @@ public class StoreDomains {
      */
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.NOT_SUPPORTED)
     public Optional<UUID> resolveTenant(String hostHeader) {
-        return normalizeHost(hostHeader).flatMap(host -> resolutionCache.get(host, h -> TenantContext.callAsSystem(
+        return normalizeHost(hostHeader).flatMap(host -> pl.shopivo.shared.cache.Caches.get(resolutionCache, host, h -> TenantContext.callAsSystem(
                 () -> domains.findActiveByHostname(h).map(StoreDomainEntity::getTenantId))));
     }
 

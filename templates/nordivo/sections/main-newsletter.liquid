@@ -1,0 +1,11 @@
+<div class="nd-narrow" data-shop-newsletter-link="{{ newsletter.action }}">
+<div data-state="working"><p class="tiny" role="status">Przetwarzanie…</p></div>
+<div data-state="confirmed" hidden>{% render 'page-title', text: 'Zapis potwierdzony' %}<p class="nd-muted">Dziękujemy! Będziesz otrzymywać nowości i inspiracje. Wypisać się możesz w każdej chwili linkiem z wiadomości.</p></div>
+<div data-state="unsubscribed" hidden>{% render 'page-title', text: 'Wypisano z newslettera' %}<p class="nd-muted">Nie będziemy już wysyłać Ci informacji handlowych. Jeśli to pomyłka, możesz zapisać się ponownie na dole strony.</p></div>
+<div data-state="invalid" hidden>{% render 'page-title', text: 'Link nie działa' %}<p class="nd-muted">Link wygasł albo został już użyty. Zapisz się ponownie — wyślemy nową wiadomość.</p></div>
+<a href="/" class="pill mt-6">Przejdź do sklepu ↗</a>
+</div>
+
+{% schema %}
+{ "name": "Newsletter — potwierdzenie", "settings": [] }
+{% endschema %}

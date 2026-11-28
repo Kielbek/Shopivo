@@ -1,0 +1,39 @@
+{%- if catalog.sale -%}{%- assign heading = section.settings.sale_title -%}
+{%- elsif catalog.category_name -%}{%- assign heading = catalog.category_name -%}
+{%- elsif catalog.q != blank -%}{%- assign heading = 'Wyniki wyszukiwania' -%}
+{%- else -%}{%- assign heading = section.settings.title -%}{%- endif -%}
+{% render 'page-title', text: heading %}
+<form action="/produkty" method="get" class="catalog-tools" role="search" data-shop-filter>
+{%- if catalog.sale %}<input type="hidden" name="promocje" value="tak">{% endif %}
+<input class="field" name="q" type="search" value="{{ catalog.q }}" placeholder="{{ section.settings.search_placeholder }}" aria-label="{{ section.settings.search_placeholder }}" maxlength="100">
+<select class="field" name="kategoria" aria-label="Kategoria"><option value="">Wszystkie</option>{% for c in shop.categories %}<option value="{{ c.slug }}"{% if c.slug == catalog.category %} selected{% endif %}>{{ c.name }}</option>{% endfor %}</select>
+<select class="field" name="sort" aria-label="Sortowanie"><option value="">Polecane</option><option value="PRICE_ASC"{% if catalog.sort == 'PRICE_ASC' %} selected{% endif %}>Cena rosnąco</option><option value="PRICE_DESC"{% if catalog.sort == 'PRICE_DESC' %} selected{% endif %}>Cena malejąco</option><option value="NAME"{% if catalog.sort == 'NAME' %} selected{% endif %}>Nazwa A–Z</option></select>
+<noscript><button type="submit" class="pill">Pokaż</button></noscript>
+</form>
+<div data-shop-region="results">
+<p class="tiny nd-count" aria-live="polite">Znaleziono: {{ catalog.total }}</p>
+{%- if catalog.items.size > 0 %}
+{% render 'product-grid', products: catalog.items %}
+{%- if catalog.total_pages > 1 %}
+<nav class="nd-pager" aria-label="Strony wyników">
+{%- if catalog.prev_url %}<a class="arrow" href="{{ catalog.prev_url }}" rel="prev" aria-label="Poprzednia strona">←</a>{% endif %}
+<span class="tiny">Strona {{ catalog.page }} z {{ catalog.total_pages }}</span>
+{%- if catalog.next_url %}<a class="arrow" href="{{ catalog.next_url }}" rel="next" aria-label="Następna strona">→</a>{% endif %}
+</nav>
+{%- endif %}
+{%- else %}
+{% render 'empty', text: section.settings.empty_text, link: '/produkty', label: 'Wszystkie meble' %}
+{%- endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Lista produktów",
+  "settings": [
+    { "id": "title", "type": "text", "label": "Tytuł listy wszystkich produktów", "default": "Wszystkie meble", "max": 60 },
+    { "id": "sale_title", "type": "text", "label": "Tytuł listy promocji", "default": "Promocje", "max": 60 },
+    { "id": "search_placeholder", "type": "text", "label": "Podpowiedź w wyszukiwarce", "default": "Szukaj mebli…", "max": 40 },
+    { "id": "empty_text", "type": "text", "label": "Tekst, gdy nic nie znaleziono", "default": "Brak produktów.", "max": 120 }
+  ]
+}
+{% endschema %}

@@ -89,6 +89,17 @@ describe('settings', () => {
       .toEqual({ source: 'sale', category: 'pluszaki', count: 24 });
   });
 
+  it('keep points on a picture within it, to one decimal; an optional point may be unset', () => {
+    const point = { id: 'p', type: 'point' as const, label: '', default: { x: 50, y: 50 } };
+    const optional = { id: 'm', type: 'point' as const, label: '', default: null };
+    expect(settingValue(point, { x: 12.345, y: 140 })).toEqual({ x: 12.3, y: 100 });
+    expect(settingValue(point, { x: 'a', y: 1 })).toEqual({ x: 50, y: 50 });
+    expect(settingValue(point, undefined)).toEqual({ x: 50, y: 50 });
+    expect(settingValue(optional, undefined)).toBeNull();
+    expect(settingValue(optional, null)).toBeNull();
+    expect(settingValue(optional, { x: -5, y: 30 })).toEqual({ x: 0, y: 30 });
+  });
+
   it('allow only store links, anchors, https and legal page placeholders', () => {
     expect(['/produkty', '#contact', 'https://x.pl/a', 'legal:PRIVACY', 'mailto:a@b.pl'].map(safeLink))
       .toEqual(['/produkty', '#contact', 'https://x.pl/a', 'legal:PRIVACY', 'mailto:a@b.pl']);

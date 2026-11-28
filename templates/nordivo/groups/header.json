@@ -1,0 +1,55 @@
+{
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {},
+      "blocks": {
+        "link-1": {
+          "type": "link",
+          "settings": {
+            "label": "Sklep",
+            "url": "/#catalog"
+          }
+        },
+        "link-2": {
+          "type": "link",
+          "settings": {
+            "label": "Nowości",
+            "url": "/#new"
+          }
+        },
+        "link-3": {
+          "type": "link",
+          "settings": {
+            "label": "O nas",
+            "url": "/#about"
+          }
+        },
+        "link-4": {
+          "type": "link",
+          "settings": {
+            "label": "Zestawy",
+            "url": "/#combo"
+          }
+        },
+        "link-5": {
+          "type": "link",
+          "settings": {
+            "label": "Kontakt",
+            "url": "#contact"
+          }
+        }
+      },
+      "block_order": [
+        "link-1",
+        "link-2",
+        "link-3",
+        "link-4",
+        "link-5"
+      ]
+    }
+  },
+  "order": [
+    "header"
+  ]
+}

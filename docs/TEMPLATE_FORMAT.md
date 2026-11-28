@@ -60,6 +60,7 @@ Sklep korzysta z silnika v2, gdy kod jego szablonu (`theme.code`) odpowiada kodo
 | `url` | `/ścieżka`, `#kotwica`, `https://…`, `mailto:`, `tel:`, `legal:PRIVACY` (strona prawna sklepu) | `{{ x | link }}` |
 | `image` | `asset:plik.webp` (grafika szablonu) albo id zdjęcia z biblioteki sklepu | obiekt `{w400, w1200, width, height}`; `| image_url: 'w1200'`, `| image_srcset` |
 | `select`, `number`, `checkbox`, `color` | wartość z listy / liczba w `min..max` / tak-nie / `#rrggbb` | wartość |
+| `point` | `{x, y}` — położenie w % szerokości i wysokości obrazu (0,1 %); z `"default": null` punkt może być pusty | obiekt `{x, y}` albo `nil`; w trybie edycji `{{ block \| pin: 'position', 'position_mobile' }}` pozwala przeciągać punkt w podglądzie (obszar: `data-shop-pin-area`, opcjonalnie `data-shop-pin-media` dla położenia na telefonie; zmienne CSS `--x --y --xm --ym`) |
 | `product` | slug produktu (pusty = brak) | produkt z `price`, `compare_at`, `url`… albo `nil` |
 | `product_list` | `{source, category?, count}`; źródła: `newest`, `bestsellers`, `sale`, `last_pieces`, `top_rated`, `back_in_stock`, `category` | `{items: [produkt…], url}` |
 | `category_list` | `{mode: 'top'}` albo `{mode: 'selected', slugs: […]}` | lista kategorii; ze schematowym `"products_per_category": N` każda kategoria ma `items` (pierwsze N produktów) |

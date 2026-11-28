@@ -56,13 +56,17 @@ public class ThemeSamples {
                     new SampleCategory("Zestawy", "tpl:velmira/cat-zestawy")),
             "LULLORA", List.of(new SampleCategory("Pielęgnacja", "tpl:lullora/p-cream"), new SampleCategory("Higiena", "tpl:lullora/p-wipes"),
                     new SampleCategory("Karmienie", "tpl:lullora/p-bowl"), new SampleCategory("Zabawki", "tpl:lullora/p-bunny"),
-                    new SampleCategory("Kąpiel", "tpl:lullora/p-shampoo")));
+                    new SampleCategory("Kąpiel", "tpl:lullora/p-shampoo")),
+            "NORDIVO", List.of(new SampleCategory("Fotele", "tpl:nordivo/p-fotel-chester"), new SampleCategory("Stoły i stoliki", "tpl:nordivo/p-stolik-orbit"),
+                    new SampleCategory("Komody i regały", "tpl:nordivo/p-komoda-rustic"), new SampleCategory("Sypialnia", "tpl:nordivo/p-lozko-aurora"),
+                    new SampleCategory("Krzesła", "tpl:nordivo/p-krzeslo-maple"), new SampleCategory("Biurka", "tpl:nordivo/p-biurko-elmo"),
+                    new SampleCategory("Zestawy", "tpl:nordivo/p-zestaw-salon")));
 
     /**
      * Demo catalogue used by each template: several templates can share one (e.g. all fashion templates show the same
      * clothes). The catalogue is keyed by the template that owns its pictures.
      */
-    public static final Map<String, String> CATALOG_OF = Map.of("VERA", "VERA", "BAWILOO", "BAWILOO", "VELMIRA", "VELMIRA", "LULLORA", "LULLORA");
+    public static final Map<String, String> CATALOG_OF = Map.of("VERA", "VERA", "BAWILOO", "BAWILOO", "VELMIRA", "VELMIRA", "LULLORA", "LULLORA", "NORDIVO", "NORDIVO");
 
     /** Example products shown in a template's demo (its catalogue). */
     public static List<Sample> productsFor(String template) {
@@ -133,7 +137,23 @@ public class ThemeSamples {
             baby("Mleczko do ciała", "Kąpiel", 4290, null, "lotion"),
             baby("Miękki króliczek", "Zabawki", 6990, null, "bunny"),
             baby("Gryzak kolorowy", "Zabawki", 3590, null, "teether"),
-            baby("Miseczka z łyżeczką", "Karmienie", 5990, null, "bowl")));
+            baby("Miseczka z łyżeczką", "Karmienie", 5990, null, "bowl")),
+            "NORDIVO", List.of(
+            furniture("Fotel Chester", "Fotele", 189900, null, "fotel-chester"),
+            furniture("Stolik kawowy Orbit", "Stoły i stoliki", 84900, null, "stolik-orbit"),
+            furniture("Biurko Elmo", "Biurka", 159900, null, "biurko-elmo"),
+            furniture("Fotel bujany Serenity", "Fotele", 149900, null, "fotel-bujany"),
+            furniture("Komoda Rustic", "Komody i regały", 119900, null, "komoda-rustic"),
+            furniture("Regał Cascade", "Komody i regały", 139900, null, "regal-cascade"),
+            furniture("Łóżko Aurora", "Sypialnia", 299900, null, "lozko-aurora"),
+            furniture("Krzesło Maple", "Krzesła", 37900, null, "krzeslo-maple"),
+            furniture("Fotel Coastal", "Fotele", 99900, null, "fotel-coastal"),
+            furniture("Zestaw salonowy Nordic", "Zestawy", 399900, 459900L, "zestaw-salon")));
+
+    /** The first line of the description (shown on the cards) is the category, as in the design. */
+    private static Sample furniture(String name, String category, long price, Long compareAt, String image) {
+        return new Sample(name, category, price, compareAt, List.of(), "tpl:nordivo/p-" + image, category + "\n" + DESC);
+    }
 
     private static Sample baby(String name, String category, long price, Long compareAt, String image) {
         return new Sample(name, category, price, compareAt, List.of(), "tpl:lullora/p-" + image, DESC);

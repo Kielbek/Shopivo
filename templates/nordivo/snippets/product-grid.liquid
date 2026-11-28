@@ -1,0 +1,1 @@
+{%- if products.size > 0 %}<div class="product-grid">{% for product in products %}{% render 'product-card', product: product %}{% endfor %}</div>{% else %}<p class="empty">{{ empty | default: 'Brak produktów.' }}</p>{% endif -%}

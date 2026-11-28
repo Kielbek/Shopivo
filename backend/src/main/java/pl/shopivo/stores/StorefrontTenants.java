@@ -57,7 +57,7 @@ public class StorefrontTenants {
      */
     public UUID resolvePublished(HttpServletRequest request) {
         UUID tenantId = resolve(request);
-        if (statuses.get(tenantId, id -> pl.shopivo.shared.tenancy.TenantContext.callInTenant(id, () -> stores.current().status()))
+        if (pl.shopivo.shared.cache.Caches.get(statuses, tenantId, id -> pl.shopivo.shared.tenancy.TenantContext.callInTenant(id, () -> stores.current().status()))
                 != StoreStatus.PUBLISHED && !isPreview(request, tenantId)) {
             throw new pl.shopivo.shared.error.ApiException(org.springframework.http.HttpStatus.NOT_FOUND, "STORE_NOT_PUBLISHED",
                     "Sklep jest w przygotowaniu.");

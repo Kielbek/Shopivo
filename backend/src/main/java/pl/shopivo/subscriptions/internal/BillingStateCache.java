@@ -61,11 +61,11 @@ public class BillingStateCache {
     }
 
     public TenantBillingState get(UUID tenantId) {
-        return cache.get(tenantId, this::load);
+        return pl.shopivo.shared.cache.Caches.get(cache, tenantId, this::load);
     }
 
     public Map<String, String> planEntitlements(UUID planId) {
-        return planCache.get(planId, id -> Map.copyOf(loadPlan(id)));
+        return pl.shopivo.shared.cache.Caches.get(planCache, planId, id -> Map.copyOf(loadPlan(id)));
     }
 
     /** Drops the cached state once the current transaction commits (immediately when there is none). */
