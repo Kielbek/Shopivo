@@ -46,7 +46,7 @@ const AUTH_VIEWS: Record<string, string> = {
   '/konto/nowe-haslo': 'reset',
 };
 /** Paths the Angular storefront still serves for template stores. */
-const ANGULAR_ONLY = new Set(['/opinia']);
+const ANGULAR_ONLY = new Set<string>();
 const ACCOUNT_TABS = ['zamowienia', 'zwroty', 'opinie', 'adresy', 'ustawienia'];
 const ORDER_STATUS: Record<string, string> = {
   NEW: 'Przyjęte', PROCESSING: 'W realizacji', SHIPPED: 'Wysłane', COMPLETED: 'Zrealizowane', CANCELED: 'Anulowane',
@@ -68,6 +68,7 @@ export function routeOf(path: string): Route | null {
   if (AUTH_VIEWS[path]) return { type: 'auth', view: AUTH_VIEWS[path] };
   if (path === '/konto') return { type: 'account' };
   if (path === '/newsletter') return { type: 'newsletter' };
+  if (path === '/opinia') return { type: 'review' };
   const order = /^\/konto\/zamowienia\/(\d{1,9})$/.exec(path);
   if (order) return { type: 'account_order', number: Number(order[1]) };
   const m = /^\/(kategoria|produkt|strona|blog)\/([^/]+)$/.exec(path);
@@ -193,6 +194,9 @@ export function templateEngine(apiOrigin: string) {
           },
         };
       }
+      case 'review':
+        // The invitation is loaded in the browser: its token (from the e-mail link fragment) never reaches this server
+        return { type: 'review', status: 200, title: 'Oceń zakupy', data: {} };
       case 'newsletter':
         return { type: 'newsletter', status: 200, title: 'Newsletter', data: { newsletter: { action: t.query['wypisz'] === '1' ? 'unsubscribe' : 'confirm' } } };
       case 'catalog': {
@@ -376,7 +380,7 @@ export function templateEngine(apiOrigin: string) {
           ld += `\n<meta name="description" content="${escapeHtml(desc)}">`;
         }
         const noindex = !!info.preview || page.status === 404 || (page.type === 'catalog' && !!req.query['q'])
-          || ['checkout', 'order', 'cart', 'favorites', 'auth', 'account', 'account_order', 'newsletter'].includes(page.type);
+          || ['checkout', 'order', 'cart', 'favorites', 'auth', 'account', 'account_order', 'newsletter', 'review'].includes(page.type);
         if (page.type === 'page') {
           const e = page.data['entry'] as { seo_description: string | null; excerpt: string | null };
           const desc = e.seo_description || e.excerpt;

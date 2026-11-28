@@ -8,9 +8,9 @@ Stan: **etap 2 zakończony**. Sklepy na szablonie v2 mają w wyglądzie szablonu
 - strony informacyjne i blog;
 - logowanie, rejestrację, potwierdzenie konta, reset hasła;
 - konto (zamówienia, zwroty, opinie, adresy, ustawienia) i zamówienie w koncie ze zgłoszeniem zwrotu;
-- potwierdzenie newslettera z maila i 404 (także dla nieznanych adresów).
+- potwierdzenie newslettera z maila, opinię z zaproszenia e-mail (`/opinia`) i 404 (także dla nieznanych adresów).
 
-Przed 404 serwer sprawdza przekierowania 301 sklepu. W aplikacji Angular zostaje tylko `/opinia` (opinia z zaproszenia e-mail). Edytor dla v2 to etap 3.
+Przed 404 serwer sprawdza przekierowania 301 sklepu. Sklep na szablonie v2 nie korzysta już z aplikacji Angular. Edytor dla v2 to etap 3.
 
 ## Struktura pakietu
 
@@ -83,6 +83,7 @@ Zapisana wartość, która nie pasuje do schematu (np. po zmianie szablonu), jes
 - **konto:** `account` (`tab`, `tabs`, `orders`, `returns`, `reviews`, `addresses`, dane klienta). Gość trafia do logowania z `?powrot=`.
 - **zamówienie w koncie:** `account_order` (pozycje, sumy, adres, `awaiting_online`, `return_kinds`, `items[].returnable` i `choices`).
 - **newsletter:** `newsletter.action` (`confirm` lub `unsubscribe`).
+- **opinia z zaproszenia:** strona bez danych z serwera. Token z linku zna tylko przeglądarka; skrypt wczytuje zamówienie i kopiuje `<template data-shop-review-item>` dla każdego produktu (`[data-shop-review-name]`, pole `productId`, formularz `invite-review`).
 
 Strony konta renderuje serwer: ciasteczko sesji klienta (HttpOnly) trafia tylko do zapytań `/account/…`, razem z nagłówkiem `X-Requested-With` (ochrona CSRF API).
 - `page_type`: `index`, `catalog`, `product`, `cart`, `favorites`, `not_found`.
@@ -112,7 +113,7 @@ Skrypt platformy (`engine/runtime/shop.js`, adres `/_shop/runtime.js`) podpina s
 | `[data-shop-toggle=x]` + `[data-shop-when=x]` | pokazuje część formularza po zaznaczeniu pola (np. faktura) |
 | `[data-shop-captcha="klucz"]` | Cloudflare Turnstile, gdy sklep ma włączone zabezpieczenie (zamówienie, newsletter) |
 | `[data-shop-order]` (`data-wait`), `[data-shop-order-pay]` | potwierdzenie: czeka na płatność online, ponowna płatność |
-| `form[data-shop-form="akcja"]` + `[data-shop-error]`, `[data-shop-status]`, `[data-shop-done]` | formularze konta; akcje: `login`, `register`, `verify`, `reset-request`, `reset`, `profile`, `password`, `delete-account`, `address`, `address-delete`, `review`, `return`, `logout`, `order-pay`. Nazwy pól jak w API. Szablon wybiera tylko akcję, adres zapytania zna skrypt. |
+| `form[data-shop-form="akcja"]` + `[data-shop-error]`, `[data-shop-status]`, `[data-shop-done]` | formularze konta; akcje: `login`, `register`, `verify`, `reset-request`, `reset`, `profile`, `password`, `delete-account`, `address`, `address-delete`, `review`, `return`, `logout`, `order-pay`, `invite-review`. Nazwy pól jak w API. Szablon wybiera tylko akcję, adres zapytania zna skrypt. |
 | `[data-shop-needs-link-token]` (+ `[data-shop-link-missing]`) | strony z linku e-mail: token z `#t=` jest zabierany z paska adresu i używany przez formularz |
 | `[data-shop-address-edit='{json}']`, `[data-shop-hide-form]` | otwiera formularz adresu (wypełniony lub pusty) i go zamyka |
 | `[data-shop-newsletter-link="confirm|unsubscribe"]` + `[data-state]` | potwierdza zapis albo wypisuje z newslettera od razu po wejściu |

@@ -1755,3 +1755,4 @@ body,#store,#pageView{background:#fff;color:var(--ink)}
 .pt-pad-3{padding-top:.75rem}
 .mb-tiny{margin-bottom:.25rem}
 address{font-style:normal}
+.narrow-sm{max-width:24rem}

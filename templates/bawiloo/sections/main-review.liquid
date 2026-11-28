@@ -1,0 +1,29 @@
+{%- assign field = 'store-field w-full rounded-xl border border-[#e7ddd0] bg-white px-4 py-3 text-[#382319]' -%}
+{%- assign gold = 'rounded-full bg-[#f8bf73] px-5 py-3 text-sm font-extrabold text-[#151513] transition hover:bg-[#ffe0a6]' -%}
+{%- assign card = 'rounded-3xl border border-[#ecdfd0] bg-[#fffaf4] p-6' -%}
+<div class="narrow-3xl mx-auto" data-shop-review-invite>
+{% render 'page-title', text: section.settings.title %}
+<p data-state="loading" class="text-black/60" role="status">Wczytywanie zamówienia…</p>
+<div data-state="missing" hidden><p>Ten link jest niepełny. Otwórz go ponownie z wiadomości e-mail.</p></div>
+<div data-state="expired" hidden><p>Link do wystawienia opinii wygasł.</p><a href="/" class="{{ gold }} mt-6 inline-block">Strona główna</a></div>
+<div data-state="invalid" hidden><p>Link do wystawienia opinii jest nieprawidłowy.</p><a href="/" class="{{ gold }} mt-6 inline-block">Strona główna</a></div>
+<div data-state="ready" hidden>
+<p class="text-black/60">Zamówienie nr <span data-shop-review-order></span>. Opinie publikujemy po sprawdzeniu przez sklep, z oznaczeniem „Zweryfikowany zakup”.</p>
+<label class="mt-6 grid narrow-sm gap-2">Podpis pod opinią<input maxlength="60" class="{{ field }}" data-shop-review-author><span class="text-xs text-black/60">Nie publikujemy Twojego adresu e-mail ani pełnego nazwiska, chyba że je tu wpiszesz.</span></label>
+<ul class="mt-8 grid stack-6" data-shop-review-items></ul>
+<template data-shop-review-item><li class="{{ card }}"><h2 class="text-xl font-extrabold" data-shop-review-name></h2>
+<form class="mt-4 grid gap-4" data-shop-form="invite-review"><input type="hidden" name="productId">
+<fieldset><legend class="mb-2 text-sm font-bold">Ocena</legend><div class="account-stars">{% for n in (1..5) %}<label><input type="radio" name="rating" value="{{ n }}" aria-label="{{ n }} na 5"><span aria-hidden="true">★</span></label>{% endfor %}</div></fieldset>
+<label class="grid gap-2 text-sm">Opinia (opcjonalnie)<textarea name="body" maxlength="2000" rows="4" class="{{ field }}"></textarea></label>
+<p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p>
+<button type="submit" class="{{ gold }} self-start-x" data-busy-label="Wysyłanie…">Wyślij opinię</button></form>
+<p class="mt-3 font-bold text-[#92520d]" role="status" hidden data-shop-done>Dziękujemy — opinia została przesłana.</p></li></template>
+</div>
+</div>
+
+{% schema %}
+{
+  "name": "Opinia z zaproszenia",
+  "settings": [ { "id": "title", "type": "text", "label": "Tytuł", "default": "Oceń zakupy", "max": 40 } ]
+}
+{% endschema %}

@@ -145,7 +145,7 @@ describe('helpers', () => {
     expect(routeOf('/blog/pierwszy-wpis')).toEqual({ type: 'page', slug: 'pierwszy-wpis', post: true });
     expect(routeOf('/konto')).toEqual({ type: 'account' });
     expect(routeOf('/konto/zamowienia/1001')).toEqual({ type: 'account_order', number: 1001 });
-    expect(routeOf('/opinia')).toBeNull();
+    expect(routeOf('/opinia')).toEqual({ type: 'review' });
     const png = Buffer.from('89504e470d0a1a0a0000000d4948445200000064000000c8', 'hex');
     expect(imageSize(Buffer.concat([png, Buffer.alloc(8)]))).toEqual({ width: 100, height: 200 });
     expect(groupAccount('PL61109010140000071219812874')).toBe('PL61 1090 1014 0000 0712 1981 2874');

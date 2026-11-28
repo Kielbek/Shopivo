@@ -34,6 +34,7 @@
     "auth": "pages/auth.json",
     "account": "pages/account.json",
     "account_order": "pages/account_order.json",
-    "newsletter": "pages/newsletter.json"
+    "newsletter": "pages/newsletter.json",
+    "review": "pages/review.json"
   }
 }

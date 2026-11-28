@@ -133,7 +133,10 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - wylogowanie, błędne hasło, powrót po zalogowaniu na `/konto?zakladka=adresy`;
   - reset hasła, newsletter bez tokenu, przekierowanie 301 i 404;
   - 0 błędów konsoli.
-- **W Angularze zostaje tylko `/opinia`** (opinia z zaproszenia e-mail).
+- **Opinia z zaproszenia e-mail** (`/opinia`):
+  - zamówienie i produkty wczytuje przeglądarka, a token z linku nie trafia na serwer;
+  - E2E: zamówienie oznaczone jako zrealizowane → przychodzi mail z zaproszeniem → token znika z adresu, podpis wpisuje się sam („Jan N.”) → bez oceny pojawia się błąd → opinia zostaje wysłana; bez tokenu pojawia się komunikat.
+- **Sklep na szablonie v2 nie używa już aplikacji Angular na żadnej stronie.**
 
 ## Silnik szablonów v2 — etap 1 (2026-11-28)
 

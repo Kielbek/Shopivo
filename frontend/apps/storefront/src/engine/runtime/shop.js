@@ -686,13 +686,17 @@
         items: [...form.querySelectorAll('[data-return-item]')].map((s) => ({ orderItemId: s.dataset.returnItem, quantity: Number(s.value) })).filter((i) => i.quantity > 0) } }),
     logout: () => ({ method: 'POST', path: ACCOUNT + '/logout', then: '/' }),
     'order-pay': (d) => ({ method: 'POST', path: ACCOUNT + `/orders/${Number(d.orderNumber)}/pay`, then: 'payment' }),
+    // Review from an e-mail invitation (/opinia): authorised by the link's token, not by an account
+    'invite-review': (d, form) => ({ method: 'POST', path: '/reviews', then: 'done', headers: { 'X-Review-Token': reviewToken },
+      body: { productId: d.productId, rating: Number(d.rating), body: (d.body || '').trim() || null,
+        authorName: (document.querySelector('[data-shop-review-author]')?.value || '').trim() || null } }),
   };
 
   /** Checks a form action can be sent; returns the problem in words or null. */
   function precheck(name, d, form) {
     if (name === 'register' && !d.termsAccepted) return 'Zaakceptuj regulamin sklepu.';
     if ((name === 'verify' || name === 'reset') && !linkToken) return 'Link jest niepełny. Otwórz go ponownie z wiadomości e-mail.';
-    if (name === 'review' && !Number(d.rating)) return 'Wybierz ocenę od 1 do 5.';
+    if ((name === 'review' || name === 'invite-review') && !Number(d.rating)) return 'Wybierz ocenę od 1 do 5.';
     if (name === 'return') {
       if (![...form.querySelectorAll('[data-return-item]')].some((s) => Number(s.value) > 0)) return 'Wybierz co najmniej jeden produkt.';
       if (d.kind === 'COMPLAINT' && !(d.reason || '').trim()) return 'Opisz wadę produktu.';
@@ -723,7 +727,7 @@
     }
     const req = action(d, form);
     if (req.confirm && !window.confirm(req.confirm)) return;
-    const extra = {};
+    const extra = { ...(req.headers || {}) };
     if (req.captcha) {
       const token = captchaToken(form);
       if (token === undefined) {
@@ -794,6 +798,44 @@
   document.addEventListener('click', (e) => {
     const t = e.target instanceof Element ? e.target.closest('[data-shop-hide-form]') : null;
     if (t) t.closest('form').hidden = true;
+  });
+
+
+  // Review invitation (/opinia#t=…): the order's products, one form each (cloned from the template's <template>)
+  let reviewToken = null;
+  document.querySelectorAll('[data-shop-review-invite]').forEach((box) => {
+    const show = (state) => box.querySelectorAll('[data-state]').forEach((el) => { el.hidden = el.dataset.state !== state; });
+    reviewToken = takeLinkToken();
+    if (!reviewToken) {
+      show('missing');
+      return;
+    }
+    fetch(API + '/review-invitation', { headers: { Accept: 'application/json', 'X-Review-Token': reviewToken, 'X-Requested-With': 'shopivo' } })
+      .then(async (res) => {
+        if (!res.ok) {
+          show(res.status === 410 ? 'expired' : 'invalid');
+          return;
+        }
+        const inv = await res.json();
+        box.querySelectorAll('[data-shop-review-order]').forEach((el) => { el.textContent = String(inv.orderNumber); });
+        const author = box.querySelector('[data-shop-review-author]');
+        if (author && !author.value) author.value = inv.suggestedAuthor || '';
+        const list = box.querySelector('[data-shop-review-items]');
+        const tpl = box.querySelector('template[data-shop-review-item]');
+        for (const item of inv.items) {
+          const node = tpl.content.firstElementChild.cloneNode(true);
+          node.querySelectorAll('[data-shop-review-name]').forEach((el) => { el.textContent = item.name; });
+          node.querySelectorAll('input[name="productId"]').forEach((el) => { el.value = item.productId; });
+          node.querySelectorAll('input[name="rating"]').forEach((el) => { el.name = 'rating'; el.id = `r-${item.productId}-${el.value}`; });
+          if (item.reviewed) {
+            node.querySelector('form')?.setAttribute('hidden', '');
+            node.querySelector('[data-shop-done]')?.removeAttribute('hidden');
+          }
+          list.append(node);
+        }
+        show('ready');
+      })
+      .catch(() => show('invalid'));
   });
 
   // Newsletter link from an e-mail: confirm or unsubscribe at once
