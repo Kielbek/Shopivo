@@ -58,6 +58,7 @@ public final class ThemeRegistry {
             new Field("showSearch", "Wyszukiwarka w nagłówku", FieldType.SELECT, List.of("yes", "no"), 0, "Nagłówek"),
             new Field("announcement", "Pasek informacyjny", FieldType.TEXT, null, 120, "Nagłówek"),
             new Field("mobileNav", "Nawigacja w telefonie", FieldType.SELECT, List.of("drawer", "bottom"), 0, "Nagłówek"),
+            new Field("cartStyle", "Koszyk", FieldType.SELECT, List.of("drawer", "page"), 0, "Koszyk"),
             new Field("footerNote", "Tekst w stopce", FieldType.TEXT, null, 300, "Stopka"),
             new Field("footerNewsletter", "Zapis na newsletter w stopce", FieldType.SELECT, List.of("yes", "no"), 0, "Stopka"),
             new Field("instagram", "Instagram", FieldType.URL, null, 300, "Stopka"),
@@ -79,6 +80,7 @@ public final class ThemeRegistry {
         m.put("stickyHeader", "yes");
         m.put("showSearch", "yes");
         m.put("mobileNav", "round".equals(radius) || "banner".equals(hero) ? "bottom" : "drawer");
+        m.put("cartStyle", "drawer");
         m.put("logoImage", "");
         m.put("footerNewsletter", "yes");
         m.put("instagram", "");

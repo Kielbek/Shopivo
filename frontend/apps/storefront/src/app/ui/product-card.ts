@@ -40,6 +40,7 @@ import { PriceComponent } from './price';
           </div>
         </div>
         @if (note(); as n) {<p class="mb-1 text-[12px] text-sf-danger" role="alert">{{ n }}</p>}
+        @if (added()) {<p class="mb-1 text-[12px]" role="status">Dodano do koszyka. <a routerLink="/koszyk" class="font-semibold underline underline-offset-2">Zobacz koszyk</a></p>}
         <div class="flex items-start justify-between gap-2">
           <div class="min-w-0">
             @if (p.brand) {<p class="text-[11px] uppercase tracking-wider text-sf-muted">{{ p.brand }}</p>}
@@ -79,6 +80,7 @@ import { PriceComponent } from './price';
             <span class="text-[12px] text-sf-muted">Chwilowo niedostępny</span>
           }
           @if (note(); as n) {<p class="mt-1 text-[12px] text-sf-danger" role="alert">{{ n }}</p>}
+          @if (added()) {<p class="mt-2 text-[12px]" role="status">Dodano do koszyka. <a routerLink="/koszyk" class="font-semibold underline underline-offset-2">Zobacz koszyk</a></p>}
         </div>
       </article>
     } @else {
@@ -119,6 +121,8 @@ export class ProductCardComponent {
   protected readonly padded = computed(() => this.style() !== 'plain');
   protected readonly adding = signal(false);
   protected readonly note = signal<string | null>(null);
+  /** "Osobna strona koszyka": a short confirmation with a link instead of the side panel. */
+  protected readonly added = signal(false);
 
   protected fmt(minor: number, currency: string): string {
     return money(minor, currency);
@@ -136,6 +140,7 @@ export class ProductCardComponent {
     const p = this.product();
     this.adding.set(true);
     this.note.set(null);
+    this.added.set(false);
     try {
       const detail = await firstValueFrom(this.api.product(p.slug));
       const available = detail.variants.filter((v) => v.available);
@@ -144,7 +149,8 @@ export class ProductCardComponent {
         return;
       }
       await this.cart.add(available[0].id, 1);
-      this.cart.drawer.set(true);
+      if (this.store.cartDrawer()) this.cart.drawer.set(true);
+      else this.added.set(true);
     } catch {
       this.note.set('Nie udało się dodać do koszyka.');
     } finally {

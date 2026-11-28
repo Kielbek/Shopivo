@@ -30,6 +30,7 @@ export function optionLabel(prop: string, value: string): string {
   if (prop === 'layout' && value === 'playful') return 'Radosny: duży napis, zdjęcie i falowana krawędź';
   if (prop === 'align' && value === 'left') return 'Do lewej';
   if (prop === 'count') return value;
+  if (prop === 'cartStyle') return value === 'page' ? 'Osobna strona koszyka' : 'Wysuwany panel z boku';
   return OPTION_LABELS[value] ?? value;
 }
 
@@ -42,6 +43,7 @@ export const SECTION_ICONS: Record<string, IconName> = {
 export const GROUP_HELP: Record<string, string> = {
   'Kolory': 'Kolor główny to przyciski i linki, akcent — wyróżnienia. Tekst musi być dobrze widoczny na tle.',
   'Typografia': 'Krój pisma, zaokrąglenia przycisków i zdjęć oraz wygląd kart produktów w całym sklepie.',
+  'Koszyk': 'Wysuwany panel: koszyk otwiera się z boku, a klient zostaje na stronie. Osobna strona: ikona koszyka prowadzi na stronę koszyka, a po dodaniu produktu klient widzi potwierdzenie z linkiem.',
   'Nagłówek': 'Logo, układ górnej belki, pasek informacyjny i to, jak menu wygląda w telefonie.',
   'Stopka': 'Tekst w stopce, zapis na newsletter i linki do mediów społecznościowych.',
 };

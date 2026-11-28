@@ -24,6 +24,8 @@ export class StoreState {
   private loading: Promise<void> | null = null;
 
   readonly settings = computed(() => this.store()?.theme.settings ?? {});
+  /** Cart opens as a side panel (default) or the cart icon leads to the cart page ("Koszyk" in the editor). */
+  readonly cartDrawer = computed(() => this.settings()['cartStyle'] !== 'page');
   /** Light or dark page background — some details (blend modes, shadows) differ. */
   readonly tone = computed<'light' | 'dark'>(() => (readableOn(this.settings()['background'] ?? '#ffffff') === '#ffffff' ? 'dark' : 'light'));
   /** Enabled home-page sections (older configurations without sections get a simple default). */

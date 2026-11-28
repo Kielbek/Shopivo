@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
@@ -14,7 +15,7 @@ import { Wishlist } from '../../core/wishlist';
  */
 @Component({
   selector: 'sf-vera-header',
-  imports: [FormsModule, RouterLink, RouterLinkActive],
+  imports: [FormsModule, RouterLink, RouterLinkActive, NgTemplateOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let s = store.store()!;
@@ -63,11 +64,17 @@ import { Wishlist } from '../../core/wishlist';
             [attr.aria-label]="customer.account() ? 'Moje konto' : 'Zaloguj się'">
             <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0ZM12 14a7 7 0 0 0-7 7h14a7 7 0 0 0-7-7Z"/></svg>
           </a>
-          <button type="button" class="flex h-10 items-center gap-1.5 px-1.5" aria-haspopup="dialog" aria-controls="sf-cart-drawer"
-            [attr.aria-label]="'Koszyk, produktów: ' + cart.count()" (click)="cart.drawer.set(true)">
+          <!-- Cart: side panel or the cart page ("Koszyk" in the editor) -->
+          <ng-template #cartIcon>
             <svg viewBox="0 0 24 24" class="size-5" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M16 11V7a4 4 0 0 0-8 0v4M5 9h14l1 12H4L5 9Z"/></svg>
             <span class="flex size-5 items-center justify-center rounded-full bg-sf-text text-[11px] font-semibold text-sf-bg" aria-hidden="true">{{ cart.count() }}</span>
-          </button>
+          </ng-template>
+          @if (store.cartDrawer()) {
+            <button type="button" class="flex h-10 items-center gap-1.5 px-1.5" aria-haspopup="dialog" aria-controls="sf-cart-drawer"
+              [attr.aria-label]="'Koszyk, produktów: ' + cart.count()" (click)="cart.drawer.set(true)"><ng-container [ngTemplateOutlet]="cartIcon" /></button>
+          } @else {
+            <a routerLink="/koszyk" class="flex h-10 items-center gap-1.5 px-1.5" [attr.aria-label]="'Koszyk, produktów: ' + cart.count()"><ng-container [ngTemplateOutlet]="cartIcon" /></a>
+          }
         </div>
       </div>
     </header>

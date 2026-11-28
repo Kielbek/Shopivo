@@ -30,6 +30,7 @@ const DEVICES: { id: Device; label: string; width: number; icon: IconName }[] = 
 
 const GROUPS: { name: string; icon: IconName; hint: string }[] = [
   { name: 'Nagłówek', icon: 'menu', hint: 'Logo, menu, pasek informacyjny, nawigacja w telefonie' },
+  { name: 'Koszyk', icon: 'cart', hint: 'Wysuwany panel albo osobna strona' },
   { name: 'Stopka', icon: 'pages', hint: 'Tekst, newsletter, media społecznościowe' },
   { name: 'Kolory', icon: 'appearance', hint: 'Przyciski, tło, tekst' },
   { name: 'Typografia', icon: 'pencil', hint: 'Krój pisma, zaokrąglenia, karty produktów' },

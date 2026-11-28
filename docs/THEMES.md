@@ -174,6 +174,18 @@ Od 2026-11-27 Bawiloo jest **jasne** (wersja z nowego `index.html` od właścici
 - **Newsletter:** karta z jasnozłotym gradientem i formularzem (double opt-in).
 - **Przykłady:** 16 przykładowych zabawek: 6 figurek, 5 pluszaków w promocji i 5 zabawek dla maluchów. Widać je w podglądzie demo szablonu albo w sklepie po dodaniu przyciskiem.
 
+### Koszyk: wysuwany panel albo osobna strona (każdy szablon)
+
+Ustawienie **Koszyk** w edytorze (grupa „Koszyk”, klucz `cartStyle`):
+- **Wysuwany panel z boku** (`drawer`, domyślne w obu szablonach):
+  - ikona koszyka i dodanie produktu otwierają panel z boku, a klient zostaje na stronie;
+  - w panelu są podpowiedzi produktów i próg darmowej dostawy.
+- **Osobna strona koszyka** (`page`):
+  - ikona koszyka to link do `/koszyk`, a panelu nie ma na stronie;
+  - po dodaniu produktu z karty widać „Dodano do koszyka. Zobacz koszyk”, a na stronie produktu „Przejdź do koszyka”.
+
+Konfiguracje zapisane przed dodaniem ustawienia dostają wartość domyślną (panel), bo ustawienia są przy odczycie łączone z domyślnymi wartościami szablonu.
+
 ### Czytelność kolorów (każdy szablon)
 
 Sprzedawca może ustawić dowolne kolory, więc witryna sama dobiera kolory tekstu:

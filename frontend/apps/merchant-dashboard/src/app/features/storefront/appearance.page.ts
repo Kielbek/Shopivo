@@ -113,6 +113,7 @@ export class AppearancePage {
     return [
       { icon: 'dashboard', label: 'Strona główna', value: `${sections.filter((x) => x.enabled).length} sekcji` },
       { icon: 'menu', label: 'Nawigacja w telefonie', value: s['mobileNav'] === 'bottom' ? 'dolny pasek' : 'menu boczne' },
+      { icon: 'cart', label: 'Koszyk', value: s['cartStyle'] === 'page' ? 'osobna strona' : 'wysuwany panel' },
       { icon: 'image', label: 'Logo', value: s['logoImage'] ? 'dodane' : 'nazwa sklepu' },
       { icon: 'mail', label: 'Newsletter w stopce', value: s['footerNewsletter'] === 'no' ? 'wyłączony' : 'włączony' },
     ];

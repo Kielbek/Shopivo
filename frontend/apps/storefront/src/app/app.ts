@@ -119,10 +119,10 @@ const SOCIALS = [
 
           @if (vera) {
             <sf-vera-header (menu)="menu.set(true)" />
-            <sf-cart-drawer />
+            @if (store.cartDrawer()) {<sf-cart-drawer />}
           } @else if (bawiloo) {
             <sf-bawiloo-header (menu)="menu.set(true)" />
-            <sf-cart-drawer />
+            @if (store.cartDrawer()) {<sf-cart-drawer />}
           } @else {
           <header class="z-30 border-b border-sf-line bg-sf-bg/95 backdrop-blur" [class.sticky]="ts['stickyHeader'] !== 'no'" [class.top-0]="ts['stickyHeader'] !== 'no'">
             <div class="sf-container flex h-16 items-center gap-3">

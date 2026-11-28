@@ -89,6 +89,7 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - poprawka rekomendacji: pusta lista nie trafia do pamięci podręcznej (wcześniej w nowym sklepie bestsellery były puste przez 2 minuty po dodaniu produktów) — test `RecommendationsIT`;
   - E2E: szczegóły szablonu (8 slajdów w demo) → wybór → 16 przykładów → strona sklepu: slider (strzałka, ←, kropka, przesunięcie, klik w środek otwiera produkt), 6 kategorii z `multiply`, 6 bestsellerów, boczny koszyk; telefon: 3 kategorie → 6 po „Zobacz więcej”, bez poziomego przewijania; 0 błędów konsoli i 0 zapytań zewnętrznych.
   - Ograniczenie: sklepy z ciemnym Bawiloo zachowują zapisane kolory; jasna wersja po ponownym wyborze szablonu.
+- **Koszyk do wyboru w edytorze (2026-11-28):** wysuwany panel albo osobna strona (`cartStyle`). Test `ThemeSectionsIT`. E2E: panel otwiera się po dodaniu produktu → zmiana na „Osobna strona” → w nagłówku link do `/koszyk`, panelu nie ma, potwierdzenie z linkiem na karcie i na stronie produktu; 0 błędów konsoli.
 - **Poprawka:** lista produktów obsługuje `?promocje=tak`. Wcześniej linki „Promocje” z sekcji pokazywały wszystkie produkty.
 - **E2E (Playwright, poza repo):**
   - **Przepływ:** sklep modowy z 8 produktami → wybór Véry w galerii → edytor → publikacja → strona główna (filtry: Akcesoria 2, Promocje 2) → szybkie dodanie produktu bez wariantów (boczny koszyk) → produkt z rozmiarami prowadzi na stronę produktu → dodanie z wyborem rozmiaru → `/produkty?promocje=tak`.

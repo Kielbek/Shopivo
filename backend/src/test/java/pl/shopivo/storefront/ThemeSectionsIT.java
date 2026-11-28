@@ -40,7 +40,7 @@ class ThemeSectionsIT extends IntegrationTest {
                 Map.of("id", "hero1", "type", "hero", "enabled", true, "data", Map.of("heading", "Lato", "image", imageId, "layout", "image", "link", "/kategoria/kubki")),
                 Map.of("id", "faq1", "type", "faq", "enabled", true, "data", Map.of("items", List.of(Map.of("question", "Pytanie?", "answer", "Odpowiedź\ndruga linia")))),
                 Map.of("id", "cat1", "type", "categories", "enabled", false, "data", Map.of("categories", List.of(category), "style", "tiles")));
-        var saved = owner.put(base(t) + "/theme", Map.of("code", "VERA", "settings", Map.of("mobileNav", "bottom", "instagram", "https://instagram.com/sklep"),
+        var saved = owner.put(base(t) + "/theme", Map.of("code", "VERA", "settings", Map.of("mobileNav", "bottom", "cartStyle", "page", "instagram", "https://instagram.com/sklep"),
                 "sections", sections, "version", -1));
         assertThat(saved.status()).as(saved.body()).isEqualTo(200);
         var draft = saved.json().get("draft");
@@ -48,6 +48,7 @@ class ThemeSectionsIT extends IntegrationTest {
         assertThat(draft.get("sections").get(0).get("data").get("height").asString()).isEqualTo("small");
         assertThat(draft.get("sections").get(1).get("data").get("items").get(0).get("answer").asString()).isEqualTo("Odpowiedź\ndruga linia");
         assertThat(draft.get("settings").get("mobileNav").asString()).isEqualTo("bottom");
+        assertThat(draft.get("settings").get("cartStyle").asString()).as("cart as a separate page").isEqualTo("page");
         long v = saved.json().get("version").asLong();
 
         for (Object bad : List.of(
@@ -61,6 +62,12 @@ class ThemeSectionsIT extends IntegrationTest {
         }
         assertThat(owner.put(base(t) + "/theme", Map.of("code", "VERA", "settings", Map.of("instagram", "http://x.pl"), "version", v)).code())
                 .isEqualTo("INVALID_THEME");
+        assertThat(owner.put(base(t) + "/theme", Map.of("code", "VERA", "settings", Map.of("cartStyle", "popup"), "version", v)).code())
+                .isEqualTo("INVALID_THEME");
+        // Without the setting the cart is a side panel (default of both templates, also for configurations saved earlier)
+        var fresh = owner.put(base(t) + "/theme", Map.of("code", "BAWILOO", "settings", Map.of(), "version", v));
+        assertThat(fresh.json().get("draft").get("settings").get("cartStyle").asString()).isEqualTo("drawer");
+        v = fresh.json().get("version").asLong();
         // Retired templates cannot be chosen any more
         assertThat(owner.put(base(t) + "/theme", Map.of("code", "FASHION", "settings", Map.of(), "version", v)).code()).isEqualTo("INVALID_THEME");
 
