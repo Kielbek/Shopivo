@@ -18,6 +18,7 @@ import {
 export const icons = {
   undo: LucideUndo2,
   redo: LucideRedo2,
+  schedule: LucideClock,
   shirt: LucideShirt,
   footprints: LucideFootprints,
   smartphone: LucideSmartphone,

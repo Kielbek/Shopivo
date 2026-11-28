@@ -1,0 +1,63 @@
+{%- comment -%}
+  Countdown to a drop or a launch. The end time is a moment in Polish time; the server renders the time left (works
+  without JavaScript) and the runtime ticks it. At zero the section shows its "after" message or disappears.
+{%- endcomment -%}
+{%- assign t = section.settings.target -%}
+{%- assign ended = false -%}{%- if t and t.past -%}{%- assign ended = true -%}{%- endif -%}
+{%- if t == nil and editing == false -%}{%- elsif ended and section.settings.after == 'hide' and editing == false -%}{%- else -%}
+{%- assign p = section.settings.product -%}
+<section class="shop-cd shop-scheme--{{ section.settings.scheme }}{% if p or section.settings.image %} shop-cd--media{% endif %}" aria-labelledby="cd-{{ section.id }}"{% if t %} data-shop-countdown="{{ t.iso }}" data-after="{{ section.settings.after }}"{% endif %}>
+<div class="shop-cd__inner">
+<div class="shop-cd__copy">
+{%- if section.settings.eyebrow != blank %}<p class="shop-eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</p>{% endif %}
+<div data-shop-countdown-live{% if ended %} hidden{% endif %}>
+<h2 class="shop-h2" id="cd-{{ section.id }}"{{ section | edit: 'heading' }}>{{ section.settings.heading | lines }}</h2>
+{%- if section.settings.text != blank %}<p class="shop-text"{{ section | edit: 'text' }}>{{ section.settings.text }}</p>{% endif %}
+{%- if t %}
+<div class="shop-cd__timer" role="timer" aria-label="Pozostało do {{ t.label }}">{% render 'shop-countdown-units', date: t %}</div>
+<p class="shop-cd__date">{{ t.label }}</p>
+{%- elsif editing %}
+<p class="shop-cd__date">Ustaw datę i godzinę końca odliczania.</p>
+{%- endif %}
+</div>
+<div data-shop-countdown-ended{% unless ended %} hidden{% endunless %}>
+<h2 class="shop-h2"{% if ended %} id="cd-{{ section.id }}"{% endif %}{{ section | edit: 'ended_heading' }}>{{ section.settings.ended_heading | lines }}</h2>
+{%- if section.settings.ended_text != blank %}<p class="shop-text"{{ section | edit: 'ended_text' }}>{{ section.settings.ended_text }}</p>{% endif %}
+</div>
+{%- if section.settings.button_label != blank %}<a class="shop-btn" href="{% if p %}{{ p.url }}{% else %}{{ section.settings.button_url | link }}{% endif %}"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>{% endif %}
+</div>
+{%- if p %}
+<a class="shop-cd__product" href="{{ p.url }}">
+{%- if p.image %}<img src="{{ p.image | image_url: 'w400' }}" alt="{{ p.image.alt | default: p.name }}" loading="lazy">{% endif %}
+<span class="shop-cd__product-name">{{ p.name }}</span>
+<span class="shop-cd__product-price">{% if p.has_range %}od {% endif %}{{ p.price | money: p.currency }}</span>
+</a>
+{%- elsif section.settings.image %}
+<img class="shop-cd__image" src="{{ section.settings.image | image_url: 'w1200' }}" alt="{{ section.settings.image_alt }}" loading="lazy"{{ section | edit: 'image' }}>
+{%- endif %}
+</div>
+</section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Odliczanie do dropu",
+  "settings": [
+    { "id": "target", "type": "datetime", "label": "Koniec odliczania (czas polski)", "default": "", "info": "Np. start nowej kolekcji albo koniec promocji." },
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "Nowy drop", "max": 40 },
+    { "id": "heading", "type": "textarea", "label": "Nagłówek", "default": "Kolekcja startuje już wkrótce", "max": 100 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "Zapisz datę — liczba sztuk jest ograniczona.", "max": 300 },
+    { "id": "product", "type": "product", "label": "Produkt dropu (opcjonalnie)", "default": "", "info": "Pokazujemy jego zdjęcie, nazwę i cenę; przycisk prowadzi do produktu." },
+    { "id": "image", "type": "image", "label": "Zdjęcie (gdy nie wybrano produktu)", "default": "" },
+    { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "", "max": 160 },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Zobacz", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku (gdy nie wybrano produktu)", "default": "/produkty" },
+    { "id": "after", "type": "select", "label": "Po zakończeniu odliczania", "default": "message", "options": [
+      { "value": "message", "label": "Pokaż komunikat" }, { "value": "hide", "label": "Ukryj sekcję" } ] },
+    { "id": "ended_heading", "type": "textarea", "label": "Komunikat po zakończeniu — nagłówek", "default": "Drop już trwa!", "max": 100 },
+    { "id": "ended_text", "type": "textarea", "label": "Komunikat po zakończeniu — tekst", "default": "Kolekcja jest dostępna w sklepie.", "max": 300 },
+    { "id": "scheme", "type": "select", "label": "Kolorystyka", "default": "dark", "options": [
+      { "value": "dark", "label": "Ciemna" }, { "value": "light", "label": "Jasna (kolory szablonu)" }, { "value": "accent", "label": "Kolor akcentu szablonu" } ] }
+  ]
+}
+{% endschema %}

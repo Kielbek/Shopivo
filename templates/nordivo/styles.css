@@ -370,3 +370,5 @@ address{font-style:normal}
 .nd-slide{display:block}
 .hotspot-price{display:inline}
 .text-link{font-size:12px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+/* Shared sections (countdown, campaign banner) in this template's colours, corners and fonts */
+:root{--shop-ink:#22221f;--shop-bg:#f7f5f1;--shop-muted:#6d6a64;--shop-accent:#1f201e;--shop-on-accent:#fff;--shop-radius:12px;--shop-font:Arial,Helvetica,sans-serif;--shop-max:1286px;--shop-gutter:clamp(20px,5vw,82px)}

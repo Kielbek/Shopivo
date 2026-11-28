@@ -1,0 +1,55 @@
+{%- comment -%}
+  Campaign banner (Black Week, sale, new season). Two layouts: a thin strip or a large block with optional reduced
+  products. An optional end time shows how long the campaign lasts; once it is over the banner disappears.
+{%- endcomment -%}
+{%- assign ends = section.settings.ends -%}
+{%- if ends and ends.past and editing == false -%}{%- else -%}
+{%- capture colors -%}{% if section.settings.style == 'custom' %}--shop-c-bg:{{ section.settings.background }};--shop-c-ink:{{ section.settings.text_color }};--shop-c-accent:{{ section.settings.accent }}{% endif %}{%- endcapture -%}
+<section class="shop-campaign shop-campaign--{{ section.settings.layout }} shop-campaign--{{ section.settings.style }}"{% if colors != blank %} style="{{ colors }}"{% endif %} aria-label="{{ section.settings.label | default: section.settings.heading }}"{% if ends %} data-shop-countdown="{{ ends.iso }}" data-after="hide"{% endif %}>
+<div class="shop-campaign__inner">
+{%- if section.settings.label != blank %}<span class="shop-campaign__label"{{ section | edit: 'label' }}>{{ section.settings.label }}</span>{% endif %}
+<div class="shop-campaign__copy">
+<h2 class="shop-campaign__heading"{{ section | edit: 'heading' }}>{{ section.settings.heading | lines }}</h2>
+{%- if section.settings.text != blank %}<p class="shop-campaign__text"{{ section | edit: 'text' }}>{{ section.settings.text }}</p>{% endif %}
+</div>
+{%- if section.settings.badge != blank %}<span class="shop-campaign__badge"{{ section | edit: 'badge' }}>{{ section.settings.badge }}</span>{% endif %}
+{%- if ends %}<span class="shop-campaign__ends" role="timer" aria-label="Do końca: {{ ends.label }}"><span>Kończy się za</span> {% render 'shop-countdown-units', date: ends %}</span>{% endif %}
+{%- if section.settings.button_label != blank %}<a class="shop-campaign__btn" href="{{ section.settings.button_url | link }}"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>{% endif %}
+</div>
+{%- if section.settings.layout == 'block' and section.settings.show_products %}
+{%- assign items = section.settings.products.items -%}
+{%- if items.size > 0 %}
+<ul class="shop-campaign__products">
+{%- for p in items %}
+<li><a href="{{ p.url }}">{% if p.image %}<img src="{{ p.image | image_url: 'w400' }}" alt="{{ p.image.alt | default: p.name }}" loading="lazy">{% endif %}<span class="shop-campaign__pname">{{ p.name }}</span><span class="shop-campaign__price">{{ p.price | money: p.currency }}{% if p.on_sale %} <del>{{ p.compare_at | money: p.currency }}</del>{% endif %}</span>{% if p.on_sale and p.lowest_30d %}<span class="shop-campaign__omnibus">Najniższa cena z 30 dni przed obniżką: {{ p.lowest_30d | money: p.currency }}</span>{% endif %}</a></li>
+{%- endfor %}
+</ul>
+{%- endif %}
+{%- endif %}
+</section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Baner kampanii",
+  "settings": [
+    { "id": "style", "type": "select", "label": "Styl", "default": "black_week", "options": [
+      { "value": "black_week", "label": "Black Week (czarny i żółty)" }, { "value": "sale", "label": "Wyprzedaż (czerwony)" },
+      { "value": "template", "label": "Kolory szablonu" }, { "value": "custom", "label": "Własne kolory" } ] },
+    { "id": "layout", "type": "select", "label": "Układ", "default": "block", "options": [
+      { "value": "block", "label": "Duży blok" }, { "value": "strip", "label": "Wąski pasek" } ] },
+    { "id": "label", "type": "text", "label": "Etykieta", "default": "BLACK WEEK", "max": 30 },
+    { "id": "heading", "type": "textarea", "label": "Nagłówek", "default": "Rabaty na setki produktów", "max": 100 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "Tylko przez kilka dni. Sprawdź, co przecenione.", "max": 240 },
+    { "id": "badge", "type": "text", "label": "Wyróżnienie (np. do −40%)", "default": "", "max": 20, "info": "Podaj rabat, który naprawdę obowiązuje w sklepie." },
+    { "id": "ends", "type": "datetime", "label": "Koniec kampanii (opcjonalnie)", "default": "", "info": "Pokazuje odliczanie; po tym czasie baner znika sam." },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Zobacz promocje", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "/produkty?promocje=tak" },
+    { "id": "show_products", "type": "checkbox", "label": "Pokaż produkty w promocji (duży blok)", "default": true },
+    { "id": "products", "type": "product_list", "label": "Produkty", "default": { "source": "sale", "count": 4 } },
+    { "id": "background", "type": "color", "label": "Tło (własne kolory)", "default": "#111111" },
+    { "id": "text_color", "type": "color", "label": "Tekst (własne kolory)", "default": "#ffffff" },
+    { "id": "accent", "type": "color", "label": "Akcent (własne kolory)", "default": "#ffd400" }
+  ]
+}
+{% endschema %}

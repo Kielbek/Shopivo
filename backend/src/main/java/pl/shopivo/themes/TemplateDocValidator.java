@@ -73,7 +73,11 @@ final class TemplateDocValidator {
     private Set<String> allowedTypes(String page) {
         Set<String> defaults = new HashSet<>();
         pkg.defaults().get(page).path("sections").forEach(s -> defaults.add(s.path("type").asString()));
-        if (TemplatePackages.GROUPS.contains(page)) return defaults;
+        if (TemplatePackages.GROUPS.contains(page)) {
+            // the header and footer keep their own sections, plus the shared ones (e.g. a campaign strip above the header)
+            pkg.sections().values().stream().filter(TemplatePackages.Section::shared).forEach(s -> defaults.add(s.type()));
+            return defaults;
+        }
         Set<String> out = new HashSet<>(defaults);
         for (var s : pkg.sections().values()) {
             if (!s.main() && !s.type().equals("header") && !s.type().equals("footer")) out.add(s.type());
@@ -113,6 +117,34 @@ final class TemplateDocValidator {
         return out;
     }
 
+    /** "Show from–to" of a section: Polish local times ("2026-11-27T00:00"); either end may be missing, from before to. */
+    private ObjectNode schedule(JsonNode v) {
+        if (!v.isObject()) throw new IllegalArgumentException("Nieprawidłowy harmonogram sekcji.");
+        ObjectNode out = json.createObjectNode();
+        java.time.LocalDateTime from = null, to = null;
+        for (String k : v.propertyNames()) {
+            if (!k.equals("from") && !k.equals("to")) throw new IllegalArgumentException("Nieprawidłowy harmonogram sekcji.");
+            String text = v.get(k).asString("");
+            if (text.isEmpty()) continue;
+            java.time.LocalDateTime t = localTime(text, "Harmonogram sekcji");
+            if (k.equals("from")) from = t; else to = t;
+            out.put(k, text);
+        }
+        if (from != null && to != null && !from.isBefore(to)) throw new IllegalArgumentException("Koniec wyświetlania musi być po początku.");
+        return out;
+    }
+
+    private static java.time.LocalDateTime localTime(String text, String label) {
+        if (!LOCAL_TIME.matcher(text).matches()) throw new IllegalArgumentException(label + ": podaj datę i godzinę.");
+        try {
+            return java.time.LocalDateTime.parse(text);
+        } catch (java.time.format.DateTimeParseException e) {
+            throw new IllegalArgumentException(label + ": podaj datę i godzinę.");
+        }
+    }
+
+    private static final Pattern LOCAL_TIME = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$");
+
     private ObjectNode section(TemplatePackages.Section schema, JsonNode s) {
         ObjectNode out = json.createObjectNode();
         out.put("type", schema.type());
@@ -120,6 +152,8 @@ final class TemplateDocValidator {
             if (schema.main()) throw new IllegalArgumentException("Tej sekcji nie można ukryć.");
             out.put("disabled", true);
         }
+        JsonNode schedule = s.path("schedule");
+        if (!schedule.isMissingNode() && !schedule.isNull()) out.set("schedule", schedule(schedule));
         out.set("settings", settings(schema.settings(), s.path("settings")));
         JsonNode order = s.path("block_order");
         JsonNode blocks = s.path("blocks");
@@ -225,6 +259,12 @@ final class TemplateDocValidator {
                     throw new IllegalArgumentException(label + ": wybierz kategorię.");
                 }
                 return o;
+            }
+            case "datetime" -> {
+                String text = v.isString() ? v.asString().strip() : null;
+                if (text == null) throw bad(label);
+                if (!text.isEmpty()) localTime(text, label);
+                return json.getNodeFactory().stringNode(text);
             }
             case "point" -> {
                 // A position on a picture, in percent of its width and height (0.1 precision); null = not set

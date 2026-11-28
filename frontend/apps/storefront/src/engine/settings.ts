@@ -1,3 +1,4 @@
+import { LOCAL_TIME } from './schedule';
 import type { SettingSchema } from './template-package';
 
 /** Where a section's product list comes from (setting type `product_list`). */
@@ -57,6 +58,8 @@ export function settingValue(schema: SettingSchema, stored: unknown): unknown {
       return schema.options?.some((o) => o.value === value) ? value : fallback();
     case 'product':
       return typeof value === 'string' && (value === '' || SLUG.test(value)) ? value : fallback();
+    case 'datetime':
+      return value === '' || (typeof value === 'string' && LOCAL_TIME.test(value)) ? value : fallback();
     case 'point': {
       if (value === null) return null;
       const v = value as { x?: unknown; y?: unknown } | undefined;

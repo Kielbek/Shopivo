@@ -81,6 +81,24 @@ export function duplicate(doc: TemplatePageDoc, id: string): { doc: TemplatePage
   return { doc: { sections: { ...doc.sections, [nid]: copy }, order }, id: nid };
 }
 
+/** Sets or clears a section's "show from–to" (empty ends are dropped; no ends = always shown). */
+export function setSchedule(doc: TemplatePageDoc, id: string, schedule: { from?: string; to?: string } | null): TemplatePageDoc {
+  const s = { ...doc.sections[id] };
+  const clean = Object.fromEntries(Object.entries(schedule ?? {}).filter(([, v]) => !!v)) as { from?: string; to?: string };
+  if (Object.keys(clean).length) s.schedule = clean; else delete s.schedule;
+  return { ...doc, sections: { ...doc.sections, [id]: s } };
+}
+
+/** Where a schedule stands now: upcoming, showing, ended (browser time; the store uses Polish time). */
+export function scheduleState(schedule: { from?: string; to?: string } | undefined, now = new Date()): 'upcoming' | 'live' | 'ended' | null {
+  if (!schedule || (!schedule.from && !schedule.to)) return null;
+  const at = (v?: string) => (v ? new Date(v).getTime() : null);
+  const from = at(schedule.from), to = at(schedule.to), t = now.getTime();
+  if (from !== null && t < from) return 'upcoming';
+  if (to !== null && t >= to) return 'ended';
+  return 'live';
+}
+
 export function toggleHidden(doc: TemplatePageDoc, id: string): TemplatePageDoc {
   const s = { ...doc.sections[id] };
   if (s.disabled) delete s.disabled; else s.disabled = true;

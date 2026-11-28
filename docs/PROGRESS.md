@@ -101,6 +101,43 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - pole „Wysokość” banera nie wpływa na układ „Magazyn”;
   - zdjęcia z HTML-a są z Unsplash — dobre jako start, ale sprzedawca powinien użyć własnych.
 
+## Silnik szablonów v2 — etap 5: odliczanie, kampanie, harmonogram (2026-11-28)
+
+- **Sekcje wspólne** (`templates/_shared/`) w każdym szablonie, także w nagłówku i stopce:
+  - „Odliczanie do dropu”:
+    - czas liczony na serwerze (działa bez JavaScriptu) i odliczany co sekundę;
+    - opcjonalny produkt dropu z ceną z katalogu;
+    - po końcu: komunikat albo ukrycie;
+  - „Baner kampanii”:
+    - Black Week, wyprzedaż, kolory szablonu albo własne; duży blok albo pasek;
+    - wyróżnienie rabatu; koniec kampanii z odliczaniem — potem baner znika sam;
+    - produkty w promocji z ceną Omnibus.
+  - Sekcje biorą kolory, zaokrąglenia, fonty i szerokość z `--shop-*`, ustawionych w każdym z 4 szablonów.
+- **Harmonogram „Pokazuj od–do”** dla każdej sekcji:
+  - czas polski (z czasem letnim) w silniku, backendzie i panelu;
+  - poza oknem klienci nie widzą sekcji;
+  - w edytorze: ikona zegara na liście i opis terminu w podglądzie.
+- **Nowy typ ustawienia `datetime`** (pole daty i godziny w panelu).
+- **Testy:**
+  - `engine.spec.ts` (32): czas polski zimą, latem i przy zmianie czasu; okno harmonogramu; pozostały czas; sekcje wspólne we wszystkich szablonach; ukrywanie po końcu; podgląd zaplanowanej sekcji w edytorze;
+  - `TemplateDocsIT`: sekcje wspólne w schemacie i w nagłówku, zapis harmonogramu, odrzucanie złych dat i odwróconych okien.
+- **E2E (Velmira, Lullora, Nordivo, Bawiloo):**
+  - na stronie głównej:
+    - pasek wyprzedaży nad nagłówkiem;
+    - odliczanie z produktem dropu, które tyka co sekundę;
+    - Black Week z 4 produktami;
+    - baner zaplanowany na za 20 dni jest niewidoczny;
+  - zrzuty z komputera i telefonu;
+  - edytor:
+    - opis „Teraz ukryta · widoczna od …”;
+    - „Pokazuj od–do” w ustawieniach sekcji;
+    - „Dodaj do nagłówka” oferuje sekcje wspólne;
+  - 0 błędów konsoli.
+- **Ograniczenia:**
+  - kody rabatowe nie istnieją jeszcze w zamówieniu, więc baner ich nie pokazuje;
+  - harmonogram działa dla całych sekcji (nie pojedynczych elementów);
+  - stan „zaplanowana/zakończona” na liście w panelu liczy się wg zegara przeglądarki.
+
 ## Silnik szablonów v2 — etap 4c: Nordivo i ceny na zdjęciu (2026-11-28)
 
 - **Nordivo** (`templates/nordivo/`, meble) przeniesione z `nordivo-sklep-newsletter.html` 1:1:

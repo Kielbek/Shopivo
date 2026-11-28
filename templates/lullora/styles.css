@@ -341,3 +341,6 @@ address{font-style:normal}
 
 .flex{display:flex}.flex-wrap{flex-wrap:wrap}.gap-2{gap:.5rem}.gap-4{gap:1rem}.text-center{text-align:center}.text-sm{font-size:.875rem;line-height:1.43}
 .checkout-summary{min-width:0}
+/* Shared sections (countdown, campaign banner) in this template's colours, corners and fonts */
+:root{--shop-ink:#24352f;--shop-bg:#e1faf0;--shop-muted:#60716a;--shop-accent:#079b68;--shop-on-accent:#fff;--shop-radius:24px;--shop-font:Arial,Helvetica,sans-serif;--shop-max:1320px;--shop-gutter:32px}
+#home>[data-shop-section]>.shop-cd,#home>[data-shop-section]>.shop-campaign--block{width:100%}

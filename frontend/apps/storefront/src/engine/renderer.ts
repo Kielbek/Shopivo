@@ -4,6 +4,7 @@ import {
   toCategory, toProduct, toProductDetail, type ApiCard, type ApiProduct, type ApiStore, type StoreApi, type TplImage,
 } from './store-data';
 import type { PageDoc, PageType, SectionDoc, SettingSchema, TemplatePackage } from './template-package';
+import { isShown, scheduleLabel, toTplDate } from './schedule';
 
 const ESCAPE: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 export const escapeHtml = (s: unknown): string => String(s ?? '').replace(/[&<>"']/g, (c) => ESCAPE[c]);
@@ -46,7 +47,7 @@ export interface RenderContext {
   footer: string;
 }
 
-interface Section { id: string; type: string; settings: Record<string, unknown>; blocks: Block[]; }
+interface Section { id: string; type: string; settings: Record<string, unknown>; blocks: Block[]; scheduled?: string; }
 interface Block { id: string; type: string; settings: Record<string, unknown>; }
 
 /**
@@ -156,6 +157,7 @@ export class TemplateRenderer {
     for (const s of schemaSettings) {
       const v = values[s.id];
       if (s.type === 'image') values[s.id] = this.image(v, ctx.store);
+      else if (s.type === 'datetime') values[s.id] = toTplDate(v);
       else if (s.type === 'product') {
         jobs.push((typeof v === 'string' && v ? ctx.api.optional<ApiProduct | null>(`/products/${encodeURIComponent(v)}`, null) : Promise.resolve(null))
           .then((p) => { values[s.id] = p ? toProductDetail(p) : null; }));
@@ -198,6 +200,9 @@ export class TemplateRenderer {
   private async section(ctx: RenderContext, id: string, doc: SectionDoc): Promise<Section | null> {
     const def = this.pkg.sections.get(doc.type);
     if (!def || doc.disabled) return null;
+    // Outside its "show from–to" window a section is not rendered; while editing it stays visible, marked as scheduled
+    const shown = isShown(doc.schedule);
+    if (!shown && !ctx.editing) return null;
     const settings = settingsOf(def.schema.settings, doc.settings);
     const jobs = [this.resolve(ctx, def.schema.settings, settings)];
     const blocks: Block[] = [];
@@ -211,7 +216,7 @@ export class TemplateRenderer {
       if (def.schema.max_blocks && blocks.length >= def.schema.max_blocks) break;
     }
     await Promise.all(jobs);
-    return { id, type: doc.type, settings, blocks };
+    return { id, type: doc.type, settings, blocks, ...(doc.schedule && ctx.editing ? { scheduled: (shown ? 'Widoczna ' : 'Teraz ukryta · widoczna ') + scheduleLabel(doc.schedule) } : {}) };
   }
 
   private globals(ctx: RenderContext): Record<string, unknown> {
@@ -239,7 +244,7 @@ export class TemplateRenderer {
       const def = this.pkg.sections.get(sec.type)!;
       const section = { ...sec, blocks: sec.blocks.map((b) => ({ ...b, section_id: sec.id, section_type: sec.type })) };
       const html = await this.liquid.render(this.template('section:' + sec.type, def.source), { section }, { globals });
-      const attrs = ctx.editing ? ` data-shop-section-type="${escapeHtml(sec.type)}"` : '';
+      const attrs = ctx.editing ? ` data-shop-section-type="${escapeHtml(sec.type)}"${sec.scheduled ? ` data-shop-scheduled="${escapeHtml(sec.scheduled)}"` : ''}` : '';
       out.set(sec.id, `<div id="shop-section-${escapeHtml(sec.id)}" data-shop-section="${escapeHtml(sec.id)}"${attrs} style="display:contents">${html}</div>`);
     }));
     return out;

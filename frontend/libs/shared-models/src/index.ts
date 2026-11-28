@@ -536,16 +536,19 @@ export interface ReturnRequest {
 }
 
 // ---- Template packages (engine v2): editor of a store's pages ----------------------------------------------------------
-export type TemplateSettingType = 'text' | 'textarea' | 'url' | 'image' | 'select' | 'number' | 'checkbox' | 'color'
+export type TemplateSettingType = 'text' | 'textarea' | 'url' | 'image' | 'select' | 'number' | 'checkbox' | 'color' | 'datetime'
   | 'point' | 'product' | 'product_list' | 'category_list' | 'link_list';
 export interface TemplateSetting {
   id: string; type: TemplateSettingType; label: string; defaultValue: unknown; info: string | null; max: number | null; min: number | null;
   options: { value: string; label: string }[] | null;
 }
 export interface TemplateBlockSchema { type: string; name: string; settings: TemplateSetting[]; }
-export interface TemplateSectionSchema { type: string; name: string; settings: TemplateSetting[]; blocks: TemplateBlockSchema[]; maxBlocks: number | null; }
+/** {@code shared}: a section every template offers (countdown, campaign banner), also in the header and footer. */
+export interface TemplateSectionSchema { type: string; name: string; settings: TemplateSetting[]; blocks: TemplateBlockSchema[]; maxBlocks: number | null; shared?: boolean; }
+/** "Show from–to" of a section, in Polish local time ("2026-11-27T00:00"). */
+export interface TemplateSchedule { from?: string; to?: string; }
 export interface TemplateSectionDoc {
-  type: string; disabled?: boolean; settings: Record<string, unknown>;
+  type: string; disabled?: boolean; schedule?: TemplateSchedule; settings: Record<string, unknown>;
   blocks?: Record<string, { type: string; disabled?: boolean; settings: Record<string, unknown> }>; block_order?: string[];
 }
 export interface TemplatePageDoc { sections: Record<string, TemplateSectionDoc>; order: string[]; }

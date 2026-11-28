@@ -1756,3 +1756,5 @@ body,#store,#pageView{background:#fff;color:var(--ink)}
 .mb-tiny{margin-bottom:.25rem}
 address{font-style:normal}
 .narrow-sm{max-width:24rem}
+/* Shared sections (countdown, campaign banner) in this template's colours, corners and fonts */
+:root{--shop-ink:#382319;--shop-bg:#fff8ee;--shop-muted:#6b625a;--shop-accent:#f8bf73;--shop-on-accent:#151513;--shop-radius:28px;--shop-font:'Nunito Sans',Arial,sans-serif;--shop-heading-font:'Fredoka',sans-serif;--shop-max:1200px;--shop-gutter:6vw}

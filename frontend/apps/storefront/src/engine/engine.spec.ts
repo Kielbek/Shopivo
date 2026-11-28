@@ -4,10 +4,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { imageSize } from './image-size';
 import { TemplateRenderer, formatMoney, resolveLink } from './renderer';
 import { routeOf } from './routes';
+import { isShown, toTplDate, warsawToUtc } from './schedule';
 import { safeLink, settingValue, settingsOf } from './settings';
 import type { ApiCard, ApiStore, StoreApi } from './store-data';
 import { ApiError, StoreApi as Api, groupAccount, toCart, toProduct } from './store-data';
-import { PAGE_TYPES, loadAll, templatesDir, type TemplatePackage } from './template-package';
+import { PAGE_TYPES, loadAll, loadShared, templatesDir, type TemplatePackage } from './template-package';
 
 const packages = loadAll(templatesDir());
 
@@ -56,7 +57,8 @@ describe('template packages', () => {
   // The designer's stylesheet is compiled Tailwind: a utility class that is not in it does nothing. Every class the
   // template's Liquid uses must exist in its CSS (new ones go to the "Shopivo additions" block).
   it.each([...packages.values()].map((p) => [p.code, p] as const))('%s uses only classes its stylesheet defines', (_code, p: TemplatePackage) => {
-    const css = p.styles.map((f) => readFileSync(join(p.dir, f), 'utf8')).join('\n');
+    // The shared sections' stylesheet is on every page too
+    const css = p.styles.map((f) => readFileSync(join(p.dir, f), 'utf8')).join('\n') + loadShared().css;
     const escape = (c: string) => c.replace(/([[\]()/:#.,%!&+*'>=~@])/g, '\\$1');
     const sources = [...p.sections.values()].map((s) => s.source).concat(Object.values(p.snippets), p.layout);
     const missing = new Set<string>();
@@ -66,7 +68,8 @@ describe('template packages', () => {
       const lists = [...plain.matchAll(/class="([^"]*)"/g)].map((m) => m[1]);
       lists.push(...[...src.matchAll(/(?:classes|del_class|field|gold|outline)\s*[:=]\s*'([^']*)'/g)].map((m) => m[1]));
       for (const list of lists) for (const c of list.split(/\s+/).filter(Boolean)) {
-        if (!known.has(c) && !css.includes('.' + escape(c))) missing.add(c);
+        // a class completed by a setting ("shop-scheme--{{ … }}") is checked by its variants in the CSS
+        if (!known.has(c) && !c.endsWith('-') && !css.includes('.' + escape(c))) missing.add(c);
       }
     }
     expect([...missing]).toEqual([]);
@@ -217,5 +220,49 @@ describe('template preview', () => {
     expect(await api.cart()).toBeNull();
     expect(await api.account()).toBeNull();
     expect(urls).toHaveLength(1);
+  });
+});
+
+describe('schedules and countdowns (Polish time)', () => {
+  it('turn Warsaw local time into the right instant, in winter and in summer', () => {
+    expect(new Date(warsawToUtc('2026-12-05T20:00')!).toISOString()).toBe('2026-12-05T19:00:00.000Z');
+    expect(new Date(warsawToUtc('2026-07-01T12:00')!).toISOString()).toBe('2026-07-01T10:00:00.000Z');
+    expect(new Date(warsawToUtc('2026-03-29T03:30')!).toISOString()).toBe('2026-03-29T01:30:00.000Z'); // just after the switch
+    expect(warsawToUtc('5 grudnia')).toBeNull();
+  });
+
+  it('show a section only inside its window', () => {
+    const now = Date.parse('2026-11-28T12:00:00Z');
+    expect(isShown(undefined, now)).toBe(true);
+    expect(isShown({ from: '2026-11-27T00:00', to: '2026-12-01T00:00' }, now)).toBe(true);
+    expect(isShown({ from: '2026-11-29T00:00' }, now)).toBe(false);
+    expect(isShown({ to: '2026-11-28T13:01' }, now)).toBe(true);
+    expect(isShown({ to: '2026-11-28T13:00' }, now)).toBe(false); // 13:00 Warsaw = 12:00 UTC: the end is exclusive
+  });
+
+  it('give templates the time left and whether it is over', () => {
+    const now = Date.parse('2026-12-04T19:00:00Z');
+    expect(toTplDate('2026-12-05T21:01', now)).toMatchObject({ past: false, remaining: { d: '01', h: '01', m: '01', s: '00' }, iso: '2026-12-05T20:01:00.000Z' });
+    expect(toTplDate('2026-12-01T00:00', now)).toMatchObject({ past: true, remaining: { d: '00', h: '00', m: '00', s: '00' } });
+  });
+
+  it('render the shared countdown in every template, hidden when over and set to hide', async () => {
+    for (const p of packages.values()) expect(p.sections.has('countdown') && p.sections.has('campaign-banner')).toBe(true);
+    const p = packages.get('VELMIRA')!;
+    const r = new TemplateRenderer(p, '/_t/v/1');
+    const doc = (settings: Record<string, unknown>, schedule?: object) => ({ order: ['cd'], sections: { cd: { type: 'countdown', settings, ...(schedule ? { schedule } : {}) } } });
+    const ctx = { pkg: p, api: fakeApi([]), store, pageType: 'index' as const, page: {}, cart: toCart(null), head: '', footer: '' };
+    const future = (await r.renderDoc(ctx, doc({ target: '2099-01-01T00:00', heading: 'Drop' }))).get('cd')!;
+    expect(future).toContain('data-shop-countdown="2098-12-31T23:00:00.000Z"');
+    expect(future).toContain('data-unit="d"');
+    const over = await r.renderDoc(ctx, doc({ target: '2020-01-01T00:00', after: 'hide' }));
+    expect(over.get('cd')).not.toContain('shop-cd');
+    const overMessage = (await r.renderDoc(ctx, doc({ target: '2020-01-01T00:00', ended_heading: 'Już jest!' }))).get('cd')!;
+    expect(overMessage).toMatch(/data-shop-countdown-live hidden/);
+    expect(overMessage).toContain('Już jest!');
+    // scheduled for later: not rendered for customers, shown (and labelled) in the editor
+    expect((await r.renderDoc(ctx, doc({ target: '2099-01-01T00:00' }, { from: '2099-01-01T00:00' }))).has('cd')).toBe(false);
+    const editing = (await r.renderDoc({ ...ctx, editing: true }, doc({ target: '2099-01-01T00:00' }, { from: '2099-01-01T00:00' }))).get('cd')!;
+    expect(editing).toContain('data-shop-scheduled="Teraz ukryta · widoczna od 1 stycznia 2099');
   });
 });

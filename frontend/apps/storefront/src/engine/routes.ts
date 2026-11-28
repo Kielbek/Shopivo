@@ -1,5 +1,6 @@
 import express from 'express';
 import { existsSync, readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { TemplateRenderer, escapeHtml, type RenderContext } from './renderer';
 import { parseRichText } from '@shopivo/shared-models';
@@ -7,7 +8,7 @@ import {
   ApiError, StoreApi, type ApiAccountFull, type ApiCustomerOrder, type ApiReturn, type ApiSavedAddress, toCart, toCheckout, toOrder, toProduct, toProductDetail, type ApiAddress, type ApiCard, type ApiCheckoutOptions,
   type ApiEntry, type ApiPage, type ApiPostCard, type ApiProduct, type ApiStore, type RequestInfo,
 } from './store-data';
-import { loadAll, type PageDoc, type PageType, type TemplatePackage } from './template-package';
+import { loadAll, loadShared, type PageDoc, type PageType, type TemplatePackage } from './template-package';
 
 /**
  * Storefront pages of stores whose template is a template package (templates/<name>/): rendered on the server from the
@@ -100,6 +101,13 @@ export function templateEngine(apiOrigin: string) {
   for (const p of packages.values()) renderers.set(p.code, new TemplateRenderer(p, `/_t/${p.code.toLowerCase()}/${p.version}`));
   const runtime: Record<string, string> = {};
   const router = express.Router();
+  // Styles of the shared sections (countdown, campaign banner); a template blends them in through --shop-* variables
+  const sharedCss = loadShared().css;
+  const sharedCssUrl = `/_shop/shared.css?v=${createHash('sha256').update(sharedCss).digest('hex').slice(0, 10)}`;
+  router.get('/_shop/shared.css', (_req, res) => {
+    res.type('text/css').setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.send(sharedCss);
+  });
 
   // Template files: versioned URLs, cached for a year. Only files inside the package's assets/ are reachable.
   for (const p of packages.values()) {
@@ -348,6 +356,7 @@ export function templateEngine(apiOrigin: string) {
       `<link rel="canonical" href="${escapeHtml(canonical)}">`,
       `<meta property="og:title" content="${escapeHtml(full)}"><meta property="og:type" content="website"><meta property="og:url" content="${escapeHtml(canonical)}">`,
       noindex ? '<meta name="robots" content="noindex, nofollow">' : '',
+      `<link rel="stylesheet" href="${sharedCssUrl}">`,
       `<link rel="stylesheet" href="${base}/styles.css">`,
       extra,
     ].filter(Boolean).join('\n');

@@ -93,7 +93,9 @@
 
   function nameOf(el) {
     const section = el.closest('[data-shop-section]');
-    return names[section?.dataset.shopSectionType] || 'Sekcja';
+    const name = names[section?.dataset.shopSectionType] || 'Sekcja';
+    // A section with "show from–to": the label says when customers see it
+    return section?.dataset.shopScheduled ? `${name} · ${section.dataset.shopScheduled}` : name;
   }
 
   function button(label, icon, action) {

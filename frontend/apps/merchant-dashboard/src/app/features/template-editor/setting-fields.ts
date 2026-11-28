@@ -67,6 +67,11 @@ const SOURCES: { value: string; label: string }[] = [
                   <div class="flex items-center gap-2"><input [id]="fid" type="color" class="h-9 w-12 rounded-[8px] border border-line" [value]="v || '#000000'" (input)="emit(s, $any($event.target).value)" />
                     <span class="font-mono text-[12px] text-ink-soft">{{ v }}</span></div>
                 }
+                @case ('datetime') {
+                  <div class="flex items-center gap-2"><input [id]="fid" type="datetime-local" class="sv-input" [value]="v ?? ''" (change)="emit(s, $any($event.target).value)" />
+                    @if (v) {<button type="button" class="text-[12px] text-ink-soft hover:underline" (click)="emit(s, '')">Wyczyść</button>}</div>
+                  <p class="mt-1 text-[11px] text-ink-muted">Czas polski.</p>
+                }
                 @case ('point') {
                   @let pt = $any(v);
                   @if (s.defaultValue === null) {

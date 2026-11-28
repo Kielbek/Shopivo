@@ -1,0 +1,84 @@
+/*
+ * Shared sections (countdown, campaign banner). They take the template's look from --shop-* variables that a template
+ * may set in its own stylesheet (loaded after this one):
+ *   --shop-ink, --shop-bg, --shop-muted, --shop-accent, --shop-on-accent, --shop-radius, --shop-font, --shop-heading-font,
+ *   --shop-max (content width), --shop-gutter (side padding)
+ */
+.shop-cd,.shop-campaign{--_ink:var(--shop-ink,#1d1d1b);--_bg:var(--shop-bg,#fff);--_muted:var(--shop-muted,#6b6b66);--_accent:var(--shop-accent,#1d1d1b);
+  --_on-accent:var(--shop-on-accent,#fff);--_radius:var(--shop-radius,18px);font-family:var(--shop-font,inherit);box-sizing:border-box}
+.shop-cd *,.shop-campaign *{box-sizing:border-box}
+.shop-eyebrow{margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;opacity:.8}
+.shop-h2{margin:0 0 12px;font-family:var(--shop-heading-font,inherit);font-size:clamp(28px,3.6vw,48px);font-weight:600;line-height:1.05;letter-spacing:-.03em}
+.shop-text{margin:0 0 20px;font-size:15px;line-height:1.6;opacity:.85;max-width:52ch}
+.shop-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:46px;padding:12px 26px;border-radius:999px;
+  background:var(--_btn-bg);color:var(--_btn-ink);font-size:14px;font-weight:700;text-decoration:none;transition:transform .2s,opacity .2s}
+.shop-btn:hover{transform:translateY(-1px);opacity:.9}
+.shop-btn:focus-visible,.shop-campaign__btn:focus-visible,.shop-cd__product:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+/* Countdown */
+.shop-cd{width:min(100% - 2 * var(--shop-gutter,24px),var(--shop-max,1320px));margin:clamp(24px,4vw,56px) auto;border-radius:var(--_radius);overflow:hidden}
+.shop-scheme--dark{background:#141413;color:#fff;--_btn-bg:#fff;--_btn-ink:#141413;--_unit-bg:#ffffff14}
+.shop-scheme--light{background:var(--_bg);color:var(--_ink);border:1px solid #0000001a;--_btn-bg:var(--_accent);--_btn-ink:var(--_on-accent);--_unit-bg:#0000000a}
+.shop-scheme--accent{background:var(--_accent);color:var(--_on-accent);--_btn-bg:var(--_on-accent);--_btn-ink:var(--_accent);--_unit-bg:#ffffff26}
+.shop-cd__inner{display:grid;gap:clamp(20px,4vw,56px);align-items:center;padding:clamp(28px,5vw,64px)}
+.shop-cd--media .shop-cd__inner{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}
+.shop-cd__timer{display:flex;align-items:flex-start;gap:clamp(6px,1.2vw,14px);margin:8px 0 10px}
+.shop-cd__unit{display:grid;justify-items:center;gap:4px;min-width:clamp(58px,7vw,88px);padding:12px 8px;border-radius:calc(var(--_radius) * .6);background:var(--_unit-bg)}
+.shop-cd__unit b{font-size:clamp(28px,4vw,52px);font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.shop-cd__unit small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.shop-cd__sep{align-self:center;font-size:clamp(20px,3vw,36px);font-weight:700;opacity:.5}
+.shop-cd__date{margin:0 0 22px;font-size:13px;opacity:.75}
+.shop-cd__image{display:block;width:100%;height:100%;max-height:420px;object-fit:cover;border-radius:calc(var(--_radius) * .8)}
+.shop-cd__product{display:grid;gap:6px;justify-items:center;text-align:center;color:inherit;text-decoration:none;padding:16px;border-radius:calc(var(--_radius) * .8);background:var(--_unit-bg)}
+.shop-cd__product img{display:block;width:100%;max-width:340px;aspect-ratio:1;object-fit:contain;border-radius:calc(var(--_radius) * .6);background:#fff}
+.shop-cd__product-name{font-weight:700}
+.shop-cd__product-price{opacity:.85}
+@media(max-width:760px){.shop-cd--media .shop-cd__inner{grid-template-columns:1fr}.shop-cd__unit{min-width:0;flex:1}.shop-cd__sep{display:none}}
+/* Campaign banner */
+.shop-campaign--black_week{--_c-bg:#0b0b0b;--_c-ink:#fff;--_c-accent:#ffd400;--_c-on-accent:#0b0b0b}
+.shop-campaign--sale{--_c-bg:#d7262e;--_c-ink:#fff;--_c-accent:#fff;--_c-on-accent:#d7262e}
+.shop-campaign--template{--_c-bg:var(--_accent);--_c-ink:var(--_on-accent);--_c-accent:var(--_on-accent);--_c-on-accent:var(--_accent)}
+.shop-campaign--custom{--_c-bg:var(--shop-c-bg);--_c-ink:var(--shop-c-ink);--_c-accent:var(--shop-c-accent);--_c-on-accent:var(--shop-c-bg)}
+.shop-campaign{background:var(--_c-bg);color:var(--_c-ink)}
+.shop-campaign__label{display:inline-block;padding:6px 12px;border-radius:999px;background:var(--_c-accent);color:var(--_c-on-accent);font-size:12px;font-weight:800;letter-spacing:.14em;white-space:nowrap}
+.shop-campaign__heading{margin:0;font-family:var(--shop-heading-font,inherit);font-weight:800;letter-spacing:-.03em;line-height:1.05}
+.shop-campaign__text{margin:6px 0 0;opacity:.85;line-height:1.5}
+.shop-campaign__badge{font-size:clamp(28px,4vw,56px);font-weight:900;line-height:1;color:var(--_c-accent);letter-spacing:-.04em;white-space:nowrap}
+.shop-campaign__btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:11px 24px;border-radius:999px;background:var(--_c-accent);color:var(--_c-on-accent);font-weight:800;font-size:14px;text-decoration:none;white-space:nowrap}
+.shop-campaign__btn:hover{opacity:.9}
+.shop-campaign__ends{display:inline-flex;align-items:center;gap:6px;font-size:12px}
+.shop-campaign__ends>span:first-child{opacity:.8;margin-right:4px}
+.shop-campaign__ends .shop-cd__unit{min-width:0;padding:4px 6px;background:#ffffff1f;border-radius:8px;gap:0}
+.shop-campaign__ends .shop-cd__unit b{font-size:15px}
+.shop-campaign__ends .shop-cd__unit small{font-size:9px}
+.shop-campaign__ends .shop-cd__sep{font-size:14px}
+/* strip */
+.shop-campaign--strip .shop-campaign__inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 18px;padding:10px var(--shop-gutter,24px);text-align:center}
+.shop-campaign--strip .shop-campaign__heading{font-size:15px;font-weight:700;letter-spacing:0}
+.shop-campaign--strip .shop-campaign__text{display:none}
+.shop-campaign--strip .shop-campaign__badge{font-size:18px}
+.shop-campaign--strip .shop-campaign__btn{min-height:34px;padding:7px 16px;font-size:13px}
+/* block */
+.shop-campaign--block{width:min(100% - 2 * var(--shop-gutter,24px),var(--shop-max,1320px));margin:clamp(24px,4vw,56px) auto;border-radius:var(--_radius);overflow:hidden}
+.shop-campaign--block .shop-campaign__inner{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"label badge" "copy badge" "ends badge" "btn badge";
+  justify-items:start;align-items:center;column-gap:clamp(20px,4vw,60px);row-gap:16px;padding:clamp(26px,4.5vw,60px)}
+.shop-campaign--block .shop-campaign__label{grid-area:label}
+.shop-campaign--block .shop-campaign__copy{grid-area:copy}
+.shop-campaign--block .shop-campaign__ends{grid-area:ends}
+.shop-campaign--block .shop-campaign__btn{grid-area:btn}
+.shop-campaign--block .shop-campaign__badge{grid-area:badge;align-self:center;font-size:clamp(44px,7vw,110px)}
+.shop-campaign--block .shop-campaign__heading{font-size:clamp(28px,4vw,54px)}
+.shop-campaign__products{list-style:none;margin:0;padding:0 clamp(26px,4.5vw,60px) clamp(26px,4.5vw,60px);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.shop-campaign__products a{display:grid;gap:6px;height:100%;padding:10px;border-radius:calc(var(--_radius) * .7);background:#ffffff12;color:inherit;text-decoration:none}
+.shop-campaign__products img{display:block;width:100%;aspect-ratio:1;object-fit:contain;border-radius:calc(var(--_radius) * .5);background:#fff}
+.shop-campaign__pname{font-size:14px;font-weight:700;line-height:1.3}
+.shop-campaign__price{font-size:15px;font-weight:800;color:var(--_c-accent)}
+.shop-campaign__price del{font-size:12px;font-weight:400;color:var(--_c-ink);opacity:.7}
+.shop-campaign__omnibus{font-size:10px;line-height:1.35;opacity:.75}
+@media(max-width:900px){.shop-campaign--block .shop-campaign__inner{grid-template-columns:1fr;grid-template-areas:"label" "copy" "badge" "ends" "btn"}
+  .shop-campaign--block .shop-campaign__badge{font-size:clamp(40px,12vw,64px)}
+  .shop-campaign__products{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.shop-cd__copy,.shop-campaign__copy{min-width:0}
+/* Text colour comes from the section's scheme, whatever a template sets for paragraphs and headings */
+.shop-cd .shop-text,.shop-cd .shop-cd__date,.shop-cd .shop-eyebrow,.shop-cd .shop-h2,.shop-campaign .shop-campaign__text,.shop-campaign .shop-campaign__heading,
+.shop-campaign p,.shop-cd p{color:inherit}
+@media(max-width:760px){.shop-cd__product img{max-width:240px}}

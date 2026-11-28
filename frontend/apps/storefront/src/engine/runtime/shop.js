@@ -858,6 +858,32 @@
       .catch(() => show('invalid'));
   });
 
+  // Countdowns (shared sections): tick every second; at zero show the "after" message or remove the section
+  const editingPreview = !!document.getElementById('shop-editor-config');
+  function tickCountdowns() {
+    const now = Date.now();
+    document.querySelectorAll('[data-shop-countdown]').forEach((el) => {
+      const end = Date.parse(el.dataset.shopCountdown);
+      if (Number.isNaN(end)) return;
+      const left = Math.max(0, Math.floor((end - now) / 1000));
+      const two = (n) => String(n).padStart(2, '0');
+      const parts = { d: Math.floor(left / 86400), h: Math.floor(left / 3600) % 24, m: Math.floor(left / 60) % 60, s: left % 60 };
+      el.querySelectorAll('[data-unit]').forEach((u) => { u.textContent = two(parts[u.dataset.unit]); });
+      if (left > 0 || el.dataset.shopCountdownDone) return;
+      el.dataset.shopCountdownDone = '1';
+      if (el.dataset.after === 'hide') {
+        if (!editingPreview) el.hidden = true;
+        return;
+      }
+      el.querySelectorAll('[data-shop-countdown-live]').forEach((x) => { x.hidden = true; });
+      el.querySelectorAll('[data-shop-countdown-ended]').forEach((x) => { x.hidden = false; });
+    });
+  }
+  if (document.querySelector('[data-shop-countdown]') || editingPreview) {
+    tickCountdowns();
+    setInterval(tickCountdowns, 1000);
+  }
+
   // ------------------------------------------------------------------------------------------- start
 
   syncFavButtons();

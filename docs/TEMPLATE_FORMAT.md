@@ -60,6 +60,7 @@ Sklep korzysta z silnika v2, gdy kod jego szablonu (`theme.code`) odpowiada kodo
 | `url` | `/ścieżka`, `#kotwica`, `https://…`, `mailto:`, `tel:`, `legal:PRIVACY` (strona prawna sklepu) | `{{ x | link }}` |
 | `image` | `asset:plik.webp` (grafika szablonu) albo id zdjęcia z biblioteki sklepu | obiekt `{w400, w1200, width, height}`; `| image_url: 'w1200'`, `| image_srcset` |
 | `select`, `number`, `checkbox`, `color` | wartość z listy / liczba w `min..max` / tak-nie / `#rrggbb` | wartość |
+| `datetime` | `"2026-12-05T20:00"` — czas polski (Europe/Warsaw, z czasem letnim) albo pusty | obiekt `{value, iso (UTC), past, label ("5 grudnia 2026 20:00"), remaining: {d, h, m, s}}` albo `nil` |
 | `point` | `{x, y}` — położenie w % szerokości i wysokości obrazu (0,1 %); z `"default": null` punkt może być pusty | obiekt `{x, y}` albo `nil`; w trybie edycji `{{ block \| pin: 'position', 'position_mobile' }}` pozwala przeciągać punkt w podglądzie (obszar: `data-shop-pin-area`, opcjonalnie `data-shop-pin-media` dla położenia na telefonie; zmienne CSS `--x --y --xm --ym`) |
 | `product` | slug produktu (pusty = brak) | produkt z `price`, `compare_at`, `url`… albo `nil` |
 | `product_list` | `{source, category?, count}`; źródła: `newest`, `bestsellers`, `sale`, `last_pieces`, `top_rated`, `back_in_stock`, `category` | `{items: [produkt…], url}` |
@@ -138,6 +139,29 @@ Skrypt szablonu (`assets/template.js`) zawiera tylko zachowania z projektu, np. 
   W tym trybie silnik nie czyta koszyka, konta, zamówień, dokumentu sklepu ani stron sklepu, a skrypt sklepu odrzuca każdą zmianę (POST).
   Na dole strony jest pasek „Podgląd szablonu · Zamknij”; strona ma `no-store` i `noindex`.
 - SEO: `<title>`, `canonical`, `og:*`, a na stronie produktu JSON-LD `Product`.
+
+## Sekcje wspólne (`templates/_shared/`)
+
+Sekcje z `_shared/sections` są w każdym szablonie, na każdej stronie oraz w nagłówku i stopce:
+- **„Odliczanie do dropu” (`countdown`):**
+  - data końca;
+  - opcjonalny produkt dropu (zdjęcie, nazwa, cena);
+  - po końcu: komunikat albo ukrycie;
+  - kolorystyka ciemna, jasna albo akcent.
+- **„Baner kampanii” (`campaign-banner`):**
+  - style: Black Week, wyprzedaż, kolory szablonu, własne;
+  - układy: duży blok albo wąski pasek;
+  - opcjonalne wyróżnienie rabatu;
+  - opcjonalny koniec kampanii z odliczaniem — po nim baner znika sam;
+  - opcjonalne produkty w promocji, z ceną Omnibus.
+
+Szablon dopasowuje je zmiennymi `--shop-ink --shop-bg --shop-muted --shop-accent --shop-on-accent --shop-radius --shop-font --shop-heading-font --shop-max --shop-gutter`. Własny plik `sections/<typ>.liquid` w szablonie zastępuje wspólny. Styl wspólny: `_shared/shared.css` (`/_shop/shared.css?v=…`, przed CSS szablonu). Odliczanie aktualizuje skrypt sklepu (`data-shop-countdown`, `data-after`).
+
+**Kodów rabatowych baner nie pokazuje:** sklep jeszcze ich nie obsługuje przy zamówieniu.
+
+## Harmonogram sekcji („Pokazuj od–do”)
+
+Każda sekcja (poza stronami głównymi `main-…`) może mieć w dokumencie `schedule: {from?, to?}` — czas polski `YYYY-MM-DDTHH:mm`, `to` wyłącznie. Poza tym oknem silnik nie renderuje sekcji dla klientów. W edytorze sekcja jest widoczna z opisem terminu (`data-shop-scheduled`), a na liście ma ikonę zegara. Backend sprawdza format i to, że koniec jest po początku.
 
 ## Podgląd w galerii panelu
 

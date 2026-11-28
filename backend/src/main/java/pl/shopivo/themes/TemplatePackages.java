@@ -41,7 +41,8 @@ public class TemplatePackages {
     public record Block(String type, String name, List<Setting> settings) {
     }
 
-    public record Section(String type, String name, List<Setting> settings, List<Block> blocks, Integer maxBlocks) {
+    /** {@code shared}: from templates/_shared — offered by every template, on pages and in the header and footer. */
+    public record Section(String type, String name, List<Setting> settings, List<Block> blocks, Integer maxBlocks, boolean shared) {
         /** Page sections ("main-…") belong to their page: they cannot be added, duplicated or removed in the editor. */
         public boolean main() {
             return type.startsWith("main-");
@@ -56,11 +57,17 @@ public class TemplatePackages {
 
     TemplatePackages(JsonMapper json) {
         var resolver = new PathMatchingResourcePatternResolver();
+        Map<String, Section> shared = Map.of();
+        try {
+            shared = sections(json, resolver, "classpath*:templates/_shared/", true);
+        } catch (RuntimeException | IOException e) {
+            log.error("Shared template sections skipped: {}", e.getMessage());
+        }
         try {
             for (Resource manifest : resolver.getResources("classpath*:templates/*/template.json")) {
                 String base = manifest.getURL().toString().replaceFirst("template\\.json$", "");
                 try {
-                    Package p = load(json, resolver, base, read(manifest));
+                    Package p = load(json, resolver, base, read(manifest), shared);
                     packages.put(p.code(), p);
                 } catch (RuntimeException | IOException e) {
                     log.error("Template package {} skipped: {}", base, e.getMessage());
@@ -77,9 +84,21 @@ public class TemplatePackages {
         }
     }
 
-    private static Package load(JsonMapper json, PathMatchingResourcePatternResolver resolver, String base, String manifestText) throws IOException {
+    private static Package load(JsonMapper json, PathMatchingResourcePatternResolver resolver, String base, String manifestText,
+            Map<String, Section> shared) throws IOException {
         JsonNode manifest = json.readTree(manifestText);
         String code = manifest.get("code").asString();
+        Map<String, Section> sections = new LinkedHashMap<>(sections(json, resolver, base, false));
+        // A template may restyle a shared section by shipping one of the same name
+        shared.forEach(sections::putIfAbsent);
+        Map<String, JsonNode> defaults = new LinkedHashMap<>();
+        for (String page : PAGES) defaults.put(page, json.readTree(read(resolver.getResource(base + manifest.path("pages").path(page).asString()))));
+        for (String group : GROUPS) defaults.put(group, json.readTree(read(resolver.getResource(base + manifest.path("groups").path(group).asString()))));
+        return new Package(code, manifest.path("name").asString(code), manifest.path("version").asString(""), Map.copyOf(sections), defaults);
+    }
+
+    private static Map<String, Section> sections(JsonMapper json, PathMatchingResourcePatternResolver resolver, String base, boolean shared)
+            throws IOException {
         Map<String, Section> sections = new LinkedHashMap<>();
         for (Resource r : resolver.getResources(base + "sections/*.liquid")) {
             String file = r.getFilename();
@@ -90,12 +109,9 @@ public class TemplatePackages {
             List<Block> blocks = new ArrayList<>();
             for (JsonNode b : s.path("blocks")) blocks.add(new Block(b.get("type").asString(), b.path("name").asString(""), settings(b.path("settings"))));
             sections.put(type, new Section(type, s.path("name").asString(type), settings(s.path("settings")), blocks,
-                    s.has("max_blocks") ? s.get("max_blocks").asInt() : null));
+                    s.has("max_blocks") ? s.get("max_blocks").asInt() : null, shared));
         }
-        Map<String, JsonNode> defaults = new LinkedHashMap<>();
-        for (String page : PAGES) defaults.put(page, json.readTree(read(resolver.getResource(base + manifest.path("pages").path(page).asString()))));
-        for (String group : GROUPS) defaults.put(group, json.readTree(read(resolver.getResource(base + manifest.path("groups").path(group).asString()))));
-        return new Package(code, manifest.path("name").asString(code), manifest.path("version").asString(""), Map.copyOf(sections), defaults);
+        return sections;
     }
 
     private static List<Setting> settings(JsonNode list) {

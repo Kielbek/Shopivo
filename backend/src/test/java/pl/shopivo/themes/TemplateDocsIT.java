@@ -152,6 +152,43 @@ class TemplateDocsIT extends IntegrationTest {
                 .isEqualTo("INVALID_TEMPLATE_DOC");
     }
 
+    private static final tools.jackson.databind.json.JsonMapper MAPPER = tools.jackson.databind.json.JsonMapper.builder().build();
+
+    /** Shared sections (countdown, campaign banner) in every template, also in the header; "show from–to" per section. */
+    @Test
+    void sharedSectionsAndSchedules() throws Exception {
+        ApiClient owner = registeredUser(uniqueEmail("kampania"));
+        String t = createStore(owner, "Kampania", uniqueSlug("kampania"));
+        var theme = owner.get(base(t) + "/theme").json();
+        owner.put(base(t) + "/theme", Map.of("code", "VELMIRA", "settings", Map.of(), "version", theme.get("state").get("version").asLong()));
+        var tpl = owner.get(base(t) + "/template").json();
+        assertThat(tpl.get("sections").get("countdown").get("shared").asBoolean()).isTrue();
+        assertThat(tpl.get("sections").get("campaign-banner").get("shared").asBoolean()).isTrue();
+        assertThat(tpl.get("sections").get("hero-slider").get("shared").asBoolean()).isFalse();
+
+        var header = tpl.get("defaults").get("header");
+        java.util.function.BiFunction<Object, Object, Map<String, Object>> doc = (schedule, target) -> {
+            Map<String, Object> strip = new java.util.HashMap<>(Map.of("type", "campaign-banner", "settings", Map.of("layout", "strip", "ends", target)));
+            if (schedule != null) strip.put("schedule", schedule);
+            Map<String, Object> sections = new java.util.LinkedHashMap<>();
+            header.get("sections").properties().forEach(e -> sections.put(e.getKey(), MAPPER.convertValue(e.getValue(), Map.class)));
+            sections.put("bw", strip);
+            List<String> order = new java.util.ArrayList<>(List.of("bw"));
+            header.get("order").forEach(n -> order.add(n.asString()));
+            return Map.of("groups", Map.of("header", Map.of("sections", sections, "order", order)));
+        };
+        var saved = owner.put(base(t) + "/template/draft", Map.of("doc", doc.apply(Map.of("from", "2026-11-27T00:00", "to", "2026-12-01T23:59"), "2026-12-01T23:59"), "version", -1));
+        assertThat(saved.status()).isEqualTo(200);
+        var bw = saved.json().get("draft").get("groups").get("header").get("sections").get("bw");
+        assertThat(bw.get("schedule").get("from").asString()).isEqualTo("2026-11-27T00:00");
+        assertThat(bw.get("settings").get("ends").asString()).isEqualTo("2026-12-01T23:59");
+        long v = saved.json().get("version").asLong();
+        for (Object bad : List.of(Map.of("from", "2026-12-02T00:00", "to", "2026-12-01T00:00"), Map.of("from", "jutro"), Map.of("od", "2026-12-01T00:00"))) {
+            assertThat(owner.put(base(t) + "/template/draft", Map.of("doc", doc.apply(bad, ""), "version", v)).code()).as(bad.toString()).isEqualTo("INVALID_TEMPLATE_DOC");
+        }
+        assertThat(owner.put(base(t) + "/template/draft", Map.of("doc", doc.apply(null, "2026-13-40T99:00"), "version", v)).code()).isEqualTo("INVALID_TEMPLATE_DOC");
+    }
+
     @Test
     void templatesOfTheOldEngineHaveNoDocument() throws Exception {
         ApiClient owner = registeredUser(uniqueEmail("vera"));

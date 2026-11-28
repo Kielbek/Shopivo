@@ -14,7 +14,7 @@ import { StoreContext } from '../store/store-context';
 import { ImagePickerComponent } from '../theme-editor/image-picker';
 import { CategoryOption, LinkOption, SettingFieldsComponent } from './setting-fields';
 import {
-  Docs, History, Target, add, addBlock, canAddBlock, duplicate, duplicateBlock, fullDocs, isFixed, move, moveBlock, newSection,
+  Docs, History, Target, add, addBlock, canAddBlock, duplicate, duplicateBlock, fullDocs, isFixed, move, moveBlock, newSection, scheduleState, setSchedule,
   ownKeys, remove, removeBlock, setSetting, step, stepBlock, storeDoc, toggleBlockHidden, toggleHidden,
 } from './template-doc';
 
@@ -126,6 +126,11 @@ type SaveStatus = 'saved' | 'pending' | 'saving' | 'error';
                       (dragstart)="drag = { group: g, id }" (dragover)="dragOver($event, g, i)" (drop)="dropSection($event, g, i)" (dragend)="drag = null; dropAt.set(null)">
                       <span class="cursor-grab px-1 text-ink-muted" [class.invisible]="isFixed(s.type)" aria-hidden="true">⋮⋮</span>
                       <button type="button" class="min-w-0 flex-1 truncate py-2 text-left font-medium" (click)="select({ group: g, section: id })">{{ schema?.name ?? s.type }}</button>
+                      @if (scheduleState(s.schedule); as st) {
+                        <span class="grid size-6 place-items-center rounded" [class]="st === 'live' ? 'text-primary-strong' : 'text-ink-muted'"
+                          [title]="st === 'upcoming' ? 'Zaplanowana — jeszcze niewidoczna' : st === 'ended' ? 'Czas wyświetlania minął' : 'Widoczna w zaplanowanym czasie'"
+                          [attr.aria-label]="st === 'upcoming' ? 'Zaplanowana' : st === 'ended' ? 'Czas wyświetlania minął' : 'Wyświetlana wg harmonogramu'"><svg [lucideIcon]="icons.schedule" [size]="13" /></span>
+                      }
                       @if (!isFixed(s.type) && canWrite) {
                         <button type="button" class="hidden size-7 place-items-center rounded text-ink-muted hover:text-ink group-hover:grid" [attr.aria-label]="(s.disabled ? 'Pokaż: ' : 'Ukryj: ') + schema?.name" (click)="act('hide', { group: g, section: id })">
                           <svg [lucideIcon]="s.disabled ? icons.eyeOff : icons.eye" [size]="14" /></button>
@@ -151,7 +156,9 @@ type SaveStatus = 'saved' | 'pending' | 'saving' | 'error';
                 }
               </ul>
               @if (g === 'page' && canWrite) {
-                <button type="button" class="mt-2 w-full rounded-[8px] border border-dashed border-line px-3 py-2 text-[13px] font-semibold text-primary-strong hover:bg-hover" (click)="adding.set(true)">+ Dodaj sekcję</button>
+                <button type="button" class="mt-2 w-full rounded-[8px] border border-dashed border-line px-3 py-2 text-[13px] font-semibold text-primary-strong hover:bg-hover" (click)="addTo.set('page'); adding.set(true)">+ Dodaj sekcję</button>
+              } @else if (canWrite && hasShared()) {
+                <button type="button" class="mt-1 w-full rounded-[8px] px-3 py-1.5 text-left text-[12px] font-semibold text-primary-strong hover:bg-hover" (click)="addTo.set(g); adding.set(true)">+ {{ g === 'header' ? 'Dodaj do nagłówka (np. pasek kampanii)' : 'Dodaj do stopki' }}</button>
               }
               @if (g !== 'footer') {<hr class="my-2 border-line" />}
             }
@@ -186,6 +193,19 @@ type SaveStatus = 'saved' | 'pending' | 'saving' | 'error';
                 <button sv-button variant="secondary" size="sm" (click)="act('hide')">{{ x.hidden ? 'Pokaż' : 'Ukryj' }}</button>
                 <button sv-button variant="ghost" size="sm" class="text-danger-ink" (click)="act('remove')">Usuń</button>
               </div>
+            }
+            @if (canWrite && !x.block && !x.fixed) {
+              @let sc = x.schedule ?? {};
+              <details class="mb-4 rounded-[10px] border border-line" [open]="!!x.schedule">
+                <summary class="flex cursor-pointer items-center gap-2 px-3 py-2 text-[13px] font-semibold text-ink"><svg [lucideIcon]="icons.schedule" [size]="14" />Pokazuj od–do
+                  @if (scheduleState(x.schedule); as st) {<span class="ml-auto text-[11px] font-normal" [class]="st === 'live' ? 'text-primary-strong' : 'text-ink-muted'">{{ st === 'upcoming' ? 'zaplanowana' : st === 'ended' ? 'zakończona' : 'widoczna' }}</span>}</summary>
+                <div class="space-y-2 border-t border-line p-3 text-[12px] text-ink-soft">
+                  <label class="block">Od<input type="datetime-local" class="sv-input mt-1" [value]="sc.from ?? ''" (change)="changeSchedule({ ...sc, from: $any($event.target).value })" /></label>
+                  <label class="block">Do<input type="datetime-local" class="sv-input mt-1" [value]="sc.to ?? ''" [attr.min]="sc.from || null" (change)="changeSchedule({ ...sc, to: $any($event.target).value })" /></label>
+                  <p class="text-[11px] text-ink-muted">Czas polski. Poza tym czasem klienci nie widzą sekcji; w edytorze zostaje widoczna z opisem terminu. Puste pole = bez ograniczenia.</p>
+                  @if (x.schedule) {<button type="button" class="text-[12px] font-semibold text-ink-soft hover:underline" (click)="changeSchedule(null)">Pokazuj zawsze</button>}
+                </div>
+              </details>
             }
             @if (x.settings.length) {
               <sv-setting-fields [settings]="x.settings" [values]="x.values" [idPrefix]="x.key" [links]="linkOptions()" [categories]="categoryOptions()" [products]="productOptions()"
@@ -287,7 +307,12 @@ export class TemplateEditorPage {
 
   protected readonly schemas = computed<Record<string, TemplateSectionSchema>>(() => this.tpl()?.sections ?? {});
   protected readonly pageLabel = computed(() => PAGES.find((p) => p.id === this.page())?.label ?? '');
-  protected readonly addable = computed(() => Object.values(this.schemas()).filter((s) => !isFixed(s.type)).sort((a, b) => a.name.localeCompare(b.name, 'pl')));
+  /** Where "Dodaj sekcję" adds: the page, or (shared sections only) the header or footer. */
+  protected readonly addTo = signal<string>('page');
+  protected readonly addable = computed(() => Object.values(this.schemas())
+    .filter((s) => !isFixed(s.type) && (this.addTo() === 'page' || s.shared)).sort((a, b) => a.name.localeCompare(b.name, 'pl')));
+  protected readonly hasShared = computed(() => Object.values(this.schemas()).some((s) => s.shared));
+  protected readonly scheduleState = scheduleState;
   protected readonly deviceWidth = computed(() => DEVICES.find((d) => d.id === this.device())!.width);
   protected readonly scale = computed(() => Math.min(1, (this.stageSize().width - 24) / this.deviceWidth()));
   protected readonly frameHeight = computed(() => (this.stageSize().height - 24) / this.scale());
@@ -335,10 +360,10 @@ export class TemplateEditorPage {
       const bs = schema?.blocks.find((x) => x.type === b?.type);
       if (!b || !bs) return null;
       return { title: this.blockLabel(schema, b), sectionName: schema?.name ?? '', block: true, fixed: false, hidden: !!b.disabled,
-        settings: bs.settings, values: b.settings, key: `${s.section}-${s.block}` };
+        settings: bs.settings, values: b.settings, key: `${s.section}-${s.block}`, schedule: undefined };
     }
     return { title: schema?.name ?? section.type, sectionName: '', block: false, fixed: isFixed(section.type), hidden: !!section.disabled,
-      settings: schema?.settings ?? [], values: section.settings, key: s.section };
+      settings: schema?.settings ?? [], values: section.settings, key: s.section, schedule: section.schedule };
   });
 
   protected readonly categoryOptions = computed<CategoryOption[]>(() =>
@@ -522,11 +547,22 @@ export class TemplateEditorPage {
   protected addSection(type: string): void {
     const t = this.tpl();
     if (!t) return;
-    const after = this.sel()?.group === 'page' ? this.sel()!.section : null;
-    const r = add(this.docs()[this.page()], newSection(type, t.defaults), after);
-    this.change('page', r.doc);
+    const group = this.addTo();
+    const after = this.sel()?.group === group ? this.sel()!.section : null;
+    const r = add(this.docs()[this.keyOf(group)], newSection(type, t.defaults), after);
+    this.change(group, r.doc);
     this.adding.set(false);
-    this.select({ group: 'page', section: r.id });
+    this.select({ group, section: r.id });
+  }
+
+  protected changeSchedule(schedule: { from?: string; to?: string } | null): void {
+    const s = this.sel();
+    if (!s || s.block) return;
+    if (schedule?.from && schedule.to && schedule.to <= schedule.from) {
+      this.toast.error('Koniec wyświetlania musi być po początku.');
+      return;
+    }
+    this.change(s.group, setSchedule(this.docs()[this.keyOf(s.group)], s.section, schedule));
   }
 
   protected addBlockTo(group: string, section: string, type: string): void {
