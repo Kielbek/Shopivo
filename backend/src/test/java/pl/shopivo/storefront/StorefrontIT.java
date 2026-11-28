@@ -108,7 +108,9 @@ class StorefrontIT extends IntegrationTest {
         String url400 = image.json().get("urls").get("w400").asString();
         var served = mvc.perform(get(url400)).andReturn().getResponse();
         assertThat(served.getStatus()).isEqualTo(200);
-        assertThat(served.getContentType()).isEqualTo("image/jpeg");
+        // The test picture is half transparent: it keeps its transparency (PNG variants), see ImageProcessorTest
+        assertThat(url400).endsWith("/w400.png");
+        assertThat(served.getContentType()).isEqualTo("image/png");
         assertThat(served.getHeader("Cache-Control")).contains("max-age=31536000").contains("immutable");
         BufferedImage variant = ImageIO.read(new java.io.ByteArrayInputStream(served.getContentAsByteArray()));
         assertThat(variant.getWidth()).isEqualTo(400);
