@@ -2,14 +2,15 @@
 
 Szablon to katalog `templates/<nazwa>/` z HTML-em i CSS-em projektanta podzielonym na sekcje. Silnik w serwerze witryny (`frontend/apps/storefront/src/engine/`) składa z nich strony na serwerze. Wygląd jest 1:1 z projektem, bo to ten sam kod. Dane sklepu (produkty, kategorie, koszyk) i to, co sprzedawca może edytować, są oznaczone w szablonie.
 
-Stan: **etap 2 (w toku)**. Przez silnik v2 idą strony:
-- główna, katalog, kategoria i wyszukiwanie;
-- produkt, koszyk i ulubione;
-- zamówienie (`/zamowienie`) i potwierdzenie;
-- strony informacyjne (`/strona/…`) i blog;
-- 404.
+Stan: **etap 2 zakończony**. Sklepy na szablonie v2 mają w wyglądzie szablonu każdą stronę:
+- główną, katalog, kategorię, wyszukiwanie, produkt, koszyk, ulubione;
+- zamówienie i potwierdzenie;
+- strony informacyjne i blog;
+- logowanie, rejestrację, potwierdzenie konta, reset hasła;
+- konto (zamówienia, zwroty, opinie, adresy, ustawienia) i zamówienie w koncie ze zgłoszeniem zwrotu;
+- potwierdzenie newslettera z maila i 404 (także dla nieznanych adresów).
 
-Konto klienta nadal obsługuje aplikacja Angular. Edytor dla v2 to etap 3.
+Przed 404 serwer sprawdza przekierowania 301 sklepu. W aplikacji Angular zostaje tylko `/opinia` (opinia z zaproszenia e-mail). Edytor dla v2 to etap 3.
 
 ## Struktura pakietu
 
@@ -21,7 +22,8 @@ templates/bawiloo/
   sections/*.liquid    sekcje: HTML + {% schema %} z ustawieniami do edycji
   snippets/*.liquid    fragmenty wielokrotnego użytku ({% render 'product-card', product: p %})
   pages/*.json         domyślny układ każdej strony: index, catalog, product, cart, favorites, not_found,
-                       checkout, order, page (strona/wpis), blog — każdy szablon ma własny wygląd każdej z nich
+                       checkout, order, page (strona/wpis), blog, auth (logowanie, rejestracja, potwierdzenie,
+                       reset hasła), account, account_order, newsletter — każdy szablon ma własny wygląd każdej z nich
   groups/*.json        nagłówek i stopka (wspólne dla wszystkich stron)
   assets/              grafiki, fonty, skrypt szablonu (template.js)
 ```
@@ -77,6 +79,12 @@ Zapisana wartość, która nie pasuje do schematu (np. po zmianie szablonu), jes
 - **potwierdzenie:** `order` (`number`, `items`, `total`, `paid`, `awaiting_online`, `bank_transfer`, `pickup_point`…) albo nic, gdy brak ciasteczka zamówienia.
 - **strona i wpis:** `entry` (`kind`, `title`, `blocks` — treść jako dane: nagłówki, akapity, listy, linki; snippet `rich-text` ją rysuje).
 - **blog:** `blog` (`posts`, `page`, `total_pages`, `prev_url`, `next_url`).
+- **logowanie i spółka:** `auth` (`view`: `login`, `register`, `verify`, `reset_request`, `reset`; `captcha_site_key`). Zalogowany klient na logowaniu lub rejestracji trafia do `/konto`.
+- **konto:** `account` (`tab`, `tabs`, `orders`, `returns`, `reviews`, `addresses`, dane klienta). Gość trafia do logowania z `?powrot=`.
+- **zamówienie w koncie:** `account_order` (pozycje, sumy, adres, `awaiting_online`, `return_kinds`, `items[].returnable` i `choices`).
+- **newsletter:** `newsletter.action` (`confirm` lub `unsubscribe`).
+
+Strony konta renderuje serwer: ciasteczko sesji klienta (HttpOnly) trafia tylko do zapytań `/account/…`, razem z nagłówkiem `X-Requested-With` (ochrona CSRF API).
 - `page_type`: `index`, `catalog`, `product`, `cart`, `favorites`, `not_found`.
 
 Filtry: `money` (`{{ p.price | money: p.currency }}` daje „17,99 zł”), `lines`, `link`, `asset_url`, `image_url`, `image_srcset`, `edit`, `block_attrs` oraz standardowe filtry Liquid.
@@ -104,6 +112,10 @@ Skrypt platformy (`engine/runtime/shop.js`, adres `/_shop/runtime.js`) podpina s
 | `[data-shop-toggle=x]` + `[data-shop-when=x]` | pokazuje część formularza po zaznaczeniu pola (np. faktura) |
 | `[data-shop-captcha="klucz"]` | Cloudflare Turnstile, gdy sklep ma włączone zabezpieczenie (zamówienie, newsletter) |
 | `[data-shop-order]` (`data-wait`), `[data-shop-order-pay]` | potwierdzenie: czeka na płatność online, ponowna płatność |
+| `form[data-shop-form="akcja"]` + `[data-shop-error]`, `[data-shop-status]`, `[data-shop-done]` | formularze konta; akcje: `login`, `register`, `verify`, `reset-request`, `reset`, `profile`, `password`, `delete-account`, `address`, `address-delete`, `review`, `return`, `logout`, `order-pay`. Nazwy pól jak w API. Szablon wybiera tylko akcję, adres zapytania zna skrypt. |
+| `[data-shop-needs-link-token]` (+ `[data-shop-link-missing]`) | strony z linku e-mail: token z `#t=` jest zabierany z paska adresu i używany przez formularz |
+| `[data-shop-address-edit='{json}']`, `[data-shop-hide-form]` | otwiera formularz adresu (wypełniony lub pusty) i go zamyka |
+| `[data-shop-newsletter-link="confirm|unsubscribe"]` + `[data-state]` | potwierdza zapis albo wypisuje z newslettera od razu po wejściu |
 
 Koszyk i ulubione:
 - Token koszyka jest w ciasteczku `shopivo_cart`, a ulubione w `shopivo_fav`. Dzięki temu serwer sam rysuje stronę koszyka i ulubionych.

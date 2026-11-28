@@ -119,7 +119,21 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - walidacja zaznacza 7 pól;
   - faktura, polityka prywatności, blog, telefon bez przewijania w bok;
   - 0 błędów konsoli.
-- **Zostaje w Angularze (etap 2c):** konto klienta (logowanie, rejestracja, zamówienia, adresy, zwroty).
+- **Konto klienta w wyglądzie szablonu:**
+  - logowanie z powrotem pod `?powrot=`, rejestracja (regulamin, captcha), potwierdzenie z maila (token z `#t=` znika z adresu), reset hasła;
+  - konto z zakładkami: zamówienia, zwroty i reklamacje, opinie z gwiazdkami, adresy (dodaj, edytuj, usuń), ustawienia (dane, hasło, usunięcie konta);
+  - zamówienie w koncie: ponowna płatność online, numer przesyłki, zgłoszenie zwrotu lub reklamacji z wyborem ilości.
+- **Newsletter z maila:** potwierdzenie i wypisanie.
+- **404 w wyglądzie szablonu** także dla nieznanych adresów; przed 404 sprawdzane są przekierowania 301 sklepu.
+- **Poprawki:** skrypt i serwer wysyłają nagłówek `X-Requested-With`, który API wymaga przy koncie i newsletterze. Wcześniej zapis do newslettera z nowych stron byłby odrzucany.
+- **E2E konta:**
+  - gość trafia do logowania; rejestracja bez regulaminu jest blokowana; po rejestracji przychodzi mail z linkiem potwierdzającym;
+  - dodawanie i edycja adresu, zapis danych;
+  - zamówienie wypełnione z konta jest widoczne w koncie (nr 1003, 29,98 zł) i na stronie zamówienia;
+  - wylogowanie, błędne hasło, powrót po zalogowaniu na `/konto?zakladka=adresy`;
+  - reset hasła, newsletter bez tokenu, przekierowanie 301 i 404;
+  - 0 błędów konsoli.
+- **W Angularze zostaje tylko `/opinia`** (opinia z zaproszenia e-mail).
 
 ## Silnik szablonów v2 — etap 1 (2026-11-28)
 

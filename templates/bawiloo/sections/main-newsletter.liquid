@@ -1,0 +1,11 @@
+<div class="narrow-2xl mx-auto text-center" data-shop-newsletter-link="{{ newsletter.action }}">
+<div data-state="working"><p class="text-black/60" role="status">Przetwarzanie…</p></div>
+<div data-state="confirmed" hidden>{% render 'page-title', text: 'Zapis potwierdzony' %}<p class="text-black/65">Dziękujemy! Będziesz otrzymywać nowości i promocje. Wypisać się możesz w każdej chwili linkiem z wiadomości.</p></div>
+<div data-state="unsubscribed" hidden>{% render 'page-title', text: 'Wypisano z newslettera' %}<p class="text-black/65">Nie będziemy już wysyłać Ci informacji handlowych. Jeśli to pomyłka, możesz zapisać się ponownie na stronie głównej.</p></div>
+<div data-state="invalid" hidden>{% render 'page-title', text: 'Link nie działa' %}<p class="text-black/65">Link wygasł albo został już użyty. Zapisz się ponownie — wyślemy nową wiadomość.</p></div>
+<a href="/" class="mt-8 inline-block rounded-full bg-[#f8bf73] px-5 py-3 text-sm font-extrabold text-[#151513]">Przejdź do sklepu</a>
+</div>
+
+{% schema %}
+{ "name": "Newsletter — potwierdzenie", "settings": [] }
+{% endschema %}

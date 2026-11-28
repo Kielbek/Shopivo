@@ -1,0 +1,75 @@
+{%- assign field = 'store-field w-full rounded-xl border border-[#e7ddd0] bg-white px-4 py-3 text-[#382319]' -%}
+{%- assign gold = 'rounded-full bg-[#f8bf73] px-5 py-3 text-sm font-extrabold text-[#151513] transition hover:bg-[#ffe0a6]' -%}
+{%- assign card = 'grid gap-5 rounded-3xl border border-[#ecdfd0] bg-[#fffaf4] p-6' -%}
+<div class="mx-auto max-w-md">
+{%- case auth.view %}
+{%- when 'login' %}
+{% render 'page-title', text: section.settings.login_title %}
+<p class="mb-6 text-black/60">Konto pozwala śledzić zamówienia, zapisać adresy i oceniać kupione produkty.</p>
+<form class="{{ card }}" data-shop-form="login">
+<label class="grid gap-2">E-mail<input name="email" type="email" required autocomplete="email" class="{{ field }}"></label>
+<label class="grid gap-2">Hasło<input name="password" type="password" required autocomplete="current-password" class="{{ field }}"></label>
+<p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p>
+<button class="{{ gold }}" type="submit" data-busy-label="Logowanie…">Zaloguj się</button>
+<a href="/konto/reset" class="text-center text-sm underline">Nie pamiętasz hasła?</a>
+<a href="/produkty" class="text-center text-sm text-black/65">Kontynuuj jako gość</a>
+</form>
+<p class="mt-6 text-center text-sm text-black/65">Nie masz konta? <a href="/konto/rejestracja" class="font-bold underline">Załóż konto</a></p>
+{%- when 'register' %}
+{% render 'page-title', text: 'Załóż konto' %}
+<form class="{{ card }}" data-shop-form="register">
+<div class="checkout-grid">
+<label class="grid gap-2">Imię<input name="firstName" autocomplete="given-name" maxlength="100" class="{{ field }}"></label>
+<label class="grid gap-2">Nazwisko<input name="lastName" autocomplete="family-name" maxlength="100" class="{{ field }}"></label>
+</div>
+<label class="grid gap-2">E-mail<input name="email" type="email" required autocomplete="email" class="{{ field }}"></label>
+<label class="grid gap-2">Hasło<input name="password" type="password" required minlength="10" autocomplete="new-password" class="{{ field }}" aria-describedby="pass-hint"><span id="pass-hint" class="text-xs text-black/60">Co najmniej 10 znaków. Najlepiej kilka słów.</span></label>
+<label class="flex cursor-pointer items-start gap-2 text-xs leading-relaxed"><input type="checkbox" name="termsAccepted" class="mt-0.5 size-4 shrink-0 accent-[#151513]"><span>Akceptuję <a class="font-bold underline" href="{{ 'legal:TERMS' | link }}" target="_blank" rel="noopener">regulamin sklepu</a>.</span></label>
+{%- if auth.captcha_site_key %}<div data-shop-captcha="{{ auth.captcha_site_key }}"></div>{% endif %}
+<p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p>
+<button class="{{ gold }}" type="submit" data-busy-label="Zakładanie konta…">Załóż konto</button>
+</form>
+<div class="{{ card }}" role="status" tabindex="-1" hidden data-shop-done><p class="font-extrabold">Sprawdź skrzynkę e-mail</p><p class="text-black/65">Wysłaliśmy link do potwierdzenia konta. Po kliknięciu podasz hasło ustawione przed chwilą.</p></div>
+<p class="mt-6 text-center text-sm text-black/65">Masz już konto? <a href="/konto/logowanie" class="font-bold underline">Zaloguj się</a></p>
+{%- when 'verify' %}
+{% render 'page-title', text: 'Potwierdź konto' %}
+<div data-shop-needs-link-token>
+<p class="mb-6 text-black/60">Dla bezpieczeństwa wpisz hasło ustawione przy zakładaniu konta.</p>
+<form class="{{ card }}" data-shop-form="verify">
+<label class="grid gap-2">Hasło<input name="password" type="password" required autocomplete="current-password" class="{{ field }}"></label>
+<p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p>
+<button class="{{ gold }}" type="submit" data-busy-label="Potwierdzanie…">Potwierdź i zaloguj</button>
+</form>
+<p class="{{ card }}" hidden data-shop-link-missing>Link jest niepełny. Otwórz go ponownie z wiadomości e-mail.</p>
+<p class="mt-6 text-sm text-black/60">Nie zakładałeś(-aś) konta? Zamknij tę stronę — bez hasła konto nie zostanie aktywowane.</p>
+</div>
+{%- when 'reset_request' %}
+{% render 'page-title', text: 'Nie pamiętasz hasła?' %}
+<form class="{{ card }}" data-shop-form="reset-request">
+<label class="grid gap-2">E-mail<input name="email" type="email" required autocomplete="email" class="{{ field }}"></label>
+{%- if auth.captcha_site_key %}<div data-shop-captcha="{{ auth.captcha_site_key }}"></div>{% endif %}
+<p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p>
+<button class="{{ gold }}" type="submit" data-busy-label="Wysyłanie…">Wyślij link</button>
+</form>
+<p class="{{ card }}" role="status" tabindex="-1" hidden data-shop-done>Jeśli konto z tym adresem istnieje, wysłaliśmy na nie link do ustawienia nowego hasła (ważny 1 godzinę).</p>
+<p class="mt-6 text-center text-sm"><a href="/konto/logowanie" class="underline">Wróć do logowania</a></p>
+{%- when 'reset' %}
+{% render 'page-title', text: 'Ustaw nowe hasło' %}
+<div data-shop-needs-link-token>
+<form class="{{ card }}" data-shop-form="reset">
+<label class="grid gap-2">Nowe hasło<input name="password" type="password" required minlength="10" autocomplete="new-password" class="{{ field }}"></label>
+<p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p>
+<button class="{{ gold }}" type="submit" data-busy-label="Zapisywanie…">Zapisz hasło</button>
+</form>
+<div class="{{ card }}" role="status" tabindex="-1" hidden data-shop-done><p>Hasło zostało zmienione. Wylogowaliśmy Cię ze wszystkich urządzeń.</p><a href="/konto/logowanie" class="{{ gold }} text-center">Zaloguj się</a></div>
+<p class="{{ card }}" hidden data-shop-link-missing>Link jest niepełny. <a href="/konto/reset" class="font-bold underline">Poproś o nowy</a>.</p>
+</div>
+{%- endcase %}
+</div>
+
+{% schema %}
+{
+  "name": "Logowanie i konto",
+  "settings": [ { "id": "login_title", "type": "text", "label": "Tytuł logowania", "default": "Witaj ponownie", "max": 40 } ]
+}
+{% endschema %}

@@ -30,6 +30,10 @@
     "checkout": "pages/checkout.json",
     "order": "pages/order.json",
     "page": "pages/page.json",
-    "blog": "pages/blog.json"
+    "blog": "pages/blog.json",
+    "auth": "pages/auth.json",
+    "account": "pages/account.json",
+    "account_order": "pages/account_order.json",
+    "newsletter": "pages/newsletter.json"
   }
 }

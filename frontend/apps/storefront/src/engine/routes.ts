@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { TemplateRenderer, escapeHtml, type RenderContext } from './renderer';
 import { parseRichText } from '@shopivo/shared-models';
 import {
-  ApiError, StoreApi, toCart, toCheckout, toOrder, toProduct, toProductDetail, type ApiAddress, type ApiCard, type ApiCheckoutOptions,
+  ApiError, StoreApi, type ApiAccountFull, type ApiCustomerOrder, type ApiReturn, type ApiSavedAddress, toCart, toCheckout, toOrder, toProduct, toProductDetail, type ApiAddress, type ApiCard, type ApiCheckoutOptions,
   type ApiEntry, type ApiPage, type ApiPostCard, type ApiProduct, type ApiStore, type RequestInfo,
 } from './store-data';
 import { loadAll, type PageType, type TemplatePackage } from './template-package';
@@ -38,7 +38,23 @@ export function cookie(header: string | undefined, name: string): string | null 
   return null;
 }
 
-interface Route { type: PageType; slug?: string; post?: boolean; }
+interface Route { type: PageType; slug?: string; post?: boolean; view?: string; number?: number; }
+
+/** Account pages: path → view of the "auth" page (sign-in forms; signed-in customers go to /konto). */
+const AUTH_VIEWS: Record<string, string> = {
+  '/konto/logowanie': 'login', '/konto/rejestracja': 'register', '/konto/potwierdz': 'verify', '/konto/reset': 'reset_request',
+  '/konto/nowe-haslo': 'reset',
+};
+/** Paths the Angular storefront still serves for template stores. */
+const ANGULAR_ONLY = new Set(['/opinia']);
+const ACCOUNT_TABS = ['zamowienia', 'zwroty', 'opinie', 'adresy', 'ustawienia'];
+const ORDER_STATUS: Record<string, string> = {
+  NEW: 'Przyjęte', PROCESSING: 'W realizacji', SHIPPED: 'Wysłane', COMPLETED: 'Zrealizowane', CANCELED: 'Anulowane',
+};
+const PAYMENT_STATUS: Record<string, string> = { UNPAID: 'Nieopłacone', PAID: 'Opłacone', REFUNDED: 'Zwrócone' };
+const RETURN_STATUS: Record<string, string> = { REQUESTED: 'Oczekuje', ACCEPTED: 'Przyjęte', REJECTED: 'Odrzucone', COMPLETED: 'Zakończone' };
+const DATE = new Intl.DateTimeFormat('pl-PL', { day: 'numeric', month: 'long', year: 'numeric' });
+const date = (iso: string | null) => (iso ? DATE.format(new Date(iso)) : '');
 
 /** Paths this engine renders; null = not ours (Angular handles it). */
 export function routeOf(path: string): Route | null {
@@ -49,6 +65,11 @@ export function routeOf(path: string): Route | null {
   if (path === '/zamowienie') return { type: 'checkout' };
   if (path === '/zamowienie/potwierdzenie') return { type: 'order' };
   if (path === '/blog') return { type: 'blog' };
+  if (AUTH_VIEWS[path]) return { type: 'auth', view: AUTH_VIEWS[path] };
+  if (path === '/konto') return { type: 'account' };
+  if (path === '/newsletter') return { type: 'newsletter' };
+  const order = /^\/konto\/zamowienia\/(\d{1,9})$/.exec(path);
+  if (order) return { type: 'account_order', number: Number(order[1]) };
   const m = /^\/(kategoria|produkt|strona|blog)\/([^/]+)$/.exec(path);
   if (m) {
     const slug = decodeURIComponent(m[2]);
@@ -101,8 +122,79 @@ export function templateEngine(apiOrigin: string) {
     return renderer ? { store, renderer } : null;
   }
 
-  async function pageData(api: StoreApi, store: ApiStore, route: Route, req: express.Request, t: Target): Promise<{ type: PageType; data: Record<string, unknown>; title: string; status: number }> {
+  type PageResult = { type: PageType; data: Record<string, unknown>; title: string; status: number; redirect?: string };
+
+  /** Signed-out visitors go to the sign-in page and come back here afterwards. */
+  const toLogin = (t: Target): PageResult => ({
+    type: 'auth', data: {}, title: '', status: 302, redirect: '/konto/logowanie?powrot=' + encodeURIComponent(t.path + (t.query['zakladka'] ? `?zakladka=${t.query['zakladka']}` : '')),
+  });
+
+  async function pageData(api: StoreApi, store: ApiStore, route: Route, req: express.Request, t: Target): Promise<PageResult> {
     switch (route.type) {
+      case 'auth': {
+        if (route.view === 'login' || route.view === 'register') {
+          if (await api.account()) return { type: 'auth', data: {}, title: '', status: 302, redirect: '/konto' };
+        }
+        const titles: Record<string, string> = { login: 'Logowanie', register: 'Załóż konto', verify: 'Potwierdź konto', reset_request: 'Nie pamiętasz hasła?', reset: 'Ustaw nowe hasło' };
+        return { type: 'auth', status: 200, title: titles[route.view!], data: { auth: { view: route.view, captcha_site_key: store.captchaSiteKey ?? null } } };
+      }
+      case 'account': {
+        const account = await api.get<ApiAccountFull>('/account/me').catch(() => null);
+        if (!account) return toLogin(t);
+        const tab = typeof t.query['zakladka'] === 'string' && ACCOUNT_TABS.includes(t.query['zakladka']) ? t.query['zakladka'] : 'zamowienia';
+        const [orders, reviews, returns, addresses] = await Promise.all([
+          tab === 'zamowienia' ? api.optional<ApiCustomerOrder[]>('/account/orders', []) : Promise.resolve([]),
+          api.optional<{ orderNumber: number; productId: string; name: string }[]>('/account/reviews/pending', []),
+          tab === 'zwroty' ? api.optional<ApiReturn[]>('/account/returns', []) : Promise.resolve([]),
+          tab === 'adresy' ? api.optional<ApiSavedAddress[]>('/account/addresses', []) : Promise.resolve([]),
+        ]);
+        return {
+          type: 'account', status: 200, title: 'Moje konto', data: {
+            account: {
+              tab, email: account.email, first_name: account.firstName, last_name: account.lastName, phone: account.phone ?? '',
+              tabs: [['zamowienia', 'Zamówienia'], ['zwroty', 'Zwroty i reklamacje'], ['opinie', 'Do oceny'], ['adresy', 'Adresy'], ['ustawienia', 'Ustawienia']]
+                .map(([id, label]) => ({ id, label: id === 'opinie' && reviews.length ? `${label} (${reviews.length})` : label, url: id === 'zamowienia' ? '/konto' : `/konto?zakladka=${id}`, current: id === tab })),
+              orders: orders.map((o) => ({ number: o.number, url: `/konto/zamowienia/${o.number}`, date: date(o.createdAt), status: ORDER_STATUS[o.status] ?? o.status,
+                payment: PAYMENT_STATUS[o.paymentStatus] ?? o.paymentStatus, total: o.totalMinor, currency: o.currency })),
+              reviews: reviews.map((r) => ({ order_number: r.orderNumber, product_id: r.productId, name: r.name })),
+              returns: returns.map((r) => ({ number: r.number, kind: r.kind === 'WITHDRAWAL' ? 'Zwrot' : 'Reklamacja', order_number: r.orderNumber,
+                order_url: `/konto/zamowienia/${r.orderNumber}`, date: date(r.createdAt), status: RETURN_STATUS[r.status] ?? r.status, status_code: r.status,
+                merchant_note: r.merchantNote, items: r.items.map((i) => `${i.quantity} × ${i.name}`).join(', ') })),
+              addresses: addresses.map((a) => ({ id: a.id, name: a.name, company: a.company, line1: a.line1, line2: a.line2, postal_code: a.postalCode,
+                city: a.city, phone: a.phone, is_default: a.isDefault })),
+            },
+          },
+        };
+      }
+      case 'account_order': {
+        if (!(await api.account())) return toLogin(t);
+        let o: ApiCustomerOrder;
+        try {
+          o = await api.get<ApiCustomerOrder>(`/account/orders/${route.number}`);
+        } catch (e) {
+          if (e instanceof ApiError && (e.status === 404 || e.status === 400)) return { type: 'not_found', data: {}, title: 'Nie znaleziono zamówienia', status: 404 };
+          throw e;
+        }
+        const options = await api.optional<{ kinds: string[]; returnable: Record<string, number> }>(`/account/orders/${o.number}/return-options`, { kinds: [], returnable: {} });
+        return {
+          type: 'account_order', status: 200, title: `Zamówienie nr ${o.number}`, data: {
+            account_order: {
+              number: o.number, date: date(o.createdAt), status: ORDER_STATUS[o.status] ?? o.status, status_code: o.status,
+              payment: PAYMENT_STATUS[o.paymentStatus] ?? o.paymentStatus, awaiting_online: o.paymentMethod === 'ONLINE' && o.paymentStatus === 'UNPAID' && o.status !== 'CANCELED',
+              tracking: o.trackingNumber, currency: o.currency, subtotal: o.subtotalMinor, shipping: o.shippingMinor, shipping_method: o.shippingMethodName,
+              payment_fee: o.paymentFeeMinor, total: o.totalMinor,
+              address: o.shippingAddress ? { name: o.shippingAddress.name, line1: o.shippingAddress.line1, line2: o.shippingAddress.line2,
+                postal_code: o.shippingAddress.postalCode, city: o.shippingAddress.city } : null,
+              items: o.items.map((i) => ({ id: i.id, name: i.name, variant_title: i.variantTitle, quantity: i.quantity, line_total: i.lineTotalMinor,
+                returnable: options.returnable[i.id] ?? 0, choices: Array.from({ length: (options.returnable[i.id] ?? 0) + 1 }, (_, n) => n) })),
+              return_kinds: options.kinds, can_return: options.kinds.length > 0 && Object.values(options.returnable).some((n) => n > 0),
+              withdrawal: options.kinds.includes('WITHDRAWAL'),
+            },
+          },
+        };
+      }
+      case 'newsletter':
+        return { type: 'newsletter', status: 200, title: 'Newsletter', data: { newsletter: { action: t.query['wypisz'] === '1' ? 'unsubscribe' : 'confirm' } } };
       case 'catalog': {
         const query = t.query;
         const q = typeof query['q'] === 'string' ? query['q'].trim().slice(0, 100) : '';
@@ -251,13 +343,26 @@ export function templateEngine(apiOrigin: string) {
 
   // Pages
   router.get('/{*path}', (req, res, next) => {
-    const route = routeOf(req.path);
+    // Unknown paths of a template store get the template's 404 page; files (Angular bundles, images) and the pages still
+    // served by the Angular app (/opinia — review invitations) go on.
+    const route = routeOf(req.path) ?? (/\.[a-z0-9]{1,8}$/i.test(req.path) || req.path.startsWith('/api/') || ANGULAR_ONLY.has(req.path)
+      ? null : { type: 'not_found' as PageType });
     if (!route) return next();
     void (async () => {
       try {
         const c = await context(req, route);
         if (!c) return next();
         const { ctx, renderer, page, info } = c;
+        // Before a 404: a redirect the merchant set up (or created automatically when a URL changed)
+        if (page.status === 404) {
+          const r = await ctx.api.optional<{ location?: string } | null>(`/redirect?path=${encodeURIComponent(req.path)}`, null);
+          const location = r?.location;
+          if (typeof location === 'string' && /^\/(?!\/)/.test(location) && !location.includes('\\')) return res.redirect(301, location);
+        }
+        if (page.redirect) {
+          res.setHeader('Cache-Control', 'private, no-store');
+          return res.redirect(302, page.redirect);
+        }
         let ld = '';
         if (page.type === 'product') {
           const p = page.data['product'] as ReturnType<typeof toProductDetail>;
@@ -271,7 +376,7 @@ export function templateEngine(apiOrigin: string) {
           ld += `\n<meta name="description" content="${escapeHtml(desc)}">`;
         }
         const noindex = !!info.preview || page.status === 404 || (page.type === 'catalog' && !!req.query['q'])
-          || page.type === 'checkout' || page.type === 'order' || page.type === 'cart' || page.type === 'favorites';
+          || ['checkout', 'order', 'cart', 'favorites', 'auth', 'account', 'account_order', 'newsletter'].includes(page.type);
         if (page.type === 'page') {
           const e = page.data['entry'] as { seo_description: string | null; excerpt: string | null };
           const desc = e.seo_description || e.excerpt;

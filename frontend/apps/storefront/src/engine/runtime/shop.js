@@ -75,7 +75,8 @@
   // ------------------------------------------------------------------------------------------- API
 
   async function api(method, path, body, token, extra) {
-    const headers = { Accept: 'application/json', ...(extra || {}) };
+    // X-Requested-With: the API's CSRF check for account and newsletter requests (a cross-site form cannot set it)
+    const headers = { Accept: 'application/json', 'X-Requested-With': 'shopivo', ...(extra || {}) };
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (token) headers['X-Cart-Token'] = token;
     if (preview) headers['X-Store-Preview'] = preview;
@@ -534,7 +535,7 @@
     busy(button, true);
     say('');
     try {
-      const headers = { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Cart-Token': token };
+      const headers = { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Cart-Token': token, 'X-Requested-With': 'shopivo' };
       if (captcha) headers['X-Captcha-Token'] = captcha;
       if (preview) headers['X-Store-Preview'] = preview;
       const res = await fetch(API + '/checkout', { method: 'POST', headers, body: JSON.stringify(body) });
@@ -625,6 +626,188 @@
         busy(button, false);
       }
     });
+  });
+
+
+  // ------------------------------------------------------------------------------------------- account forms
+
+  /** One-time secret from an e-mail link (#t=… or ?t=…), removed from the address bar at once. */
+  function takeLinkToken() {
+    const url = new URL(location.href);
+    const token = new URLSearchParams(url.hash.replace(/^#/, '')).get('t') || url.searchParams.get('t');
+    if (token) {
+      url.searchParams.delete('t');
+      history.replaceState(history.state, '', url.pathname + url.search);
+    }
+    return token && /^[A-Za-z0-9_-]{20,100}$/.test(token) ? token : null;
+  }
+  const linkToken = document.querySelector('[data-shop-needs-link-token]') ? takeLinkToken() : null;
+  document.querySelectorAll('[data-shop-needs-link-token]').forEach((el) => {
+    const missing = el.querySelector('[data-shop-link-missing]');
+    const form = el.querySelector('form');
+    if (!linkToken) {
+      if (form) form.hidden = true;
+      if (missing) missing.hidden = false;
+    }
+  });
+
+  /** A store-relative path from ?powrot= (no open redirects). */
+  function backPath(fallback) {
+    const p = new URLSearchParams(location.search).get('powrot');
+    return p && /^\/(?![/\\])/.test(p) ? p : fallback;
+  }
+
+  const ACCOUNT = '/account';
+  /**
+   * Named form actions (the template only says which one): request, and what happens after success —
+   * "done" shows [data-shop-done] instead of the form, "reload" re-renders the page, a path navigates there.
+   */
+  const ACTIONS = {
+    login: (d) => ({ method: 'POST', path: ACCOUNT + '/login', body: { email: d.email.trim(), password: d.password }, then: backPath('/konto') }),
+    register: (d) => ({ method: 'POST', path: ACCOUNT + '/register', captcha: true, then: 'done',
+      body: { email: d.email.trim(), password: d.password, firstName: (d.firstName || '').trim(), lastName: (d.lastName || '').trim(), termsAccepted: !!d.termsAccepted } }),
+    verify: (d) => ({ method: 'POST', path: ACCOUNT + '/verify', body: { token: linkToken, password: d.password }, then: '/konto' }),
+    'reset-request': (d) => ({ method: 'POST', path: ACCOUNT + '/password-reset', captcha: true, body: { email: d.email.trim() }, then: 'done' }),
+    reset: (d) => ({ method: 'POST', path: ACCOUNT + '/password-reset/confirm', body: { token: linkToken, password: d.password }, then: 'done' }),
+    profile: (d) => ({ method: 'PATCH', path: ACCOUNT + '/me', body: { firstName: d.firstName.trim(), lastName: d.lastName.trim(), phone: (d.phone || '').trim() || null },
+      then: 'message', message: 'Zapisano dane.' }),
+    password: (d) => ({ method: 'POST', path: ACCOUNT + '/password', body: { currentPassword: d.currentPassword, newPassword: d.newPassword },
+      then: 'message', message: 'Hasło zostało zmienione.', reset: true }),
+    'delete-account': (d) => ({ method: 'POST', path: ACCOUNT + '/delete', body: { password: d.password }, then: '/',
+      confirm: 'Usunąć konto na stałe? Tej operacji nie można cofnąć.' }),
+    address: (d) => ({ method: d.id ? 'PUT' : 'POST', path: ACCOUNT + '/addresses' + (d.id ? '/' + encodeURIComponent(d.id) : ''), then: 'reload',
+      body: { name: d.name.trim(), company: (d.company || '').trim() || null, line1: d.line1.trim(), line2: (d.line2 || '').trim() || null,
+        postalCode: d.postalCode.trim(), city: d.city.trim(), countryCode: 'PL', phone: (d.phone || '').trim() || null, isDefault: !!d.isDefault } }),
+    'address-delete': (d) => ({ method: 'DELETE', path: ACCOUNT + '/addresses/' + encodeURIComponent(d.id), then: 'reload', confirm: 'Usunąć ten adres?' }),
+    review: (d) => ({ method: 'POST', path: ACCOUNT + '/reviews', then: 'done',
+      body: { orderNumber: Number(d.orderNumber), productId: d.productId, rating: Number(d.rating), body: (d.body || '').trim() || null } }),
+    return: (d, form) => ({ method: 'POST', path: ACCOUNT + `/orders/${Number(d.orderNumber)}/returns`, then: 'done',
+      body: { kind: d.kind, reason: (d.reason || '').trim() || null, refundAccount: (d.refundAccount || '').trim() || null,
+        items: [...form.querySelectorAll('[data-return-item]')].map((s) => ({ orderItemId: s.dataset.returnItem, quantity: Number(s.value) })).filter((i) => i.quantity > 0) } }),
+    logout: () => ({ method: 'POST', path: ACCOUNT + '/logout', then: '/' }),
+    'order-pay': (d) => ({ method: 'POST', path: ACCOUNT + `/orders/${Number(d.orderNumber)}/pay`, then: 'payment' }),
+  };
+
+  /** Checks a form action can be sent; returns the problem in words or null. */
+  function precheck(name, d, form) {
+    if (name === 'register' && !d.termsAccepted) return 'Zaakceptuj regulamin sklepu.';
+    if ((name === 'verify' || name === 'reset') && !linkToken) return 'Link jest niepełny. Otwórz go ponownie z wiadomości e-mail.';
+    if (name === 'review' && !Number(d.rating)) return 'Wybierz ocenę od 1 do 5.';
+    if (name === 'return') {
+      if (![...form.querySelectorAll('[data-return-item]')].some((s) => Number(s.value) > 0)) return 'Wybierz co najmniej jeden produkt.';
+      if (d.kind === 'COMPLAINT' && !(d.reason || '').trim()) return 'Opisz wadę produktu.';
+    }
+    return null;
+  }
+
+  async function submitAction(form) {
+    const name = form.dataset.shopForm;
+    const action = ACTIONS[name];
+    if (!action) return;
+    const error = form.querySelector('[data-shop-error]');
+    const message = form.querySelector('[data-shop-status]');
+    const say = (t, el = error) => { if (el) el.textContent = t || ''; };
+    say('');
+    say('', message);
+    const d = {};
+    for (const el of form.elements) {
+      if (!el.name) continue;
+      if (el.type === 'checkbox') d[el.name] = el.checked;
+      else if (el.type === 'radio') { if (el.checked) d[el.name] = el.value; }
+      else d[el.name] = el.value;
+    }
+    const problem = precheck(name, d, form);
+    if (problem) {
+      say(problem);
+      return;
+    }
+    const req = action(d, form);
+    if (req.confirm && !window.confirm(req.confirm)) return;
+    const extra = {};
+    if (req.captcha) {
+      const token = captchaToken(form);
+      if (token === undefined) {
+        say('Potwierdź, że nie jesteś robotem.');
+        return;
+      }
+      if (token) extra['X-Captcha-Token'] = token;
+    }
+    const button = form.querySelector('[type="submit"]');
+    busy(button, true);
+    try {
+      const result = await api(req.method, req.path, req.body, null, extra);
+      if (req.then === 'done') {
+        const done = form.parentElement.querySelector('[data-shop-done]');
+        if (done) {
+          done.hidden = false;
+          const n = done.querySelector('[data-shop-done-number]');
+          if (n && result && result.number) n.textContent = String(result.number);
+          form.hidden = true;
+          done.focus?.();
+        }
+      } else if (req.then === 'reload') {
+        location.reload();
+        return;
+      } else if (req.then === 'message') {
+        say(req.message, message);
+        if (req.reset) form.reset();
+      } else if (req.then === 'payment') {
+        location.assign(result.redirectUrl);
+        return;
+      } else {
+        location.assign(req.then);
+        return;
+      }
+    } catch (e) {
+      resetCaptcha(form);
+      say(e.message);
+    }
+    busy(button, false);
+  }
+
+  document.addEventListener('submit', (e) => {
+    const form = e.target;
+    if (!(form instanceof HTMLFormElement) || !form.dataset.shopForm) return;
+    e.preventDefault();
+    void submitAction(form);
+  });
+
+  // "Edytuj" opens the address form filled in; "Dodaj adres" opens it empty
+  document.addEventListener('click', (e) => {
+    const t = e.target instanceof Element ? e.target.closest('[data-shop-address-edit]') : null;
+    if (!t) return;
+    const form = document.querySelector('form[data-shop-form="address"]');
+    if (!form) return;
+    form.reset();
+    const data = t.dataset.shopAddressEdit ? JSON.parse(t.dataset.shopAddressEdit) : {};
+    for (const [k, v] of Object.entries(data)) {
+      const el = form.elements[k];
+      if (!el) continue;
+      if (el.type === 'checkbox') el.checked = !!v;
+      else el.value = v ?? '';
+    }
+    const title = form.querySelector('[data-shop-address-title]');
+    if (title) title.textContent = data.id ? 'Edytuj adres' : 'Nowy adres';
+    form.hidden = false;
+    form.querySelector('input:not([type=hidden])')?.focus();
+  });
+  document.addEventListener('click', (e) => {
+    const t = e.target instanceof Element ? e.target.closest('[data-shop-hide-form]') : null;
+    if (t) t.closest('form').hidden = true;
+  });
+
+  // Newsletter link from an e-mail: confirm or unsubscribe at once
+  document.querySelectorAll('[data-shop-newsletter-link]').forEach((box) => {
+    const show = (state) => box.querySelectorAll('[data-state]').forEach((el) => { el.hidden = el.dataset.state !== state; });
+    const token = takeLinkToken();
+    if (!token) {
+      show('invalid');
+      return;
+    }
+    const unsubscribe = box.dataset.shopNewsletterLink === 'unsubscribe';
+    api('POST', unsubscribe ? '/newsletter/unsubscribe' : '/newsletter/confirm', { token })
+      .then(() => show(unsubscribe ? 'unsubscribed' : 'confirmed'))
+      .catch(() => show('invalid'));
   });
 
   // ------------------------------------------------------------------------------------------- start

@@ -30,7 +30,10 @@ export class StoreApi {
       'x-forwarded-for': this.req.ip, ...extra,
     };
     if (this.req.preview) headers['x-store-preview'] = this.req.preview;
-    if (this.req.customer && path.startsWith('/account/')) headers['cookie'] = `shopivo_customer=${this.req.customer}`;
+    if (path.startsWith('/account/')) {
+      headers['x-requested-with'] = 'shopivo'; // the API's CSRF check for account requests
+      if (this.req.customer) headers['cookie'] = `shopivo_customer=${this.req.customer}`;
+    }
     const res = await fetch(this.origin + '/api/v1/storefront' + path, { headers, signal: AbortSignal.timeout(8_000) });
     if (!res.ok) throw new ApiError(res.status, path);
     return (await res.json()) as T;
@@ -74,6 +77,18 @@ export interface ApiStore {
   blog?: boolean;
 }
 export interface ApiAccount { email: string; firstName: string; lastName: string; phone: string | null; }
+export interface ApiAccountFull extends ApiAccount { id: string; emailVerified: boolean; }
+export interface ApiSavedAddress { id: string; name: string; company: string | null; line1: string; line2: string | null; postalCode: string; city: string; phone: string | null; isDefault: boolean; }
+export interface ApiCustomerOrder {
+  number: number; createdAt: string; status: string; paymentStatus: string; paymentMethod: string; totalMinor: number; currency: string;
+  shippingMethodName: string | null; trackingNumber: string | null; subtotalMinor: number; shippingMinor: number; paymentFeeMinor: number;
+  shippingAddress: { name: string; line1: string; line2: string | null; postalCode: string; city: string } | null;
+  items: { id: string; name: string; variantTitle: string | null; quantity: number; lineTotalMinor: number }[];
+}
+export interface ApiReturn {
+  number: number; orderNumber: number; kind: 'WITHDRAWAL' | 'COMPLAINT'; status: string; merchantNote: string | null; createdAt: string;
+  items: { name: string; quantity: number }[];
+}
 export interface ApiAddress { line1: string; line2: string | null; postalCode: string; city: string; isDefault: boolean; }
 export interface ApiCheckoutOptions {
   shippingMethods: { id: string; name: string; description: string | null; type: string; priceMinor: number; freeFromMinor: number | null; requiresPickupPoint: boolean }[];
