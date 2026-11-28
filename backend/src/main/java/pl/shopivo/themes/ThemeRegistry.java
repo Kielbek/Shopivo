@@ -166,11 +166,22 @@ public final class ThemeRegistry {
                 Map.copyOf(d), List.of());
     }
 
+    /** Lullora: bright baby-products template (green and mint); pages defined by {@code templates/lullora}. */
+    private static Preset lullora() {
+        Map<String, String> d = new LinkedHashMap<>(preset("#079B68", "#075D43", "#FFFFFF", "#E1FAF0", "#24352F", "sans", "round", "editorial", "plain", null, null));
+        d.put("headerStyle", "classic");
+        d.put("mobileNav", "drawer");
+        d.put("footerNote", "Małe chwile. Wielka troska.");
+        return new Preset("LULLORA", "Lullora", "Jasny sklep dla rodziców i maluszków: zieleń i mięta, zdjęcie z wycięciami, katalog z filtrem kategorii na stronie głównej.",
+                Map.copyOf(d), List.of());
+    }
+
     /** Button colours are chosen so white text keeps at least 4.5:1 contrast (WCAG AA). */
     public static final List<Preset> PRESETS = List.of(
             vera(),
             bawiloo(),
-            velmira());
+            velmira(),
+            lullora());
 
     public static Optional<Preset> preset(String code) {
         return PRESETS.stream().filter(p -> p.code().equals(code)).findFirst();

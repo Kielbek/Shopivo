@@ -1,0 +1,40 @@
+<section aria-label="{{ section.settings.label }}" class="features">
+<article class="feature blue">
+<span class="feature-tag"{{ section | edit: 'tag1' }}>{{ section.settings.tag1 }}</span>
+<h3{{ section | edit: 'title1' }}>{{ section.settings.title1 }}</h3>
+<div class="feature-foot">
+<p{{ section | edit: 'text1' }}>{{ section.settings.text1 }}</p>
+{%- if section.settings.button_label != blank %}<a class="btn" href="{{ section.settings.button_url | link }}"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>{% endif %}
+</div>
+</article>
+<article class="feature mint">
+<span class="feature-mark">{% render 'icon', name: section.settings.icon2 %}</span>
+<div>
+<span class="feature-tag"{{ section | edit: 'tag2' }}>{{ section.settings.tag2 }}</span>
+<h3{{ section | edit: 'title2' }}>{{ section.settings.title2 }}</h3>
+</div>
+</article>
+<div class="feature photo-slot">
+{%- if section.settings.image %}<img alt="{{ section.settings.image_alt }}" decoding="async" loading="lazy" src="{{ section.settings.image | image_url: 'w1200' }}"{{ section | edit: 'image' }}/>{% endif %}
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Kafelki pod banerem",
+  "settings": [
+    { "id": "label", "type": "text", "label": "Nazwa dla czytników ekranu", "default": "Poznaj nas", "max": 60 },
+    { "id": "tag1", "type": "text", "label": "Kafelek 1 — nadtytuł", "default": "Blisko rodziców", "max": 40 },
+    { "id": "title1", "type": "text", "label": "Kafelek 1 — tytuł", "default": "Wszystko, czego potrzebują małe rączki.", "max": 80 },
+    { "id": "text1", "type": "text", "label": "Kafelek 1 — tekst", "default": "Od kąpieli po zabawę.", "max": 60 },
+    { "id": "button_label", "type": "text", "label": "Kafelek 1 — przycisk", "default": "Poznaj nas ↗", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Kafelek 1 — link", "default": "/#about" },
+    { "id": "icon2", "type": "select", "label": "Kafelek 2 — ikona", "default": "shield", "options": [
+      { "value": "shield", "label": "Tarcza" }, { "value": "heart", "label": "Serce" }, { "value": "truck", "label": "Dostawa" }, { "value": "help", "label": "Pomoc" } ] },
+    { "id": "tag2", "type": "text", "label": "Kafelek 2 — nadtytuł", "default": "Codzienna troska", "max": 40 },
+    { "id": "title2", "type": "text", "label": "Kafelek 2 — tytuł", "default": "Proste wybory. Więcej czasu na bliskość.", "max": 80 },
+    { "id": "image", "type": "image", "label": "Kafelek 3 — zdjęcie", "default": "asset:feature.webp" },
+    { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "Kolorowe akcesoria dla maluszka", "max": 160 }
+  ]
+}
+{% endschema %}

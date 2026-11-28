@@ -1,0 +1,42 @@
+{%- assign crumb = product.breadcrumbs | last -%}
+{%- if crumb -%}{%- assign crumb_url = crumb.slug | prepend: '/kategoria/' -%}{%- else -%}{%- assign crumb_url = '/produkty' -%}{%- endif -%}
+{%- assign crumb_name = crumb.name | default: 'Sklep' -%}
+{% render 'page-head', title: product.name, kicker: section.settings.kicker, crumb: crumb_name, crumb_url: crumb_url %}
+<div id="pageBody">
+<div class="shop-detail">
+<div>{% if product.image %}<img src="{{ product.image | image_url: 'w1200' }}" alt="{{ product.image.alt | default: product.name }}" width="{{ product.image.width }}" height="{{ product.image.height }}" fetchpriority="high">{% else %}<span class="slot-label">{% render 'icon', name: 'image' %}Zdjęcie wkrótce</span>{% endif %}
+{%- if product.images.size > 1 %}<div class="ll-thumbs">{% for img in product.images offset: 1 limit: 4 %}<img src="{{ img | image_url: 'w400' }}" alt="{{ img.alt }}" loading="lazy">{% endfor %}</div>{% endif %}</div>
+<div class="stack">
+<span class="shop-product-label">{{ product.brand | default: shop.name }}{% if product.category_name %} / {{ product.category_name }}{% endif %}</span>
+<h3>{{ product.name }}</h3>
+<div class="bigprice" data-shop-price>{% if product.on_sale %}<del>{{ product.compare_at | money: product.currency }}</del>{% endif %}{% if product.has_range %}od {% endif %}{{ product.price | money: product.currency }}</div>
+{% render 'omnibus', product: product, classes: 'shop-muted' %}
+{%- if product.description != blank %}<p class="details-copy ll-pre">{{ product.description }}</p>{% endif %}
+<form class="stack" data-shop-add-form data-product="{{ product.slug }}">
+{%- if product.variants.size > 1 %}
+<label>Wariant<select class="field" name="variant" required>{% for v in product.variants %}<option value="{{ v.id }}"{% unless v.available %} disabled{% endunless %}>{{ v.title }} — {{ v.price | money: product.currency }}{% unless v.available %} (niedostępny){% endunless %}</option>{% endfor %}</select></label>
+{%- else %}<input type="hidden" name="variant" value="{{ product.variants.first.id }}">{% endif %}
+<div class="buyrow"><input type="number" name="quantity" min="1" max="99" value="1" aria-label="Ilość" required>{% if product.available %}<button class="btn" type="submit">{% render 'icon', name: 'cart' %} Dodaj do koszyka</button>{% else %}<button class="btn" type="button" disabled>Chwilowo niedostępny</button>{% endif %}</div>
+<button class="btn soft wish" type="button" aria-pressed="false" data-shop-fav="{{ product.id }}">{% render 'icon', name: 'heart' %} <span>Dodaj do ulubionych</span></button>
+<p class="shop-feedback" role="status" aria-live="polite" data-shop-status></p>
+</form>
+<details open><summary>O produkcie</summary><p class="shop-muted">{% if product.category_name %}Kategoria: {{ product.category_name }}.{% endif %}{% if product.brand %} Marka: {{ product.brand }}.{% endif %}{% if product.variants.first.sku %} Kod: {{ product.variants.first.sku }}.{% endif %}</p></details>
+{%- if section.settings.shipping_text != blank %}<details><summary>Dostawa i zwroty</summary><p class="shop-muted">{{ section.settings.shipping_text }} <a class="shop-link" href="{{ 'legal:SHIPPING' | link }}">Szczegóły</a></p></details>{% endif %}
+<a class="shop-link" href="/produkty">← Wróć do produktów</a>
+</div>
+</div>
+{%- if related.size > 0 %}
+<section class="related"><h2>{{ section.settings.related_title }}</h2><div class="product-grid">{% for p in related limit: 3 %}{% render 'product-card', product: p %}{% endfor %}</div></section>
+{%- endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Strona produktu",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Kolekcja", "max": 40 },
+    { "id": "shipping_text", "type": "textarea", "label": "Tekst „Dostawa i zwroty”", "default": "Wysyłamy w ciągu 1–2 dni roboczych. Masz 14 dni na zwrot bez podania przyczyny.", "max": 400 },
+    { "id": "related_title", "type": "text", "label": "Tytuł podobnych produktów", "default": "Może Ci się spodobać", "max": 60 }
+  ]
+}
+{% endschema %}

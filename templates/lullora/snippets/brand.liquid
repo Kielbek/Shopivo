@@ -1,0 +1,3 @@
+{%- comment -%} Logo: the leaf icon and the name; the second part of the name in the accent colour. Params: first, second {%- endcomment -%}
+{%- if first == blank and second == blank -%}{%- assign first = shop.name -%}{%- endif -%}
+<svg class="icon" aria-hidden="true"><use href="#i-logo"></use></svg><span>{{ first }}{% if second != blank %}<span>{{ second }}</span>{% endif %}</span>

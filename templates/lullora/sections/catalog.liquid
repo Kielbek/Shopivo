@@ -1,0 +1,41 @@
+{%- comment -%} Home catalogue: categories filter the grid in place (template.js); every list is rendered here. {%- endcomment -%}
+<section class="section catalog-layout" id="{{ section.settings.anchor | default: 'catalog' }}" data-catalog>
+<aside class="catalog-sidebar">
+{%- if section.settings.eyebrow != blank %}<span class="eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</span>{% endif %}
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+<div aria-label="Kategorie produktów" class="filters">
+<button class="filter active" type="button" data-cat="" aria-pressed="true"{{ section | edit: 'all_label' }}>{{ section.settings.all_label }}</button>
+{%- for c in section.settings.categories %}
+<button class="filter" type="button" data-cat="{{ c.slug }}" aria-pressed="false">{{ c.name }}</button>
+{%- endfor %}
+</div>
+</aside>
+<div>
+<div class="product-grid" data-cat-panel="">
+{%- for product in section.settings.products.items %}{% render 'product-card', product: product %}{% else %}<p class="empty">Brak produktów.</p>{% endfor -%}
+</div>
+{%- for c in section.settings.categories %}
+<div class="product-grid" data-cat-panel="{{ c.slug }}" hidden>
+{%- for product in c.items %}{% render 'product-card', product: product %}{% else %}<p class="empty">Brak produktów.</p>{% endfor -%}
+</div>
+{%- endfor %}
+{%- if section.settings.button_label != blank %}
+<div class="catalog-bottom"><a class="btn" href="/produkty" data-cat-more{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a></div>
+{%- endif %}
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Katalog z kategoriami",
+  "settings": [
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "Kategorie", "max": 30 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "Odkryj świat maluszka.", "max": 60 },
+    { "id": "all_label", "type": "text", "label": "Nazwa przycisku wszystkich produktów", "default": "Wszystkie", "max": 20 },
+    { "id": "categories", "type": "category_list", "label": "Kategorie w filtrze", "default": { "mode": "top" }, "products_per_category": 9 },
+    { "id": "products", "type": "product_list", "label": "Produkty bez filtra", "default": { "source": "newest", "count": 6 } },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku pod listą", "default": "Wszystkie produkty ↗", "max": 30 },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "catalog", "max": 30 }
+  ]
+}
+{% endschema %}

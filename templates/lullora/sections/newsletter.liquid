@@ -1,0 +1,28 @@
+<section class="newsletter" id="newsletter">
+<div>
+<span class="eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</span>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+</div>
+<form data-shop-newsletter novalidate>
+<div class="form-row">
+<input aria-label="Adres e-mail" class="field" name="email" placeholder="Twój adres e-mail" required type="email" autocomplete="email" maxlength="254"/>
+<button class="btn" type="submit"{{ section | edit: 'button' }}>{{ section.settings.button }}</button>
+</div>
+<label class="consent"><input name="consent" required type="checkbox"/> <span>Chcę otrzymywać newsletter {{ shop.name }}. Zapoznałem się z <a class="ll-underline" href="{{ 'legal:PRIVACY' | link }}">polityką prywatności</a>.</span></label>
+{%- if shop.captcha_site_key %}<div class="mt-3" data-shop-captcha="{{ shop.captcha_site_key }}"></div>{% endif %}
+<p class="shop-status" role="status" aria-live="polite" data-shop-status></p>
+</form>
+</section>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "settings": [
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "Listy od nas", "max": 30 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "Małe inspiracje, wielkie uśmiechy.", "max": 60 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "Nowości, pomysły i informacje o ofertach prosto do Twojej skrzynki.", "max": 200 },
+    { "id": "button", "type": "text", "label": "Tekst przycisku", "default": "Dołącz ↗", "max": 30 }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,26 @@
+{% render 'page-head', title: section.settings.title, kicker: 'Blog' %}
+<div id="pageBody">
+{%- if blog.posts.size > 0 %}
+<div class="ll-posts">
+{%- for post in blog.posts %}
+<a class="product ll-post" href="{{ post.url }}"><span class="shop-muted">{{ post.published_at | date: '%d.%m.%Y' }}</span><span class="product-name">{{ post.title }}</span>{% if post.excerpt != blank %}<p>{{ post.excerpt }}</p>{% endif %}<span class="shop-link">Czytaj dalej ↗</span></a>
+{%- endfor %}
+</div>
+{%- if blog.total_pages > 1 %}
+<nav class="catalog-bottom ll-pager" aria-label="Strony bloga">
+{%- if blog.prev_url %}<a class="btn soft" href="{{ blog.prev_url }}" rel="prev">← Nowsze</a>{% endif %}
+<span class="shop-muted">Strona {{ blog.page }} z {{ blog.total_pages }}</span>
+{%- if blog.next_url %}<a class="btn soft" href="{{ blog.next_url }}" rel="next">Starsze →</a>{% endif %}
+</nav>
+{%- endif %}
+{%- else %}
+{% render 'empty', icon: 'help', text: 'Wkrótce pojawią się tu pierwsze wpisy.', link: '/', label: 'Wróć do sklepu ↗' %}
+{%- endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Lista wpisów bloga",
+  "settings": [ { "id": "title", "type": "text", "label": "Tytuł", "default": "Blog", "max": 40 } ]
+}
+{% endschema %}

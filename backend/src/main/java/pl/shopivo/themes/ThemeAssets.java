@@ -83,7 +83,21 @@ public final class ThemeAssets {
             asset("velmira", "cat-nawilzenie", "Kategoria — nawilżanie"),
             asset("velmira", "cat-oczyszczanie", "Kategoria — oczyszczanie"),
             asset("velmira", "cat-glow", "Kategoria — glow"),
-            asset("velmira", "cat-zestawy", "Kategoria — zestawy"));
+            asset("velmira", "cat-zestawy", "Kategoria — zestawy"),
+            asset("lullora", "p-balm", "Produkt — balsam"),
+            asset("lullora", "p-cream", "Produkt — krem"),
+            asset("lullora", "p-shampoo", "Produkt — szampon"),
+            asset("lullora", "p-wipes", "Produkt — chusteczki"),
+            asset("lullora", "p-oil", "Produkt — olejek"),
+            asset("lullora", "p-lotion", "Produkt — mleczko"),
+            asset("lullora", "p-bunny", "Produkt — króliczek"),
+            asset("lullora", "p-teether", "Produkt — gryzak"),
+            asset("lullora", "p-bowl", "Produkt — miseczka"),
+            // Gallery previews of v2 templates: screenshots of the template's demo (computer and phone)
+            asset("velmira", "preview", "Podgląd szablonu — komputer"),
+            asset("velmira", "preview-phone", "Podgląd szablonu — telefon"),
+            asset("lullora", "preview", "Podgląd szablonu — komputer"),
+            asset("lullora", "preview-phone", "Podgląd szablonu — telefon"));
 
     public static boolean isRef(String value) {
         return value != null && value.startsWith(PREFIX);

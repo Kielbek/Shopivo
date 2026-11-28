@@ -1,0 +1,152 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {}
+    },
+    "features": {
+      "type": "features",
+      "settings": {
+        "label": "Poznaj Lullora"
+      }
+    },
+    "catalog": {
+      "type": "catalog",
+      "settings": {}
+    },
+    "about": {
+      "type": "about",
+      "settings": {
+        "text": "W Lullora wierzymy, że małe codzienne rytuały tworzą najpiękniejsze wspomnienia.",
+        "image1_alt": "Dziecko podczas zabawy na miętowym kocyku",
+        "image2_alt": "Maluch podczas kąpieli"
+      },
+      "blocks": {
+        "point-1": {
+          "type": "point",
+          "settings": {
+            "title": "Nasza misja",
+            "text": "Ułatwiamy rodzicom wybór produktów na każdy dzień."
+          }
+        },
+        "point-2": {
+          "type": "point",
+          "settings": {
+            "title": "Nasza wizja",
+            "text": "Przyjazny świat, w którym codzienna troska jest prosta."
+          }
+        },
+        "point-3": {
+          "type": "point",
+          "settings": {
+            "title": "Nasze wartości",
+            "text": "Bliskość, uważność i wygoda całej rodziny."
+          }
+        }
+      },
+      "block_order": [
+        "point-1",
+        "point-2",
+        "point-3"
+      ]
+    },
+    "featured": {
+      "type": "featured",
+      "settings": {}
+    },
+    "why": {
+      "type": "why",
+      "settings": {
+        "eyebrow": "Dlaczego Lullora?"
+      },
+      "blocks": {
+        "benefit-1": {
+          "type": "benefit",
+          "settings": {
+            "icon": "shield",
+            "title": "Bezpieczne płatności",
+            "text": "Przejrzyste podsumowanie koszyka."
+          }
+        },
+        "benefit-2": {
+          "type": "benefit",
+          "settings": {
+            "icon": "truck",
+            "title": "Wygodna dostawa",
+            "text": "Prosty wybór sposobu wysyłki."
+          }
+        },
+        "benefit-3": {
+          "type": "benefit",
+          "settings": {
+            "icon": "return",
+            "title": "Łatwe zwroty",
+            "text": "Informacje o zasadach zwrotu."
+          }
+        },
+        "benefit-4": {
+          "type": "benefit",
+          "settings": {
+            "icon": "help",
+            "title": "Pomoc online",
+            "text": "Wsparcie podczas zakupów."
+          }
+        }
+      },
+      "block_order": [
+        "benefit-1",
+        "benefit-2",
+        "benefit-3",
+        "benefit-4"
+      ]
+    },
+    "faq": {
+      "type": "faq",
+      "settings": {},
+      "blocks": {
+        "question-1": {
+          "type": "question",
+          "settings": {
+            "question": "Jak złożyć zamówienie?",
+            "answer": "Wybierz produkt, dodaj do koszyka i przejdź do formularza zamówienia."
+          }
+        },
+        "question-2": {
+          "type": "question",
+          "settings": {
+            "question": "Jakie są możliwości dostawy?",
+            "answer": "Dostępne sposoby i koszty dostawy zobaczysz w koszyku, przed złożeniem zamówienia."
+          }
+        },
+        "question-3": {
+          "type": "question",
+          "settings": {
+            "question": "Jak mogę zwrócić produkt?",
+            "answer": "Masz 14 dni na zwrot bez podania przyczyny. Zgłoszenie złożysz w swoim koncie albo według zasad w regulaminie sklepu."
+          }
+        }
+      },
+      "block_order": [
+        "question-1",
+        "question-2",
+        "question-3"
+      ]
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "eyebrow": "Listy od Lullora"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "features",
+    "catalog",
+    "about",
+    "featured",
+    "why",
+    "faq",
+    "newsletter"
+  ]
+}

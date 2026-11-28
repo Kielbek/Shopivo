@@ -1,0 +1,40 @@
+<footer class="footer">
+<div class="wrap">
+<div class="footer-grid">
+<div>
+<a class="brand" href="/">{% render 'brand', first: section.settings.logo_first, second: section.settings.logo_second, shop: shop %}</a>
+<p{{ section | edit: 'text' }}>{{ section.settings.text | lines }}</p>
+</div>
+{%- for block in section.blocks %}
+<div{{ block | block_attrs }}>
+<h3{{ block | edit: 'title' }}>{{ block.settings.title }}</h3>
+<div class="links">
+{%- for link in block.settings.links %}<a href="{{ link.url | link }}">{{ link.label }}</a>{% endfor %}
+</div>
+</div>
+{%- endfor %}
+</div>
+<div class="footer-bottom">
+<span>© {{ shop.name }} {{ 'now' | date: '%Y' }}</span>
+<span{{ section | edit: 'note' }}>{{ section.settings.note }}</span>
+</div>
+</div>
+</footer>
+
+{% schema %}
+{
+  "name": "Stopka",
+  "settings": [
+    { "id": "logo_first", "type": "text", "label": "Nazwa w logo — początek", "default": "", "max": 20, "info": "Puste pola: nazwa sklepu." },
+    { "id": "logo_second", "type": "text", "label": "Nazwa w logo — koniec (kolor akcentu)", "default": "", "max": 20 },
+    { "id": "text", "type": "textarea", "label": "Tekst pod logo", "default": "Małe chwile. Wielka troska.", "max": 200 },
+    { "id": "note", "type": "text", "label": "Dopisek na dole", "default": "", "max": 80 }
+  ],
+  "blocks": [
+    { "type": "links", "name": "Kolumna z linkami", "settings": [
+      { "id": "title", "type": "text", "label": "Tytuł", "default": "Sklep", "max": 40 },
+      { "id": "links", "type": "link_list", "label": "Linki", "default": [], "max": 8 } ] }
+  ],
+  "max_blocks": 4
+}
+{% endschema %}

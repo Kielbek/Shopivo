@@ -1,0 +1,58 @@
+{
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {
+        "logo_first": "Lull",
+        "logo_second": "ora"
+      },
+      "blocks": {
+        "link-1": {
+          "type": "link",
+          "settings": {
+            "label": "Start",
+            "url": "/"
+          }
+        },
+        "link-2": {
+          "type": "link",
+          "settings": {
+            "label": "Sklep",
+            "url": "/#catalog"
+          }
+        },
+        "link-3": {
+          "type": "link",
+          "settings": {
+            "label": "O nas",
+            "url": "/#about"
+          }
+        },
+        "link-4": {
+          "type": "link",
+          "settings": {
+            "label": "Polecane",
+            "url": "/#featured"
+          }
+        },
+        "link-5": {
+          "type": "link",
+          "settings": {
+            "label": "FAQ",
+            "url": "/#faq"
+          }
+        }
+      },
+      "block_order": [
+        "link-1",
+        "link-2",
+        "link-3",
+        "link-4",
+        "link-5"
+      ]
+    }
+  },
+  "order": [
+    "header"
+  ]
+}

@@ -1,0 +1,50 @@
+{%- if catalog.sale -%}{%- assign heading = section.settings.sale_title -%}
+{%- elsif catalog.category_name -%}{%- assign heading = catalog.category_name -%}
+{%- elsif catalog.q != blank -%}{%- assign heading = 'Wyniki wyszukiwania' -%}
+{%- else -%}{%- assign heading = section.settings.title -%}{%- endif -%}
+{% render 'page-head', title: heading, kicker: section.settings.kicker %}
+<div id="pageBody">
+<section class="catalog-layout">
+<aside class="catalog-sidebar">
+<form action="/produkty" method="get" class="stack ll-search" role="search" data-shop-filter>
+{%- if catalog.sale %}<input type="hidden" name="promocje" value="tak">{% endif %}
+<input class="field" id="szukaj" name="q" type="search" value="{{ catalog.q }}" placeholder="{{ section.settings.search_placeholder }}" aria-label="Szukaj produktów" maxlength="100">
+<select class="field" name="sort" aria-label="Sortowanie"><option value="">Polecane</option><option value="PRICE_ASC"{% if catalog.sort == 'PRICE_ASC' %} selected{% endif %}>Cena: od najniższej</option><option value="PRICE_DESC"{% if catalog.sort == 'PRICE_DESC' %} selected{% endif %}>Cena: od najwyższej</option><option value="NAME"{% if catalog.sort == 'NAME' %} selected{% endif %}>Nazwa A–Z</option></select>
+<input type="hidden" name="kategoria" value="{{ catalog.category }}">
+<noscript><button type="submit" class="btn">Pokaż</button></noscript>
+</form>
+<nav aria-label="Kategorie produktów" class="filters">
+<a class="filter{% if catalog.category == blank %} active{% endif %}" href="/produkty"{% if catalog.category == blank %} aria-current="page"{% endif %}>Wszystkie</a>
+{%- for c in shop.categories %}<a class="filter{% if c.slug == catalog.category %} active{% endif %}" href="{{ c.url }}"{% if c.slug == catalog.category %} aria-current="page"{% endif %}>{{ c.name }}</a>{% endfor %}
+</nav>
+</aside>
+<div data-shop-region="results">
+<p class="shop-muted ll-count" aria-live="polite">Znaleziono: {{ catalog.total }}</p>
+{%- if catalog.items.size > 0 %}
+<div class="product-grid">{% for product in catalog.items %}{% render 'product-card', product: product %}{% endfor %}</div>
+{%- if catalog.total_pages > 1 %}
+<nav class="catalog-bottom ll-pager" aria-label="Strony wyników">
+{%- if catalog.prev_url %}<a class="btn soft" href="{{ catalog.prev_url }}" rel="prev">← Poprzednia</a>{% endif %}
+<span class="shop-muted">Strona {{ catalog.page }} z {{ catalog.total_pages }}</span>
+{%- if catalog.next_url %}<a class="btn soft" href="{{ catalog.next_url }}" rel="next">Następna →</a>{% endif %}
+</nav>
+{%- endif %}
+{%- else %}
+{% render 'empty', icon: 'search', text: section.settings.empty_text, note: 'Spróbuj innej nazwy albo wybierz kategorię.', link: '/produkty', label: 'Wszystkie produkty ↗' %}
+{%- endif %}
+</div>
+</section>
+</div>
+
+{% schema %}
+{
+  "name": "Lista produktów",
+  "settings": [
+    { "id": "title", "type": "text", "label": "Tytuł listy wszystkich produktów", "default": "Wszystkie produkty", "max": 60 },
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Twój sklep", "max": 40 },
+    { "id": "sale_title", "type": "text", "label": "Tytuł listy promocji", "default": "Promocje", "max": 60 },
+    { "id": "search_placeholder", "type": "text", "label": "Podpowiedź w wyszukiwarce", "default": "Wpisz nazwę produktu", "max": 40 },
+    { "id": "empty_text", "type": "text", "label": "Tekst, gdy nic nie znaleziono", "default": "Nie znaleziono produktów.", "max": 120 }
+  ]
+}
+{% endschema %}

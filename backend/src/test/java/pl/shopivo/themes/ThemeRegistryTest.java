@@ -9,7 +9,7 @@ class ThemeRegistryTest {
 
     @Test
     void onlyCurrentTemplatesAreOfferedAndRetiredOnesMapToASuccessor() {
-        assertThat(ThemeRegistry.PRESETS).extracting(ThemeRegistry.Preset::code).containsExactly("VERA", "BAWILOO", "VELMIRA");
+        assertThat(ThemeRegistry.PRESETS).extracting(ThemeRegistry.Preset::code).containsExactly("VERA", "BAWILOO", "VELMIRA", "LULLORA");
         assertThat(ThemeRegistry.current("BEAUTY")).isEqualTo("VELMIRA");
         assertThat(ThemeRegistry.preset(ThemeRegistry.DEFAULT_CODE)).isPresent();
         assertThat(ThemeRegistry.current("TOYS")).isEqualTo("BAWILOO");

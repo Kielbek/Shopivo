@@ -1,0 +1,13 @@
+{%- comment -%} Page and blog bodies: parsed Markdown subset (plain data, escaped here). Param: blocks {%- endcomment -%}
+<div class="rich-text">
+{%- for b in blocks %}
+{%- case b.type %}
+{%- when 'h2' %}<h2>{% render 'rich-inline', items: b.inlines %}</h2>
+{%- when 'h3' %}<h3>{% render 'rich-inline', items: b.inlines %}</h3>
+{%- when 'p' %}<p>{% render 'rich-inline', items: b.inlines %}</p>
+{%- when 'ul' %}<ul>{% for item in b.items %}<li>{% render 'rich-inline', items: item %}</li>{% endfor %}</ul>
+{%- when 'ol' %}<ol>{% for item in b.items %}<li>{% render 'rich-inline', items: item %}</li>{% endfor %}</ol>
+{%- when 'hr' %}<hr>
+{%- endcase %}
+{%- endfor %}
+</div>

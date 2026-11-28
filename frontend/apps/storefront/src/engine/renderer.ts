@@ -3,7 +3,7 @@ import { safeLink, settingsOf, type ProductListSetting } from './settings';
 import {
   toCategory, toProduct, toProductDetail, type ApiCard, type ApiProduct, type ApiStore, type StoreApi, type TplImage,
 } from './store-data';
-import type { PageDoc, PageType, SectionDoc, TemplatePackage } from './template-package';
+import type { PageDoc, PageType, SectionDoc, SettingSchema, TemplatePackage } from './template-package';
 
 const ESCAPE: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 export const escapeHtml = (s: unknown): string => String(s ?? '').replace(/[&<>"']/g, (c) => ESCAPE[c]);
@@ -139,7 +139,7 @@ export class TemplateRenderer {
   }
 
   /** Settings with data attached: images, product lists and category lists are resolved here, in parallel. */
-  private async resolve(ctx: RenderContext, schemaSettings: { id: string; type: string }[], values: Record<string, unknown>): Promise<void> {
+  private async resolve(ctx: RenderContext, schemaSettings: SettingSchema[], values: Record<string, unknown>): Promise<void> {
     const jobs: Promise<void>[] = [];
     for (const s of schemaSettings) {
       const v = values[s.id];
@@ -149,7 +149,16 @@ export class TemplateRenderer {
           .then((p) => { values[s.id] = p ? toProductDetail(p) : null; }));
       }
       else if (s.type === 'product_list') jobs.push(this.products(ctx, v as ProductListSetting).then((r) => { values[s.id] = r; }));
-      else if (s.type === 'category_list') values[s.id] = this.categories(ctx.store, v as { mode: string; slugs?: string[] });
+      else if (s.type === 'category_list') {
+        const cats = this.categories(ctx.store, v as { mode: string; slugs?: string[] });
+        values[s.id] = cats;
+        const n = Math.min(24, Math.max(0, Math.round(s.products_per_category ?? 0)));
+        if (n) {
+          for (const c of cats as Record<string, unknown>[]) {
+            jobs.push(this.products(ctx, { source: 'category', category: c['slug'] as string, count: n }).then((r) => { c['items'] = r.items; }));
+          }
+        }
+      }
     }
     await Promise.all(jobs);
   }

@@ -1,0 +1,26 @@
+<section class="section featured-layout" id="{{ section.settings.anchor | default: 'featured' }}">
+<div>
+<span class="eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</span>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+{%- if section.settings.button_label != blank %}<a class="btn" href="{{ section.settings.button_url | link | default: section.settings.products.url }}"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>{% endif %}
+</div>
+<div class="product-grid">
+{%- for product in section.settings.products.items %}{% render 'product-card', product: product %}{% else %}<p class="empty">Brak produktów.</p>{% endfor -%}
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Polecane produkty",
+  "settings": [
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "Nasze propozycje", "max": 30 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "Ulubieńcy małych odkrywców.", "max": 60 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "Praktyczne drobiazgi na wspólne chwile.", "max": 200 },
+    { "id": "products", "type": "product_list", "label": "Produkty", "default": { "source": "bestsellers", "count": 3 } },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Zobacz ofertę ↗", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "", "info": "Puste pole: lista tych produktów w sklepie." },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "featured", "max": 30 }
+  ]
+}
+{% endschema %}

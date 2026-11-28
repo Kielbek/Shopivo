@@ -9,7 +9,7 @@ import { BackIconComponent } from '@shopivo/shared-ui';
 import { firstValueFrom } from 'rxjs';
 import { INDUSTRIES, industryLabels, industryOf, storeIndustries } from '../catalog/industries';
 import { StoreContext } from '../store/store-context';
-import { STYLE_LABELS, ThemeStyle, metaOf, templateImageMap } from './theme-meta';
+import { STYLE_LABELS, ThemeStyle, metaOf, templateImageMap, templatePreview } from './theme-meta';
 import { ThemeMockComponent } from './theme-mock';
 import { storesLabel, themeChoice } from './theme-choice';
 
@@ -83,10 +83,12 @@ import { storesLabel, themeChoice } from './theme-choice';
                   <a class="relative block bg-canvas px-5 pb-0 pt-11 text-left" [routerLink]="[p.code]" [attr.aria-label]="'Szczegóły szablonu ' + p.name">
                     <div class="relative mx-auto max-w-[92%]">
                       <div class="overflow-hidden rounded-t-[10px] shadow-[0_6px_24px_rgba(15,18,16,0.12)] transition-transform group-hover:-translate-y-1">
-                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [templateImages]="tplImages()" [productImages]="samplesOf(p.code)" />
+                        @if (previewOf(p.code); as src) {<img [src]="src" alt="" class="block aspect-[16/10] w-full object-cover object-top" loading="lazy" />}
+                        @else {<sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [templateImages]="tplImages()" [productImages]="samplesOf(p.code)" />}
                       </div>
                       <div class="absolute -bottom-0 -right-3 w-[24%] overflow-hidden rounded-t-[12px] border-[3px] border-b-0 border-[#0F1210] shadow-lg transition-transform group-hover:-translate-y-2">
-                        <sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [templateImages]="tplImages()" [phone]="true" [productImages]="samplesOf(p.code)" />
+                        @if (previewOf(p.code, true); as src) {<img [src]="src" alt="" class="block aspect-[9/17] w-full object-cover object-top" loading="lazy" />}
+                        @else {<sv-theme-mock [settings]="p.defaults" [sections]="p.sections" [storeName]="storeName()" [templateImages]="tplImages()" [phone]="true" [productImages]="samplesOf(p.code)" />}
                       </div>
                     </div>
                     @if (isCurrent(p)) {<span class="absolute left-3 top-3"><sv-badge tone="info">Twój szablon</sv-badge></span>}
@@ -137,6 +139,10 @@ export class ThemeGalleryPage {
   protected readonly industries = INDUSTRIES;
 
   protected readonly data = rxResource({ params: () => this.ctx.tenantId(), stream: ({ params }) => this.api.theme(params) });
+  protected previewOf(code: string, phone = false): string | null {
+    return templatePreview(this.data.hasValue() ? this.data.value().templateImages : [], code, phone);
+  }
+
   protected readonly tplImages = computed(() => templateImageMap(this.data.hasValue() ? this.data.value().templateImages : []));
   protected readonly style = signal<ThemeStyle | null>(null);
   protected readonly industry = signal<StoreIndustry | null>(null);

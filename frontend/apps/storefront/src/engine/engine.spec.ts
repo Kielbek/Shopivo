@@ -122,6 +122,18 @@ describe('rendering', () => {
     expect(calls).toContain('/collections/promocje?limit=5&kategoria=pluszaki');
   });
 
+  it('gives each category of a catalogue filter its own products (Lullora)', async () => {
+    const calls: string[] = [];
+    const p = packages.get('LULLORA')!;
+    const html = await new TemplateRenderer(p, '/_t/l/1').renderSections({
+      pkg: p, api: fakeApi(calls), store, pageType: 'index', page: {}, cart: toCart(null), head: '', footer: '',
+    }, ['catalog']);
+    expect(calls).toContain('/products?size=9&kategoria=pluszaki');
+    expect(html['catalog']).toContain('data-cat-panel="pluszaki"');
+    expect(html['catalog'].match(/data-cat-panel="pluszaki"[\s\S]*?<\/div>\n/)?.[0]).toContain('Zabawka &lt;1&gt;');
+    expect(html['catalog']).not.toContain('data-cat="misie"'); // only top-level categories
+  });
+
   it('adds editor hooks only while editing', async () => {
     const p = packages.get('BAWILOO')!;
     const r = new TemplateRenderer(p, '/_t/b/1');

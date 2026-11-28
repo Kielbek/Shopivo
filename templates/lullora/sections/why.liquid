@@ -1,0 +1,35 @@
+<section class="section why" id="{{ section.settings.anchor | default: 'why' }}">
+<div class="why-copy">
+<span class="eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</span>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+<div class="benefit-grid">
+{%- for block in section.blocks %}
+<div class="benefit"{{ block | block_attrs }}>{% render 'icon', name: block.settings.icon %}<h3{{ block | edit: 'title' }}>{{ block.settings.title }}</h3><p{{ block | edit: 'text' }}>{{ block.settings.text }}</p></div>
+{%- endfor %}
+</div>
+</div>
+<div class="photo-slot why-photo">{% if section.settings.image %}<img alt="{{ section.settings.image_alt }}" decoding="async" loading="lazy" src="{{ section.settings.image | image_url: 'w1200' }}"{{ section | edit: 'image' }}/>{% endif %}</div>
+</section>
+
+{% schema %}
+{
+  "name": "Dlaczego my",
+  "settings": [
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "Dlaczego my?", "max": 30 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "Zakupy z myślą o rodzicach.", "max": 60 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "Wygodnie, przejrzyście i bez zbędnych komplikacji.", "max": 200 },
+    { "id": "image", "type": "image", "label": "Zdjęcie", "default": "asset:why.webp" },
+    { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "Mama przytulająca uśmiechnięte dziecko", "max": 160 },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "why", "max": 30 }
+  ],
+  "blocks": [
+    { "type": "benefit", "name": "Korzyść", "settings": [
+      { "id": "icon", "type": "select", "label": "Ikona", "default": "shield", "options": [
+        { "value": "shield", "label": "Tarcza" }, { "value": "truck", "label": "Dostawa" }, { "value": "return", "label": "Zwroty" }, { "value": "help", "label": "Pomoc" }, { "value": "heart", "label": "Serce" } ] },
+      { "id": "title", "type": "text", "label": "Tytuł", "default": "Korzyść", "max": 40 },
+      { "id": "text", "type": "text", "label": "Tekst", "default": "", "max": 80 } ] }
+  ],
+  "max_blocks": 4
+}
+{% endschema %}

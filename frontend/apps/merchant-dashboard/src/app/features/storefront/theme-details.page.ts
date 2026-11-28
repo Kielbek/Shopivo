@@ -10,7 +10,7 @@ import { firstValueFrom } from 'rxjs';
 import { industryOf, storeIndustries } from '../catalog/industries';
 import { StoreContext } from '../store/store-context';
 import { storesLabel, themeChoice } from './theme-choice';
-import { STYLE_LABELS, metaOf } from './theme-meta';
+import { STYLE_LABELS, isPreview, metaOf } from './theme-meta';
 
 type Device = 'desktop' | 'phone';
 
@@ -131,7 +131,7 @@ export class ThemeDetailsPage {
   private readonly link = rxResource({ params: () => this.ctx.tenantId() || undefined, stream: ({ params }) => this.api.previewLink(params) });
   protected readonly preset = computed<ThemePreset | null>(() => (this.data.hasValue() ? this.data.value().presets.find((p) => p.code === this.code()) ?? null : null));
   protected readonly usage = computed(() => (this.data.hasValue() ? this.data.value().usage?.[this.code() ?? ''] ?? 0 : 0));
-  protected readonly images = computed(() => (this.data.hasValue() ? this.data.value().templateImages.filter((i) => i.template === (this.code() ?? '').toLowerCase()) : []));
+  protected readonly images = computed(() => (this.data.hasValue() ? this.data.value().templateImages.filter((i) => i.template === (this.code() ?? '').toLowerCase() && !isPreview(i.ref)) : []));
   protected readonly isCurrent = computed(() => this.data.hasValue() && this.data.value().state.version >= 0 && this.data.value().state.draft.code === this.code());
   protected readonly recommended = computed(() => storeIndustries(this.ctx.store()).some((i) => metaOf(this.code() ?? '').industries.includes(i)));
   protected readonly choosing = signal(false);

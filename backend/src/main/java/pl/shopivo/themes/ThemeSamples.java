@@ -53,13 +53,16 @@ public class ThemeSamples {
             "VELMIRA", List.of(new SampleCategory("Nawilżanie", "tpl:velmira/cat-nawilzenie"),
                     new SampleCategory("Oczyszczanie", "tpl:velmira/cat-oczyszczanie"),
                     new SampleCategory("Glow", "tpl:velmira/cat-glow"),
-                    new SampleCategory("Zestawy", "tpl:velmira/cat-zestawy")));
+                    new SampleCategory("Zestawy", "tpl:velmira/cat-zestawy")),
+            "LULLORA", List.of(new SampleCategory("Pielęgnacja", "tpl:lullora/p-cream"), new SampleCategory("Higiena", "tpl:lullora/p-wipes"),
+                    new SampleCategory("Karmienie", "tpl:lullora/p-bowl"), new SampleCategory("Zabawki", "tpl:lullora/p-bunny"),
+                    new SampleCategory("Kąpiel", "tpl:lullora/p-shampoo")));
 
     /**
      * Demo catalogue used by each template: several templates can share one (e.g. all fashion templates show the same
      * clothes). The catalogue is keyed by the template that owns its pictures.
      */
-    public static final Map<String, String> CATALOG_OF = Map.of("VERA", "VERA", "BAWILOO", "BAWILOO", "VELMIRA", "VELMIRA");
+    public static final Map<String, String> CATALOG_OF = Map.of("VERA", "VERA", "BAWILOO", "BAWILOO", "VELMIRA", "VELMIRA", "LULLORA", "LULLORA");
 
     /** Example products shown in a template's demo (its catalogue). */
     public static List<Sample> productsFor(String template) {
@@ -120,7 +123,21 @@ public class ThemeSamples {
             new Sample("Krem nawilżający na dzień", "Glow", 9900, null, List.of(), "tpl:velmira/p-krem",
                     "Otulająca konsystencja · 50 ml\n" + DESC),
             new Sample("Zestaw codziennej pielęgnacji", "Zestawy", 24900, 28700L, List.of(), "tpl:velmira/p-zestaw",
-                    "Serum + żel + krem · 3 produkty\n" + DESC)));
+                    "Serum + żel + krem · 3 produkty\n" + DESC)),
+            "LULLORA", List.of(
+            baby("Balsam do ciała", "Pielęgnacja", 3990, null, "balm"),
+            baby("Krem nawilżający", "Pielęgnacja", 4490, null, "cream"),
+            baby("Szampon dla maluszka", "Kąpiel", 3290, 3990L, "shampoo"),
+            baby("Chusteczki pielęgnacyjne", "Higiena", 1990, null, "wipes"),
+            baby("Olejek do masażu", "Pielęgnacja", 4690, null, "oil"),
+            baby("Mleczko do ciała", "Kąpiel", 4290, null, "lotion"),
+            baby("Miękki króliczek", "Zabawki", 6990, null, "bunny"),
+            baby("Gryzak kolorowy", "Zabawki", 3590, null, "teether"),
+            baby("Miseczka z łyżeczką", "Karmienie", 5990, null, "bowl")));
+
+    private static Sample baby(String name, String category, long price, Long compareAt, String image) {
+        return new Sample(name, category, price, compareAt, List.of(), "tpl:lullora/p-" + image, DESC);
+    }
 
     private static Sample toy(String name, String category, long price, Long compareAt, String image) {
         return new Sample(name, category, price, compareAt, List.of(), "tpl:bawiloo/" + image, DESC);

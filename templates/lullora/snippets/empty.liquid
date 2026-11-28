@@ -1,0 +1,2 @@
+{%- assign empty_icon = icon | default: 'cart' -%}
+<div class="shop-empty">{% render 'icon', name: empty_icon %}<strong>{{ text }}</strong>{% if note %}<p class="shop-muted">{{ note }}</p>{% endif %}<a class="btn" href="{{ link | default: '/produkty' }}">{{ label | default: 'Przeglądaj sklep ↗' }}</a></div>

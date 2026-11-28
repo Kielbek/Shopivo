@@ -1,0 +1,82 @@
+{
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "logo_first": "Lull",
+        "logo_second": "ora",
+        "text": "Małe chwile. Wielka troska.\nŚwiat produktów dla maluszków."
+      },
+      "blocks": {
+        "links-1": {
+          "type": "links",
+          "settings": {
+            "title": "Sklep",
+            "links": [
+              {
+                "label": "Wszystkie produkty",
+                "url": "/produkty"
+              },
+              {
+                "label": "Polecane",
+                "url": "/#featured"
+              },
+              {
+                "label": "Newsletter",
+                "url": "/#newsletter"
+              }
+            ]
+          }
+        },
+        "links-2": {
+          "type": "links",
+          "settings": {
+            "title": "Pomoc",
+            "links": [
+              {
+                "label": "Dostawa i zwroty",
+                "url": "legal:SHIPPING"
+              },
+              {
+                "label": "FAQ",
+                "url": "/#faq"
+              },
+              {
+                "label": "Moje konto",
+                "url": "/konto"
+              }
+            ]
+          }
+        },
+        "links-3": {
+          "type": "links",
+          "settings": {
+            "title": "Lullora",
+            "links": [
+              {
+                "label": "O marce",
+                "url": "/#about"
+              },
+              {
+                "label": "Dlaczego my?",
+                "url": "/#why"
+              },
+              {
+                "label": "Bądźmy w kontakcie",
+                "url": "/#newsletter"
+              }
+            ]
+          }
+        }
+      },
+      "block_order": [
+        "links-1",
+        "links-2",
+        "links-3"
+      ]
+    }
+  },
+  "order": [
+    "footer"
+  ]
+}

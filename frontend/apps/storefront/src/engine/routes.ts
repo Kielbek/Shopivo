@@ -391,7 +391,7 @@ export function templateEngine(apiOrigin: string) {
   router.get('/{*path}', (req, res, next) => {
     // Unknown paths of a template store get the template's 404 page; files (Angular bundles, images) and the pages still
     // served by the Angular app (/opinia — review invitations) go on.
-    const route = routeOf(req.path) ?? (/\.[a-z0-9]{1,8}$/i.test(req.path) || req.path.startsWith('/api/') || ANGULAR_ONLY.has(req.path)
+    const route = routeOf(req.path) ?? (/\.[a-z0-9]{1,8}$/i.test(req.path) || req.path.startsWith('/api/') || req.path.startsWith('/_shop/') || ANGULAR_ONLY.has(req.path)
       ? null : { type: 'not_found' as PageType });
     if (!route) return next();
     void (async () => {

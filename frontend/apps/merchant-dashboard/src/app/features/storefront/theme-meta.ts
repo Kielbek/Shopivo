@@ -16,6 +16,10 @@ export const STYLE_LABELS: Record<ThemeStyle, string> = {
 export const THEME_META: Record<string, ThemeMeta> = {
   BAWILOO: { industries: ['TOYS', 'KIDS', 'GIFTS', 'HOBBY'], style: 'colorful',
     features: ['Jasny, złoty wygląd i 16 przykładowych zabawek', 'Kategorie ze zdjęciami bez tła i slider promocji', 'Ilustrowane ikony korzyści'] },
+  VELMIRA: { industries: ['COSMETICS', 'PERFUMES', 'MEDICAL', 'ECO'], style: 'natural',
+    features: ['Duży slider z bocznym kafelkiem', 'Karuzela produktów z zakładkami i rytuały krok po kroku', 'Pytania i odpowiedzi, wyróżniony zestaw z ceną'] },
+  LULLORA: { industries: ['KIDS', 'TOYS', 'COSMETICS', 'GIFTS'], style: 'colorful',
+    features: ['Zdjęcie z wycięciami i kafelki pod banerem', 'Katalog z filtrem kategorii na stronie głównej', 'Osobne, spójne widoki koszyka, konta i zamówienia'] },
   VERA: { industries: ['FASHION', 'FOOTWEAR', 'ACCESSORIES', 'JEWELRY'], style: 'elegant',
     features: ['Własne zdjęcia szablonu (do podmiany)', 'Kafelki działów i filtry produktów', 'Boczny koszyk z progiem darmowej dostawy'] },
 };
@@ -56,4 +60,15 @@ export function onColor(hex: string | undefined): string {
   const [r, g, b] = [0, 2, 4].map((i) => parseInt(m[1].slice(i, i + 2), 16) / 255).map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4));
   const l = 0.2126 * r + 0.7152 * g + 0.0722 * b;
   return 1.05 / (l + 0.05) >= (l + 0.05) / 0.05 ? '#fff' : '#111';
+}
+
+/** Screenshot of a v2 template's demo for the gallery (tpl:<code>/preview and /preview-phone), when the template has one. */
+export function templatePreview(list: { ref: string; urls: Record<string, string> }[] | undefined, code: string, phone = false): string | null {
+  const ref = `tpl:${code.toLowerCase()}/preview${phone ? '-phone' : ''}`;
+  return (list ?? []).find((i) => i.ref === ref)?.urls['w400'] ?? null;
+}
+
+/** Gallery screenshots are not images to put into a store. */
+export function isPreview(ref: string): boolean {
+  return /\/preview(-phone)?$/.test(ref);
 }

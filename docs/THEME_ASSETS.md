@@ -28,6 +28,13 @@ Zdjęcia przykładowych produktów (`tpl:vera/p-*`, kadr 3:4) — to samo źród
 
 Pominięto zdjęcie koszulki z cudzą grafiką/napisem z pierwotnego HTML-a, bo był na niej nadruk innej marki.
 
+## Lullora (templates/lullora/assets/, backend/src/main/resources/themes/lullora/)
+
+Zdjęcia z pliku projektu `lullora-sklep-osobne-widoki.html` dostarczonego przez właściciela projektu (2026-11-28):
+- baner, kafelek, dwa zdjęcia „O nas” i zdjęcie „Dlaczego my” zostały w WebP (do 1448 px);
+- 9 zdjęć produktów zapisano jako JPEG `w400` i `w1200` (oryginał ok. 620 px).
+`preview*.jpg` w obu szablonach to zrzuty demo zrobione przez nas do galerii.
+
 ## Velmira (templates/velmira/assets/, backend/src/main/resources/themes/velmira/)
 
 Zdjęcia wyciągnięte z pliku projektu `velmira-sklep-premium.html` dostarczonego przez właściciela projektu (2026-11-28):

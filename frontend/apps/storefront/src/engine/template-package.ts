@@ -15,6 +15,8 @@ export interface SettingSchema {
   max?: number;
   min?: number;
   options?: { value: string; label: string }[];
+  /** category_list: each category also gets its first N products (`items`) — tabs or filters of a catalogue. */
+  products_per_category?: number;
 }
 export interface BlockSchema { type: string; name: string; settings: SettingSchema[]; }
 export interface SectionSchema { name: string; settings: SettingSchema[]; blocks?: BlockSchema[]; max_blocks?: number; }

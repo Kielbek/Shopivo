@@ -1,0 +1,44 @@
+<section class="section about" id="{{ section.settings.anchor | default: 'about' }}">
+<div class="about-left">
+<div>
+<span class="eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</span>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+</div>
+<div class="photo-slot about-photo">{% if section.settings.image1 %}<img alt="{{ section.settings.image1_alt }}" decoding="async" loading="lazy" src="{{ section.settings.image1 | image_url: 'w1200' }}"{{ section | edit: 'image1' }}/>{% endif %}</div>
+</div>
+<div class="about-middle">
+{%- for block in section.blocks %}
+<div{{ block | block_attrs }}>
+<h3{{ block | edit: 'title' }}>{{ block.settings.title }}</h3>
+<p{{ block | edit: 'text' }}>{{ block.settings.text }}</p>
+</div>
+{%- endfor %}
+{%- if section.settings.button_label != blank %}<a class="btn" href="{{ section.settings.button_url | link }}"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>{% endif %}
+</div>
+<div class="photo-slot about-right">{% if section.settings.image2 %}<img alt="{{ section.settings.image2_alt }}" decoding="async" loading="lazy" src="{{ section.settings.image2 | image_url: 'w1200' }}"{{ section | edit: 'image2' }}/>{% endif %}</div>
+</section>
+
+{% schema %}
+{
+  "name": "O nas — trzy kolumny",
+  "settings": [
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "O nas", "max": 30 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "Bliskość, która rośnie każdego dnia.", "max": 80 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "", "max": 300 },
+    { "id": "image1", "type": "image", "label": "Zdjęcie po lewej", "default": "asset:about-1.webp" },
+    { "id": "image1_alt", "type": "text", "label": "Opis zdjęcia po lewej", "default": "", "max": 160 },
+    { "id": "image2", "type": "image", "label": "Zdjęcie po prawej", "default": "asset:about-2.webp" },
+    { "id": "image2_alt", "type": "text", "label": "Opis zdjęcia po prawej", "default": "", "max": 160 },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Dowiedz się więcej ↗", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "/#why" },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "about", "max": 30 }
+  ],
+  "blocks": [
+    { "type": "point", "name": "Punkt", "settings": [
+      { "id": "title", "type": "text", "label": "Tytuł", "default": "Nasza misja", "max": 40 },
+      { "id": "text", "type": "textarea", "label": "Tekst", "default": "", "max": 200 } ] }
+  ],
+  "max_blocks": 4
+}
+{% endschema %}

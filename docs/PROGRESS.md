@@ -101,6 +101,35 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - pole „Wysokość” banera nie wpływa na układ „Magazyn”;
   - zdjęcia z HTML-a są z Unsplash — dobre jako start, ale sprzedawca powinien użyć własnych.
 
+## Silnik szablonów v2 — etap 4b: Lullora (2026-11-28)
+
+- **Lullora** (`templates/lullora/`, produkty dla maluszków) przeniesiona z `lullora-sklep-osobne-widoki.html` 1:1:
+  - CSS projektu bez zmian; dodatki w bloku „Shopivo additions”;
+  - strona główna: baner z wycięciami (clip-path z projektu), trzy kafelki, katalog z filtrem kategorii bez przeładowania, O nas w trzech kolumnach, polecane, „Dlaczego my”, FAQ, newsletter;
+  - osobne widoki sklepu jak w projekcie (okruszki, nadtytuł, tytuł): katalog, produkt z „Może Ci się spodobać”, koszyk z podsumowaniem obok, ulubione, logowanie i rejestracja ze zdjęciem i zakładkami, zamówienie, potwierdzenie, konto, zwroty, opinie, blog, strony;
+  - logowanie przez Google z projektu pominięte — sklep go nie obsługuje.
+- **Silnik:** ustawienie `category_list` może mieć w schemacie `products_per_category` — każda kategoria dostaje swoje produkty (filtr albo zakładki katalogu bez przeładowania).
+- **Poprawka:** ogólna trasa stron przechwytywała `/_shop/sections` i zwracała 404. Przez to koszyk w szablonach v2 nie odświeżał się po zmianie ilości (ilość zmieniała się dopiero po przeładowaniu). Teraz odświeża się od razu.
+- **Galeria w panelu:** szablony v2 pokazują prawdziwe zrzuty demo (`tpl:<kod>/preview`, `preview-phone`) zamiast rysowanej miniatury. Velmira i Lullora mają też opisy w galerii (`theme-meta.ts`).
+- **Backend:**
+  - preset `LULLORA`;
+  - 9 przykładowych produktów i 5 kategorii ze zdjęciami z projektu.
+- **Testy:**
+  - `engine.spec.ts` (26): klasy CSS Lullory, produkty kategorii w filtrze;
+  - `ThemeRegistryTest`, `ThemeSectionsIT`, `StorefrontIT`, `TemplateDocsIT`, `RecommendationsIT`; panel 71.
+- **E2E:**
+  - podgląd demo, komputer i telefon: zgodne z oryginałem. Różnice:
+    - „Polecane” pokazują produkty wg danych sklepu;
+    - nie ma dopisku „Projekt demonstracyjny”;
+    - „Moje konto” w stopce jest linkiem;
+  - filtr „Zabawki” pokazuje 2 produkty, a serce zwiększa licznik ulubionych;
+  - prawdziwy sklep:
+    - 9 przykładowych produktów;
+    - dodanie z katalogu;
+    - koszyk: „+” → ilość 2 bez przeładowania;
+    - zamówienie z przelewem → potwierdzenie;
+  - to samo sprawdzone ponownie w Velmirze; 0 błędów konsoli.
+
 ## Silnik szablonów v2 — etap 4a: Velmira (2026-11-28)
 
 - **Velmira** (`templates/velmira/`, kosmetyki) przeniesiona z `velmira-sklep-premium.html` 1:1:

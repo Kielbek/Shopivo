@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+{{ content_for_header }}
+</head>
+<body>
+<svg aria-hidden="true" height="0" style="position:absolute" width="0"><defs>
+<clipPath clipPathUnits="objectBoundingBox" id="hero-clip"><path d="M .48 0 H .97 Q 1 0 1 .06 V .66 Q 1 .72 .97 .72 H .69 Q .66 .72 .66 .78 V .94 Q .66 1 .63 1 H .03 Q 0 1 0 .94 V .34 Q 0 .28 .03 .28 H .45 Q .48 .28 .48 .22 Z"></path></clipPath>
+<symbol id="i-logo" viewBox="0 0 24 24"><path d="M12 21C7 17 2 14 2 8a5 5 0 0 1 10-1 5 5 0 0 1 10 1c0 6-5 9-10 13Z"></path><path d="M12 7c0-4 3-6 7-6"></path></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect height="18" rx="3" width="18" x="3" y="3"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="m3 17 5-5 4 4 4-6 5 7"></path></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z"></path></symbol>
+<symbol id="i-cart" viewBox="0 0 24 24"><path d="M2 3h3l3 13h11l3-10H6"></path><circle cx="9" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"></circle><path d="M4 21v-2a8 8 0 0 1 16 0v2"></path></symbol>
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"></circle><path d="m16 16 5 5"></path></symbol>
+<symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></symbol>
+<symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"></path><path d="m8 12 3 3 5-6"></path></symbol>
+<symbol id="i-truck" viewBox="0 0 24 24"><path d="M2 5h12v12H2zM14 9h4l4 4v4h-8"></path><circle cx="6" cy="19" r="2"></circle><circle cx="18" cy="19" r="2"></circle></symbol>
+<symbol id="i-return" viewBox="0 0 24 24"><path d="M4 11a8 8 0 1 1 2 7M4 4v7h7"></path></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><path d="M3 14v-2a9 9 0 0 1 18 0v2M21 19c0 2-4 3-8 3"></path><rect height="7" rx="2" width="5" x="3" y="12"></rect><rect height="7" rx="2" width="5" x="16" y="12"></rect></symbol>
+</defs></svg>
+{{ header_group }}
+{%- if page_type == 'index' %}
+<main class="wrap" id="home">
+{{ content_for_layout }}
+</main>
+{%- else %}
+{%- case page_type -%}
+{%- when 'product' -%}{%- assign view = 'detail' -%}
+{%- when 'auth' -%}{%- assign view = 'account' -%}
+{%- when 'catalog' -%}{%- assign view = 'catalog' -%}
+{%- else -%}{%- assign view = page_type -%}
+{%- endcase %}
+<main class="wrap shop-page" id="shopPage" data-view="{{ view }}">
+{{ content_for_layout }}
+</main>
+{%- endif %}
+{{ footer_group }}
+<div class="toast" hidden id="toast" role="status" aria-live="polite" data-shop-toast></div>
+{{ content_for_footer }}
+</body>
+</html>

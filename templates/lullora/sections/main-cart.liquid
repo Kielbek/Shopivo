@@ -1,0 +1,32 @@
+{% render 'page-head', title: section.settings.title %}
+<div id="pageBody">
+{%- if cart.lines.size == 0 %}
+{% render 'empty', icon: 'cart', text: 'Twój koszyk jest pusty.', note: section.settings.empty_note %}
+{%- else %}
+<div class="purchase-layout">
+<div class="purchase-items">
+<div class="shop-list">
+{%- for line in cart.lines %}
+<div class="shop-item"><a href="{{ line.url }}" aria-label="Szczegóły: {{ line.name }}">{% if line.image %}<img src="{{ line.image | image_url: 'w400' }}" alt="{{ line.name }}">{% else %}<span class="slot-label">{% render 'icon', name: 'image' %}</span>{% endif %}</a><div><a class="product-name" href="{{ line.url }}">{{ line.name }}</a>{% if line.variant_title != blank and line.variant_title != line.name %}<p class="shop-muted">{{ line.variant_title }}</p>{% endif %}<p class="shop-muted">{{ line.unit_price | money: cart.currency }} / szt.</p>{% unless line.available %}<p class="ll-error">Niedostępny w tej ilości</p>{% endunless %}<div class="quantity"><button type="button" aria-label="Zmniejsz ilość: {{ line.name }}" data-shop-cart-set="{{ line.variant_id }}" data-quantity="{{ line.quantity | minus: 1 }}">−</button><span>{{ line.quantity }}</span><button type="button" aria-label="Zwiększ ilość: {{ line.name }}" data-shop-cart-set="{{ line.variant_id }}" data-quantity="{{ line.quantity | plus: 1 }}">+</button></div></div><div class="item-actions"><strong>{{ line.line_total | money: cart.currency }}</strong><button type="button" class="shop-link" data-shop-cart-set="{{ line.variant_id }}" data-quantity="0">Usuń</button></div></div>
+{%- endfor %}
+</div>
+</div>
+<aside class="purchase-aside">
+<h2>Podsumowanie</h2>
+<div class="shop-summary"><div><span>Produkty</span><strong>{{ cart.subtotal | money: cart.currency }}</strong></div><div><span>Dostawa</span><strong>w następnym kroku</strong></div><div class="grand"><span>Razem</span><span>{{ cart.subtotal | money: cart.currency }}</span></div></div>
+{%- if cart.checkout_ready %}<a class="btn full ll-mt16" href="/zamowienie">Przejdź do zamówienia ↗</a>{% else %}<p class="shop-note ll-mt16">Zmień ilość produktów oznaczonych jako niedostępne, aby przejść dalej.</p>{% endif %}
+<a class="btn soft full ll-mt8" href="/produkty">Kontynuuj zakupy</a>
+</aside>
+</div>
+{%- endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Koszyk",
+  "settings": [
+    { "id": "title", "type": "text", "label": "Tytuł", "default": "Twój koszyk", "max": 40 },
+    { "id": "empty_note", "type": "text", "label": "Tekst pustego koszyka", "default": "Odkryj nasze produkty i wybierz coś dla swojego maluszka.", "max": 160 }
+  ]
+}
+{% endschema %}

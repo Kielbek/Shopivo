@@ -1,0 +1,12 @@
+{% render 'page-head', title: section.settings.title %}
+<div id="pageBody">{% render 'empty', icon: 'search', text: section.settings.text, note: 'Strona nie istnieje albo została przeniesiona.' %}</div>
+
+{% schema %}
+{
+  "name": "Nie znaleziono strony",
+  "settings": [
+    { "id": "title", "type": "text", "label": "Tytuł", "default": "Nie znaleziono strony", "max": 60 },
+    { "id": "text", "type": "text", "label": "Tekst", "default": "Tej strony nie ma w sklepie.", "max": 120 }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,12 @@
+{% render 'page-head', title: section.settings.title %}
+<div id="pageBody" data-shop-favorites>
+{%- if favorites.size > 0 %}<div class="product-grid favorites-grid">{% for product in favorites %}{% render 'product-card', product: product %}{% endfor %}</div>
+{%- else %}{% render 'empty', icon: 'heart', text: 'Nie masz jeszcze ulubionych.', note: 'Kliknij serce przy produkcie, aby go tu zapisać.' %}{% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Ulubione",
+  "settings": [ { "id": "title", "type": "text", "label": "Tytuł", "default": "Ulubione", "max": 40 } ]
+}
+{% endschema %}

@@ -62,7 +62,7 @@ Sklep korzysta z silnika v2, gdy kod jego szablonu (`theme.code`) odpowiada kodo
 | `select`, `number`, `checkbox`, `color` | wartość z listy / liczba w `min..max` / tak-nie / `#rrggbb` | wartość |
 | `product` | slug produktu (pusty = brak) | produkt z `price`, `compare_at`, `url`… albo `nil` |
 | `product_list` | `{source, category?, count}`; źródła: `newest`, `bestsellers`, `sale`, `last_pieces`, `top_rated`, `back_in_stock`, `category` | `{items: [produkt…], url}` |
-| `category_list` | `{mode: 'top'}` albo `{mode: 'selected', slugs: […]}` | lista kategorii |
+| `category_list` | `{mode: 'top'}` albo `{mode: 'selected', slugs: […]}` | lista kategorii; ze schematowym `"products_per_category": N` każda kategoria ma `items` (pierwsze N produktów) |
 | `link_list` | `[{label, url}]` | lista linków |
 
 Zapisana wartość, która nie pasuje do schematu (np. po zmianie szablonu), jest zastępowana wartością domyślną. Strona zawsze się wyświetla.
@@ -137,6 +137,10 @@ Skrypt szablonu (`assets/template.js`) zawiera tylko zachowania z projektu, np. 
   W tym trybie silnik nie czyta koszyka, konta, zamówień, dokumentu sklepu ani stron sklepu, a skrypt sklepu odrzuca każdą zmianę (POST).
   Na dole strony jest pasek „Podgląd szablonu · Zamknij”; strona ma `no-store` i `noindex`.
 - SEO: `<title>`, `canonical`, `og:*`, a na stronie produktu JSON-LD `Product`.
+
+## Podgląd w galerii panelu
+
+Szablon v2 może mieć zrzuty swojego demo: `tpl:<kod>/preview` (komputer, 16:10) i `tpl:<kod>/preview-phone` (telefon, 9:17). Pliki leżą w `backend/src/main/resources/themes/<kod>/`. Galeria pokazuje je zamiast rysowanej miniatury. Zrzut robimy z `?szablon=KOD` po ukryciu paska podglądu.
 
 ## Zasady przenoszenia projektu 1:1
 

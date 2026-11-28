@@ -1,0 +1,28 @@
+<section aria-labelledby="hero-title-{{ section.id }}" class="hero">
+<div class="hero-copy">
+{%- if section.settings.eyebrow != blank %}<span class="eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</span>{% endif %}
+<h1 id="hero-title-{{ section.id }}"{{ section | edit: 'heading' }}>{{ section.settings.heading | lines }}</h1>
+</div>
+<div class="photo-slot hero-photo">
+{%- if section.settings.image %}<img alt="{{ section.settings.image_alt }}" decoding="async" fetchpriority="high" src="{{ section.settings.image | image_url: 'w1200' }}"{{ section | edit: 'image' }}/>{% endif %}
+</div>
+<div class="hero-intro">
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+{%- if section.settings.button_label != blank %}<a class="btn" href="{{ section.settings.button_url | link }}"><span{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</span> <span aria-hidden="true">↗</span></a>{% endif %}
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Baner z wycięciami",
+  "settings": [
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "Z troską od pierwszych chwil", "max": 40 },
+    { "id": "heading", "type": "textarea", "label": "Nagłówek", "default": "Małe chwile.\nWielka troska.", "max": 60 },
+    { "id": "image", "type": "image", "label": "Zdjęcie", "default": "asset:hero.webp" },
+    { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "Uśmiechnięty maluch na błękitnym kocyku", "max": 160 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "Odkryj pielęgnację, akcesoria i drobiazgi stworzone z myślą o codzienności maluszków.", "max": 200 },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Odkryj sklep", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "/#catalog" }
+  ]
+}
+{% endschema %}

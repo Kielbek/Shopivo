@@ -1,0 +1,29 @@
+<section class="section" id="{{ section.settings.anchor | default: 'faq' }}">
+<span class="eyebrow"{{ section | edit: 'eyebrow' }}>{{ section.settings.eyebrow }}</span>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+<div class="grid gap-3 mt-6">
+{%- for block in section.blocks %}
+<details class="p-4 rounded-xl border border-[#d5eee3]"{{ block | block_attrs }}>
+<summary{{ block | edit: 'question' }}>{{ block.settings.question }}</summary>
+<p class="mt-3"{{ block | edit: 'answer' }}>{{ block.settings.answer }}</p>
+</details>
+{%- endfor %}
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Najczęstsze pytania",
+  "settings": [
+    { "id": "eyebrow", "type": "text", "label": "Nadtytuł", "default": "Pomoc", "max": 30 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "Najczęstsze pytania", "max": 60 },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "faq", "max": 30 }
+  ],
+  "blocks": [
+    { "type": "question", "name": "Pytanie", "settings": [
+      { "id": "question", "type": "text", "label": "Pytanie", "default": "Nowe pytanie?", "max": 120 },
+      { "id": "answer", "type": "textarea", "label": "Odpowiedź", "default": "", "max": 800 } ] }
+  ],
+  "max_blocks": 12
+}
+{% endschema %}

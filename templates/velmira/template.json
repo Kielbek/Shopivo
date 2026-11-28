@@ -4,10 +4,10 @@
   "version": "2.0.0",
   "description": "Spokojny, premium sklep z kosmetykami: szałwiowa zieleń, duży slider, karuzela produktów z zakładkami, rytuały krok po kroku i FAQ.",
   "industries": [
-    "BEAUTY",
     "COSMETICS",
-    "HEALTH",
-    "WELLNESS"
+    "PERFUMES",
+    "MEDICAL",
+    "ECO"
   ],
   "source": "velmira-sklep-premium.html (2026-11-28)",
   "styles": [

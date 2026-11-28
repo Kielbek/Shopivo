@@ -1,0 +1,9 @@
+{%- if entry.kind == 'post' -%}{% render 'page-head', title: entry.title, kicker: 'Blog', crumb: 'Blog', crumb_url: '/blog' %}{%- else -%}{% render 'page-head', title: entry.title, kicker: shop.name %}{%- endif %}
+<div id="pageBody" class="ll-article">
+{%- if entry.kind == 'post' and entry.published_at %}<p class="shop-muted">{{ entry.published_at | date: '%d.%m.%Y' }}</p>{% endif %}
+{% render 'rich-text', blocks: entry.blocks %}
+</div>
+
+{% schema %}
+{ "name": "Strona z treścią", "settings": [] }
+{% endschema %}

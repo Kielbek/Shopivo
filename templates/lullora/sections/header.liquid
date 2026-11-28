@@ -1,0 +1,43 @@
+<header class="header">
+<div class="wrap nav-inner">
+<a aria-label="{{ shop.name }}, strona główna" class="brand" href="/">{% render 'brand', first: section.settings.logo_first, second: section.settings.logo_second, shop: shop %}</a>
+<nav aria-label="Główna" class="nav">
+{%- for block in section.blocks %}
+<a href="{{ block.settings.url | link }}"{{ block | block_attrs }}{{ block | edit: 'label' }}>{{ block.settings.label }}</a>
+{%- endfor %}
+</nav>
+<div class="tools">
+<button aria-expanded="false" aria-controls="mobileNav" aria-label="Menu" class="icon-btn menu-btn" type="button" data-menu>{% render 'icon', name: 'menu' %}</button>
+<a aria-label="Szukaj" class="icon-btn" href="/produkty#szukaj">{% render 'icon', name: 'search' %}</a>
+<a aria-label="Konto" class="icon-btn" href="/konto">{% render 'icon', name: 'user' %}</a>
+<a aria-label="Ulubione" class="icon-btn" href="/ulubione" data-shop-fav-label="Ulubione ({count})">{% render 'icon', name: 'heart' %}<span class="counter" data-shop-fav-count data-count="0"></span></a>
+<a aria-label="Koszyk ({{ cart.item_count }})" class="icon-btn" href="/koszyk" data-shop-cart-label="Koszyk ({count})">{% render 'icon', name: 'cart' %}<span class="counter" data-shop-cart-count data-count="{{ cart.item_count }}">{% if cart.item_count > 0 %}{{ cart.item_count }}{% endif %}</span></a>
+</div>
+</div>
+<nav class="mobile-nav" hidden id="mobileNav" aria-label="Menu">
+{%- for block in section.blocks %}
+<a href="{{ block.settings.url | link }}">{{ block.settings.label }}</a>
+{%- endfor %}
+</nav>
+</header>
+
+{% schema %}
+{
+  "name": "Nagłówek",
+  "settings": [
+    { "id": "logo_first", "type": "text", "label": "Nazwa w logo — początek", "default": "", "max": 20, "info": "Puste pola: nazwa sklepu." },
+    { "id": "logo_second", "type": "text", "label": "Nazwa w logo — koniec (kolor akcentu)", "default": "", "max": 20 }
+  ],
+  "blocks": [
+    {
+      "type": "link",
+      "name": "Link w menu",
+      "settings": [
+        { "id": "label", "type": "text", "label": "Tekst", "default": "Link", "max": 30 },
+        { "id": "url", "type": "url", "label": "Adres", "default": "/produkty" }
+      ]
+    }
+  ],
+  "max_blocks": 8
+}
+{% endschema %}
