@@ -4,6 +4,7 @@ import { createHash, randomBytes } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { StorefrontRequestContext } from './app/api-origin';
+import { templateEngine } from './engine/routes';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
 const apiOrigin = process.env['SHOPIVO_API_URL'] ?? 'http://localhost:8080';
@@ -159,6 +160,10 @@ app.use((req, res, next) => {
   ].join('; '));
   next();
 });
+
+// Stores on a template package (templates/<name>/) are rendered from the designer's HTML; the rest of the paths and
+// the other stores go on to the Angular storefront below.
+app.use(templateEngine(apiOrigin).router);
 
 app.use(express.static(browserDistFolder, { maxAge: '1y', index: false, redirect: false }));
 

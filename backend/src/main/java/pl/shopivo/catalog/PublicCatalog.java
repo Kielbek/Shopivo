@@ -51,7 +51,8 @@ public class PublicCatalog {
     }
 
     public record ProductCard(UUID id, String slug, String name, String brand, long priceMinor, long maxPriceMinor,
-            Long compareAtMinor, Long lowestPrice30dMinor, String currency, boolean available, String imageUrl, String imageAlt) {
+            Long compareAtMinor, Long lowestPrice30dMinor, String currency, boolean available, String imageUrl, String imageAlt,
+            String imageColor) {
     }
 
     public record PublicVariant(UUID id, Map<String, String> optionValues, String title, String sku, long priceMinor,
@@ -175,7 +176,7 @@ public class PublicCatalog {
             return new ProductCard(r.id(), r.slug(), r.name(), r.brand(), gross(r.min(), r.vat(), gross), gross(r.max(), r.vat(), gross),
                     cmp == null ? null : gross(cmp, r.vat(), gross), cmp == null || lowest.get(r.cheapest()) == null ? null : gross(lowest.get(r.cheapest()), r.vat(), gross),
                     r.currency(), r.available(), img.isEmpty() ? null : img.getFirst().urls().get("w400"),
-                    img.isEmpty() ? null : img.getFirst().alt());
+                    img.isEmpty() ? null : img.getFirst().alt(), img.isEmpty() ? null : img.getFirst().color());
         }).toList();
         return new PageImpl<>(cards, pageable, total == null ? 0 : total);
     }

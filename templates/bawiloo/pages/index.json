@@ -1,0 +1,88 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {}
+    },
+    "categories": {
+      "type": "categories",
+      "settings": {}
+    },
+    "featured": {
+      "type": "featured-products",
+      "settings": {}
+    },
+    "benefits": {
+      "type": "benefits",
+      "settings": {},
+      "blocks": {
+        "benefit-1": {
+          "type": "benefit",
+          "settings": {
+            "icon": "shield",
+            "title": "BEZPIECZNE PŁATNOŚCI",
+            "text": "Bezpieczne płatności przy każdym zakupie."
+          }
+        },
+        "benefit-2": {
+          "type": "benefit",
+          "settings": {
+            "icon": "return",
+            "title": "ŁATWE ZWROTY",
+            "text": "Prosty i wygodny proces zwrotu."
+          }
+        },
+        "benefit-3": {
+          "type": "benefit",
+          "settings": {
+            "icon": "truck",
+            "title": "SZYBKA DOSTAWA",
+            "text": "Jeszcze więcej radości prosto pod Twoje drzwi."
+          }
+        },
+        "benefit-4": {
+          "type": "benefit",
+          "settings": {
+            "icon": "chat",
+            "title": "POMOC ONLINE",
+            "text": "Jesteśmy tu, aby Ci pomóc."
+          }
+        }
+      },
+      "block_order": [
+        "benefit-1",
+        "benefit-2",
+        "benefit-3",
+        "benefit-4"
+      ]
+    },
+    "promo": {
+      "type": "promo-slider",
+      "settings": {
+        "kicker": "WYJĄTKOWE OFERTY BAWILOO",
+        "products": {
+          "source": "sale",
+          "category": "pluszaki",
+          "count": 5
+        }
+      }
+    },
+    "about": {
+      "type": "about",
+      "settings": {}
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero",
+    "categories",
+    "featured",
+    "benefits",
+    "promo",
+    "about",
+    "newsletter"
+  ]
+}

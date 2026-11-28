@@ -1,0 +1,78 @@
+{
+  "sections": {
+    "header": {
+      "type": "header",
+      "settings": {},
+      "blocks": {
+        "link-1": {
+          "type": "link",
+          "settings": {
+            "label": "START",
+            "url": "/",
+            "style": "plain"
+          }
+        },
+        "link-2": {
+          "type": "link",
+          "settings": {
+            "label": "SKLEP",
+            "url": "/produkty",
+            "style": "plain"
+          }
+        },
+        "link-3": {
+          "type": "link",
+          "settings": {
+            "label": "KATEGORIE",
+            "url": "/#categories",
+            "style": "plain"
+          }
+        },
+        "link-4": {
+          "type": "link",
+          "settings": {
+            "label": "BESTSELLERY",
+            "url": "/#shop",
+            "style": "plain"
+          }
+        },
+        "link-5": {
+          "type": "link",
+          "settings": {
+            "label": "PROMOCJE",
+            "url": "/#promotions",
+            "style": "plain"
+          }
+        },
+        "link-6": {
+          "type": "link",
+          "settings": {
+            "label": "O NAS",
+            "url": "/#about",
+            "style": "plain"
+          }
+        },
+        "link-7": {
+          "type": "link",
+          "settings": {
+            "label": "KONTAKT",
+            "url": "#contact",
+            "style": "pill"
+          }
+        }
+      },
+      "block_order": [
+        "link-1",
+        "link-2",
+        "link-3",
+        "link-4",
+        "link-5",
+        "link-6",
+        "link-7"
+      ]
+    }
+  },
+  "order": [
+    "header"
+  ]
+}

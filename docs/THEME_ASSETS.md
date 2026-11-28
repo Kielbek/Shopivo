@@ -46,6 +46,11 @@ Jasna wersja szablonu (nowy `index.html`, 2026-11-27):
 - zdjęcia wycięć dołączone później do wiadomości nie były dostępne jako pliki, więc nie trafiły do repozytorium; po przesłaniu ich jako plików można je podmienić;
 - zdjęcia produktów (`p-*`) mają teraz pastelowe tło w kolorze z szablonu, z marginesem i miękkim cieniem.
 
+Wersja z 2026-11-28 (`bawiloo-sklep-jasny-premium.html`, silnik v2):
+- baner, zdjęcie „O nas” i 6 grafik kategorii (prawdziwe PNG z przezroczystym tłem) leżą w `templates/bawiloo/assets/`;
+- 16 zdjęć produktów z przezroczystym tłem leży jako `backend/src/main/resources/themes/bawiloo/*-sample.png`; trafiają do sklepu przy dodaniu przykładowych produktów;
+- biblioteka zdjęć zachowuje przezroczystość (warianty PNG) i zapisuje główny kolor zdjęcia, którym szablon barwi tło karty.
+
 Prawa do grafik — po stronie dostawcy szablonu.
 Uwaga: na zdjęciu „O nas” jest napis „Whimsy”; szablon przykrywa go szyldem z nazwą sklepu, ale tylko na tym jednym zdjęciu.
 
@@ -59,5 +64,7 @@ Uwaga: na zdjęciu „O nas” jest napis „Whimsy”; szablon przykrywa go szy
 | Plus Jakarta Sans (zmienna 200–800) | `plus-jakarta-sans-latin(-ext)-wght-normal.woff2` | SIL Open Font License 1.1 (`OFL-plus-jakarta-sans.txt`) | npm `@fontsource-variable/plus-jakarta-sans@5.3.0` |
 
 Fredoka z pierwotnego szablonu Bawiloo nie ma liter Ą, Ę ani Ż (sprawdzone w plikach fontu), więc zastąpiono go podobnym, zaokrąglonym Baloo 2 z pełnym polskim alfabetem. Każdy font szablonu trzeba sprawdzić pod kątem polskich znaków (ĄĆĘŁŃÓŚŹŻ), zanim trafi do sklepu.
+
+W silniku v2 nazwa rodziny „Fredoka” z projektu jest podpięta pod pliki Baloo 2 (`templates/bawiloo/styles.css`), więc CSS projektu działa bez zmian, a polskie litery wyświetlają się poprawnie.
 
 Fonty są serwowane przez witrynę sklepu, bez zapytań do Google Fonts (adres IP odwiedzającego nie trafia do podmiotów trzecich).

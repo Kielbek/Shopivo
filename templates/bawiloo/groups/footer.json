@@ -1,0 +1,79 @@
+{
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "settings": {},
+      "blocks": {
+        "links-1": {
+          "type": "links",
+          "settings": {
+            "title": "SKLEP",
+            "links": [
+              {
+                "label": "Wszystkie zabawki",
+                "url": "/produkty"
+              },
+              {
+                "label": "Kategorie",
+                "url": "/#categories"
+              },
+              {
+                "label": "Newsletter",
+                "url": "/#newsletter"
+              },
+              {
+                "label": "Ulubione",
+                "url": "/ulubione"
+              }
+            ]
+          }
+        },
+        "links-2": {
+          "type": "links",
+          "settings": {
+            "title": "TWOJE KONTO",
+            "links": [
+              {
+                "label": "Moje konto",
+                "url": "/konto"
+              },
+              {
+                "label": "Koszyk",
+                "url": "/koszyk"
+              },
+              {
+                "label": "Dostawa i zwroty",
+                "url": "legal:SHIPPING"
+              },
+              {
+                "label": "Prywatność",
+                "url": "legal:PRIVACY"
+              },
+              {
+                "label": "Regulamin",
+                "url": "legal:TERMS"
+              }
+            ]
+          }
+        },
+        "help-3": {
+          "type": "help",
+          "settings": {
+            "title": "POTRZEBUJESZ POMOCY?",
+            "text": "Poznaj naszą historię albo napisz do nas — chętnie pomożemy w wyborze zabawki.",
+            "button_label": "O nas",
+            "button_url": "/#about"
+          }
+        }
+      },
+      "block_order": [
+        "links-1",
+        "links-2",
+        "help-3"
+      ]
+    }
+  },
+  "order": [
+    "footer"
+  ]
+}

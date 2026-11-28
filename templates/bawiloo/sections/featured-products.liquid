@@ -1,0 +1,42 @@
+<section class="px-[6%] pb-12 pt-10 text-center sm:pt-16" id="{{ section.settings.anchor | default: 'shop' }}">
+<div class="mx-auto mb-9 text-center lg:mb-14" aria-labelledby="title-{{ section.id }}">
+{%- if section.settings.kicker != blank %}
+<div class="playtime-kicker"{{ section | edit: 'kicker' }}>
+<span aria-hidden="true">✦</span> {{ section.settings.kicker }} <span aria-hidden="true">✦</span>
+</div>
+{%- endif %}
+<h2 id="title-{{ section.id }}" class="playtime-title">
+<span{{ section | edit: 'heading' }}>{{ section.settings.heading }}</span>
+{%- if section.settings.accent != blank %}
+<span class="playtime-accent">
+<span aria-hidden="true" class="playtime-spark">✧</span> <span{{ section | edit: 'accent' }}>{{ section.settings.accent }}</span> <span aria-hidden="true" class="playtime-spark">✧</span>
+</span>
+{%- endif %}
+</h2>
+{%- if section.settings.text != blank %}
+<p class="mt-4 text-sm font-semibold text-[#61574f] sm:text-base"{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+{%- endif %}
+</div>
+<div class="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-3 lg:gap-5 mx-auto max-w-[1100px]" id="topGrid">
+{%- for product in section.settings.products.items %}{% render 'product-card', product: product %}{% endfor -%}
+</div>
+{%- if section.settings.button_label != blank %}
+<a class="inline-flex items-center justify-center rounded-full border border-[#dfcbb5] bg-white px-6 py-3 text-[12px] font-extrabold text-[#382319] transition hover:bg-[#fff0d6] mt-10" href="{{ section.settings.button_url | link | default: section.settings.products.url }}"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>
+{%- endif %}
+</section>
+
+{% schema %}
+{
+  "name": "Wyróżnione produkty",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "HITY DO ZABAWY", "max": 40 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "MAŁE FIGURKI,", "max": 60 },
+    { "id": "accent", "type": "text", "label": "Druga linia (wyróżniona)", "default": "WIELKIE PRZYGODY!", "max": 60 },
+    { "id": "text", "type": "text", "label": "Opis", "default": "Poznaj bohaterów, z którymi zabawa nie ma końca.", "max": 160 },
+    { "id": "products", "type": "product_list", "label": "Produkty", "default": { "source": "bestsellers", "count": 6 } },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "ZOBACZ WIĘCEJ", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "", "info": "Puste pole: lista tych produktów w sklepie." },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "shop", "max": 30 }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,13 @@
+{% render 'page-title', text: section.settings.title %}
+<div data-shop-favorites>
+{%- if favorites.size > 0 %}{% render 'product-grid', products: favorites %}{% else %}{% render 'empty', text: 'Dodaj zabawki do ulubionych, klikając serduszko.' %}{% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "Ulubione",
+  "settings": [
+    { "id": "title", "type": "text", "label": "Tytuł", "default": "Twoje ulubione", "max": 40 }
+  ]
+}
+{% endschema %}

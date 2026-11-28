@@ -11,6 +11,9 @@ ENV NODE_ENV=production PORT=4000
 WORKDIR /app
 COPY --from=build /workspace/node_modules ./node_modules
 COPY --from=build /workspace/dist/storefront ./dist/storefront
+# Template packages (HTML/CSS/assets per template) and the storefront runtime script, read at startup
+COPY templates/ ./templates/
+COPY --from=build /workspace/apps/storefront/src/engine/runtime/shop.js ./runtime/shop.js
 USER node
 EXPOSE 4000
 # Required: SHOPIVO_API_URL (internal backend URL). Optional: SHOPIVO_TRUST_PROXY (load balancer address/CIDR).

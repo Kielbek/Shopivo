@@ -101,6 +101,30 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - pole „Wysokość” banera nie wpływa na układ „Magazyn”;
   - zdjęcia z HTML-a są z Unsplash — dobre jako start, ale sprzedawca powinien użyć własnych.
 
+## Silnik szablonów v2 — etap 1 (2026-11-28)
+
+- **Format szablonu** (`templates/<nazwa>/`, docs/TEMPLATE_FORMAT.md): HTML i CSS projektanta podzielone na sekcje Liquid z opisem ustawień; strony i grupy w JSON; wszystkie wpisy wypisywane są escapowane.
+- **Silnik w serwerze witryny** (`frontend/apps/storefront/src/engine/`): LiquidJS, dane sklepu z API, trasy `/`, `/produkty`, `/szukaj`, `/kategoria/:slug`, `/produkt/:slug`, `/koszyk`, `/ulubione`, 404; inne ścieżki i sklepy idą do aplikacji Angular.
+- **Skrypt sklepu** (`/_shop/runtime.js`): koszyk, ulubione, newsletter i filtry przez atrybuty `data-shop-*`; jeden koszyk ze stroną zamówienia; odświeżanie sekcji z serwera.
+- **Bawiloo jasne premium** przeniesione 1:1: sekcje, slider promocji i dopasowanie menu ze skryptu projektu, fonty na serwerze sklepu.
+- **Backend:**
+  - zdjęcia z przezroczystością zostają przezroczyste (warianty PNG, migracja V24);
+  - główny kolor zdjęcia trafia na karty produktów;
+  - linie koszyka mają adres, zdjęcie i kolor produktu;
+  - przykładowe zabawki mają zdjęcia z pliku projektu.
+- **Testy:**
+  - `engine.spec.ts`: pakiety, klasy CSS, walidacja ustawień, escapowanie, haki edytora;
+  - `ImageProcessorTest`: przezroczystość i kolor zdjęcia;
+  - E2E: szybkie dodanie, ulubione, slider, filtry bez przeładowania, strona produktu (2 szt.), koszyk (suma 47,97 zł, +/−, usuń), koszyk widoczny na stronie zamówienia, 404; 0 błędów konsoli.
+- **Porównanie z oryginałem** (zrzuty z komputera i telefonu): strona główna, katalog i produkt zgodne. Różnice:
+  - dopisek Omnibus;
+  - kolory tła kart liczone ze zdjęć;
+  - „Szybka dostawa” zamiast „Darmowa dostawa”.
+- **Ograniczenia:**
+  - edytor v2 — etap 3;
+  - zamówienie i konto w wyglądzie szablonu — etap 2;
+  - captcha newslettera w runtime — gdy sklep ma ją włączoną, zapis z runtime zostanie odrzucony (etap 2).
+
 ## Faza 4a — witryna sklepu i motywy (2026-11-26)
 
 - **Pliki** (`media`): S3 (AWS/R2/MinIO) lub katalog lokalny (dev), zdjęcia produktów JPEG/PNG ≤ 10 MB, warianty

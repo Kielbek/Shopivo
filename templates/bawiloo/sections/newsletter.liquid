@@ -1,0 +1,39 @@
+<section id="newsletter" aria-labelledby="newsletter-title-{{ section.id }}" class="px-[6%] pb-16 pt-6 sm:pb-20 lg:pt-12">
+<div class="relative isolate mx-auto overflow-hidden rounded-[32px] bg-[#f8bf73] px-5 py-12 text-[#151513] sm:px-12 lg:px-20 lg:py-16">
+<div aria-hidden="true" class="pointer-events-none absolute -left-20 -top-20 -z-10 size-64 rounded-full border-[38px] border-white/20"></div>
+<div aria-hidden="true" class="pointer-events-none absolute -bottom-28 -right-20 -z-10 size-80 rounded-full border-[50px] border-white/20"></div>
+<div class="mx-auto grid max-w-6xl items-center gap-8 lg:grid-cols-[1fr_1fr] lg:gap-16">
+<div class="text-center lg:text-left">
+{%- if section.settings.kicker != blank %}<p class="mb-4 text-xs font-extrabold uppercase tracking-[0.2em]">✦ &nbsp; <span{{ section | edit: 'kicker' }}>{{ section.settings.kicker }}</span> &nbsp; ✦</p>{% endif %}
+<h2 id="newsletter-title-{{ section.id }}" class="font-['Fredoka',sans-serif] text-[clamp(36px,5vw,64px)] font-semibold leading-[0.98] tracking-[-0.035em]"><span{{ section | edit: 'heading' }}>{{ section.settings.heading | lines }}</span>{% if section.settings.accent != blank %} <span class="text-[#78400d]"{{ section | edit: 'accent' }}>{{ section.settings.accent }}</span>{% endif %}</h2>
+{%- if section.settings.text != blank %}<p class="mt-5 max-w-md text-sm font-semibold leading-relaxed sm:text-base lg:mx-0 mx-auto"{{ section | edit: 'text' }}>{{ section.settings.text }}</p>{% endif %}
+</div>
+<form class="mx-auto w-full max-w-lg" data-shop-newsletter novalidate>
+<label for="newsletterEmail-{{ section.id }}" class="mb-2 block text-sm font-extrabold">Twój adres e-mail</label>
+<div class="flex flex-col gap-2 rounded-[24px] bg-white p-2 sm:flex-row sm:rounded-full">
+<input id="newsletterEmail-{{ section.id }}" name="email" type="email" placeholder="np. twoj@email.pl" autocomplete="email" required maxlength="254" class="min-w-0 flex-1 rounded-full bg-transparent px-4 py-3 text-sm text-[#151513] placeholder:text-black/45">
+<button type="submit" class="shrink-0 rounded-full bg-[#151513] px-6 py-3 text-sm font-extrabold text-white transition hover:bg-[#39332b]"><span{{ section | edit: 'button' }}>{{ section.settings.button }}</span> <span aria-hidden="true">↗</span>
+</button>
+</div>
+<label class="mt-4 flex cursor-pointer items-start gap-2 text-xs leading-relaxed">
+<input type="checkbox" name="consent" required class="mt-0.5 size-4 shrink-0 accent-[#151513]">
+<span>Chcę otrzymywać newsletter {{ shop.name }}. Zapoznałem się z <a href="{{ 'legal:PRIVACY' | link }}" class="font-bold underline">polityką prywatności</a>.</span>
+</label>
+<p role="status" aria-live="polite" class="mt-3 text-sm font-extrabold" data-shop-status></p>
+</form>
+</div>
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Klub Bawiloo", "max": 40 },
+    { "id": "heading", "type": "textarea", "label": "Nagłówek", "default": "Radość prosto\ndo", "max": 80 },
+    { "id": "accent", "type": "text", "label": "Wyróżniona końcówka nagłówka", "default": "Twojej skrzynki!", "max": 40 },
+    { "id": "text", "type": "textarea", "label": "Opis", "default": "Dołącz do naszego newslettera i odkrywaj nowości, wyjątkowe promocje oraz pomysły na wspólną zabawę.", "max": 300 },
+    { "id": "button", "type": "text", "label": "Tekst przycisku", "default": "Zapisz się", "max": 30 }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,12 @@
+{% render 'page-title', text: section.settings.title %}
+{% render 'empty', text: section.settings.text, label: 'Zobacz zabawki' %}
+
+{% schema %}
+{
+  "name": "Nie znaleziono strony",
+  "settings": [
+    { "id": "title", "type": "text", "label": "Tytuł", "default": "Nie znaleziono strony", "max": 60 },
+    { "id": "text", "type": "text", "label": "Tekst", "default": "Wróć do kolekcji zabawek.", "max": 120 }
+  ]
+}
+{% endschema %}

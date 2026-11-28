@@ -90,7 +90,7 @@ class TemplateDemoController {
                         size.isEmpty() ? s.name() : size, null, s.priceMinor(), s.compareAtMinor(), null, true, false));
             }
             Map<String, String> urls = ThemeAssets.find(s.image()).map(ThemeAssets.Asset::urls).orElse(Map.of());
-            var image = new Media.ImageView(id(code, "image", s.name()), s.name(), 1200, 1200, 0, urls);
+            var image = new Media.ImageView(id(code, "image", s.name()), s.name(), 1200, 1200, 0, urls, null);
             var cat = cats.get(s.category());
             products.add(new PublicCatalog.PublicProduct(pid, slug(s.name()), s.name(), DEMO_TEXT, null, ProductType.PHYSICAL, 2300, "PLN",
                     s.sizes().isEmpty() ? List.of() : List.of(new CatalogViews.OptionView("Rozmiar", s.sizes())), variants,
@@ -105,7 +105,7 @@ class TemplateDemoController {
     private static PublicCatalog.ProductCard card(PublicCatalog.PublicProduct p) {
         var v = p.variants().getFirst();
         return new PublicCatalog.ProductCard(p.id(), p.slug(), p.name(), null, v.priceMinor(), v.priceMinor(), v.compareAtMinor(),
-                v.lowestPrice30dMinor(), "PLN", true, p.images().isEmpty() ? null : p.images().getFirst().urls().get("w400"), p.name());
+                v.lowestPrice30dMinor(), "PLN", true, p.images().isEmpty() ? null : p.images().getFirst().urls().get("w400"), p.name(), null);
     }
 
     private static <T> ResponseEntity<T> ok(T body) {

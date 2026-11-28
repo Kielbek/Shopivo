@@ -1,0 +1,339 @@
+/*
+ * Shopivo storefront runtime — the shop behaviour every template gets, wired through data-shop-* attributes in the
+ * template's HTML (contract: docs/TEMPLATE_FORMAT.md). Plain browser JavaScript, no build step, no dependencies.
+ *
+ * The cart token and favourites are kept both in cookies (so the server can render the cart and favourites pages) and
+ * in localStorage under the keys the checkout pages use, so the visitor keeps one cart across all pages.
+ */
+(() => {
+  'use strict';
+  const API = '/api/v1/storefront';
+  const config = (() => {
+    try {
+      return JSON.parse(document.getElementById('shop-config')?.textContent || '{}');
+    } catch {
+      return {};
+    }
+  })();
+  const CART_COOKIE = config.cartCookie || 'shopivo_cart';
+  const FAV_COOKIE = config.favCookie || 'shopivo_fav';
+  const CART_KEY = 'shopivo.cart';
+  const FAV_KEY = 'sf-wishlist';
+  const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+  const preview = new URLSearchParams(location.search).get('podglad');
+
+  // ------------------------------------------------------------------------------------------- storage
+
+  function getCookie(name) {
+    for (const part of document.cookie.split(';')) {
+      const [k, ...v] = part.trim().split('=');
+      if (k === name) return decodeURIComponent(v.join('='));
+    }
+    return null;
+  }
+  function setCookie(name, value, days) {
+    const secure = location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${value ? days * 86400 : 0}; SameSite=Lax${secure}`;
+  }
+  function local(key, value) {
+    try {
+      if (value === undefined) return localStorage.getItem(key);
+      if (value === null) localStorage.removeItem(key);
+      else localStorage.setItem(key, value);
+    } catch {
+      /* private mode: cookies still work */
+    }
+    return null;
+  }
+
+  function cartToken() {
+    const fromCookie = getCookie(CART_COOKIE);
+    if (fromCookie) return fromCookie;
+    const fromCheckout = local(CART_KEY);
+    if (fromCheckout) setCookie(CART_COOKIE, fromCheckout, 30);
+    return fromCheckout;
+  }
+  function saveCartToken(token) {
+    setCookie(CART_COOKIE, token || '', 30);
+    local(CART_KEY, token || null);
+  }
+
+  function favourites() {
+    const ids = new Set((getCookie(FAV_COOKIE) || '').split(',').filter((id) => UUID.test(id)));
+    try {
+      for (const id of JSON.parse(local(FAV_KEY) || '[]')) if (UUID.test(id)) ids.add(id);
+    } catch {
+      /* ignore a broken value */
+    }
+    return [...ids].slice(-60);
+  }
+  function saveFavourites(ids) {
+    setCookie(FAV_COOKIE, ids.join(','), 365);
+    local(FAV_KEY, ids.length ? JSON.stringify(ids) : null);
+  }
+
+  // ------------------------------------------------------------------------------------------- API
+
+  async function api(method, path, body, token) {
+    const headers = { Accept: 'application/json' };
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    if (token) headers['X-Cart-Token'] = token;
+    if (preview) headers['X-Store-Preview'] = preview;
+    const res = await fetch(API + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+    const data = res.status === 204 ? null : await res.json().catch(() => null);
+    if (!res.ok) {
+      const error = new Error((data && data.detail) || 'Coś poszło nie tak. Spróbuj ponownie.');
+      error.status = res.status;
+      throw error;
+    }
+    return data;
+  }
+
+  async function addToCart(variantId, quantity) {
+    let token = cartToken();
+    if (!token) {
+      const created = await api('POST', '/cart', null);
+      token = created.token;
+      saveCartToken(token);
+    }
+    try {
+      return await api('POST', '/cart/items', { variantId, quantity }, token);
+    } catch (e) {
+      if (e.status !== 404) throw e;
+      // The cart expired: start a new one
+      const created = await api('POST', '/cart', null);
+      saveCartToken(created.token);
+      return api('POST', '/cart/items', { variantId, quantity }, created.token);
+    }
+  }
+
+  // ------------------------------------------------------------------------------------------- UI helpers
+
+  let toastTimer;
+  function toast(message) {
+    const el = document.querySelector('[data-shop-toast]');
+    if (!el) return;
+    el.textContent = message;
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => { el.hidden = true; }, 2400);
+  }
+
+  function setCounts(cartCount) {
+    if (typeof cartCount === 'number') {
+      document.querySelectorAll('[data-shop-cart-count]').forEach((el) => { el.textContent = String(cartCount); });
+      document.querySelectorAll('[data-shop-cart-label]').forEach((el) => {
+        el.setAttribute('aria-label', el.dataset.shopCartLabel.replace('{count}', String(cartCount)));
+      });
+    }
+    const favs = favourites().length;
+    document.querySelectorAll('[data-shop-fav-count]').forEach((el) => { el.textContent = String(favs); });
+    document.querySelectorAll('[data-shop-fav-label]').forEach((el) => {
+      el.setAttribute('aria-label', el.dataset.shopFavLabel.replace('{count}', String(favs)));
+    });
+  }
+
+  function syncFavButtons(root = document) {
+    const ids = new Set(favourites());
+    root.querySelectorAll('[data-shop-fav]').forEach((b) => {
+      const on = ids.has(b.dataset.shopFav);
+      b.setAttribute('aria-pressed', String(on));
+      if (b.dataset.on && b.dataset.off) b.textContent = on ? b.dataset.on : b.dataset.off;
+      if (b.dataset.ariaOn && b.dataset.ariaOff) b.setAttribute('aria-label', on ? b.dataset.ariaOn : b.dataset.ariaOff);
+    });
+  }
+
+  /** Re-renders sections of the current page on the server and swaps them in (cart page after a change…). */
+  async function refreshSections(ids, onlyRegions) {
+    const path = location.pathname + location.search;
+    const res = await fetch(`/_shop/sections?path=${encodeURIComponent(path)}&ids=${encodeURIComponent(ids.join(','))}`, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!res.ok) throw new Error('sections ' + res.status);
+    const html = await res.json();
+    for (const [id, markup] of Object.entries(html)) {
+      const current = document.querySelector(`[data-shop-section="${CSS.escape(id)}"]`);
+      if (!current) continue;
+      const next = new DOMParser().parseFromString(markup, 'text/html').body.firstElementChild;
+      if (!next) continue;
+      if (onlyRegions) {
+        next.querySelectorAll('[data-shop-region]').forEach((region) => {
+          const old = current.querySelector(`[data-shop-region="${CSS.escape(region.dataset.shopRegion)}"]`);
+          if (old) old.replaceWith(region);
+        });
+      } else {
+        current.replaceWith(next);
+      }
+    }
+    syncFavButtons();
+  }
+
+  function sectionOf(el) {
+    return el.closest('[data-shop-section]')?.dataset.shopSection;
+  }
+
+  // ------------------------------------------------------------------------------------------- actions
+
+  async function quickAdd(button) {
+    const slug = button.dataset.product;
+    button.disabled = true;
+    try {
+      const product = await api('GET', '/products/' + encodeURIComponent(slug));
+      const available = product.variants.filter((v) => v.available);
+      // Products with options are chosen on their page
+      if (product.variants.length !== 1 || available.length !== 1) {
+        location.href = '/produkt/' + encodeURIComponent(slug);
+        return;
+      }
+      const cart = await addToCart(available[0].id, 1);
+      setCounts(cart.itemCount);
+      toast('Dodano do koszyka');
+    } catch (e) {
+      toast(e.message);
+    } finally {
+      button.disabled = false;
+    }
+  }
+
+  function toggleFavourite(button) {
+    const id = button.dataset.shopFav;
+    if (!UUID.test(id)) return;
+    const ids = favourites();
+    const was = ids.includes(id);
+    saveFavourites(was ? ids.filter((x) => x !== id) : [...ids, id].slice(-60));
+    syncFavButtons();
+    setCounts();
+    toast(was ? 'Usunięto z ulubionych' : 'Dodano do ulubionych');
+    const favPage = document.querySelector('[data-shop-favorites]');
+    if (was && favPage) {
+      const section = sectionOf(favPage);
+      if (section) refreshSections([section]).catch(() => location.reload());
+    }
+  }
+
+  async function setQuantity(button) {
+    const variant = button.dataset.shopCartSet;
+    const quantity = Math.max(0, Math.min(99, Number(button.dataset.quantity) || 0));
+    const token = cartToken();
+    if (!token) return;
+    button.disabled = true;
+    try {
+      const cart = await api('PATCH', '/cart/items/' + encodeURIComponent(variant), { quantity }, token);
+      setCounts(cart.itemCount);
+      const section = sectionOf(button);
+      if (section) await refreshSections([section]);
+    } catch (e) {
+      toast(e.message);
+      button.disabled = false;
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const target = e.target instanceof Element ? e.target : null;
+    if (!target) return;
+    const add = target.closest('button[data-shop-add]');
+    if (add) {
+      e.preventDefault();
+      void quickAdd(add);
+      return;
+    }
+    const fav = target.closest('[data-shop-fav]');
+    if (fav) {
+      e.preventDefault();
+      toggleFavourite(fav);
+      return;
+    }
+    const set = target.closest('[data-shop-cart-set]');
+    if (set) {
+      e.preventDefault();
+      void setQuantity(set);
+    }
+  });
+
+  document.addEventListener('submit', (e) => {
+    const form = e.target;
+    if (!(form instanceof HTMLFormElement)) return;
+    const status = form.querySelector('[data-shop-status]');
+    const say = (text) => { if (status) status.textContent = text; };
+
+    if (form.matches('[data-shop-add-form]')) {
+      e.preventDefault();
+      const data = new FormData(form);
+      const variant = String(data.get('variant') || '');
+      const quantity = Number(data.get('quantity') || 1);
+      if (!UUID.test(variant) || !Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+        say('Wybierz wariant i ilość (1–99).');
+        return;
+      }
+      const button = form.querySelector('[type="submit"]');
+      if (button) button.disabled = true;
+      addToCart(variant, quantity)
+        .then((cart) => {
+          setCounts(cart.itemCount);
+          say('');
+          toast('Dodano do koszyka');
+        })
+        .catch((err) => say(err.message))
+        .finally(() => { if (button) button.disabled = false; });
+      return;
+    }
+
+    if (form.matches('[data-shop-newsletter]')) {
+      e.preventDefault();
+      if (!form.checkValidity()) {
+        say('Podaj adres e-mail i zaznacz zgodę.');
+        return;
+      }
+      const email = String(new FormData(form).get('email') || '').trim();
+      api('POST', '/newsletter', { email })
+        .then(() => {
+          form.reset();
+          say('Dziękujemy! Sprawdź skrzynkę i potwierdź zapis.');
+        })
+        .catch((err) => say(err.message));
+      return;
+    }
+
+    if (form.matches('[data-shop-filter]')) {
+      e.preventDefault();
+      applyFilter(form);
+    }
+  });
+
+  // Catalogue filters: results update in place, the address follows (shareable, back button friendly).
+  function applyFilter(form) {
+    const params = new URLSearchParams();
+    for (const [k, v] of new FormData(form)) if (String(v).trim()) params.set(k, String(v).trim());
+    if (preview) params.set('podglad', preview);
+    const category = params.get('kategoria');
+    // A category on its own page keeps its address; with other filters the list is /produkty?kategoria=…
+    const base = form.getAttribute('action') || location.pathname;
+    const url = base + (params.toString() ? '?' + params : '');
+    history.replaceState(null, '', url);
+    const section = sectionOf(form);
+    if (section) refreshSections([section], true).catch(() => { location.href = url; });
+    return category;
+  }
+  let filterTimer;
+  document.addEventListener('change', (e) => {
+    const form = e.target instanceof Element ? e.target.closest('form[data-shop-filter]') : null;
+    if (form && e.target.tagName === 'SELECT') applyFilter(form);
+  });
+  document.addEventListener('input', (e) => {
+    const form = e.target instanceof Element ? e.target.closest('form[data-shop-filter]') : null;
+    if (!form || e.target.type !== 'search') return;
+    clearTimeout(filterTimer);
+    filterTimer = setTimeout(() => applyFilter(form), 350);
+  });
+
+  // ------------------------------------------------------------------------------------------- start
+
+  syncFavButtons();
+  setCounts();
+  // A cart started on the checkout pages: show its count here too
+  if (!getCookie(CART_COOKIE) && local(CART_KEY)) {
+    const token = cartToken();
+    api('GET', '/cart', undefined, token).then((cart) => setCounts(cart.itemCount)).catch(() => saveCartToken(null));
+  }
+  window.Shopivo = Object.freeze({ toast, refreshSections });
+})();

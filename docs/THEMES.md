@@ -143,6 +143,15 @@ produktów w JS, logowanie Google bez Google, przykładowe zamówienia, „check
   - newsletter;
   - dane sprzedawcy.
 
+## Silnik v2 (od 2026-11-28)
+
+Bawiloo jest renderowane przez nowy silnik szablonów (docs/TEMPLATE_FORMAT.md): HTML i CSS z pliku projektanta (`bawiloo-sklep-jasny-premium.html`) podzielone na sekcje w `templates/bawiloo/`, 1:1 z projektem. Opis poniżej dotyczy wcześniejszej wersji w silniku Angular (zostaje do czasu przeniesienia edytora — etap 3).
+
+Ograniczenia etapu 1:
+- edytor w panelu nadal zapisuje ustawienia starego silnika, a strona v2 pokazuje domyślną treść szablonu (edytor v2 w etapie 3);
+- strony zamówienia, konta, CMS i bloga są jeszcze z aplikacji Angular (płatność w wyglądzie szablonu — etap 2);
+- w podglądzie z panelu (`?podglad=`) linki między stronami nie przenoszą tokenu podglądu.
+
 ## Bawiloo — co ma (drugi szablon, zabawki)
 
 Od 2026-11-27 Bawiloo jest **jasne** (wersja z nowego `index.html` od właściciela projektu): kremowe tło, białe karty, ciemnobrązowy tekst i złoty nagłówek.

@@ -1,0 +1,34 @@
+<section class="px-[6%] pb-10 pt-24 text-center sm:pb-16 lg:pt-[175px]" id="categories">
+<h2 class="mb-8 text-center text-2xl font-bold leading-none tracking-[-0.035em] sm:text-3xl lg:mb-12 lg:text-[40px]"{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+<div class="grid grid-cols-2 gap-x-5 gap-y-7 sm:grid-cols-3 lg:grid-cols-6">
+{%- for category in section.settings.categories limit: section.settings.limit %}
+<article class="min-w-0 text-center">
+<a class="category-link block" href="{{ category.url }}">
+{%- if category.image %}
+<img class="mx-auto block h-[140px] w-full max-w-[164px] object-contain sm:h-[150px]" src="{{ category.image | image_url: 'w400' }}" alt="{{ category.name }}" width="{{ category.image.width | default: 268 }}" height="{{ category.image.height | default: 297 }}" loading="lazy" decoding="async">
+{%- else %}
+<span class="mx-auto grid h-[140px] w-full max-w-[164px] place-items-center font-['Fredoka',sans-serif] font-semibold category-initial sm:h-[150px]" aria-hidden="true">{{ category.name | slice: 0 }}</span>
+{%- endif %}
+<h3 class="mt-4 text-[11px] font-extrabold sm:text-xs lg:text-sm">{{ category.name | upcase }}</h3>
+</a>
+</article>
+{%- endfor %}
+</div>
+{%- if section.settings.button_label != blank %}
+<a class="inline-flex items-center justify-center rounded-full border border-[#dfcbb5] bg-white px-6 py-3 text-[12px] font-extrabold text-[#382319] transition hover:bg-[#fff0d6] mt-10 lg:mt-12" href="{{ section.settings.button_url | link }}"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>
+{%- endif %}
+</section>
+
+{% schema %}
+{
+  "name": "Kategorie ze zdjęciami bez tła",
+  "settings": [
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "ULUBIONE ZABAWKI DZIECI", "max": 60 },
+    { "id": "categories", "type": "category_list", "label": "Kategorie", "default": { "mode": "top" },
+      "info": "Kategorie główne sklepu z ich zdjęciami (zdjęcie kategorii ustawisz w Produkty → Kategorie)." },
+    { "id": "limit", "type": "number", "label": "Ile kategorii pokazać", "default": 6, "min": 2, "max": 12 },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "ZOBACZ WIĘCEJ", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "/produkty" }
+  ]
+}
+{% endschema %}

@@ -51,7 +51,8 @@ public class Media {
         this.quota = quota;
     }
 
-    public record ImageView(UUID id, String alt, int width, int height, int position, Map<String, String> urls) {
+    /** {@code color}: the photo's main colour (#rrggbb, may be null for images stored before it was computed). */
+    public record ImageView(UUID id, String alt, int width, int height, int position, Map<String, String> urls, String color) {
     }
 
     /**
@@ -81,8 +82,9 @@ public class Media {
             storage.put(original, data, "image/" + p.format());
             written.add(original);
             for (var v : p.variants().entrySet()) {
-                storage.put(base + "w" + v.getKey() + ".jpg", v.getValue(), "image/jpeg");
-                written.add(base + "w" + v.getKey() + ".jpg");
+                String key = base + "w" + v.getKey() + "." + p.variantExt();
+                storage.put(key, v.getValue(), "png".equals(p.variantExt()) ? "image/png" : "image/jpeg");
+                written.add(key);
             }
         } catch (RuntimeException e) {
             written.forEach(this::quietDelete);
@@ -97,10 +99,11 @@ public class Media {
                 long used = usedBytes();
                 quota.forEach(q -> q.checkCanStore(tenant, used, total));
                 jdbc.update("""
-                        insert into media_assets (id, tenant_id, owner_type, owner_id, storage_key, content_type, width, height, total_bytes, alt, position)
-                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                        """, id, tenant, ownerType, ownerId, base, "image/" + p.format(), p.width(), p.height(), total, clean(alt), position);
-                return new ImageView(id, clean(alt), p.width(), p.height(), position, urls(tenant, id));
+                        insert into media_assets (id, tenant_id, owner_type, owner_id, storage_key, content_type, width, height, total_bytes, alt, position, variant_ext, color)
+                        values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        """, id, tenant, ownerType, ownerId, base, "image/" + p.format(), p.width(), p.height(), total, clean(alt), position,
+                        p.variantExt(), p.color());
+                return new ImageView(id, clean(alt), p.width(), p.height(), position, urls(tenant, id, p.variantExt()), p.color());
             });
         } catch (RuntimeException e) {
             written.forEach(this::quietDelete);
@@ -127,12 +130,13 @@ public class Media {
         if (ownerIds.isEmpty()) return result;
         UUID tenant = TenantContext.requireTenantId();
         jdbc.query("""
-                select id, owner_id, alt, width, height, position from media_assets
+                select id, owner_id, alt, width, height, position, variant_ext, color from media_assets
                 where tenant_id = ? and owner_type = ? and owner_id = any(?) order by position, created_at
                 """, rs -> {
                     UUID id = rs.getObject("id", UUID.class);
                     result.computeIfAbsent(rs.getObject("owner_id", UUID.class), k -> new ArrayList<>()).add(new ImageView(id,
-                            rs.getString("alt"), rs.getInt("width"), rs.getInt("height"), rs.getInt("position"), urls(tenant, id)));
+                            rs.getString("alt"), rs.getInt("width"), rs.getInt("height"), rs.getInt("position"), urls(tenant, id, rs.getString("variant_ext")),
+                            rs.getString("color")));
                 }, tenant, ownerType, ownerIds.toArray(UUID[]::new));
         return result;
     }
@@ -183,9 +187,10 @@ public class Media {
     }
 
     /** Public URLs of the variants (paths relative to the API origin). */
-    public static Map<String, String> urls(UUID tenantId, UUID imageId) {
+    public static Map<String, String> urls(UUID tenantId, UUID imageId, String ext) {
+        String e = "png".equals(ext) ? "png" : "jpg";
         Map<String, String> urls = new java.util.LinkedHashMap<>();
-        for (int w : ImageProcessor.WIDTHS) urls.put("w" + w, "/api/v1/media/" + tenantId + "/" + imageId + "/w" + w + ".jpg");
+        for (int w : ImageProcessor.WIDTHS) urls.put("w" + w, "/api/v1/media/" + tenantId + "/" + imageId + "/w" + w + "." + e);
         return urls;
     }
 
@@ -201,7 +206,7 @@ public class Media {
     private void afterCommitDelete(List<String> bases) {
         if (bases.isEmpty()) return;
         Runnable remove = () -> bases.forEach(base -> {
-            for (String suffix : List.of("orig.jpg", "orig.png", "w400.jpg", "w1200.jpg")) quietDelete(base + suffix);
+            for (String suffix : List.of("orig.jpg", "orig.png", "w400.jpg", "w1200.jpg", "w400.png", "w1200.png")) quietDelete(base + suffix);
         });
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

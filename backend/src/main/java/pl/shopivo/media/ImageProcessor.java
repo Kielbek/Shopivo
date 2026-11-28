@@ -37,10 +37,14 @@ public class ImageProcessor {
     public static final int MAX_BYTES = 10 * 1024 * 1024;
     static final int MAX_SIDE = 8000;
     static final long MAX_PIXELS = 40_000_000L;
-    /** Published variant widths (also the URL names: w400.jpg, w1200.jpg). */
+    /** Published variant widths (also the URL names: w400.jpg / w400.png, w1200.jpg / w1200.png). */
     public static final int[] WIDTHS = {400, 1200};
 
-    public record Processed(String format, int width, int height, Map<Integer, byte[]> variants) {
+    /**
+     * {@code variantExt}: "png" when the image really uses transparency (cut-outs keep their transparent background),
+     * otherwise "jpg".
+     */
+    public record Processed(String format, int width, int height, Map<Integer, byte[]> variants, String variantExt, String color) {
     }
 
     /**
@@ -83,11 +87,13 @@ public class ImageProcessor {
         boolean swap = orientation >= 5;
         int width = swap ? image.getHeight() : image.getWidth();
         int height = swap ? image.getWidth() : image.getHeight();
+        boolean alpha = "png".equals(format) && transparent(image);
         Map<Integer, byte[]> variants = new LinkedHashMap<>();
         for (int w : WIDTHS) {
-            variants.put(w, jpeg(resize(image, w, orientation)));
+            BufferedImage scaled = resize(image, w, orientation, alpha);
+            variants.put(w, alpha ? png(scaled) : jpeg(scaled));
         }
-        return new Processed(format, width, height, variants);
+        return new Processed(format, width, height, variants, alpha ? "png" : "jpg", dominantColor(image));
     }
 
     static String sniff(byte[] d) {
@@ -182,21 +188,69 @@ public class ImageProcessor {
         };
     }
 
-    /** Scales down to {@code width} (never up), upright, flattening transparency onto white. */
-    private static BufferedImage resize(BufferedImage src, int width, int orientation) {
+    /**
+     * The image's main colour as #rrggbb, for backgrounds a template puts behind the photo (e.g. a tinted card behind
+     * a cut-out toy). Visible pixels are sampled; the most frequent hue among clearly coloured ones wins and their
+     * average is returned. Mostly grey/white/black images give their average colour.
+     */
+    static String dominantColor(BufferedImage image) {
+        int w = image.getWidth(), h = image.getHeight();
+        int step = Math.max(1, (int) Math.sqrt((double) w * h / 40_000));
+        long[][] buckets = new long[13][4]; // 12 hue buckets + 1 for unsaturated pixels: r, g, b, count
+        float[] hsb = new float[3];
+        for (int y = 0; y < h; y += step) {
+            for (int x = 0; x < w; x += step) {
+                int argb = image.getRGB(x, y);
+                if ((argb >>> 24) < 200) continue;
+                int r = (argb >> 16) & 0xFF, g = (argb >> 8) & 0xFF, b = argb & 0xFF;
+                Color.RGBtoHSB(r, g, b, hsb);
+                int bucket = hsb[1] > 0.25f && hsb[2] > 0.2f ? Math.min(11, (int) (hsb[0] * 12)) : 12;
+                long[] a = buckets[bucket];
+                a[0] += r; a[1] += g; a[2] += b; a[3]++;
+            }
+        }
+        long[] best = null;
+        for (int i = 0; i < 12; i++) if (buckets[i][3] > 0 && (best == null || buckets[i][3] > best[3])) best = buckets[i];
+        long coloured = 0;
+        for (int i = 0; i < 12; i++) coloured += buckets[i][3];
+        // Hardly any colour (a grey product on white): the overall average
+        if (best == null || coloured < (coloured + buckets[12][3]) / 10) {
+            best = new long[4];
+            for (long[] a : buckets) { best[0] += a[0]; best[1] += a[1]; best[2] += a[2]; best[3] += a[3]; }
+        }
+        if (best[3] == 0) return null;
+        return String.format("#%02x%02x%02x", best[0] / best[3], best[1] / best[3], best[2] / best[3]);
+    }
+
+    /** True when at least one pixel is not fully opaque (a PNG with an unused alpha channel is treated as opaque). */
+    static boolean transparent(BufferedImage image) {
+        if (!image.getColorModel().hasAlpha()) return false;
+        int w = image.getWidth(), h = image.getHeight();
+        int[] row = new int[w];
+        for (int y = 0; y < h; y++) {
+            image.getRGB(0, y, w, 1, row, 0, w);
+            for (int argb : row) if ((argb >>> 24) != 0xFF) return true;
+        }
+        return false;
+    }
+
+    /** Scales down to {@code width} (never up), upright; without {@code keepAlpha} transparency is flattened onto white. */
+    private static BufferedImage resize(BufferedImage src, int width, int orientation, boolean keepAlpha) {
         boolean swap = orientation >= 5;
         int ow = swap ? src.getHeight() : src.getWidth();
         int oh = swap ? src.getWidth() : src.getHeight();
         int w = Math.min(width, ow);
         int h = Math.max(1, (int) Math.round(oh * (w / (double) ow)));
-        BufferedImage out = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+        BufferedImage out = new BufferedImage(w, h, keepAlpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
         Graphics2D g = out.createGraphics();
         try {
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
             g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setColor(Color.WHITE);
-            g.fillRect(0, 0, w, h);
+            if (!keepAlpha) {
+                g.setColor(Color.WHITE);
+                g.fillRect(0, 0, w, h);
+            }
             AffineTransform t = AffineTransform.getScaleInstance(w / (double) ow, h / (double) oh);
             t.concatenate(orientationTransform(orientation, src.getWidth(), src.getHeight()));
             g.drawImage(src, t, null);
@@ -204,6 +258,15 @@ public class ImageProcessor {
             g.dispose();
         }
         return out;
+    }
+
+    private static byte[] png(BufferedImage image) {
+        try (ByteArrayOutputStream bytes = new ByteArrayOutputStream()) {
+            if (!ImageIO.write(image, "png", bytes)) throw new IllegalStateException("No PNG writer");
+            return bytes.toByteArray();
+        } catch (IOException e) {
+            throw new IllegalStateException("PNG encoding failed", e);
+        }
     }
 
     private static byte[] jpeg(BufferedImage image) {

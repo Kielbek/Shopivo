@@ -32,8 +32,10 @@ public class Carts {
     private final JdbcTemplate jdbc;
     private final CatalogLookup catalog;
     private final Stores stores;
+    private final pl.shopivo.catalog.PublicCatalog cards;
 
-    Carts(JdbcTemplate jdbc, CatalogLookup catalog, Stores stores) {
+    Carts(JdbcTemplate jdbc, CatalogLookup catalog, Stores stores, pl.shopivo.catalog.PublicCatalog cards) {
+        this.cards = cards;
         this.jdbc = jdbc;
         this.catalog = catalog;
         this.stores = stores;
@@ -149,6 +151,8 @@ public class Carts {
         int count = 0;
         boolean ready = !items.isEmpty();
         String currency = stores.current().defaultCurrency();
+        Map<UUID, pl.shopivo.catalog.PublicCatalog.ProductCard> shown = new java.util.HashMap<>();
+        for (var c : cards.cards(variants.values().stream().map(VariantSnapshot::productId).distinct().toList())) shown.put(c.id(), c);
         for (Item item : items) {
             VariantSnapshot v = variants.get(item.variantId());
             if (v == null) continue;
@@ -157,7 +161,10 @@ public class Carts {
             long line = unit * item.quantity();
             lines.add(new CartLine(v.variantId(), v.productId(), v.productName(), v.variantTitle(), v.sku(), item.quantity(), unit,
                     v.compareAtMinor() == null ? null : OrderPlacement.grossCompareAt(v, grossPrices), line, available,
-                    v.trackInventory() && !v.allowBackorder() ? v.available() : null));
+                    v.trackInventory() && !v.allowBackorder() ? v.available() : null,
+                    shown.containsKey(v.productId()) ? shown.get(v.productId()).slug() : null,
+                    shown.containsKey(v.productId()) ? shown.get(v.productId()).imageUrl() : null,
+                    shown.containsKey(v.productId()) ? shown.get(v.productId()).imageColor() : null));
             if (available) {
                 subtotal += line;
                 count += item.quantity();

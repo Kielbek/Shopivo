@@ -1,0 +1,2 @@
+{%- comment -%} Price with the old price and, for reduced prices, the lowest price of the last 30 days (Omnibus, required by law). {%- endcomment -%}
+{%- if product.has_range %}od {% endif %}{{ product.price | money: product.currency }}{% if product.on_sale %} <del class="{{ del_class }}">{{ product.compare_at | money: product.currency }}</del>{% endif -%}

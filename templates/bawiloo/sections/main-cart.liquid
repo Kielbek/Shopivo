@@ -1,0 +1,20 @@
+{% render 'page-title', text: section.settings.title %}
+{%- if cart.lines.size == 0 %}
+{% render 'empty', text: 'Twój koszyk jest pusty.' %}
+{%- else %}
+<div class="grid gap-8 lg:grid-cols-[1fr_360px]"><div class="grid gap-4">
+{%- for line in cart.lines %}
+<article class="flex flex-wrap items-center gap-4 rounded-2xl border border-black/10 p-4"><a href="{{ line.url }}" class="block size-20 shrink-0 rounded-xl sm:size-28">{% render 'product-art', product: line, classes: 'h-full w-full rounded-xl', size: 'w400' %}</a><div class="min-w-[100px] flex-1"><a class="font-extrabold" href="{{ line.url }}">{{ line.name }}</a>{% if line.variant_title != blank and line.variant_title != line.name %}<p class="text-xs text-[#6b625a]">{{ line.variant_title }}</p>{% endif %}<p class="text-sm text-[#92520d]">{{ line.unit_price | money: cart.currency }}</p>{% unless line.available %}<p class="cart-warning text-xs font-bold">Niedostępny w tej ilości</p>{% endunless %}<button type="button" data-shop-cart-set="{{ line.variant_id }}" data-quantity="0" class="mt-2 text-xs text-[#6b625a] underline">Usuń</button></div><div class="flex items-center gap-3"><button type="button" aria-label="Zmniejsz ilość: {{ line.name }}" data-shop-cart-set="{{ line.variant_id }}" data-quantity="{{ line.quantity | minus: 1 }}" class="grid size-9 place-items-center rounded-full border border-[#e7ddd0]">−</button><span>{{ line.quantity }}</span><button type="button" aria-label="Zwiększ ilość: {{ line.name }}" data-shop-cart-set="{{ line.variant_id }}" data-quantity="{{ line.quantity | plus: 1 }}" class="grid size-9 place-items-center rounded-full border border-[#e7ddd0]">+</button></div><strong class="ml-auto">{{ line.line_total | money: cart.currency }}</strong></article>
+{%- endfor %}
+<a href="/produkty" class="text-sm text-[#92520d] underline">Kontynuuj zakupy</a></div>
+<aside class="h-fit rounded-3xl border border-[#efdfc8] bg-[#fff4df] p-6 text-[#382319]"><h2 class="mb-6 text-2xl font-extrabold">Podsumowanie zamówienia</h2><div class="flex justify-between"><span>Wartość produktów</span><strong>{{ cart.subtotal | money: cart.currency }}</strong></div><div class="mt-3 flex justify-between text-sm"><span>Dostawa</span><span>w następnym kroku</span></div><div class="mt-5 flex justify-between border-t border-black/20 pt-5 text-lg font-extrabold"><span>Razem</span><span>{{ cart.subtotal | money: cart.currency }}</span></div>{% if cart.checkout_ready %}<a href="/zamowienie" class="mt-6 block rounded-full bg-[#151513] px-5 py-3 text-center font-bold text-white">Przejdź do zamówienia</a>{% else %}<p class="cart-note mt-6 rounded-2xl p-4 text-sm font-bold">Zmień ilość produktów oznaczonych jako niedostępne, aby przejść dalej.</p>{% endif %}</aside></div>
+{%- endif %}
+
+{% schema %}
+{
+  "name": "Koszyk",
+  "settings": [
+    { "id": "title", "type": "text", "label": "Tytuł", "default": "Twój koszyk", "max": 40 }
+  ]
+}
+{% endschema %}

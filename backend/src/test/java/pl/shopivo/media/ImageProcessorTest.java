@@ -101,4 +101,42 @@ class ImageProcessorTest {
     void rejectsNonImages() {
         assertThatThrownBy(() -> processor.process("<svg/>".getBytes())).isInstanceOf(BusinessRuleException.class);
     }
+
+    private static byte[] png(boolean withTransparency) throws Exception {
+        BufferedImage img = new BufferedImage(30, 20, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < 20; y++) for (int x = 0; x < 30; x++) {
+            img.setRGB(x, y, withTransparency && x < 15 ? 0x00000000 : 0xFF2050C0);
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ImageIO.write(img, "png", out);
+        return out.toByteArray();
+    }
+
+    @Test
+    void cutOutsKeepTheirTransparentBackgroundAsPng() throws Exception {
+        var cut = processor.process(png(true));
+        assertThat(cut.variantExt()).isEqualTo("png");
+        BufferedImage v = ImageIO.read(new ByteArrayInputStream(cut.variants().values().iterator().next()));
+        assertThat(v.getColorModel().hasAlpha()).isTrue();
+        assertThat(v.getRGB(2, 10) >>> 24).as("transparent half stays transparent").isZero();
+        assertThat(v.getRGB(25, 10) >>> 24).isEqualTo(0xFF);
+
+        // A PNG with an alpha channel but no transparent pixel is an ordinary photo: JPEG variants
+        assertThat(processor.process(png(false)).variantExt()).isEqualTo("jpg");
+        assertThat(cut.color()).as("main colour of the visible pixels only").isEqualTo("#2050c0");
+        assertThat(processor.process(jpeg()).variantExt()).isEqualTo("jpg");
+    }
+
+    @Test
+    void dominantColourIsTheMostCommonHueNotAMuddyAverage() {
+        BufferedImage img = new BufferedImage(100, 100, BufferedImage.TYPE_INT_ARGB);
+        for (int y = 0; y < 100; y++) for (int x = 0; x < 100; x++) {
+            int c = x < 50 ? 0xFF963BB0 : x < 70 ? 0xFFFFFFFF : x < 85 ? 0xFF111111 : 0xFFFFA500; // purple, white, black, a little orange
+            img.setRGB(x, y, c);
+        }
+        assertThat(ImageProcessor.dominantColor(img)).isEqualTo("#963bb0");
+        BufferedImage grey = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+        for (int y = 0; y < 10; y++) for (int x = 0; x < 10; x++) grey.setRGB(x, y, 0x808080);
+        assertThat(ImageProcessor.dominantColor(grey)).isEqualTo("#808080");
+    }
 }

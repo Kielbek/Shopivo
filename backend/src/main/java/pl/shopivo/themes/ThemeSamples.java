@@ -103,11 +103,11 @@ public class ThemeSamples {
             toy("Lisek Rudek", "Pluszaki", 2499, 3299L, "p-maskotka-lis"),
             toy("Ośmiorniczka Lila", "Pluszaki", 1699, 2199L, "p-maskotka-osmiornica"),
             toy("Dinozaur Groszek", "Pluszaki", 2299, 2999L, "p-maskotka-dinozaur"),
-            toy("Piramidka Misio", "Puzzle i łamigłówki", 1999, null, "p-zabawka-01"),
-            toy("Kostka Odkrywca", "Puzzle i łamigłówki", 2999, null, "p-zabawka-02"),
-            toy("Piesek Tuptuś", "Zabawa na dworze", 2499, null, "p-zabawka-03"),
-            toy("Kaczuszka Klara", "Do kąpieli", 1699, null, "p-zabawka-04"),
-            toy("Słonik Trąbuś", "Zabawa na dworze", 2299, null, "p-zabawka-05")));
+            toy("Piramidka Misio", "Puzzle i łamigłówki", 1999, 2499L, "p-zabawka-01"),
+            toy("Kostka Odkrywca", "Puzzle i łamigłówki", 2999, 3999L, "p-zabawka-02"),
+            toy("Piesek Tuptuś", "Zabawa na dworze", 2499, 3299L, "p-zabawka-03"),
+            toy("Kaczuszka Klara", "Do kąpieli", 1699, 2199L, "p-zabawka-04"),
+            toy("Słonik Trąbuś", "Zabawa na dworze", 2299, 2999L, "p-zabawka-05")));
 
     private static Sample toy(String name, String category, long price, Long compareAt, String image) {
         return new Sample(name, category, price, compareAt, List.of(), "tpl:bawiloo/" + image, DESC);
@@ -180,10 +180,15 @@ public class ThemeSamples {
         return new Products.VariantInput(null, options, null, null, s.priceMinor(), s.compareAtMinor(), null, 800, null, null, null, true, false, 10);
     }
 
+    /**
+     * The picture imported for a sample: the full-quality "-sample.png" when the template ships one (transparent
+     * cut-outs from the designer, kept transparent by the image pipeline), otherwise the template's JPEG.
+     */
     private static byte[] bytes(String ref) {
-        String file = ref.substring(ref.indexOf('/') + 1) + "-w1200.jpg";
+        String name = ref.substring(ref.indexOf('/') + 1);
         String template = ref.substring(ThemeAssets.PREFIX.length(), ref.indexOf('/'));
-        String path = ThemeAssets.resource(template, file).orElseThrow();
+        String sample = "themes/" + template + "/" + name + "-sample.png";
+        String path = new ClassPathResource(sample).exists() ? sample : ThemeAssets.resource(template, name + "-w1200.jpg").orElseThrow();
         try (InputStream in = new ClassPathResource(path).getInputStream()) {
             return in.readAllBytes();
         } catch (IOException e) {

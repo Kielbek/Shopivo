@@ -1,0 +1,36 @@
+<section id="{{ section.settings.anchor | default: 'about' }}" class="grid items-center gap-10 px-[8%] py-12 sm:grid-cols-2 lg:gap-20 lg:py-20">
+<div>
+{%- if section.settings.kicker != blank %}<p class="mb-4 text-xs font-extrabold tracking-[0.23em] text-[#92520d]">✦ &nbsp; <span{{ section | edit: 'kicker' }}>{{ section.settings.kicker }}</span></p>{% endif %}
+<h2 class="mb-6 font-['Fredoka',sans-serif] text-3xl font-semibold leading-[1.05] tracking-[-0.025em] sm:text-4xl lg:text-5xl"{{ section | edit: 'heading' }}>{{ section.settings.heading | lines }}</h2>
+{%- if section.settings.text != blank %}<p class="max-w-lg text-sm leading-relaxed text-black/75 sm:text-base"{{ section | edit: 'text' }}>{{ section.settings.text }}</p>{% endif %}
+{%- if section.settings.text2 != blank %}<p class="mt-4 max-w-lg text-sm leading-relaxed text-black/75 sm:text-base"{{ section | edit: 'text2' }}>{{ section.settings.text2 }}</p>{% endif %}
+{%- if section.settings.button_label != blank %}
+<a href="{{ section.settings.button_url | link }}" class="mt-7 inline-flex items-center gap-3 rounded-full bg-[#f8bf73] px-6 py-3 text-sm font-extrabold text-[#151513] transition hover:bg-[#ffe0a6]"><span{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</span> <span aria-hidden="true">→</span>
+</a>
+{%- endif %}
+</div>
+{%- if section.settings.image %}
+<figure class="whimsy-about-flower mx-auto w-full max-w-[500px]">
+<img src="{{ section.settings.image | image_url: 'w1200' }}" alt="{{ section.settings.image_alt }}" width="{{ section.settings.image.width | default: 667 }}" height="{{ section.settings.image.height | default: 689 }}" loading="lazy" decoding="async"{{ section | edit: 'image' }} />
+{%- if section.settings.sign != blank or section.settings.image.asset %}<span class="bawiloo-photo-sign" aria-hidden="true">{{ section.settings.sign | default: shop.name }}</span>{% endif %}
+</figure>
+{%- endif %}
+</section>
+
+{% schema %}
+{
+  "name": "O nas ze zdjęciem-kwiatkiem",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "O NAS", "max": 40 },
+    { "id": "heading", "type": "textarea", "label": "Nagłówek", "default": "ZRODZONE Z\nDZIECIĘCEJ RADOŚCI", "max": 80 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "W Bawiloo wierzymy, że każde dziecko zasługuje na świat pełen wyobraźni, śmiechu i przygód. Nasze zabawki inspirują małych odkrywców i wnoszą radość do każdej chwili zabawy.", "max": 600 },
+    { "id": "text2", "type": "textarea", "label": "Drugi akapit", "default": "Od przytulanek po kolorowe zabawki – celebrujemy magię dzieciństwa i radość wspólnej zabawy.", "max": 600 },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Poznaj nasze zabawki", "max": 40 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "/produkty" },
+    { "id": "image", "type": "image", "label": "Zdjęcie (przycinane do kwiatka)", "default": "asset:about.webp" },
+    { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "Wnętrze sklepu z drewnianymi półkami, kolorowymi zabawkami i pomarańczowym szyldem", "max": 160 },
+    { "id": "sign", "type": "text", "label": "Napis na szyldzie (tylko zdjęcie szablonu)", "default": "", "info": "Puste pole: nazwa sklepu.", "max": 20 },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "about", "max": 30 }
+  ]
+}
+{% endschema %}

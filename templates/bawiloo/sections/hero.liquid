@@ -1,0 +1,27 @@
+<section class="relative bg-gradient-to-r from-[#eba32b] via-[#f9c04d] to-[#f8bd57]" id="home">
+<h1 class="mx-auto px-3 pt-10 text-center text-[#382319] font-['Fredoka',sans-serif] text-[clamp(30px,7.5vw,105px)] font-semibold leading-[0.98] tracking-[-0.025em] sm:pt-16"{{ section | edit: 'heading' }}>{{ section.settings.heading | lines }}</h1>
+{%- if section.settings.button_label != blank %}
+<div class="mt-6 text-center">
+<a class="inline-block rounded-full bg-[#151513] px-7 py-3 text-sm font-extrabold text-white hover:bg-white hover:text-black" href="{{ section.settings.button_url | link }}"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>
+</div>
+{%- endif %}
+{%- if section.settings.image %}
+<div class="mx-auto mt-8 flex w-full items-end justify-center px-2 pb-4 sm:mt-10 sm:px-[3%] sm:pb-6">
+<img src="{{ section.settings.image | image_url: 'w1200' }}" srcset="{{ section.settings.image | image_srcset }}" sizes="(min-width: 1440px) 1350px, 94vw" alt="{{ section.settings.image_alt }}" width="{{ section.settings.image.width | default: 1738 }}" height="{{ section.settings.image.height | default: 675 }}" class="block h-auto w-full max-w-[1350px] object-contain" fetchpriority="high" decoding="async"{{ section | edit: 'image' }} />
+</div>
+{%- endif %}
+<div aria-hidden="true" class="hero-scallops"></div>
+</section>
+
+{% schema %}
+{
+  "name": "Baner z falą",
+  "settings": [
+    { "id": "heading", "type": "textarea", "label": "Napis", "default": "KAŻDA ZABAWKA\nTO NOWA RADOŚĆ", "max": 80 },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "KUPUJ TERAZ", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "/produkty" },
+    { "id": "image", "type": "image", "label": "Zdjęcie (najlepiej bez tła)", "default": "asset:hero.webp" },
+    { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "Sześć kolorowych figurek: pingwin, kotka, dinozaur, pies marynarz, robot i jednorożec", "max": 160 }
+  ]
+}
+{% endschema %}

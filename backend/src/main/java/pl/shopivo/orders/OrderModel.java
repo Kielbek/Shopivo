@@ -46,8 +46,10 @@ public final class OrderModel {
             String bankName, boolean codEnabled, long codFeeMinor, int unpaidCancelDays, long version) {
     }
 
+    /** {@code productSlug}, {@code imageUrl}, {@code imageColor}: for showing the line (null when the product is no longer listed). */
     public record CartLine(UUID variantId, UUID productId, String name, String variantTitle, String sku, int quantity,
-            long unitPriceMinor, Long compareAtMinor, long lineTotalMinor, boolean available, Integer availableQuantity) {
+            long unitPriceMinor, Long compareAtMinor, long lineTotalMinor, boolean available, Integer availableQuantity,
+            String productSlug, String imageUrl, String imageColor) {
     }
 
     public record CartView(String currency, List<CartLine> lines, int itemCount, long subtotalMinor, boolean checkoutReady) {

@@ -1,0 +1,58 @@
+<header id="storeHeader" class="sticky top-0 z-30 flex w-full flex-nowrap items-center justify-between gap-2 bg-gradient-to-r from-[#eba32b] via-[#f9c04d] to-[#f8bd57] px-3 py-3 text-[#382319] sm:gap-4 sm:px-8 lg:px-[5%]">
+<a class="shrink-0 font-['Fredoka',sans-serif] text-3xl font-semibold tracking-[-0.055em] lg:text-[46px]" href="/"{{ section | edit: 'logo_text' }}>{{ section.settings.logo_text | default: shop.name }}</a>
+<div id="headerNavSlot" class="flex min-w-0 flex-1 justify-center overflow-hidden">
+<nav aria-label="Menu główne" id="headerNav" class="flex w-max shrink-0 flex-nowrap items-center gap-x-5 whitespace-nowrap text-[11px] font-extrabold" style="visibility:hidden">
+{%- for block in section.blocks %}
+{%- if block.settings.style == 'pill' %}
+<a class="rounded-full border border-[#382319] bg-[#382319] px-4 py-2 text-white hover:bg-white hover:text-black" href="{{ block.settings.url | link }}"{{ block | block_attrs }}{{ block | edit: 'label' }}>{{ block.settings.label }}</a>
+{%- else %}
+<a class="hover:opacity-70" href="{{ block.settings.url | link }}"{{ block | block_attrs }}{{ block | edit: 'label' }}>{{ block.settings.label }}</a>
+{%- endif %}
+{%- endfor %}
+</nav>
+</div>
+<div class="ml-auto flex shrink-0 items-center gap-0 sm:gap-2">
+<a id="favoriteLink" href="/ulubione" aria-label="Ulubione" title="Ulubione" data-shop-fav-label="Ulubione ({count})" class="grid size-10 shrink-0 place-items-center rounded-full transition-colors hover:bg-black/10 hover:text-[#151513] sm:size-11">
+<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+</svg>
+<span class="sr-only" id="favCount" data-shop-fav-count>0</span>
+</a>
+<a id="accountLink" href="/konto" aria-label="Moje konto" title="Moje konto" class="grid size-10 shrink-0 place-items-center rounded-full transition-colors hover:bg-black/10 hover:text-[#151513] sm:size-11">
+<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="12" cy="8" r="3.5"/>
+<path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/>
+</svg>
+</a>
+<a id="cartLink" href="/koszyk" aria-label="Koszyk ({{ cart.item_count }})" title="Koszyk" data-shop-cart-label="Koszyk ({count})" class="grid size-10 shrink-0 place-items-center rounded-full transition-colors hover:bg-black/10 hover:text-[#151513] sm:size-11">
+<svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+<path d="M2 3h2l2.4 12h12.7l2-8H5"/>
+<circle cx="9" cy="20" r="1"/>
+<circle cx="18" cy="20" r="1"/>
+</svg>
+<span class="sr-only" id="cartCount" data-shop-cart-count>{{ cart.item_count }}</span>
+</a>
+</div>
+</header>
+
+{% schema %}
+{
+  "name": "Nagłówek",
+  "settings": [
+    { "id": "logo_text", "type": "text", "label": "Nazwa w logo", "default": "", "info": "Puste pole: nazwa sklepu." }
+  ],
+  "blocks": [
+    {
+      "type": "link",
+      "name": "Link w menu",
+      "settings": [
+        { "id": "label", "type": "text", "label": "Tekst", "default": "LINK", "max": 30 },
+        { "id": "url", "type": "url", "label": "Adres", "default": "/produkty" },
+        { "id": "style", "type": "select", "label": "Wygląd", "default": "plain",
+          "options": [ { "value": "plain", "label": "Zwykły link" }, { "value": "pill", "label": "Wyróżniony przycisk" } ] }
+      ]
+    }
+  ],
+  "max_blocks": 10
+}
+{% endschema %}

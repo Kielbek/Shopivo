@@ -1,0 +1,43 @@
+{%- assign field = 'store-field w-full rounded-xl border border-[#e7ddd0] bg-white px-4 py-3 text-[#382319]' -%}
+{%- assign gold = 'rounded-full bg-[#f8bf73] px-5 py-3 text-sm font-extrabold text-[#151513] transition hover:bg-[#ffe0a6]' -%}
+{%- assign outline = 'rounded-full border border-current px-5 py-3 text-sm font-bold transition hover:opacity-70' -%}
+<nav class="mb-8 text-sm text-[#6b625a]" aria-label="Ścieżka"><a href="/">Start</a> / <a href="/produkty">Sklep</a>{% for crumb in product.breadcrumbs %} / <a href="/kategoria/{{ crumb.slug }}">{{ crumb.name }}</a>{% endfor %} / {{ product.name }}</nav>
+<div class="grid gap-10 lg:grid-cols-2 lg:gap-16">
+{% render 'product-art', product: product, classes: 'aspect-square rounded-[32px]', size: 'w1200' %}
+<div class="self-center">
+{%- if product.category_name %}<p class="mb-2 text-sm font-bold uppercase tracking-widest text-[#92520d]">{{ product.category_name }}</p>{% endif %}
+{% render 'page-title', text: product.name %}
+<p class="text-3xl font-bold text-[#92520d]" data-shop-price>{% render 'price', product: product, del_class: 'ml-2 text-lg font-semibold text-black/50' %}</p>
+{% render 'omnibus', product: product, classes: 'product-omnibus' %}
+{%- if product.description != blank %}<p class="product-description mt-6 max-w-xl leading-relaxed text-[#61574f]">{{ product.description }}</p>{% endif %}
+<form class="mt-8 flex flex-wrap items-end gap-3" data-shop-add-form data-product="{{ product.slug }}">
+{%- if product.variants.size > 1 %}
+<label class="variant-field grid gap-2 text-sm">Wariant<select name="variant" required class="{{ field }}">{% for v in product.variants %}<option value="{{ v.id }}"{% unless v.available %} disabled{% endunless %}>{{ v.title }} — {{ v.price | money: product.currency }}{% unless v.available %} (niedostępny){% endunless %}</option>{% endfor %}</select></label>
+{%- else %}
+<input type="hidden" name="variant" value="{{ product.variants.first.id }}">
+{%- endif %}
+<label class="grid gap-2 text-sm">Ilość<input type="number" id="quantity" name="quantity" value="1" min="1" max="99" required class="{{ field }} w-24"></label>
+{%- if product.available %}<button class="{{ gold }}" type="submit">Do koszyka</button>{% else %}<button class="{{ gold }} is-disabled" type="button" disabled>Chwilowo niedostępny</button>{% endif %}
+<button type="button" data-shop-fav="{{ product.id }}" data-on="♥ Dodano do ulubionych" data-off="♡ Dodaj do ulubionych" aria-pressed="false" class="{{ outline }}">♡ Dodaj do ulubionych</button>
+<p class="w-full text-sm font-bold" role="status" aria-live="polite" data-shop-status></p>
+</form>
+<div class="mt-10 border-t border-black/10 pt-5">
+<details open class="py-3"><summary class="cursor-pointer font-bold">Szczegóły produktu</summary><p class="mt-2 text-sm text-black/60">{% if product.category_name %}Kategoria: {{ product.category_name }}.{% endif %}{% if product.brand %} Marka: {{ product.brand }}.{% endif %}{% if product.variants.first.sku %} Kod: {{ product.variants.first.sku }}.{% endif %}</p></details>
+{%- if section.settings.shipping_text != blank %}<details class="py-3"><summary class="cursor-pointer font-bold">Dostawa i zwroty</summary><p class="mt-2 text-sm text-black/60">{{ section.settings.shipping_text }} <a href="{{ 'legal:SHIPPING' | link }}" class="underline">Szczegóły</a></p></details>{% endif %}
+</div>
+</div>
+</div>
+{%- if related.size > 0 %}
+<h2 class="mb-6 mt-16 text-2xl font-extrabold">{{ section.settings.related_title }}</h2>
+{% render 'product-grid', products: related %}
+{%- endif %}
+
+{% schema %}
+{
+  "name": "Strona produktu",
+  "settings": [
+    { "id": "shipping_text", "type": "textarea", "label": "Tekst „Dostawa i zwroty”", "default": "Wysyłamy w ciągu 1–2 dni roboczych. Masz 14 dni na zwrot bez podania przyczyny.", "max": 400 },
+    { "id": "related_title", "type": "text", "label": "Tytuł podobnych produktów", "default": "MOŻE CI SIĘ SPODOBAĆ", "max": 60 }
+  ]
+}
+{% endschema %}

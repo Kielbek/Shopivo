@@ -31,13 +31,14 @@ class MediaController {
         this.rateLimiter = rateLimiter;
     }
 
-    @GetMapping("/api/v1/media/{tenantId}/{imageId}/{variant:w400|w1200}.jpg")
+    /** JPEG variants, or PNG for images with a transparent background (cut-outs). */
+    @GetMapping("/api/v1/media/{tenantId}/{imageId}/{variant:w400|w1200}.{ext:jpg|png}")
     ResponseEntity<byte[]> image(HttpServletRequest request, @PathVariable UUID tenantId, @PathVariable UUID imageId,
-            @PathVariable String variant) {
+            @PathVariable String variant, @PathVariable String ext) {
         // Every miss costs a storage round-trip: bound it per client (a CDN absorbs normal traffic in production).
         rateLimiter.consume("media:" + request.getRemoteAddr(), 1200, Duration.ofMinutes(1));
-        byte[] data = storage.get("t/" + tenantId + "/" + imageId + "/" + variant + ".jpg").orElseThrow(NotFoundException::new);
-        return ResponseEntity.ok().contentType(MediaType.IMAGE_JPEG)
+        byte[] data = storage.get("t/" + tenantId + "/" + imageId + "/" + variant + "." + ext).orElseThrow(NotFoundException::new);
+        return ResponseEntity.ok().contentType("png".equals(ext) ? MediaType.IMAGE_PNG : MediaType.IMAGE_JPEG)
                 .cacheControl(CacheControl.maxAge(Duration.ofDays(365)).cachePublic().immutable())
                 .header("X-Content-Type-Options", "nosniff")
                 .body(data);

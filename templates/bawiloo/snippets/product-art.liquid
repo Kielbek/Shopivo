@@ -1,0 +1,9 @@
+{%- comment -%} Product photo on a background tinted with the photo's main colour. Params: product, classes, size {%- endcomment -%}
+<div class="{{ classes }} product-art overflow-hidden"{% if product.color %} style="--product-color:{{ product.color }}"{% endif %}>
+{%- if product.image -%}
+{%- assign variant = size | default: 'w400' -%}
+<img src="{{ product.image | image_url: variant }}" alt="{{ product.image.alt | default: product.name }}" class="block h-full w-full object-contain" loading="lazy" decoding="async">
+{%- else -%}
+<div class="product-placeholder"><svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m3 17 6-6 4 4 3-3 5 5"/></svg><span>Zdjęcie wkrótce</span></div>
+{%- endif -%}
+</div>
