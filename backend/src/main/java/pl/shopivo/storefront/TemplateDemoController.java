@@ -132,7 +132,7 @@ class TemplateDemoController {
     ResponseEntity<StorefrontController.PublicStore> store(@PathVariable String code) {
         Demo d = demo(code);
         return ok(new StorefrontController.PublicStore(d.storeName(), StoreStatus.PUBLISHED, true, false, "pl-PL", "PLN", null, d.theme(), null,
-                d.categories(), List.of(), false, List.of(), null, ThemeAssets.urls(), null));
+                d.categories(), List.of(), false, List.of(), null, ThemeAssets.urls(), null, false));
     }
 
     @GetMapping("/categories")

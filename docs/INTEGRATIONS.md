@@ -34,3 +34,11 @@ Wszystkie integracje są przetestowane na lokalnych zamiennikach API (`FakeStrip
 - Przesyłka: nadawca = dane firmy z Ustawień; punkty odbioru z konta (Furgonetka `/points/map`, Apaczka `points/{TYP}/`);
   etykieta PDF; śledzenie (Furgonetka `/packages/{id}/tracking`, Apaczka `tracking/{list}/`).
 - **InPost** bezpośrednio (ShipX) — bez zmian.
+
+## Logowanie klientów przez Google (klucze sprzedawcy)
+
+Sprzedawca w panelu (Ustawienia → Integracje → „Logowanie klientów przez Google”) wkleja identyfikator i tajny klucz
+klienta OAuth z własnego projektu Google Cloud. Panel pokazuje instrukcję krok po kroku i adresy przekierowania
+(`https://<domena sklepu>/api/v1/storefront/account/google/callback`, jeden na każdą aktywną domenę) do skopiowania.
+Przycisk pojawia się w sklepie (logowanie i rejestracja, wszystkie szablony) dopiero po zapisaniu kluczy i włączeniu.
+Endpoint tokenów: `shopivo.google.token-url` (domyślnie `https://oauth2.googleapis.com/token`). Bezpieczeństwo: SECURITY.md §5.

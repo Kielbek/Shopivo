@@ -83,6 +83,8 @@ export interface ApiStore {
   themeImages: Record<string, Record<string, string>>;
   panelOrigin: string | null;
   captchaSiteKey?: string | null;
+  /** The store has its own Google OAuth keys and sign-in with Google is on. */
+  googleSignIn?: boolean;
   blog?: boolean;
 }
 export interface ApiAccount { email: string; firstName: string; lastName: string; phone: string | null; }

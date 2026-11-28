@@ -1,0 +1,2 @@
+{%- comment -%} Message after a failed sign-in with Google (?blad=…). Param: auth, classes {%- endcomment -%}
+{%- if auth.error %}<p class="{{ classes | default: 'shop-auth-error' }}" role="alert">{{ auth.error }}</p>{% endif -%}

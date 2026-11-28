@@ -76,6 +76,22 @@ wyłącznie w profilu `dev`). Lista dozwolonych IP — Faza 8.
   (zapobiega przeniesieniu szyfrogramu między dzierżawami). Klucze: `SHOPIVO_ENCRYPTION_KEYS` (wersja→klucz),
   `SHOPIVO_ENCRYPTION_ACTIVE_KEY`. Rotacja: nowe zapisy nowym kluczem, zadanie re-szyfrujące.
 
+### Logowanie klientów sklepu przez Google (2026-11-28)
+- Każdy sklep używa **własnego** klienta OAuth z Google Cloud (identyfikator i tajny klucz podaje sprzedawca w panelu,
+  Integracje). Tajny klucz: AES-256-GCM (`SecretEncryptor`, AAD `google-sign-in:<tenant_id>`), tylko do zapisu — API
+  zwraca wyłącznie `secretSet`; zapis i usunięcie trafiają do dziennika zdarzeń. Uprawnienie `STORE_SETTINGS_WRITE`.
+- Przepływ: authorization code + **PKCE S256**, losowy `state` (256 bit, w bazie jako SHA-256, jednorazowy, 10 min)
+  przypięty do ciasteczka HttpOnly `shopivo_oauth` (ścieżka `/api/v1/storefront/account/google`, SameSite=Lax) —
+  porównanie w stałym czasie, ochrona przed login-CSRF; `nonce` w tokenie ID.
+- Token ID przychodzi bezpośrednio z endpointu tokenów Google po TLS, więc sprawdzamy jego twierdzenia (`iss`, `aud`,
+  `exp`, `nonce`, `email_verified`) bez weryfikacji podpisu (OIDC Core 3.1.3.7).
+- Konto: najpierw po `google_sub`; potem po zweryfikowanym przez Google e-mailu. Konto połączone z innym `sub` →
+  odmowa (`google-inne-konto`). Łączenie z **niepotwierdzonym** kontem unieważnia jego hasło, sesje i linki
+  (ochrona przed „pre-account hijacking”: ktoś mógł założyć konto na cudzy adres).
+- `redirect_uri` budowany z domen sklepu; nagłówek `X-Shop-Origin` od serwera SSR przyjmowany tylko, gdy host zgadza
+  się z hostem żądania. Serwer SSR przekazuje dalej tylko przekierowania do `https://accounts.google.com/` lub w obrębie sklepu.
+- Testy: `GoogleSignInIT` (atrapa endpointu tokenów `FakeGoogle`).
+
 ## 6. Webhooki
 Weryfikacja podpisu (HMAC/podpis operatora) na surowym body przed parsowaniem, tolerancja czasu (replay),
 tabela `webhook_events` z unikalnym `(provider, event_id)`, przetwarzanie asynchroniczne z retry,

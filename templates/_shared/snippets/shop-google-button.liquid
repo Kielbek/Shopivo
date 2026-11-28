@@ -1,0 +1,13 @@
+{%- comment -%}
+  "Zaloguj się przez Google" — shown only when the store has its own Google keys switched on (auth.google is the start
+  link). Params: auth, label, position ('before' the form: button then "lub"; 'after': "lub" then button),
+  btn_class / or_class (a template's own classes; default the shared ones), terms (link to the store's terms).
+  (No capture: captured HTML would be escaped on output.)
+{%- endcomment -%}
+{%- if auth.google -%}
+{%- assign btn = btn_class | default: 'shop-google' -%}
+{%- assign or_cls = or_class | default: 'shop-oauth-or' -%}
+{%- if position == 'after' -%}<div class="{{ or_cls }}">lub</div>{%- else -%}<div class="shop-oauth">{%- endif -%}
+<a class="{{ btn }}" href="{{ auth.google }}" rel="nofollow"><svg aria-hidden="true" viewBox="0 0 48 48" width="20" height="20"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.27 5.48-4.82 7.18l7.73 6C44.36 38.04 46.98 31.9 46.98 24.55z"/><path fill="#FBBC05" d="M10.53 28.59a14.41 14.41 0 0 1 0-9.18l-7.98-6.19a24 24 0 0 0 0 21.56z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.9-5.8l-7.73-6C30.02 37.64 27.25 38.5 24 38.5c-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>{{ label | default: 'Zaloguj się przez Google' }}</span></a>{% if terms %}<p class="shop-oauth-note">Logując się przez Google, akceptujesz <a href="{{ terms }}" target="_blank" rel="noopener">regulamin sklepu</a>. Nowe konto zakładamy z imieniem i adresem e-mail z Google.</p>{% endif %}
+{%- if position != 'after' -%}<div class="{{ or_cls }}">lub</div></div>{%- endif -%}
+{%- endif -%}

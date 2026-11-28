@@ -101,6 +101,14 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - pole „Wysokość” banera nie wpływa na układ „Magazyn”;
   - zdjęcia z HTML-a są z Unsplash — dobre jako start, ale sprzedawca powinien użyć własnych.
 
+## Logowanie klientów przez Google (2026-11-28)
+
+- **Panel (Integracje):** identyfikator i tajny klucz klienta OAuth sprzedawcy, przełącznik „Pokaż przycisk”, instrukcja dla Google Cloud z adresami przekierowania do skopiowania, „Usuń klucze”. Tajny klucz szyfrowany (AES-256-GCM) i nigdy nie zwracany.
+- **Sklep:** przycisk „Zaloguj się przez Google” / „Załóż konto przez Google” w Bawiloo, Velmirze, Lullorze i Nordivo — tylko gdy klucze są zapisane i włączone; komunikaty błędów po powrocie z Google.
+- **Backend:** migracja V26, PKCE + jednorazowy `state` w ciasteczku + `nonce`, łączenie z kontem po zweryfikowanym e-mailu (z ochroną przed przejęciem niepotwierdzonego konta).
+- **Testy:** `GoogleSignInIT` ✔ (walidacja, szyfrowanie, start, podrobiony/powtórzony `state`, zły `nonce`, inne konto Google, przejęcie niepotwierdzonego konta), `AccountsIT` 5/5 ✔, testy witryny 33/33 ✔ (nowy: przycisk jako link w 4 szablonach, brak gdy wyłączone). E2E (Playwright): zapis kluczy w panelu → przycisk w sklepie; start przekierowuje do `accounts.google.com` z PKCE i ciasteczkiem; wyłączenie ukrywa przycisk.
+- **Ograniczenie:** pełnego logowania z prawdziwym kontem Google nie dało się sprawdzić w tym środowisku (brak dostępu do Google i publicznej domeny); wymiana kodu testowana na atrapie endpointu tokenów.
+
 ## Silnik szablonów v2 — etap 5: odliczanie, kampanie, harmonogram (2026-11-28)
 
 - **Sekcje wspólne** (`templates/_shared/`) w każdym szablonie, także w nagłówku i stopce:

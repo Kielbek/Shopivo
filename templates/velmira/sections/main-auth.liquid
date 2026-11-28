@@ -1,3 +1,4 @@
+{%- assign terms_url = 'legal:TERMS' | link -%}
 {%- assign field = 'field' -%}
 {%- assign gold = 'pill' -%}
 {%- assign card = 'vm-card' -%}
@@ -6,6 +7,8 @@
 {%- when 'login' %}
 {% render 'page-title', text: section.settings.login_title %}
 <p class="mb-6 vm-muted">Konto pozwala śledzić zamówienia, zapisać adresy i oceniać kupione produkty.</p>
+{% render 'shop-auth-error', auth: auth %}
+{% render 'shop-google-button', auth: auth, terms: terms_url %}
 <form class="{{ card }}" data-shop-form="login">
 <label class="grid gap-2">E-mail<input name="email" type="email" required autocomplete="email" class="{{ field }}"></label>
 <label class="grid gap-2">Hasło<input name="password" type="password" required autocomplete="current-password" class="{{ field }}"></label>
@@ -17,6 +20,8 @@
 <p class="mt-6 text-center text-sm vm-muted">Nie masz konta? <a href="/konto/rejestracja" class="font-bold underline">Załóż konto</a></p>
 {%- when 'register' %}
 {% render 'page-title', text: 'Załóż konto' %}
+{% render 'shop-auth-error', auth: auth %}
+{% render 'shop-google-button', auth: auth, label: 'Załóż konto przez Google', terms: terms_url %}
 <form class="{{ card }}" data-shop-form="register">
 <div class="checkout-grid">
 <label class="grid gap-2">Imię<input name="firstName" autocomplete="given-name" maxlength="100" class="{{ field }}"></label>

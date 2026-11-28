@@ -164,6 +164,54 @@ public class CustomerAccounts {
         return newSession(a.id());
     }
 
+    /** A person Google vouches for: stable subject id and a verified e-mail (checked by {@link GoogleSignIn}). */
+    public record GoogleIdentity(String subject, String email, String firstName, String lastName) {
+    }
+
+    /**
+     * Signs in with Google and returns a session token. The Google account is looked up first; otherwise an account with
+     * the same e-mail is linked (Google has verified the address, so the mailbox owner is the one signing in); otherwise
+     * a new account is created. A new account gets a random, unknown password: the customer can set one through "Nie
+     * pamiętasz hasła?" if they ever want to sign in without Google.
+     */
+    @Transactional
+    public String googleSignIn(GoogleIdentity g) {
+        UUID tenant = TenantContext.requireTenantId();
+        Optional<UUID> linked = jdbc.query("select id from customer_accounts where tenant_id = ? and google_sub = ?",
+                (rs, i) -> rs.getObject(1, UUID.class), tenant, g.subject()).stream().findFirst();
+        if (linked.isPresent()) return newSession(linked.get());
+        String email = email(g.email());
+        Optional<Row> existing = byEmail(email);
+        if (existing.isPresent()) {
+            int updated = jdbc.update("""
+                    update customer_accounts set google_sub = ?, email_verified_at = coalesce(email_verified_at, now()), failed_logins = 0,
+                        updated_at = now() where id = ? and tenant_id = ? and google_sub is null
+                    """, g.subject(), existing.get().id(), tenant);
+            if (updated == 0) {
+                // The address already belongs to an account linked to a different Google account
+                throw new BusinessRuleException("GOOGLE_ACCOUNT_MISMATCH", "To konto jest połączone z innym kontem Google.");
+            }
+            if (existing.get().verifiedAt() == null) {
+                // Nobody had proved this mailbox yet, so whoever registered it may not be its owner: drop that password,
+                // its sessions and pending links (pre-account hijacking). The owner can set a password with a reset link.
+                jdbc.update("update customer_accounts set password_hash = ? where id = ? and tenant_id = ?",
+                        encoder.encode(Tokens.newToken() + Tokens.newToken()), existing.get().id(), tenant);
+                jdbc.update("delete from customer_sessions where tenant_id = ? and account_id = ?", tenant, existing.get().id());
+                jdbc.update("delete from customer_account_tokens where tenant_id = ? and account_id = ?", tenant, existing.get().id());
+            }
+            return newSession(existing.get().id());
+        }
+        UUID id = UuidV7.generate();
+        String first = g.firstName() == null || g.firstName().isBlank() ? email.substring(0, email.indexOf('@')) : g.firstName().strip();
+        String last = g.lastName() == null ? "" : g.lastName().strip();
+        jdbc.update("""
+                insert into customer_accounts (id, tenant_id, email, password_hash, first_name, last_name, email_verified_at, google_sub)
+                values (?, ?, ?, ?, ?, ?, now(), ?)
+                """, id, tenant, email, encoder.encode(Tokens.newToken() + Tokens.newToken()),
+                first.length() > 80 ? first.substring(0, 80) : first, last.length() > 80 ? last.substring(0, 80) : last, g.subject());
+        return newSession(id);
+    }
+
     /** Account behind a session token (sliding last-seen), if valid. */
     @Transactional
     public Optional<Account> session(String token) {

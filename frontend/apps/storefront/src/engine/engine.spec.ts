@@ -160,6 +160,22 @@ describe('rendering', () => {
     expect(html['benefits']).toContain('data-shop-block="benefits/benefit-1"');
     expect(html['benefits']).toContain('data-shop-edit="benefits/benefit-1:title" data-shop-edit-type="text"');
   });
+  it('shows "Zaloguj się przez Google" as a real link in every template, only when the store has it on', async () => {
+    for (const p of packages.values()) {
+      const r = new TemplateRenderer(p, '/_t/x/1');
+      const render = (google: string | null, error: string | null = null) => r.renderPage({
+        pkg: p, api: fakeApi([]), store, pageType: 'auth', page: { auth: { view: 'login', captcha_site_key: null, google, error } },
+        cart: toCart(null), head: '', footer: '',
+      });
+      const on = await render('/api/v1/storefront/account/google/start?powrot=%2Fkonto', 'Logowanie przez Google zostało przerwane.');
+      expect(on, p.code).toMatch(/<a class="[^"]+" href="\/api\/v1\/storefront\/account\/google\/start\?powrot=%2Fkonto" rel="nofollow"><svg/);
+      expect(on, p.code).not.toContain('&lt;a class=');
+      expect(on, p.code).not.toContain('class="false"');
+      expect(on, p.code).toContain('role="alert">Logowanie przez Google zostało przerwane.</p>');
+      const off = await render(null);
+      expect(off, p.code).not.toContain('account/google');
+    }
+  });
 });
 
 describe('store documents', () => {

@@ -1,3 +1,4 @@
+{%- assign terms_url = 'legal:TERMS' | link -%}
 {%- assign field = 'field' -%}
 {%- assign gold = 'btn' -%}
 {%- assign card = 'stack shop-form' -%}
@@ -12,6 +13,7 @@
 <div id="pageBody">
 <div class="account-visual">{% if section.settings.image %}<img src="{{ section.settings.image | image_url: 'w1200' }}" alt="{{ section.settings.image_alt }}"{{ section | edit: 'image' }}>{% endif %}<div class="account-caption"><strong{{ section | edit: 'caption_title' }}>{{ section.settings.caption_title }}</strong><p{{ section | edit: 'caption_text' }}>{{ section.settings.caption_text }}</p></div></div>
 <div class="account-form">
+{% render 'shop-auth-error', auth: auth %}
 {%- if auth.view == 'login' or auth.view == 'register' %}
 <div class="shop-tabs"><a class="{% if auth.view == 'login' %}active{% endif %}" href="/konto/logowanie"{% if auth.view == 'login' %} aria-current="page"{% endif %}>Logowanie</a><a class="{% if auth.view == 'register' %}active{% endif %}" href="/konto/rejestracja"{% if auth.view == 'register' %} aria-current="page"{% endif %}>Rejestracja</a></div>
 {%- endif %}
@@ -26,6 +28,7 @@
 <a href="/konto/reset" class="text-center text-sm underline">Nie pamiętasz hasła?</a>
 <a href="/produkty" class="text-center text-sm shop-muted">Kontynuuj jako gość</a>
 </form>
+{% render 'shop-google-button', auth: auth, btn_class: 'google-btn', or_class: 'shop-divider', position: 'after', terms: terms_url %}
 {%- when 'register' %}
 <form class="{{ card }}" data-shop-form="register">
 <div class="checkout-grid">
@@ -39,6 +42,7 @@
 <p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p>
 <button class="{{ gold }}" type="submit" data-busy-label="Zakładanie konta…">Załóż konto</button>
 </form>
+{% render 'shop-google-button', auth: auth, btn_class: 'google-btn', or_class: 'shop-divider', position: 'after', label: 'Zarejestruj się przez Google', terms: terms_url %}
 <div class="{{ card }}" role="status" tabindex="-1" hidden data-shop-done><p class="ll-strong">Sprawdź skrzynkę e-mail</p><p class="shop-muted">Wysłaliśmy link do potwierdzenia konta. Po kliknięciu podasz hasło ustawione przed chwilą.</p></div>
 {%- when 'verify' %}
 <div data-shop-needs-link-token>

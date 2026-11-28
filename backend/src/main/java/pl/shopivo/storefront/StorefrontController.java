@@ -62,11 +62,14 @@ class StorefrontController {
     private final pl.shopivo.themes.TemplateDocs templateDocs;
     private final String panelOrigin;
 
+    private final pl.shopivo.accounts.GoogleSignIn googleSignIn;
+
     StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, PublicContent content, Redirects redirects, Navigation navigation, Reviews reviews,
             RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha, TransactionTemplate tx,
             @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate, pl.shopivo.themes.ThemeImages themeImages,
             pl.shopivo.themes.TemplateDocs templateDocs,
-            pl.shopivo.shared.config.ShopivoProperties properties) {
+            pl.shopivo.shared.config.ShopivoProperties properties, pl.shopivo.accounts.GoogleSignIn googleSignIn) {
+        this.googleSignIn = googleSignIn;
         this.themeImages = themeImages;
         this.templateDocs = templateDocs;
         this.panelOrigin = originOf(properties.appUrl());
@@ -91,7 +94,7 @@ class StorefrontController {
     record PublicStore(String name, StoreStatus status, boolean open, boolean preview, String locale, String currency,
             String hostname, Themes.ThemeConfig theme, Seller seller, List<PublicCatalog.PublicCategory> categories,
             List<PublicContent.Link> footerLinks, boolean blog, List<Navigation.Item> menu, String captchaSiteKey,
-            Map<String, Map<String, String>> themeImages, String panelOrigin) {
+            Map<String, Map<String, String>> themeImages, String panelOrigin, boolean googleSignIn) {
     }
 
     /**
@@ -123,7 +126,7 @@ class StorefrontController {
             return new PublicStore(s.name(), s.status(), open, preview, s.defaultLocale(), s.defaultCurrency(), s.primaryHostname(),
                     themes.storefront(preview), seller, open ? catalog.categories() : List.of(),
                     open ? content.footerLinks() : List.of(), open && content.hasPosts(), open ? navigation.menu() : List.of(),
-                    captcha.siteKey(), themeImages.urls(), preview ? panelOrigin : null);
+                    captcha.siteKey(), themeImages.urls(), preview ? panelOrigin : null, open && googleSignIn.enabled());
         });
         return cached(body, preview);
     }

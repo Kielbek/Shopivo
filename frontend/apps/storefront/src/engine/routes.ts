@@ -178,7 +178,17 @@ export function templateEngine(apiOrigin: string) {
           if (await api.account()) return { type: 'auth', data: {}, title: '', status: 302, redirect: '/konto' };
         }
         const titles: Record<string, string> = { login: 'Logowanie', register: 'Załóż konto', verify: 'Potwierdź konto', reset_request: 'Nie pamiętasz hasła?', reset: 'Ustaw nowe hasło' };
-        return { type: 'auth', status: 200, title: titles[route.view!], data: { auth: { view: route.view, captcha_site_key: store.captchaSiteKey ?? null } } };
+        // "Zaloguj się przez Google": only with the store's own keys configured; ?blad= after a failed attempt
+        const back = typeof t.query['powrot'] === 'string' && /^\/(?!\/)[A-Za-z0-9/_\-.?=&%]{0,200}$/.test(t.query['powrot']) ? t.query['powrot'] : '/konto';
+        const errors: Record<string, string> = {
+          google: 'Nie udało się zalogować przez Google. Spróbuj ponownie albo zaloguj się e-mailem.',
+          'google-anulowano': 'Logowanie przez Google zostało przerwane.',
+          'google-inne-konto': 'To konto w sklepie jest połączone z innym kontem Google.',
+          'google-email': 'Konto Google nie ma potwierdzonego adresu e-mail.',
+        };
+        const error = typeof t.query['blad'] === 'string' ? errors[t.query['blad']] ?? null : null;
+        return { type: 'auth', status: 200, title: titles[route.view!], data: { auth: { view: route.view, captcha_site_key: store.captchaSiteKey ?? null,
+          google: store.googleSignIn ? `/api/v1/storefront/account/google/start?powrot=${encodeURIComponent(back)}` : null, error } } };
       }
       case 'account': {
         const account = await api.get<ApiAccountFull>('/account/me').catch(() => null);

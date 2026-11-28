@@ -53,7 +53,16 @@ async function proxy(req: express.Request, res: express.Response, next: express.
       if (typeof v === 'string') headers[h] = v;
     }
     const session = customerSession(req.headers.cookie);
-    if (session && path.startsWith('/api/v1/storefront/account/')) headers['cookie'] = `${CUSTOMER_COOKIE}=${session}`;
+    const google = path.startsWith('/api/v1/storefront/account/google/');
+    const cookies: string[] = [];
+    if (session && path.startsWith('/api/v1/storefront/account/')) cookies.push(`${CUSTOMER_COOKIE}=${session}`);
+    if (google) {
+      // Google sign-in: the state cookie goes along, and the store's origin as the visitor sees it (callback address)
+      const state = cookieValue(req.headers.cookie, OAUTH_COOKIE);
+      if (state) cookies.push(`${OAUTH_COOKIE}=${state}`);
+      headers['x-shop-origin'] = `${req.protocol}://${req.get('host') ?? req.hostname}`;
+    }
+    if (cookies.length) headers['cookie'] = cookies.join('; ');
     const upstream = await fetch(apiOrigin + path, {
       method: req.method,
       headers,
@@ -67,13 +76,31 @@ async function proxy(req: express.Request, res: express.Response, next: express.
       if (value) res.setHeader(header, value);
     }
     if (path.startsWith('/api/v1/storefront/account/')) {
-      const cookies = upstream.headers.getSetCookie().filter((c) => c.startsWith(CUSTOMER_COOKIE + '='));
-      if (cookies.length) res.setHeader('set-cookie', cookies);
+      const allowed = google ? [CUSTOMER_COOKIE, OAUTH_COOKIE] : [CUSTOMER_COOKIE];
+      const set = upstream.headers.getSetCookie().filter((c) => allowed.some((n) => c.startsWith(n + '=')));
+      if (set.length) res.setHeader('set-cookie', set);
     }
+    // Google sign-in redirects: only to Google's sign-in page or back into this store
+    const location = upstream.headers.get('location');
+    if (google && location && (location.startsWith('https://accounts.google.com/') || /^\/(?!\/)/.test(location))) res.setHeader('location', location);
     res.send(Buffer.from(await upstream.arrayBuffer()));
   } catch (error) {
     next(error);
   }
+}
+
+/** Google sign-in state (HttpOnly, only on the Google sign-in paths). */
+const OAUTH_COOKIE = 'shopivo_oauth';
+
+function cookieValue(cookieHeader: string | undefined, name: string): string | null {
+  for (const part of (cookieHeader ?? '').split(';')) {
+    const [n, ...rest] = part.trim().split('=');
+    if (n === name) {
+      const value = rest.join('=');
+      return /^[A-Za-z0-9_-]{20,100}$/.test(value) ? value : null;
+    }
+  }
+  return null;
 }
 
 function customerSession(cookieHeader: string | undefined): string | null {

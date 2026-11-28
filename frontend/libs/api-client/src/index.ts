@@ -15,3 +15,4 @@ export * from './online-payments-api';
 export * from './shipping-api';
 export * from './newsletter-api';
 export * from './returns-api';
+export * from './google-sign-in-api';

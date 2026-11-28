@@ -45,21 +45,91 @@ class StorefrontAccountController {
 
     static final String COOKIE = "shopivo_customer";
 
+    /** Holds the Google sign-in state between leaving for Google and coming back (HttpOnly, this store only, 10 minutes). */
+    static final String OAUTH_COOKIE = "shopivo_oauth";
+
     private final StorefrontTenants storefront;
     private final CustomerAccounts accounts;
+    private final pl.shopivo.accounts.GoogleSignIn google;
     private final RateLimiter rateLimiter;
     private final pl.shopivo.shared.captcha.Captcha captcha;
     private final List<pl.shopivo.orders.OnlinePayments> online;
     private final boolean secureCookie;
 
     StorefrontAccountController(StorefrontTenants storefront, CustomerAccounts accounts, RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha,
-            ShopivoProperties properties, List<pl.shopivo.orders.OnlinePayments> online) {
+            ShopivoProperties properties, List<pl.shopivo.orders.OnlinePayments> online, pl.shopivo.accounts.GoogleSignIn google) {
+        this.google = google;
         this.online = online;
         this.storefront = storefront;
         this.accounts = accounts;
         this.rateLimiter = rateLimiter;
         this.captcha = captcha;
         this.secureCookie = properties.security() == null || properties.security().cookieSecure();
+    }
+
+    // ------------------------------------------------------------------------------------------------ Google
+
+    /**
+     * The "Zaloguj się przez Google" button links here (a normal navigation, so no custom header): remembers a fresh state
+     * in a cookie and sends the browser to Google. The callback address is this store's own domain.
+     */
+    @GetMapping("/google/start")
+    ResponseEntity<Void> googleStart(HttpServletRequest request, HttpServletResponse response,
+            @org.springframework.web.bind.annotation.RequestParam(name = "powrot", required = false) String returnPath) {
+        UUID tenant = storefront.resolvePublished(request);
+        rateLimiter.consume("acc-google:" + request.getRemoteAddr(), 30, Duration.ofMinutes(10));
+        try {
+            var start = run(tenant, () -> google.start(origin(request) + pl.shopivo.accounts.GoogleSignIn.CALLBACK_PATH, returnPath));
+            response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from(OAUTH_COOKIE, start.state()).httpOnly(true)
+                    .secure(secureCookie || request.isSecure()).sameSite("Lax").path("/api/v1/storefront/account/google")
+                    .maxAge(pl.shopivo.accounts.GoogleSignIn.STATE_TTL).build().toString());
+            return redirect(start.authorizeUrl());
+        } catch (pl.shopivo.shared.error.BusinessRuleException e) {
+            return redirect("/konto/logowanie?blad=google");
+        }
+    }
+
+    /** Google sends the browser back here; the state must match the one in this browser's cookie (no login CSRF). */
+    @GetMapping("/google/callback")
+    ResponseEntity<Void> googleCallback(HttpServletRequest request, HttpServletResponse response,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String state,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String code,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String error) {
+        UUID tenant = storefront.resolvePublished(request);
+        rateLimiter.consume("acc-google:" + request.getRemoteAddr(), 30, Duration.ofMinutes(10));
+        String expected = cookie(request, OAUTH_COOKIE);
+        response.addHeader(HttpHeaders.SET_COOKIE, ResponseCookie.from(OAUTH_COOKIE, "").httpOnly(true).secure(secureCookie || request.isSecure())
+                .sameSite("Lax").path("/api/v1/storefront/account/google").maxAge(0).build().toString());
+        if (error != null) return redirect("/konto/logowanie?blad=" + ("access_denied".equals(error) ? "google-anulowano" : "google"));
+        if (state == null || expected == null || !pl.shopivo.shared.crypto.Tokens.constantTimeEquals(state, expected)) {
+            return redirect("/konto/logowanie?blad=google");
+        }
+        try {
+            var result = run(tenant, () -> google.finish(state, code));
+            writeCookie(request, response, result.session());
+            return redirect(result.returnPath());
+        } catch (pl.shopivo.shared.error.BusinessRuleException e) {
+            return redirect("/konto/logowanie?blad=" + ("GOOGLE_ACCOUNT_MISMATCH".equals(e.code()) ? "google-inne-konto"
+                    : "GOOGLE_EMAIL_NOT_VERIFIED".equals(e.code()) ? "google-email" : "google"));
+        }
+    }
+
+    /**
+     * Origin of the store as the visitor sees it. The storefront server passes it (with a dev port) in X-Shop-Origin; it is
+     * used only when its host is the store's own host, otherwise https://host.
+     */
+    private static String origin(HttpServletRequest request) {
+        String host = request.getServerName();
+        String given = request.getHeader("X-Shop-Origin");
+        if (given != null && given.matches("^https?://[a-z0-9.-]+(:\\d{2,5})?$")) {
+            String h = given.replaceFirst("^https?://", "").replaceFirst(":\\d+$", "");
+            if (h.equalsIgnoreCase(host)) return given;
+        }
+        return "https://" + host;
+    }
+
+    private static ResponseEntity<Void> redirect(String location) {
+        return ResponseEntity.status(HttpStatus.FOUND).location(java.net.URI.create(location)).cacheControl(CacheControl.noStore()).build();
     }
 
     // ------------------------------------------------------------------------------------------------ public flows
@@ -390,9 +460,13 @@ class StorefrontAccountController {
     }
 
     private static String cookie(HttpServletRequest request) {
+        return cookie(request, COOKIE);
+    }
+
+    private static String cookie(HttpServletRequest request, String name) {
         if (request.getCookies() == null) return null;
         for (Cookie c : request.getCookies()) {
-            if (COOKIE.equals(c.getName())) return c.getValue();
+            if (name.equals(c.getName())) return c.getValue();
         }
         return null;
     }

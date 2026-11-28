@@ -45,11 +45,14 @@ public abstract class IntegrationTest {
     protected static final FakeStripe STRIPE;
     /** Shared local Apaczka / Furgonetka API stand-ins. */
     protected static final FakeCouriers COURIERS;
+    /** Shared local Google token endpoint stand-in. */
+    protected static final FakeGoogle GOOGLE;
 
     static {
         try {
             STRIPE = new FakeStripe();
             COURIERS = new FakeCouriers();
+            GOOGLE = new FakeGoogle();
         } catch (java.io.IOException e) {
             throw new IllegalStateException(e);
         }
@@ -58,6 +61,7 @@ public abstract class IntegrationTest {
     @DynamicPropertySource
     static void containers(DynamicPropertyRegistry registry) {
         registry.add("shopivo.stripe.api-base", STRIPE::url);
+        registry.add("shopivo.google.token-url", GOOGLE::tokenUrl);
         registry.add("shopivo.stripe.secret-key", () -> FakeStripe.SECRET_KEY);
         registry.add("shopivo.stripe.connect-webhook-secret", () -> FakeStripe.WEBHOOK_SECRET);
         registry.add("shopivo.apaczka.api-url", () -> COURIERS.url() + "/apaczka/api/v2/");

@@ -82,7 +82,7 @@ Zapisana wartość, która nie pasuje do schematu (np. po zmianie szablonu), jes
 - **potwierdzenie:** `order` (`number`, `items`, `total`, `paid`, `awaiting_online`, `bank_transfer`, `pickup_point`…) albo nic, gdy brak ciasteczka zamówienia.
 - **strona i wpis:** `entry` (`kind`, `title`, `blocks` — treść jako dane: nagłówki, akapity, listy, linki; snippet `rich-text` ją rysuje).
 - **blog:** `blog` (`posts`, `page`, `total_pages`, `prev_url`, `next_url`).
-- **logowanie i spółka:** `auth` (`view`: `login`, `register`, `verify`, `reset_request`, `reset`; `captcha_site_key`). Zalogowany klient na logowaniu lub rejestracji trafia do `/konto`.
+- **logowanie i spółka:** `auth` (`view`: `login`, `register`, `verify`, `reset_request`, `reset`; `captcha_site_key`; `google` — link „Zaloguj się przez Google”, tylko gdy sklep ma włączone własne klucze, inaczej `nil`; `error` — komunikat po nieudanym logowaniu przez Google). Gotowe fragmenty: `{% render 'shop-google-button', auth: auth, terms: terms_url %}` (parametry `label`, `position: 'after'`, `btn_class`, `or_class`) i `{% render 'shop-auth-error', auth: auth %}`. Zalogowany klient na logowaniu lub rejestracji trafia do `/konto`.
 - **konto:** `account` (`tab`, `tabs`, `orders`, `returns`, `reviews`, `addresses`, dane klienta). Gość trafia do logowania z `?powrot=`.
 - **zamówienie w koncie:** `account_order` (pozycje, sumy, adres, `awaiting_online`, `return_kinds`, `items[].returnable` i `choices`).
 - **newsletter:** `newsletter.action` (`confirm` lub `unsubscribe`).
