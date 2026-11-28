@@ -16,7 +16,7 @@ import pl.shopivo.support.ApiClient;
 import pl.shopivo.support.IntegrationTest;
 import tools.jackson.databind.JsonNode;
 
-class StorefrontIT extends IntegrationTest {
+public class StorefrontIT extends IntegrationTest {
 
     private static String base(String t) {
         return "/api/v1/tenants/" + t;
@@ -50,7 +50,7 @@ class StorefrontIT extends IntegrationTest {
         return p;
     }
 
-    static byte[] png(int w, int h) throws Exception {
+    public static byte[] png(int w, int h) throws Exception {
         BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
         var g = img.createGraphics();
         g.setColor(new Color(90, 141, 239));

@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { ProductImage, PublishReadiness, Store, ThemeResponse, ThemeState, ThemeSection } from '@shopivo/shared-models';
+import {
+  ProductImage, PublishReadiness, Store, TemplateResponse, TemplateState, TemplateStoreDoc, ThemeResponse, ThemeState, ThemeSection,
+} from '@shopivo/shared-models';
 import { Observable } from 'rxjs';
 
 /** Store publication, theme and product images (merchant panel). */
@@ -26,6 +28,23 @@ export class StorefrontAdminApi {
 
   previewLink(t: string): Observable<{ token: string; url: string }> {
     return this.http.post<{ token: string; url: string }>(`${this.base(t)}/store/preview-token`, null);
+  }
+
+  /** Template package (engine v2): schemas, defaults and the store's draft/published document. */
+  template(t: string): Observable<TemplateResponse> {
+    return this.http.get<TemplateResponse>(`${this.base(t)}/template`);
+  }
+
+  saveTemplateDraft(t: string, doc: TemplateStoreDoc, version: number): Observable<TemplateState> {
+    return this.http.put<TemplateState>(`${this.base(t)}/template/draft`, { doc, version });
+  }
+
+  publishTemplate(t: string): Observable<TemplateState> {
+    return this.http.post<TemplateState>(`${this.base(t)}/template/publish`, null);
+  }
+
+  restoreTemplateVersion(t: string, id: string, version: number): Observable<TemplateState> {
+    return this.http.post<TemplateState>(`${this.base(t)}/template/versions/${encodeURIComponent(id)}/restore`, { version });
   }
 
   theme(t: string): Observable<ThemeResponse> {

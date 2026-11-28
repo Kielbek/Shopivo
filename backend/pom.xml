@@ -195,6 +195,22 @@
     </dependencies>
 
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!-- Template packages (../templates): the backend needs only their schemas and default pages, not the assets -->
+            <resource>
+                <directory>${project.basedir}/../templates</directory>
+                <targetPath>templates</targetPath>
+                <includes>
+                    <include>*/template.json</include>
+                    <include>*/sections/*.liquid</include>
+                    <include>*/pages/*.json</include>
+                    <include>*/groups/*.json</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

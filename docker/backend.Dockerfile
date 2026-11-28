@@ -5,6 +5,8 @@ COPY backend/.mvn .mvn
 COPY backend/mvnw backend/pom.xml ./
 RUN --mount=type=cache,target=/root/.m2 ./mvnw -q -B dependency:go-offline
 COPY backend/src src
+# Template packages: their schemas are validated by the backend (see pom.xml resources)
+COPY templates/ /templates/
 RUN --mount=type=cache,target=/root/.m2 ./mvnw -q -B package -DskipTests \
     && java -Djarmode=tools -jar target/shopivo-backend-*.jar extract --layers --launcher --destination extracted
 

@@ -534,3 +534,28 @@ export interface ReturnRequest {
   items: { orderItemId: string; name: string; variantTitle: string | null; quantity: number; unitPriceMinor: number }[];
   createdAt: string; decidedAt: string | null; completedAt: string | null; version: number;
 }
+
+// ---- Template packages (engine v2): editor of a store's pages ----------------------------------------------------------
+export type TemplateSettingType = 'text' | 'textarea' | 'url' | 'image' | 'select' | 'number' | 'checkbox' | 'color'
+  | 'product_list' | 'category_list' | 'link_list';
+export interface TemplateSetting {
+  id: string; type: TemplateSettingType; label: string; defaultValue: unknown; info: string | null; max: number | null; min: number | null;
+  options: { value: string; label: string }[] | null;
+}
+export interface TemplateBlockSchema { type: string; name: string; settings: TemplateSetting[]; }
+export interface TemplateSectionSchema { type: string; name: string; settings: TemplateSetting[]; blocks: TemplateBlockSchema[]; maxBlocks: number | null; }
+export interface TemplateSectionDoc {
+  type: string; disabled?: boolean; settings: Record<string, unknown>;
+  blocks?: Record<string, { type: string; disabled?: boolean; settings: Record<string, unknown> }>; block_order?: string[];
+}
+export interface TemplatePageDoc { sections: Record<string, TemplateSectionDoc>; order: string[]; }
+export interface TemplateStoreDoc { pages?: Record<string, TemplatePageDoc>; groups?: { header?: TemplatePageDoc; footer?: TemplatePageDoc }; }
+export interface TemplateState {
+  code: string; draft: TemplateStoreDoc; published: TemplateStoreDoc | null; publishedAt: string | null; unpublishedChanges: boolean; version: number;
+}
+export interface TemplateResponse {
+  code: string; name: string; templateVersion: string; sections: Record<string, TemplateSectionSchema>;
+  /** Template defaults per page type and group ("header", "footer"). */
+  defaults: Record<string, TemplatePageDoc>;
+  state: TemplateState; versions: { id: string; createdAt: string }[];
+}

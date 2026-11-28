@@ -129,9 +129,32 @@ describe('rendering', () => {
       pkg: p, api: fakeApi([]), store, pageType: 'index', page: {}, cart: toCart(null), head: '', footer: '', editing: true,
     }, ['hero', 'benefits']);
     expect(Object.keys(html).sort()).toEqual(['benefits', 'hero']);
-    expect(html['hero']).toContain('data-shop-edit="hero:heading"');
+    expect(html['hero']).toContain('data-shop-edit="hero:heading" data-shop-edit-type="textarea"');
+    expect(html['hero']).toContain('data-shop-edit="hero:image" data-shop-edit-type="image"');
     expect(html['benefits']).toContain('data-shop-block="benefits/benefit-1"');
-    expect(html['benefits']).toContain('data-shop-edit="benefits/benefit-1:title"');
+    expect(html['benefits']).toContain('data-shop-edit="benefits/benefit-1:title" data-shop-edit-type="text"');
+  });
+});
+
+describe('store documents', () => {
+  it('render the store order, settings and hidden sections, with editor markers only while editing', async () => {
+    const p = packages.get('BAWILOO')!;
+    const r = new TemplateRenderer(p, '/_t/b/1');
+    const index = structuredClone(p.pages.index);
+    index.order = ['about', 'hero'];
+    index.sections['hero'].settings = { heading: 'Mój <napis>' };
+    index.sections['about'].disabled = true;
+    const base = { pkg: p, api: fakeApi([]), store, pageType: 'index' as const, page: {}, cart: toCart(null), head: '', footer: '' };
+    const html = await r.renderPage({ ...base, docs: { pages: { index } } });
+    expect(html).toContain('Mój &lt;napis&gt;');
+    expect(html).not.toContain('id="shop-section-about"');
+    expect(html).not.toContain('id="shop-section-categories"');
+    expect(html).not.toContain('data-shop-group-start');
+    const editing = await r.renderGroups({ ...base, docs: { pages: { index } }, editing: true });
+    expect(editing['page'].order).toEqual(['hero']);
+    expect(editing['header'].order).toEqual(['header']);
+    const page = await r.renderPage({ ...base, editing: true });
+    expect(page).toContain('<template data-shop-group-start="page"></template>');
   });
 });
 

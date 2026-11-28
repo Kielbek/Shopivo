@@ -23,7 +23,7 @@ export const routes: Routes = [
   { path: 'konto', title: 'Ustawienia konta', canActivate: [authGuard], loadComponent: () => import('./features/account/account.page').then((m) => m.AccountPage) },
   {
     path: 'sklep/:tenantId/edytor-wygladu', title: 'Edytor wyglądu', canActivate: [authGuard],
-    loadComponent: () => import('./features/theme-editor/theme-editor.page').then((m) => m.ThemeEditorPage),
+    loadComponent: () => import('./features/template-editor/editor-entry.page').then((m) => m.EditorEntryPage),
   },
   {
     path: 'sklep/:tenantId',

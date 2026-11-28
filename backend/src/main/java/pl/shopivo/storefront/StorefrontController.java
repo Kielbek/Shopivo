@@ -59,13 +59,16 @@ class StorefrontController {
     private final String urlTemplate;
 
     private final pl.shopivo.themes.ThemeImages themeImages;
+    private final pl.shopivo.themes.TemplateDocs templateDocs;
     private final String panelOrigin;
 
     StorefrontController(StorefrontTenants storefront, Stores stores, Themes themes, PublicCatalog catalog, PublicContent content, Redirects redirects, Navigation navigation, Reviews reviews,
             RateLimiter rateLimiter, pl.shopivo.shared.captcha.Captcha captcha, TransactionTemplate tx,
             @Value("${shopivo.storefront-url-template:https://{host}}") String urlTemplate, pl.shopivo.themes.ThemeImages themeImages,
+            pl.shopivo.themes.TemplateDocs templateDocs,
             pl.shopivo.shared.config.ShopivoProperties properties) {
         this.themeImages = themeImages;
+        this.templateDocs = templateDocs;
         this.panelOrigin = originOf(properties.appUrl());
         this.storefront = storefront;
         this.stores = stores;
@@ -89,6 +92,17 @@ class StorefrontController {
             String hostname, Themes.ThemeConfig theme, Seller seller, List<PublicCatalog.PublicCategory> categories,
             List<PublicContent.Link> footerLinks, boolean blog, List<Navigation.Item> menu, String captchaSiteKey,
             Map<String, Map<String, String>> themeImages, String panelOrigin) {
+    }
+
+    /**
+     * The store's customisation of its template package (engine v2): the draft for a valid preview token, otherwise the
+     * published document. An empty document means "template defaults".
+     */
+    @GetMapping("/template")
+    ResponseEntity<pl.shopivo.themes.TemplateDocs.Storefront> template(HttpServletRequest request) {
+        UUID tenant = storefront.resolve(request);
+        boolean preview = storefront.isPreview(request, tenant);
+        return cached(inTenant(tenant, () -> templateDocs.storefront(preview)), preview);
     }
 
     @GetMapping("/store")

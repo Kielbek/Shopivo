@@ -14,12 +14,15 @@
     if (!slot || !nav) return;
     nav.style.visibility = nav.getBoundingClientRect().width <= slot.clientWidth ? 'visible' : 'hidden';
   }
-  const slot = $('headerNavSlot');
-  if (slot && 'ResizeObserver' in window) {
-    const observer = new ResizeObserver(fitHeaderNav);
+  const observer = 'ResizeObserver' in window ? new ResizeObserver(fitHeaderNav) : null;
+  function watchHeader() {
+    const slot = $('headerNavSlot');
+    if (!slot || !observer) return;
+    observer.disconnect();
     observer.observe(slot);
     observer.observe($('headerNav'));
   }
+  watchHeader();
   window.addEventListener('resize', fitHeaderNav);
   if (document.fonts) document.fonts.ready.then(fitHeaderNav);
   fitHeaderNav();
@@ -133,13 +136,27 @@
     });
     position(false);
   }
-  document.querySelectorAll('[data-promo-slider]').forEach(setupPromoSlider);
-
   // "Kontakt" scrolls smoothly to the footer
-  document.querySelectorAll('a[href="#contact"]').forEach((a) => a.addEventListener('click', (e) => {
-    const footer = $('contact');
-    if (!footer) return;
-    e.preventDefault();
-    footer.scrollIntoView({ behavior: 'smooth' });
-  }));
+  function setupContactLinks(root) {
+    root.querySelectorAll('a[href="#contact"]').forEach((a) => a.addEventListener('click', (e) => {
+      const footer = $('contact');
+      if (!footer) return;
+      e.preventDefault();
+      footer.scrollIntoView({ behavior: 'smooth' });
+    }));
+  }
+
+  function init(root) {
+    root.querySelectorAll('[data-promo-slider]').forEach(setupPromoSlider);
+    setupContactLinks(root);
+  }
+  init(document);
+  // A section re-rendered in the editor: set up its behaviour again
+  document.addEventListener('shop:section-load', (e) => {
+    init(e.target);
+    if (e.target.querySelector('#headerNav')) {
+      watchHeader();
+      fitHeaderNav();
+    }
+  });
 })();

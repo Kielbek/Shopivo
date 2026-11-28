@@ -10,7 +10,7 @@ Stan: **etap 2 zakończony**. Sklepy na szablonie v2 mają w wyglądzie szablonu
 - konto (zamówienia, zwroty, opinie, adresy, ustawienia) i zamówienie w koncie ze zgłoszeniem zwrotu;
 - potwierdzenie newslettera z maila, opinię z zaproszenia e-mail (`/opinia`) i 404 (także dla nieznanych adresów).
 
-Przed 404 serwer sprawdza przekierowania 301 sklepu. Sklep na szablonie v2 nie korzysta już z aplikacji Angular. Edytor dla v2 to etap 3.
+Przed 404 serwer sprawdza przekierowania 301 sklepu. Sklep na szablonie v2 nie korzysta już z aplikacji Angular.
 
 ## Struktura pakietu
 
@@ -143,3 +143,47 @@ Skrypt szablonu (`assets/template.js`) zawiera tylko zachowania z projektu, np. 
    - dopisek „demo” w newsletterze usuwamy;
    - szablon niczego nie obiecuje za sprzedawcę („Darmowa dostawa” zmieniona na „Szybka dostawa”).
 5. Zgodność sprawdzamy zrzutami ekranu oryginału i sklepu na komputerze i telefonie, z tymi samymi danymi.
+
+
+## Dokument sklepu i edytor (etap 3)
+
+Sklep nie kopiuje szablonu. Zapisuje tylko to, co zmienił: dokument `{ pages: { <strona>: PageDoc }, groups: { header, footer } }`. Strony i grupy pominięte w dokumencie biorą wygląd domyślny szablonu, więc poprawki szablonu nadal do nich trafiają.
+
+- **Backend** (`themes/TemplatePackages`, `TemplateDocValidator`, `TemplateDocs`):
+  - schematy sekcji i strony domyślne czyta z `templates/` w classpath (pom.xml dołącza pliki `.json` i `.liquid`, bez grafik);
+  - przy zapisie waliduje dokument tymi samymi regułami co silnik witryny. Odrzuca:
+    - nieznane sekcje, elementy i ustawienia;
+    - za długie teksty i niebezpieczne linki;
+    - zdjęcia spoza biblioteki sklepu;
+    - usunięcie stałej części strony (`main-…`, nagłówek, stopka);
+    - przekroczenie `max_blocks`, więcej niż 40 sekcji na stronie i więcej niż 300 KB treści.
+- **Tabele:** `store_templates` (szkic, wersja opublikowana, wersja do kontroli zapisów równoległych) i `store_template_versions` (każda publikacja, ostatnie 30).
+- **API panelu:**
+  - `GET /api/v1/tenants/{t}/template` zwraca schematy, wartości domyślne, stan i wersje;
+  - `PUT …/template/draft` przyjmuje `{doc, version}`, a nieaktualna wersja daje `VERSION_CONFLICT`;
+  - `POST …/template/publish` publikuje też wybór szablonu;
+  - `POST …/template/versions/{id}/restore` przywraca wersję jako szkic.
+- **Witryna:** `GET /api/v1/storefront/template` zwraca wersję opublikowaną, a z ważnym tokenem podglądu szkic (`no-store`).
+
+**Edytor** (panel `features/template-editor/`, a dla szablonów v2 adres `/sklep/:t/edytor-wygladu`):
+- **Środek:** prawdziwa witryna w ramce (`?podglad=…&edycja=1`).
+  - Nakładka `/_shop/editor.js` rysuje ramkę z nazwą przy najechaniu.
+  - Kliknięcie zaznacza sekcję lub element.
+  - Teksty (`text`, `textarea`) edytuje się w miejscu, jako czysty tekst. Zdjęcie otwiera bibliotekę.
+  - Pasek przy zaznaczeniu ma akcje: wyżej, niżej, powiel, ukryj, usuń.
+  - W trybie edycji kliknięcia nie prowadzą do innych stron i nic nie trafia do koszyka.
+- **Lewa kolumna:** wybór strony (15 rodzajów), nagłówek, sekcje strony i ich elementy z przeciąganiem, „+ Dodaj sekcję” (nowa sekcja dostaje treść z miejsca, gdzie szablon jej używa), „+ element”, stopka.
+- **Prawa kolumna:** formularz zaznaczenia zbudowany ze schematu (tekst, link z podpowiedziami, zdjęcie, wybór, liczba, kolor, lista produktów, kategorie, kolumny linków).
+- **Góra:**
+  - status zapisu;
+  - cofnij i ponów (Ctrl+Z, Ctrl+Shift+Z; pisanie w jednym polu to jeden krok);
+  - komputer, tablet, telefon;
+  - historia publikacji;
+  - „Opublikuj”.
+- **Zapis:** szkic zapisuje się sam (0,7 s po zmianie). Podgląd przerysowuje serwer z niezapisanego dokumentu: `POST /_shop/editor/render` z tokenem podglądu, a serwer niczego nie zapisuje.
+
+Protokół ramki (postMessage tylko między panelem a witryną, z kontrolą pochodzenia):
+- witryna wysyła do panelu: `shop:ready`, `shop:select`, `shop:text`, `shop:action`, `shop:image`, `shop:rendered`;
+- panel wysyła do witryny: `shop:names`, `shop:render {doc}`, `shop:selected`.
+
+Szablon dostaje zdarzenie `shop:section-load` na każdej przerysowanej sekcji, żeby ponownie podpiąć swoje skrypty (np. slider).

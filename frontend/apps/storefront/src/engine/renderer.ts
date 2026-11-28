@@ -87,13 +87,20 @@ export class TemplateRenderer {
       return `${i.w400} 400w, ${i.w1200} 1200w`;
     });
     // Editor hooks: attributes only while the merchant edits in the panel's preview, empty for visitors.
+    const pkg = this.pkg;
+    /** Type of the setting an editor hook points at (text and textarea are edited in place, images open the picker). */
+    const settingType = (t: { type?: string; section_type?: string }, id: string): string => {
+      const section = pkg.sections.get(t.section_type ?? t.type ?? '');
+      const list = t.section_type ? section?.schema.blocks?.find((b) => b.type === t.type)?.settings : section?.schema.settings;
+      return list?.find((x) => x.id === id)?.type ?? '';
+    };
     l.registerFilter('edit', {
       handler: function (this: { context: { getSync(path: string[]): unknown } }, target: unknown, setting: unknown) {
         if (!this.context.getSync(['editing'])) return '';
-        const t = target as { id?: string; section_id?: string } | null;
+        const t = target as { id?: string; type?: string; section_id?: string; section_type?: string } | null;
         if (!t?.id || typeof setting !== 'string' || !/^[a-z0-9_]+$/.test(setting)) return '';
         const path = t.section_id ? `${t.section_id}/${t.id}` : t.id;
-        return ` data-shop-edit="${escapeHtml(path)}:${setting}"`;
+        return ` data-shop-edit="${escapeHtml(path)}:${setting}" data-shop-edit-type="${escapeHtml(settingType(t, setting))}"`;
       },
       raw: true,
     });
@@ -205,7 +212,7 @@ export class TemplateRenderer {
     await Promise.all(sections.map(async (sec) => {
       if (!sec) return;
       const def = this.pkg.sections.get(sec.type)!;
-      const section = { ...sec, blocks: sec.blocks.map((b) => ({ ...b, section_id: sec.id })) };
+      const section = { ...sec, blocks: sec.blocks.map((b) => ({ ...b, section_id: sec.id, section_type: sec.type })) };
       const html = await this.liquid.render(this.template('section:' + sec.type, def.source), { section }, { globals });
       const attrs = ctx.editing ? ` data-shop-section-type="${escapeHtml(sec.type)}"` : '';
       out.set(sec.id, `<div id="shop-section-${escapeHtml(sec.id)}" data-shop-section="${escapeHtml(sec.id)}"${attrs} style="display:contents">${html}</div>`);
@@ -213,17 +220,39 @@ export class TemplateRenderer {
     return out;
   }
 
-  private joined(doc: PageDoc, html: Map<string, string>): string {
-    return doc.order.map((id) => html.get(id) ?? '').join('\n');
+  /** Sections in order; while editing, inert markers around them tell the editor where the group starts and ends. */
+  private joined(doc: PageDoc, html: Map<string, string>, group: string, editing: boolean): string {
+    const body = doc.order.map((id) => html.get(id) ?? '').join('\n');
+    return editing ? `<template data-shop-group-start="${group}"></template>${body}<template data-shop-group-end="${group}"></template>` : body;
+  }
+
+  /** Documents of the page being rendered: the store's (draft or published) or the template's defaults. */
+  private docsOf(ctx: RenderContext): { page: PageDoc; header: PageDoc; footer: PageDoc } {
+    return {
+      page: ctx.docs?.pages?.[ctx.pageType] ?? this.pkg.pages[ctx.pageType],
+      header: ctx.docs?.header ?? this.pkg.groups.header,
+      footer: ctx.docs?.footer ?? this.pkg.groups.footer,
+    };
+  }
+
+  /** Every section of the page, by group (the editor rebuilds the page from it after a change). */
+  async renderGroups(ctx: RenderContext): Promise<Record<string, { order: string[]; html: Record<string, string> }>> {
+    const d = this.docsOf(ctx);
+    const out: Record<string, { order: string[]; html: Record<string, string> }> = {};
+    await Promise.all((['page', 'header', 'footer'] as const).map(async (g) => {
+      const html = await this.renderDoc(ctx, d[g]);
+      out[g] = { order: d[g].order.filter((id) => html.has(id)), html: Object.fromEntries(html) };
+    }));
+    return out;
   }
 
   async renderPage(ctx: RenderContext): Promise<string> {
-    const page = ctx.docs?.pages?.[ctx.pageType] ?? this.pkg.pages[ctx.pageType];
-    const header = ctx.docs?.header ?? this.pkg.groups.header;
-    const footer = ctx.docs?.footer ?? this.pkg.groups.footer;
+    const { page, header, footer } = this.docsOf(ctx);
     const [main, head, foot] = await Promise.all([this.renderDoc(ctx, page), this.renderDoc(ctx, header), this.renderDoc(ctx, footer)]);
+    const e = !!ctx.editing;
     const scope = {
-      content_for_layout: this.joined(page, main), header_group: this.joined(header, head), footer_group: this.joined(footer, foot),
+      content_for_layout: this.joined(page, main, 'page', e), header_group: this.joined(header, head, 'header', e),
+      footer_group: this.joined(footer, foot, 'footer', e),
       content_for_header: ctx.head, content_for_footer: ctx.footer,
     };
     // Section output and the head are already escaped HTML: the layout prints them raw.
@@ -233,8 +262,8 @@ export class TemplateRenderer {
 
   /** Re-rendered sections of a page (the runtime swaps them in after a cart change, a filter…). */
   async renderSections(ctx: RenderContext, ids: string[]): Promise<Record<string, string>> {
-    const docs = [ctx.docs?.pages?.[ctx.pageType] ?? this.pkg.pages[ctx.pageType], ctx.docs?.header ?? this.pkg.groups.header,
-      ctx.docs?.footer ?? this.pkg.groups.footer];
+    const d = this.docsOf(ctx);
+    const docs = [d.page, d.header, d.footer];
     const want = new Set(ids);
     const out: Record<string, string> = {};
     for (const doc of docs) {

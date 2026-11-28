@@ -101,6 +101,29 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - pole „Wysokość” banera nie wpływa na układ „Magazyn”;
   - zdjęcia z HTML-a są z Unsplash — dobre jako start, ale sprzedawca powinien użyć własnych.
 
+## Silnik szablonów v2 — etap 3: nowy edytor (2026-11-28)
+
+- **Dokument sklepu:** zapisuje tylko zmienione strony. Walidacja w backendzie według schematów szablonu, szkic i publikacja, historia 30 publikacji z przywracaniem (V25).
+- **Edycja na podglądzie:**
+  - ramka i nazwa przy najechaniu, zaznaczanie kliknięciem;
+  - pisanie tekstów w miejscu, wymiana zdjęć z biblioteki;
+  - pasek akcji na stronie: wyżej, niżej, powiel, ukryj, usuń.
+- **Panel:**
+  - 15 stron do wyboru; sekcje i elementy z przeciąganiem; dodawanie sekcji i elementów;
+  - formularz ustawień ze schematu;
+  - cofnij i ponów, autozapis, widok komputer/tablet/telefon, historia, publikacja.
+- **Wejście „Edytor wyglądu”:** szablony v2 otwierają nowy edytor, pozostałe poprzedni.
+- **Testy:**
+  - `TemplateDocsIT`: zapis, 10 rodzajów odrzuconych dokumentów, zdjęcie z biblioteki, konflikt wersji, podgląd kontra wersja publiczna, publikacja, przywracanie, izolacja sklepów, szablon starego silnika;
+  - `template-doc.spec.ts`: operacje na układzie i cofanie;
+  - `engine.spec.ts`: renderowanie dokumentu sklepu, ukryte sekcje, znaczniki edycji.
+- **E2E edytora:**
+  - napis w banerze wpisany na podglądzie zapisał się sam;
+  - kliknięcie sekcji na stronie otworzyło jej ustawienia; tytuł korzyści zmieniony w panelu od razu był na podglądzie;
+  - „O nas” przesunięte z paska na stronie; dodany slider; ukryty newsletter wrócił po „Cofnij”;
+  - po publikacji sklep pokazuje zmiany; przełączenie na stronę produktu działa;
+  - 0 błędów konsoli.
+
 ## Silnik szablonów v2 — etap 2: zamówienie, potwierdzenie, strony, blog (2026-11-28)
 
 - **Zamówienie w wyglądzie szablonu** (`/zamowienie`):

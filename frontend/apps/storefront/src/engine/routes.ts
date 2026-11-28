@@ -7,7 +7,7 @@ import {
   ApiError, StoreApi, type ApiAccountFull, type ApiCustomerOrder, type ApiReturn, type ApiSavedAddress, toCart, toCheckout, toOrder, toProduct, toProductDetail, type ApiAddress, type ApiCard, type ApiCheckoutOptions,
   type ApiEntry, type ApiPage, type ApiPostCard, type ApiProduct, type ApiStore, type RequestInfo,
 } from './store-data';
-import { loadAll, type PageType, type TemplatePackage } from './template-package';
+import { loadAll, type PageDoc, type PageType, type TemplatePackage } from './template-package';
 
 /**
  * Storefront pages of stores whose template is a template package (templates/<name>/): rendered on the server from the
@@ -23,11 +23,12 @@ const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SORTS = new Set(['PRICE_ASC', 'PRICE_DESC', 'NAME']);
 const PAGE_SIZE = 12;
 
-function runtimeSource(): string {
-  const candidates = [process.env['SHOPIVO_RUNTIME'], join(process.cwd(), 'apps/storefront/src/engine/runtime/shop.js'),
-    join(process.cwd(), 'runtime/shop.js')];
+/** A file of the storefront runtime (shop.js, editor.js), from $SHOPIVO_RUNTIME's folder or the sources. */
+function runtimeSource(file: string): string {
+  const dir = process.env['SHOPIVO_RUNTIME'];
+  const candidates = [dir ? join(dir, file) : null, join(process.cwd(), 'apps/storefront/src/engine/runtime', file), join(process.cwd(), 'runtime', file)];
   for (const c of candidates) if (c && existsSync(c)) return readFileSync(c, 'utf8');
-  throw new Error('Storefront runtime (shop.js) not found; set SHOPIVO_RUNTIME');
+  throw new Error(`Storefront runtime (${file}) not found; set SHOPIVO_RUNTIME to its folder`);
 }
 
 export function cookie(header: string | undefined, name: string): string | null {
@@ -39,6 +40,17 @@ export function cookie(header: string | undefined, name: string): string | null 
 }
 
 interface Route { type: PageType; slug?: string; post?: boolean; view?: string; number?: number; }
+
+/** The store's template document (validated by the backend on save): pages and groups it changed. */
+interface StoreDoc { pages?: Partial<Record<PageType, PageDoc>>; groups?: { header?: PageDoc; footer?: PageDoc }; }
+
+function docsOf(doc: StoreDoc | null | undefined): RenderContext['docs'] {
+  const ok = (d: unknown): d is PageDoc => !!d && typeof d === 'object' && Array.isArray((d as PageDoc).order)
+    && !!(d as PageDoc).sections && typeof (d as PageDoc).sections === 'object';
+  const pages: Partial<Record<PageType, PageDoc>> = {};
+  for (const [k, v] of Object.entries(doc?.pages ?? {})) if (ok(v)) pages[k as PageType] = v;
+  return { pages, header: ok(doc?.groups?.header) ? doc.groups.header : undefined, footer: ok(doc?.groups?.footer) ? doc.groups.footer : undefined };
+}
 
 /** Account pages: path → view of the "auth" page (sign-in forms; signed-in customers go to /konto). */
 const AUTH_VIEWS: Record<string, string> = {
@@ -84,7 +96,7 @@ export function templateEngine(apiOrigin: string) {
   const packages = loadAll();
   const renderers = new Map<string, TemplateRenderer>();
   for (const p of packages.values()) renderers.set(p.code, new TemplateRenderer(p, `/_t/${p.code.toLowerCase()}/${p.version}`));
-  let runtime: string | null = null;
+  const runtime: Record<string, string> = {};
   const router = express.Router();
 
   // Template files: versioned URLs, cached for a year. Only files inside the package's assets/ are reachable.
@@ -97,11 +109,13 @@ export function templateEngine(apiOrigin: string) {
     });
     router.use(base, express.static(join(p.dir, 'assets'), { maxAge: '1y', immutable: true, index: false, redirect: false, dotfiles: 'deny' }));
   }
-  router.get('/_shop/runtime.js', (_req, res) => {
-    runtime ??= runtimeSource();
-    res.type('text/javascript').setHeader('Cache-Control', 'public, max-age=300');
-    res.send(runtime);
-  });
+  for (const [url, file] of [['/_shop/runtime.js', 'shop.js'], ['/_shop/editor.js', 'editor.js']]) {
+    router.get(url, (_req, res) => {
+      runtime[file] ??= runtimeSource(file);
+      res.type('text/javascript').setHeader('Cache-Control', 'public, max-age=300');
+      res.send(runtime[file]);
+    });
+  }
 
   /** The page being rendered: the request itself, or another path of the same store (partial re-renders). */
   interface Target { path: string; query: Record<string, unknown>; }
@@ -320,13 +334,17 @@ export function templateEngine(apiOrigin: string) {
     ].filter(Boolean).join('\n');
   }
 
-  function footer(pkg: TemplatePackage, store: ApiStore): string {
+  function footer(pkg: TemplatePackage, store: ApiStore, editing = false): string {
     const base = `/_t/${pkg.code.toLowerCase()}/${pkg.version}`;
     const config = JSON.stringify({ currency: store.currency, cartCookie: CART_COOKIE, favCookie: FAV_COOKIE, orderCookie: ORDER_COOKIE })
       .replace(/</g, '\\u003c');
     return [
       `<script type="application/json" id="shop-config">${config}</script>`,
       '<script src="/_shop/runtime.js" defer></script>',
+      // The merchant edits in the panel's preview: the editor overlay, talking only to the panel's origin
+      ...(editing && store.panelOrigin ? [
+        `<script type="application/json" id="shop-editor-config">${JSON.stringify({ panelOrigin: store.panelOrigin }).replace(/</g, '\\u003c')}</script>`,
+        '<script src="/_shop/editor.js" defer></script>'] : []),
       ...pkg.scripts.map((s) => `<script src="${base}/${encodeURIComponent(s)}" defer></script>`),
     ].join('\n');
   }
@@ -338,9 +356,11 @@ export function templateEngine(apiOrigin: string) {
     if (!found) return null;
     const { store, renderer } = found;
     if (!store.open && !store.preview) return null; // closed store: the Angular app shows its maintenance page
-    const [page, cart] = await Promise.all([pageData(api, store, route, req, t), api.cart()]);
+    const [page, cart, template] = await Promise.all([pageData(api, store, route, req, t), api.cart(),
+      api.optional<{ code: string; doc: StoreDoc }>('/template', { code: '', doc: {} })]);
     const ctx: RenderContext = {
       pkg: renderer.pkg, api, store, pageType: page.type, page: page.data, cart: toCart(cart), head: '', footer: '',
+      docs: docsOf(template.doc), editing: t.query['edycja'] === '1' && store.preview && !!store.panelOrigin,
     };
     return { ctx, renderer, page, info };
   }
@@ -387,7 +407,7 @@ export function templateEngine(apiOrigin: string) {
           if (desc) ld += `\n<meta name="description" content="${escapeHtml(desc.slice(0, 300))}">`;
         }
         ctx.head = head(renderer.pkg, ctx.store, page.title, req, noindex, ld);
-        ctx.footer = footer(renderer.pkg, ctx.store);
+        ctx.footer = footer(renderer.pkg, ctx.store, ctx.editing);
         const html = await renderer.renderPage(ctx);
         res.status(page.status);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
@@ -396,6 +416,38 @@ export function templateEngine(apiOrigin: string) {
         res.send(html);
       } catch (e) {
         if (e instanceof ApiError && e.status === 404) return next(); // unknown store: Angular shows its own page
+        next(e);
+      }
+    })();
+  });
+
+  // Editor: the page rendered with the merchant's unsaved document (preview token required, nothing is stored here)
+  router.post('/_shop/editor/render', express.json({ limit: '400kb' }), (req, res, next) => {
+    const body = req.body as { path?: unknown; doc?: unknown } | undefined;
+    const path = typeof body?.path === 'string' ? body.path : '';
+    let url: URL;
+    try {
+      url = new URL(path, 'http://x');
+    } catch {
+      res.status(400).end();
+      return;
+    }
+    const route = routeOf(url.pathname);
+    if (!route || !path.startsWith('/') || typeof body?.doc !== 'object' || body.doc === null) {
+      res.status(400).end();
+      return;
+    }
+    void (async () => {
+      try {
+        const c = await context(req, route, { path: url.pathname, query: { ...Object.fromEntries(url.searchParams), edycja: '1' } });
+        if (!c || !c.ctx.editing) {
+          res.status(403).end();
+          return;
+        }
+        c.ctx.docs = docsOf(body.doc as StoreDoc);
+        res.setHeader('Cache-Control', 'private, no-store');
+        res.json(await c.renderer.renderGroups(c.ctx));
+      } catch (e) {
         next(e);
       }
     })();
