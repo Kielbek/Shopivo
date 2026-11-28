@@ -1,0 +1,10 @@
+<article class="vm-article">
+{%- if entry.kind == 'post' %}<a class="tiny" href="/blog">← Blog</a>{% endif %}
+{% render 'page-title', text: entry.title %}
+{%- if entry.kind == 'post' and entry.published_at %}<p class="tiny vm-date">{{ entry.published_at | date: '%d.%m.%Y' }}</p>{% endif %}
+{% render 'rich-text', blocks: entry.blocks %}
+</article>
+
+{% schema %}
+{ "name": "Strona z treścią", "settings": [] }
+{% endschema %}

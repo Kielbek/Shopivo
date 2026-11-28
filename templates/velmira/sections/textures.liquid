@@ -1,0 +1,42 @@
+<section class="texture-section" id="{{ section.settings.anchor | default: 'formulas' }}">
+<div>
+<p class="kicker"{{ section | edit: 'kicker' }}>{{ section.settings.kicker }}</p>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+</div>
+<div class="texture-list">
+{%- for block in section.blocks %}
+<a href="{{ block.settings.url | link }}"{{ block | block_attrs }}>
+{%- if block.settings.image %}<img src="{{ block.settings.image | image_url: 'w400' }}" alt="{{ block.settings.image_alt }}" loading="lazy"{{ block | edit: 'image' }}>{% endif %}
+<strong{{ block | edit: 'title' }}>{{ block.settings.title }}</strong>
+<small{{ block | edit: 'caption' }}>{{ block.settings.caption }}</small>
+</a>
+{%- endfor %}
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Konsystencje",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Pielęgnacja dla zmysłów", "max": 50 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "Odkryj ulubioną konsystencję.", "max": 80 },
+    { "id": "text", "type": "textarea", "label": "Opis", "default": "", "max": 240 },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "formulas", "max": 30 }
+  ],
+  "blocks": [
+    {
+      "type": "texture",
+      "name": "Konsystencja",
+      "settings": [
+        { "id": "image", "type": "image", "label": "Zdjęcie", "default": "asset:drops.webp" },
+        { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "", "max": 160 },
+        { "id": "title", "type": "text", "label": "Nazwa", "default": "Konsystencja", "max": 40 },
+        { "id": "caption", "type": "text", "label": "Podpis", "default": "", "max": 40 },
+        { "id": "url", "type": "url", "label": "Link", "default": "/produkty" }
+      ]
+    }
+  ],
+  "max_blocks": 4
+}
+{% endschema %}

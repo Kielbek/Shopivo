@@ -537,7 +537,7 @@ export interface ReturnRequest {
 
 // ---- Template packages (engine v2): editor of a store's pages ----------------------------------------------------------
 export type TemplateSettingType = 'text' | 'textarea' | 'url' | 'image' | 'select' | 'number' | 'checkbox' | 'color'
-  | 'product_list' | 'category_list' | 'link_list';
+  | 'product' | 'product_list' | 'category_list' | 'link_list';
 export interface TemplateSetting {
   id: string; type: TemplateSettingType; label: string; defaultValue: unknown; info: string | null; max: number | null; min: number | null;
   options: { value: string; label: string }[] | null;

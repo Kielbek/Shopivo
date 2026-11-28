@@ -188,7 +188,7 @@ type SaveStatus = 'saved' | 'pending' | 'saving' | 'error';
               </div>
             }
             @if (x.settings.length) {
-              <sv-setting-fields [settings]="x.settings" [values]="x.values" [idPrefix]="x.key" [links]="linkOptions()" [categories]="categoryOptions()"
+              <sv-setting-fields [settings]="x.settings" [values]="x.values" [idPrefix]="x.key" [links]="linkOptions()" [categories]="categoryOptions()" [products]="productOptions()"
                 [imageUrl]="imageUrlFn" (changed)="changeSetting($event.id, $event.value)" (pickImage)="picking.set($event)" />
             } @else {<p class="text-[13px] text-ink-muted">Ta część nie ma ustawień. Teksty zmienisz, klikając je na podglądzie.</p>}
           } @else {
@@ -256,7 +256,7 @@ export class TemplateEditorPage {
   private readonly link = rxResource({ params: () => this.ctx.tenantId() || undefined, stream: ({ params }) => this.api.previewLink(params) });
   private readonly categoriesRes = rxResource({ params: () => this.ctx.tenantId() || undefined, stream: ({ params }) => this.catalog.categories(params) });
   private readonly pagesRes = rxResource({ params: () => this.ctx.tenantId() || undefined, stream: ({ params }) => this.content.list(params, 'PAGE', '', 0) });
-  private readonly productRes = rxResource({ params: () => this.ctx.tenantId() || undefined, stream: ({ params }) => this.catalog.products(params, { page: 0, size: 1, status: 'ACTIVE' }) });
+  private readonly productRes = rxResource({ params: () => this.ctx.tenantId() || undefined, stream: ({ params }) => this.catalog.products(params, { page: 0, size: 100, status: 'ACTIVE' }) });
   private readonly libraryRes = rxResource({ params: () => this.ctx.tenantId() || undefined, stream: ({ params }) => this.api.themeImages(params) });
 
   protected readonly tpl = signal<TemplateResponse | null>(null);
@@ -343,6 +343,8 @@ export class TemplateEditorPage {
 
   protected readonly categoryOptions = computed<CategoryOption[]>(() =>
     buildTree(this.categoriesRes.hasValue() ? this.categoriesRes.value() : []).map((n) => ({ slug: n.category.slug, label: n.path.join(' › ') })));
+  protected readonly productOptions = computed<CategoryOption[]>(() =>
+    (this.productRes.hasValue() ? this.productRes.value().items : []).map((p) => ({ slug: p.slug, label: p.name })));
   protected readonly linkOptions = computed<LinkOption[]>(() => [
     { value: '/', label: 'Strona główna' }, { value: '/produkty', label: 'Wszystkie produkty' }, { value: '/produkty?promocje=tak', label: 'Promocje' },
     ...this.categoryOptions().map((c) => ({ value: '/kategoria/' + c.slug, label: 'Kategoria: ' + c.label })),

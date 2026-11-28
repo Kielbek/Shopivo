@@ -1,0 +1,57 @@
+{%- assign start = section.settings.start_tab | minus: 1 -%}
+{%- if start >= section.blocks.size -%}{%- assign start = 0 -%}{%- endif -%}
+<section id="{{ section.settings.anchor | default: 'products' }}" class="section" data-product-tabs>
+<div class="section-intro">
+{%- if section.settings.kicker != blank %}<p class="kicker"{{ section | edit: 'kicker' }}>{{ section.settings.kicker }}</p>{% endif %}
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+{%- if section.settings.text != blank %}<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>{% endif %}
+</div>
+<div class="sectionhead">
+<div class="tabs" role="tablist" aria-label="Kolekcje">
+{%- for block in section.blocks %}
+<button class="tab" type="button" role="tab" id="tab-{{ section.id }}-{{ forloop.index0 }}" aria-controls="panel-{{ section.id }}-{{ forloop.index0 }}" data-tab="{{ forloop.index0 }}" aria-selected="{% if forloop.index0 == start %}true{% else %}false{% endif %}"{{ block | block_attrs }}{{ block | edit: 'label' }}>{{ block.settings.label }}</button>
+{%- endfor %}
+</div>
+<div class="arrows">
+<button class="arrow" type="button" data-track-prev aria-label="Poprzedni produkt">←</button>
+<button class="arrow" type="button" data-track-next aria-label="Następny produkt">→</button>
+</div>
+</div>
+<div class="product-window" data-track-window>
+{%- for block in section.blocks %}
+<div class="track" role="tabpanel" id="panel-{{ section.id }}-{{ forloop.index0 }}" aria-labelledby="tab-{{ section.id }}-{{ forloop.index0 }}" data-track="{{ forloop.index0 }}"{% unless forloop.index0 == start %} hidden{% endunless %}>
+{%- for product in block.settings.products.items %}{% render 'product-card', product: product %}{% endfor -%}
+</div>
+{%- endfor %}
+</div>
+<div class="progress" data-track-progress></div>
+{%- if section.settings.button_label != blank %}
+<div class="text-center mt-7"><a href="{{ section.settings.button_url | link }}" class="pill"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a></div>
+{%- endif %}
+</section>
+
+{% schema %}
+{
+  "name": "Karuzela produktów z zakładkami",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Kolekcja", "max": 40 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "Twoja codzienna pielęgnacja", "max": 80 },
+    { "id": "text", "type": "textarea", "label": "Opis", "default": "", "max": 240 },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Wszystkie kosmetyki ↗", "max": 40 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "/produkty" },
+    { "id": "start_tab", "type": "number", "label": "Zakładka otwarta na starcie (numer)", "default": 1, "min": 1, "max": 5 },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "products", "max": 30 }
+  ],
+  "blocks": [
+    {
+      "type": "tab",
+      "name": "Zakładka",
+      "settings": [
+        { "id": "label", "type": "text", "label": "Nazwa zakładki", "default": "Nowości", "max": 24 },
+        { "id": "products", "type": "product_list", "label": "Produkty", "default": { "source": "newest", "count": 8 } }
+      ]
+    }
+  ],
+  "max_blocks": 5
+}
+{% endschema %}

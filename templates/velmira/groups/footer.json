@@ -1,0 +1,97 @@
+{
+  "sections": {
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "kicker": "Listy od Velmira"
+      }
+    },
+    "footer": {
+      "type": "footer",
+      "settings": {
+        "links": [
+          {
+            "label": "Nasza filozofia",
+            "url": "/#about"
+          },
+          {
+            "label": "Sklep",
+            "url": "/produkty"
+          },
+          {
+            "label": "Rytuały",
+            "url": "/#rituals"
+          }
+        ]
+      },
+      "blocks": {
+        "links-1": {
+          "type": "links",
+          "settings": {
+            "title": "Pomoc i informacje",
+            "links": [
+              {
+                "label": "Dostawa i zwroty",
+                "url": "legal:SHIPPING"
+              },
+              {
+                "label": "Polityka prywatności",
+                "url": "legal:PRIVACY"
+              },
+              {
+                "label": "Ulubione",
+                "url": "/ulubione"
+              },
+              {
+                "label": "Moje konto",
+                "url": "/konto"
+              }
+            ]
+          }
+        },
+        "links-2": {
+          "type": "links",
+          "settings": {
+            "title": "Odkrywaj",
+            "links": [
+              {
+                "label": "Zestawy",
+                "url": "/#sets"
+              },
+              {
+                "label": "Rytuał krok po kroku",
+                "url": "/#guide"
+              },
+              {
+                "label": "Konsystencje",
+                "url": "/#formulas"
+              },
+              {
+                "label": "Najczęstsze pytania",
+                "url": "/#faq"
+              }
+            ]
+          }
+        },
+        "text-3": {
+          "type": "text",
+          "settings": {
+            "title": "Klub Velmira",
+            "text": "Inspiracje dla Twojej codziennej pielęgnacji.",
+            "link_label": "Dołącz do newslettera ↗",
+            "link_url": "/#newsletter"
+          }
+        }
+      },
+      "block_order": [
+        "links-1",
+        "links-2",
+        "text-3"
+      ]
+    }
+  },
+  "order": [
+    "newsletter",
+    "footer"
+  ]
+}

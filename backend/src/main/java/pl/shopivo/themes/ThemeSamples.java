@@ -49,13 +49,17 @@ public class ThemeSamples {
                     new SampleCategory("Do kąpieli", "tpl:bawiloo/cat-kapiel"),
                     new SampleCategory("Plastyka i rękodzieło", "tpl:bawiloo/cat-plastyczne"),
                     new SampleCategory("Figurki", "tpl:bawiloo/cat-figurki"),
-                    new SampleCategory("Puzzle i łamigłówki", "tpl:bawiloo/cat-ukladanki")));
+                    new SampleCategory("Puzzle i łamigłówki", "tpl:bawiloo/cat-ukladanki")),
+            "VELMIRA", List.of(new SampleCategory("Nawilżanie", "tpl:velmira/cat-nawilzenie"),
+                    new SampleCategory("Oczyszczanie", "tpl:velmira/cat-oczyszczanie"),
+                    new SampleCategory("Glow", "tpl:velmira/cat-glow"),
+                    new SampleCategory("Zestawy", "tpl:velmira/cat-zestawy")));
 
     /**
      * Demo catalogue used by each template: several templates can share one (e.g. all fashion templates show the same
      * clothes). The catalogue is keyed by the template that owns its pictures.
      */
-    public static final Map<String, String> CATALOG_OF = Map.of("VERA", "VERA", "BAWILOO", "BAWILOO");
+    public static final Map<String, String> CATALOG_OF = Map.of("VERA", "VERA", "BAWILOO", "BAWILOO", "VELMIRA", "VELMIRA");
 
     /** Example products shown in a template's demo (its catalogue). */
     public static List<Sample> productsFor(String template) {
@@ -107,7 +111,16 @@ public class ThemeSamples {
             toy("Kostka Odkrywca", "Puzzle i łamigłówki", 2999, 3999L, "p-zabawka-02"),
             toy("Piesek Tuptuś", "Zabawa na dworze", 2499, 3299L, "p-zabawka-03"),
             toy("Kaczuszka Klara", "Do kąpieli", 1699, 2199L, "p-zabawka-04"),
-            toy("Słonik Trąbuś", "Zabawa na dworze", 2299, 2999L, "p-zabawka-05")));
+            toy("Słonik Trąbuś", "Zabawa na dworze", 2299, 2999L, "p-zabawka-05")),
+            "VELMIRA", List.of(
+            new Sample("Nawilżające serum do twarzy", "Nawilżanie", 11900, null, List.of(), "tpl:velmira/p-serum",
+                    "Lekka, aksamitna konsystencja · 30 ml\n" + DESC),
+            new Sample("Delikatny żel oczyszczający", "Oczyszczanie", 6900, null, List.of(), "tpl:velmira/p-zel",
+                    "Codzienny rytuał oczyszczania · 100 ml\n" + DESC),
+            new Sample("Krem nawilżający na dzień", "Glow", 9900, null, List.of(), "tpl:velmira/p-krem",
+                    "Otulająca konsystencja · 50 ml\n" + DESC),
+            new Sample("Zestaw codziennej pielęgnacji", "Zestawy", 24900, 28700L, List.of(), "tpl:velmira/p-zestaw",
+                    "Serum + żel + krem · 3 produkty\n" + DESC)));
 
     private static Sample toy(String name, String category, long price, Long compareAt, String image) {
         return new Sample(name, category, price, compareAt, List.of(), "tpl:bawiloo/" + image, DESC);

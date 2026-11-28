@@ -1,0 +1,49 @@
+<a class="tiny" href="/produkty">← {{ section.settings.back_label }}</a>
+<div class="detail mt-6">
+<div class="vm-gallery"{% if product.color %} style="--product-color:{{ product.color }}"{% endif %}>
+{%- if product.image %}<img src="{{ product.image | image_url: 'w1200' }}" alt="{{ product.image.alt | default: product.name }}" width="{{ product.image.width }}" height="{{ product.image.height }}" fetchpriority="high">{% else %}<span class="vm-placeholder">Zdjęcie wkrótce</span>{% endif %}
+{%- if product.images.size > 1 %}<div class="vm-thumbs">{% for img in product.images offset: 1 limit: 4 %}<img src="{{ img | image_url: 'w400' }}" alt="{{ img.alt }}" loading="lazy">{% endfor %}</div>{% endif %}
+</div>
+<div>
+<p class="kicker">{% if product.brand %}{{ product.brand }} · {% endif %}{{ product.category_name | default: section.settings.kicker }}</p>
+<h1>{{ product.name }}</h1>
+<div class="bigprice" data-shop-price>{% render 'price', product: product %}</div>
+{% render 'omnibus', product: product, classes: 'tiny' %}
+{%- if product.description != blank %}<p class="vm-description">{{ product.description }}</p>{% endif %}
+<form class="vm-buy" data-shop-add-form data-product="{{ product.slug }}">
+{%- if product.variants.size > 1 %}
+<label class="vm-label">Wariant<select class="field" name="variant" required>{% for v in product.variants %}<option value="{{ v.id }}"{% unless v.available %} disabled{% endunless %}>{{ v.title }} — {{ v.price | money: product.currency }}{% unless v.available %} (niedostępny){% endunless %}</option>{% endfor %}</select></label>
+{%- else %}
+<input type="hidden" name="variant" value="{{ product.variants.first.id }}">
+{%- endif %}
+<label class="vm-label vm-qty">Ilość<input class="field" type="number" name="quantity" value="1" min="1" max="99" required></label>
+<div class="flex flex-wrap gap-3 mt-6">
+{%- if product.available %}<button class="pill" type="submit">Dodaj do koszyka {% render 'icon', name: 'bag', px: 17 %}</button>{% else %}<button class="pill" type="button" disabled>Chwilowo niedostępny</button>{% endif %}
+<button class="pill vm-light" type="button" data-shop-fav="{{ product.id }}" aria-pressed="false" data-on="♥ Usuń z ulubionych" data-off="♡ Do ulubionych">♡ Do ulubionych</button>
+</div>
+<p class="vm-status" role="status" aria-live="polite" data-shop-status></p>
+</form>
+<div class="vm-details">
+<details open><summary>Szczegóły produktu</summary><p>{% if product.category_name %}Kategoria: {{ product.category_name }}.{% endif %}{% if product.brand %} Marka: {{ product.brand }}.{% endif %}{% if product.variants.first.sku %} Kod: {{ product.variants.first.sku }}.{% endif %}</p></details>
+{%- if section.settings.shipping_text != blank %}<details><summary>Dostawa i zwroty</summary><p>{{ section.settings.shipping_text }} <a href="{{ 'legal:SHIPPING' | link }}">Szczegóły</a></p></details>{% endif %}
+</div>
+</div>
+</div>
+{%- if related.size > 0 %}
+<section class="home-section">
+<div class="section-intro"><h2>{{ section.settings.related_title }}</h2></div>
+{% render 'product-grid', products: related %}
+</section>
+{%- endif %}
+
+{% schema %}
+{
+  "name": "Strona produktu",
+  "settings": [
+    { "id": "back_label", "type": "text", "label": "Link powrotu", "default": "Wróć do kolekcji", "max": 40 },
+    { "id": "kicker", "type": "text", "label": "Nadtytuł (gdy produkt nie ma kategorii)", "default": "Pielęgnacja", "max": 40 },
+    { "id": "shipping_text", "type": "textarea", "label": "Tekst „Dostawa i zwroty”", "default": "Wysyłamy w ciągu 1–2 dni roboczych. Masz 14 dni na zwrot bez podania przyczyny.", "max": 400 },
+    { "id": "related_title", "type": "text", "label": "Tytuł podobnych produktów", "default": "Dopełnij swój rytuał", "max": 60 }
+  ]
+}
+{% endschema %}

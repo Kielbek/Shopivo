@@ -52,7 +52,7 @@ public class PublicCatalog {
 
     public record ProductCard(UUID id, String slug, String name, String brand, long priceMinor, long maxPriceMinor,
             Long compareAtMinor, Long lowestPrice30dMinor, String currency, boolean available, String imageUrl, String imageAlt,
-            String imageColor) {
+            String imageColor, String summary) {
     }
 
     public record PublicVariant(UUID id, Map<String, String> optionValues, String title, String sku, long priceMinor,
@@ -154,12 +154,15 @@ public class PublicCatalog {
         pageArgs.add(pageable.getPageSize());
         pageArgs.add(pageable.getOffset());
         boolean gross = stores.currentSettings().pricesIncludeTax();
-        record Raw(UUID id, String slug, String name, String brand, long min, long max, String currency, UUID cheapest, boolean available, int vat) {
+        record Raw(UUID id, String slug, String name, String brand, long min, long max, String currency, UUID cheapest, boolean available, int vat,
+                String summary) {
         }
-        List<Raw> raws = jdbc.query("select p.id, p.slug, p.name, p.vat_rate_bps, b.name as brand, a.*" + from + where
+        // summary: the first line of the description (templates show it under the name, e.g. "Lekka konsystencja · 30 ml")
+        List<Raw> raws = jdbc.query("select p.id, p.slug, p.name, p.vat_rate_bps, b.name as brand, "
+                + "left(split_part(coalesce(p.description, ''), E'\\n', 1), 120) as summary, a.*" + from + where
                 + " order by " + order + ", p.id limit ? offset ?", (rs, i) -> new Raw(rs.getObject("id", UUID.class), rs.getString("slug"),
                 rs.getString("name"), rs.getString("brand"), rs.getLong("min_price"), rs.getLong("max_price"), rs.getString("currency"),
-                rs.getObject("cheapest", UUID.class), rs.getBoolean("available"), rs.getInt("vat_rate_bps")), pageArgs.toArray());
+                rs.getObject("cheapest", UUID.class), rs.getBoolean("available"), rs.getInt("vat_rate_bps"), rs.getString("summary")), pageArgs.toArray());
         Map<UUID, List<Media.ImageView>> images = media.list(Products.IMAGE_OWNER, raws.stream().map(Raw::id).toList());
         Map<UUID, Long> compareAt = new HashMap<>();
         List<UUID> cheapest = raws.stream().map(Raw::cheapest).toList();
@@ -176,7 +179,8 @@ public class PublicCatalog {
             return new ProductCard(r.id(), r.slug(), r.name(), r.brand(), gross(r.min(), r.vat(), gross), gross(r.max(), r.vat(), gross),
                     cmp == null ? null : gross(cmp, r.vat(), gross), cmp == null || lowest.get(r.cheapest()) == null ? null : gross(lowest.get(r.cheapest()), r.vat(), gross),
                     r.currency(), r.available(), img.isEmpty() ? null : img.getFirst().urls().get("w400"),
-                    img.isEmpty() ? null : img.getFirst().alt(), img.isEmpty() ? null : img.getFirst().color());
+                    img.isEmpty() ? null : img.getFirst().alt(), img.isEmpty() ? null : img.getFirst().color(),
+                    r.summary() == null || r.summary().isBlank() ? null : r.summary().strip());
         }).toList();
         return new PageImpl<>(cards, pageable, total == null ? 0 : total);
     }

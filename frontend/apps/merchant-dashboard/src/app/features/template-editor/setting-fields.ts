@@ -67,6 +67,12 @@ const SOURCES: { value: string; label: string }[] = [
                   <div class="flex items-center gap-2"><input [id]="fid" type="color" class="h-9 w-12 rounded-[8px] border border-line" [value]="v || '#000000'" (input)="emit(s, $any($event.target).value)" />
                     <span class="font-mono text-[12px] text-ink-soft">{{ v }}</span></div>
                 }
+                @case ('product') {
+                  <select [id]="fid" class="sv-input" (change)="emit(s, $any($event.target).value)">
+                    <option value="" [selected]="!v">— wybierz produkt —</option>
+                    @for (o of products(); track o.slug) {<option [value]="o.slug" [selected]="o.slug === v">{{ o.label }}</option>}
+                  </select>
+                }
                 @case ('product_list') {
                   @let p = $any(v) ?? {};
                   <div class="space-y-2 rounded-[10px] border border-line p-3">
@@ -126,6 +132,7 @@ export class SettingFieldsComponent {
   readonly idPrefix = input('f');
   readonly links = input<LinkOption[]>([]);
   readonly categories = input<CategoryOption[]>([]);
+  readonly products = input<CategoryOption[]>([]);
   readonly imageUrl = input<(ref: unknown) => string | null>(() => null);
   readonly changed = output<{ id: string; value: unknown }>();
   readonly pickImage = output<string>();

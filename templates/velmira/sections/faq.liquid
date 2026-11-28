@@ -1,0 +1,40 @@
+<section class="faq" id="{{ section.settings.anchor | default: 'faq' }}">
+<div class="faq-intro">
+<p class="kicker"{{ section | edit: 'kicker' }}>{{ section.settings.kicker }}</p>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+</div>
+<div>
+{%- for block in section.blocks %}
+<details{{ block | block_attrs }}>
+<summary{{ block | edit: 'question' }}>{{ block.settings.question }}</summary>
+<p{{ block | edit: 'answer' }}>{{ block.settings.answer }}{% if block.settings.link_label != blank %} <a href="{{ block.settings.link_url | link }}">{{ block.settings.link_label }}</a>{% endif %}</p>
+</details>
+{%- endfor %}
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Najczęstsze pytania",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Jesteśmy dla Ciebie", "max": 50 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "Masz pytania?", "max": 60 },
+    { "id": "text", "type": "textarea", "label": "Opis", "default": "", "max": 240 },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "faq", "max": 30 }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Pytanie",
+      "settings": [
+        { "id": "question", "type": "text", "label": "Pytanie", "default": "Nowe pytanie?", "max": 120 },
+        { "id": "answer", "type": "textarea", "label": "Odpowiedź", "default": "", "max": 800 },
+        { "id": "link_label", "type": "text", "label": "Tekst linku na końcu (opcjonalnie)", "default": "", "max": 40 },
+        { "id": "link_url", "type": "url", "label": "Adres linku", "default": "" }
+      ]
+    }
+  ],
+  "max_blocks": 12
+}
+{% endschema %}

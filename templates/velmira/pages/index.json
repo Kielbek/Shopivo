@@ -1,0 +1,397 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero-slider",
+      "settings": {
+        "label": "Kolekcja Velmira",
+        "side_url": "/kategoria/nawilzanie"
+      },
+      "blocks": {
+        "slide-1": {
+          "type": "slide",
+          "settings": {
+            "image": "asset:hero.webp",
+            "image_alt": "Portret modelki na szałwiowym tle",
+            "title": "Piękno, któremu\nmożesz zaufać.",
+            "subtitle": "Proste rytuały. Delikatne formuły. Piękno w Twoim własnym rytmie."
+          }
+        },
+        "slide-2": {
+          "type": "slide",
+          "settings": {
+            "image": "asset:hero2.webp",
+            "image_alt": "Portret modelki podczas rytuału pielęgnacyjnego",
+            "title": "Twoja skóra.\nTwój naturalny blask.",
+            "subtitle": "Zwolnij na chwilę i odkryj piękno codziennych rytuałów."
+          }
+        },
+        "slide-3": {
+          "type": "slide",
+          "settings": {
+            "image": "asset:story.webp",
+            "image_alt": "Kolekcja kosmetyków Luméa",
+            "title": "Chwila tylko\ndla Ciebie.",
+            "subtitle": "Odkryj prostotę codziennej pielęgnacji."
+          }
+        }
+      },
+      "block_order": [
+        "slide-1",
+        "slide-2",
+        "slide-3"
+      ]
+    },
+    "needs": {
+      "type": "need-strip",
+      "settings": {},
+      "blocks": {
+        "item-1": {
+          "type": "item",
+          "settings": {
+            "title": "Nawilżanie",
+            "text": "Komfort skóry",
+            "url": "/kategoria/nawilzanie"
+          }
+        },
+        "item-2": {
+          "type": "item",
+          "settings": {
+            "title": "Oczyszczanie",
+            "text": "Pierwszy krok",
+            "url": "/kategoria/oczyszczanie"
+          }
+        },
+        "item-3": {
+          "type": "item",
+          "settings": {
+            "title": "Naturalny blask",
+            "text": "Codzienna pielęgnacja",
+            "url": "/kategoria/glow"
+          }
+        },
+        "item-4": {
+          "type": "item",
+          "settings": {
+            "title": "Zestawy",
+            "text": "Pełny rytuał",
+            "url": "/kategoria/zestawy"
+          }
+        }
+      },
+      "block_order": [
+        "item-1",
+        "item-2",
+        "item-3",
+        "item-4"
+      ]
+    },
+    "products": {
+      "type": "product-tabs",
+      "settings": {
+        "kicker": "Kolekcja Luméa",
+        "heading": "Twoja codzienna pielęgnacja",
+        "text": "Odkryj kosmetyki, które tworzą prosty rytuał od pierwszego do ostatniego kroku.",
+        "start_tab": 2
+      },
+      "blocks": {
+        "tab-1": {
+          "type": "tab",
+          "settings": {
+            "label": "Polecane",
+            "products": {
+              "source": "bestsellers",
+              "count": 8
+            }
+          }
+        },
+        "tab-2": {
+          "type": "tab",
+          "settings": {
+            "label": "Nowości",
+            "products": {
+              "source": "newest",
+              "count": 8
+            }
+          }
+        },
+        "tab-3": {
+          "type": "tab",
+          "settings": {
+            "label": "Pielęgnacja",
+            "products": {
+              "source": "category",
+              "category": "nawilzanie",
+              "count": 8
+            }
+          }
+        },
+        "tab-4": {
+          "type": "tab",
+          "settings": {
+            "label": "Glow",
+            "products": {
+              "source": "category",
+              "category": "glow",
+              "count": 8
+            }
+          }
+        }
+      },
+      "block_order": [
+        "tab-1",
+        "tab-2",
+        "tab-3",
+        "tab-4"
+      ]
+    },
+    "rituals": {
+      "type": "categories",
+      "settings": {},
+      "blocks": {
+        "card-1": {
+          "type": "card",
+          "settings": {
+            "image": "asset:nawilzenie.webp",
+            "image_alt": "Aksamitna konsystencja kremu",
+            "kicker": "Rytuał 01",
+            "title": "Esencja\nnawilżenia",
+            "link_label": "Odkryj kolekcję",
+            "url": "/kategoria/nawilzanie"
+          }
+        },
+        "card-2": {
+          "type": "card",
+          "settings": {
+            "image": "asset:oczyszczanie.webp",
+            "image_alt": "Przezroczysty żel i zielony liść",
+            "kicker": "Rytuał 02",
+            "title": "Oczyszczanie\ni przygotowanie",
+            "link_label": "Poznaj produkty",
+            "url": "/kategoria/oczyszczanie"
+          }
+        }
+      },
+      "block_order": [
+        "card-1",
+        "card-2"
+      ]
+    },
+    "set": {
+      "type": "editorial-set",
+      "settings": {
+        "image_alt": "Trzy kosmetyki Luméa na kamiennym podłożu",
+        "text": "Oczyszczanie, serum i krem w jednym zestawie. Trzy kosmetyki, które możesz włączyć do swojej codziennej rutyny.",
+        "product": "zestaw-codziennej-pielegnacji"
+      }
+    },
+    "guide": {
+      "type": "steps",
+      "settings": {
+        "text": "Nie potrzebujesz skomplikowanej rutyny, aby znaleźć czas na pielęgnację."
+      },
+      "blocks": {
+        "step-1": {
+          "type": "step",
+          "settings": {
+            "image": "asset:oczyszczanie.webp",
+            "image_alt": "Przezroczysta konsystencja żelu",
+            "number": "01 / OCZYSZCZANIE",
+            "title": "Zacznij od świeżości.",
+            "text": "Oczyść twarz delikatnym żelem, a następnie osusz skórę bez pocierania.",
+            "link_label": "Poznaj żel ↗",
+            "url": "/produkt/delikatny-zel-oczyszczajacy"
+          }
+        },
+        "step-2": {
+          "type": "step",
+          "settings": {
+            "image": "asset:drops.webp",
+            "image_alt": "Złociste krople serum",
+            "number": "02 / SERUM",
+            "title": "Chwila na nawilżenie.",
+            "text": "Sięgnij po lekkie serum i rozprowadź je zgodnie z instrukcją stosowania.",
+            "link_label": "Poznaj serum ↗",
+            "url": "/produkt/nawilzajace-serum-do-twarzy"
+          }
+        },
+        "step-3": {
+          "type": "step",
+          "settings": {
+            "image": "asset:nawilzenie.webp",
+            "image_alt": "Kremowa konsystencja kosmetyku",
+            "number": "03 / KREM",
+            "title": "Otul swoją skórę.",
+            "text": "Zakończ rytuał kremem. Rano pamiętaj także o odpowiedniej ochronie przeciwsłonecznej.",
+            "link_label": "Poznaj krem ↗",
+            "url": "/produkt/krem-nawilzajacy-na-dzien"
+          }
+        }
+      },
+      "block_order": [
+        "step-1",
+        "step-2",
+        "step-3"
+      ]
+    },
+    "textures": {
+      "type": "textures",
+      "settings": {
+        "text": "Lekkie serum, świeży żel i otulający krem. Wybierz to, co najlepiej pasuje do Twoich preferencji."
+      },
+      "blocks": {
+        "texture-1": {
+          "type": "texture",
+          "settings": {
+            "image": "asset:drops.webp",
+            "image_alt": "Krople serum",
+            "title": "Lekkie serum",
+            "caption": "30 ml · 119 zł",
+            "url": "/produkt/nawilzajace-serum-do-twarzy"
+          }
+        },
+        "texture-2": {
+          "type": "texture",
+          "settings": {
+            "image": "asset:oczyszczanie.webp",
+            "image_alt": "Konsystencja żelu",
+            "title": "Delikatny żel",
+            "caption": "100 ml · 69 zł",
+            "url": "/produkt/delikatny-zel-oczyszczajacy"
+          }
+        },
+        "texture-3": {
+          "type": "texture",
+          "settings": {
+            "image": "asset:nawilzenie.webp",
+            "image_alt": "Konsystencja kremu",
+            "title": "Otulający krem",
+            "caption": "50 ml · 99 zł",
+            "url": "/produkt/krem-nawilzajacy-na-dzien"
+          }
+        }
+      },
+      "block_order": [
+        "texture-1",
+        "texture-2",
+        "texture-3"
+      ]
+    },
+    "story": {
+      "type": "story",
+      "settings": {
+        "text": "Velmira to sklep z kosmetykami do świadomej pielęgnacji, w której liczy się prostota. Odkrywaj konsystencje i rytuały, które pasują do Twojego dnia. Zrób miejsce na chwilę tylko dla siebie.",
+        "image_alt": "Kolekcja kosmetyków Luméa na naturalnym kamieniu"
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "settings": {
+        "text": "Najważniejsze informacje o pielęgnacji i zakupach w jednym miejscu."
+      },
+      "blocks": {
+        "question-1": {
+          "type": "question",
+          "settings": {
+            "question": "Od czego zacząć pielęgnację?",
+            "answer": "Od delikatnego oczyszczania, następnie możesz zastosować serum i krem. Rano pamiętaj o ochronie przeciwsłonecznej. Dostosuj rutynę do potrzeb skóry."
+          }
+        },
+        "question-2": {
+          "type": "question",
+          "settings": {
+            "question": "Co zawiera zestaw Luméa?",
+            "answer": "Serum 30 ml, żel oczyszczający 100 ml i krem 50 ml.",
+            "link_label": "Zobacz szczegóły zestawu.",
+            "link_url": "/produkt/zestaw-codziennej-pielegnacji"
+          }
+        },
+        "question-3": {
+          "type": "question",
+          "settings": {
+            "question": "Gdzie znajdę skład kosmetyków?",
+            "answer": "Pełny skład INCI każdego kosmetyku znajdziesz w opisie produktu."
+          }
+        },
+        "question-4": {
+          "type": "question",
+          "settings": {
+            "question": "Jak działa dostawa i zwroty?",
+            "answer": "Wysyłamy w ciągu 1–2 dni roboczych, a na zwrot masz 14 dni. Szczegóły znajdziesz w zakładce",
+            "link_label": "Dostawa i zwroty.",
+            "link_url": "legal:SHIPPING"
+          }
+        },
+        "question-5": {
+          "type": "question",
+          "settings": {
+            "question": "Czy mogę zapisać produkty na później?",
+            "answer": "Tak. Kliknij serce przy produkcie, aby dodać go do ulubionych."
+          }
+        }
+      },
+      "block_order": [
+        "question-1",
+        "question-2",
+        "question-3",
+        "question-4",
+        "question-5"
+      ]
+    },
+    "benefits": {
+      "type": "benefits",
+      "settings": {},
+      "blocks": {
+        "benefit-1": {
+          "type": "benefit",
+          "settings": {
+            "icon": "truck",
+            "title": "Dostawa",
+            "text": "Informacje o wysyłce"
+          }
+        },
+        "benefit-2": {
+          "type": "benefit",
+          "settings": {
+            "icon": "return",
+            "title": "Zwroty",
+            "text": "Przejrzyste zasady"
+          }
+        },
+        "benefit-3": {
+          "type": "benefit",
+          "settings": {
+            "icon": "shield",
+            "title": "Bezpieczne zakupy",
+            "text": "Informacje o płatnościach"
+          }
+        },
+        "benefit-4": {
+          "type": "benefit",
+          "settings": {
+            "icon": "headset",
+            "title": "Pomoc",
+            "text": "Jesteśmy dla Ciebie"
+          }
+        }
+      },
+      "block_order": [
+        "benefit-1",
+        "benefit-2",
+        "benefit-3",
+        "benefit-4"
+      ]
+    }
+  },
+  "order": [
+    "hero",
+    "needs",
+    "products",
+    "rituals",
+    "set",
+    "guide",
+    "textures",
+    "story",
+    "faq",
+    "benefits"
+  ]
+}

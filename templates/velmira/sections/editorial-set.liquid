@@ -1,0 +1,33 @@
+{%- assign p = section.settings.product -%}
+<section class="home-section" id="{{ section.settings.anchor | default: 'sets' }}">
+<div class="editorial">
+{%- if section.settings.image %}<img src="{{ section.settings.image | image_url: 'w1200' }}" alt="{{ section.settings.image_alt }}" loading="lazy"{{ section | edit: 'image' }}>{% endif %}
+<div>
+<p class="kicker"{{ section | edit: 'kicker' }}>{{ section.settings.kicker }}</p>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading | lines }}</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+{%- if p %}
+<div class="price-large">{% if p.has_range %}od {% endif %}{{ p.price | money: p.currency }}{% if p.on_sale %} <del>{{ p.compare_at | money: p.currency }}</del>{% endif %}</div>
+{%- if p.on_sale %}<p class="bundle-note">{{ p.compare_at | minus: p.price | money: p.currency | remove: ',00' }} mniej niż przy zakupie osobno.</p>{% render 'omnibus', product: p, classes: 'vm-omnibus' %}{% endif %}
+{%- endif %}
+{%- if section.settings.button_label != blank %}<a class="pill" href="{% if p %}{{ p.url }}{% else %}{{ section.settings.button_url | link }}{% endif %}"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>{% endif %}
+</div>
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Wyróżniony zestaw",
+  "settings": [
+    { "id": "image", "type": "image", "label": "Zdjęcie", "default": "asset:story.webp" },
+    { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "Trzy kosmetyki na kamiennym podłożu", "max": 160 },
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Zestaw pielęgnacyjny · 3 kroki", "max": 50 },
+    { "id": "heading", "type": "textarea", "label": "Nagłówek", "default": "Piękno zaczyna się\nod małych rytuałów.", "max": 80 },
+    { "id": "text", "type": "textarea", "label": "Opis", "default": "Oczyszczanie, serum i krem w jednym zestawie.", "max": 300 },
+    { "id": "product", "type": "product", "label": "Produkt (cena i link)", "default": "", "info": "Cena i różnica względem ceny regularnej pochodzą z produktu." },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Poznaj zestaw ↗", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku (gdy brak produktu)", "default": "/produkty" },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "sets", "max": 30 }
+  ]
+}
+{% endschema %}

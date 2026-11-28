@@ -1,0 +1,15 @@
+<div class="announcement">
+{%- if section.settings.link_label != blank %}<a href="{{ section.settings.link_url | link }}"{{ section | edit: 'link_label' }}>{{ section.settings.link_label }}</a>{% if section.settings.text != blank %} &nbsp;·&nbsp; {% endif %}{% endif -%}
+<span{{ section | edit: 'text' }}>{{ section.settings.text }}</span>
+</div>
+
+{% schema %}
+{
+  "name": "Pasek informacyjny",
+  "settings": [
+    { "id": "link_label", "type": "text", "label": "Tekst linku", "default": "Twój osobisty rytuał piękna", "max": 60 },
+    { "id": "link_url", "type": "url", "label": "Adres linku", "default": "/#about" },
+    { "id": "text", "type": "text", "label": "Tekst", "default": "Pielęgnacja w zgodzie z Tobą", "max": 80 }
+  ]
+}
+{% endschema %}

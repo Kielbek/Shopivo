@@ -1,0 +1,25 @@
+<section class="story" id="{{ section.settings.anchor | default: 'about' }}">
+<div>
+<p class="kicker" style="color:var(--accent)"{{ section | edit: 'kicker' }}>{{ section.settings.kicker }}</p>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading | lines }}</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+{%- if section.settings.button_label != blank %}<a class="pill" href="{{ section.settings.button_url | link }}"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>{% endif %}
+</div>
+{%- if section.settings.image %}<img src="{{ section.settings.image | image_url: 'w1200' }}" alt="{{ section.settings.image_alt }}" loading="lazy"{{ section | edit: 'image' }}>{% endif %}
+</section>
+
+{% schema %}
+{
+  "name": "O nas",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Mniej znaczy więcej", "max": 50 },
+    { "id": "heading", "type": "textarea", "label": "Nagłówek", "default": "Codzienna pielęgnacja.\nWłasna definicja piękna.", "max": 100 },
+    { "id": "text", "type": "textarea", "label": "Tekst", "default": "", "max": 600 },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Poznaj naszą kolekcję ↗", "max": 40 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "/produkty" },
+    { "id": "image", "type": "image", "label": "Zdjęcie", "default": "asset:story.webp" },
+    { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "Kolekcja kosmetyków na naturalnym kamieniu", "max": 160 },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "about", "max": 30 }
+  ]
+}
+{% endschema %}

@@ -75,7 +75,15 @@ public final class ThemeAssets {
             asset("bawiloo", "p-maskotka-mis", "Produkt — miś"),
             asset("bawiloo", "p-maskotka-lis", "Produkt — lisek"),
             asset("bawiloo", "p-maskotka-osmiornica", "Produkt — ośmiorniczka"),
-            asset("bawiloo", "p-maskotka-dinozaur", "Produkt — dinozaur pluszowy"));
+            asset("bawiloo", "p-maskotka-dinozaur", "Produkt — dinozaur pluszowy"),
+            asset("velmira", "p-serum", "Produkt — serum"),
+            asset("velmira", "p-zel", "Produkt — żel oczyszczający"),
+            asset("velmira", "p-krem", "Produkt — krem"),
+            asset("velmira", "p-zestaw", "Produkt — zestaw"),
+            asset("velmira", "cat-nawilzenie", "Kategoria — nawilżanie"),
+            asset("velmira", "cat-oczyszczanie", "Kategoria — oczyszczanie"),
+            asset("velmira", "cat-glow", "Kategoria — glow"),
+            asset("velmira", "cat-zestawy", "Kategoria — zestawy"));
 
     public static boolean isRef(String value) {
         return value != null && value.startsWith(PREFIX);

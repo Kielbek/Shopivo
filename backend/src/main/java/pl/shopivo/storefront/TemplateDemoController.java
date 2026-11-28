@@ -92,12 +92,14 @@ class TemplateDemoController {
             Map<String, String> urls = ThemeAssets.find(s.image()).map(ThemeAssets.Asset::urls).orElse(Map.of());
             var image = new Media.ImageView(id(code, "image", s.name()), s.name(), 1200, 1200, 0, urls, null);
             var cat = cats.get(s.category());
-            products.add(new PublicCatalog.PublicProduct(pid, slug(s.name()), s.name(), DEMO_TEXT, null, ProductType.PHYSICAL, 2300, "PLN",
+            int nl = s.description().indexOf('\n');
+            String text = nl > 0 ? s.description().substring(0, nl + 1) + DEMO_TEXT : DEMO_TEXT;
+            products.add(new PublicCatalog.PublicProduct(pid, slug(s.name()), s.name(), text, null, ProductType.PHYSICAL, 2300, "PLN",
                     s.sizes().isEmpty() ? List.of() : List.of(new CatalogViews.OptionView("Rozmiar", s.sizes())), variants,
                     urls.isEmpty() ? List.of() : List.of(image), List.of(new PublicCatalog.Crumb(cat.name(), cat.slug())), null, null, Instant.EPOCH));
             categoryOf.put(pid, s.category());
         }
-        String name = code.equals("BAWILOO") ? "Bawiloo" : code.equals("VERA") ? "Véra Studio" : preset.name();
+        String name = code.equals("VERA") ? "Véra Studio" : preset.name();
         return new Demo(new Themes.ThemeConfig(code, preset.defaults(), preset.sections()), name, List.copyOf(cats.values()), List.copyOf(products),
                 Map.copyOf(categoryOf));
     }
@@ -105,7 +107,13 @@ class TemplateDemoController {
     private static PublicCatalog.ProductCard card(PublicCatalog.PublicProduct p) {
         var v = p.variants().getFirst();
         return new PublicCatalog.ProductCard(p.id(), p.slug(), p.name(), null, v.priceMinor(), v.priceMinor(), v.compareAtMinor(),
-                v.lowestPrice30dMinor(), "PLN", true, p.images().isEmpty() ? null : p.images().getFirst().urls().get("w400"), p.name(), null);
+                v.lowestPrice30dMinor(), "PLN", true, p.images().isEmpty() ? null : p.images().getFirst().urls().get("w400"), p.name(), null, summary(p.description()));
+    }
+
+    /** First line of the description, as the public catalogue gives it. */
+    private static String summary(String description) {
+        String first = description.split("\n", 2)[0];
+        return first.length() > 120 ? first.substring(0, 120) : first;
     }
 
     private static <T> ResponseEntity<T> ok(T body) {

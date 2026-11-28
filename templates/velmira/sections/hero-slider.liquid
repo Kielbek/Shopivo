@@ -1,0 +1,67 @@
+<section class="hero-layout" id="home">
+<div class="hero" aria-label="{{ section.settings.label }}" aria-roledescription="karuzela" data-hero-slider data-autoplay="{{ section.settings.autoplay }}">
+{%- for block in section.blocks %}
+{%- if block.settings.image %}<img class="hero-image" src="{{ block.settings.image | image_url: 'w1200' }}" alt="{{ block.settings.image_alt }}" data-slide="{{ forloop.index0 }}"{% unless forloop.first %} hidden{% endunless %}{% if forloop.first %} fetchpriority="high"{% else %} loading="lazy"{% endif %}{{ block | block_attrs }}{{ block | edit: 'image' }}>{% endif %}
+{%- endfor %}
+{%- for block in section.blocks %}
+<div class="hero-copy" data-hero-copy="{{ forloop.index0 }}"{% unless forloop.first %} hidden{% endunless %}>
+{%- if section.settings.kicker != blank %}<p class="kicker"{{ section | edit: 'kicker' }}>{{ section.settings.kicker }}</p>{% endif %}
+{%- if forloop.first %}<h1{{ block | edit: 'title' }}>{{ block.settings.title | lines }}</h1>{% else %}<h2 class="hero-h1"{{ block | edit: 'title' }}>{{ block.settings.title | lines }}</h2>{% endif %}
+<p{{ block | edit: 'subtitle' }}>{{ block.settings.subtitle }}</p>
+<div class="flex flex-wrap gap-2">
+{%- if section.settings.button_label != blank %}<a class="pill white" href="{{ section.settings.button_url | link }}"{{ section | edit: 'button_label' }}>{{ section.settings.button_label }}</a>{% endif %}
+{%- if section.settings.button2_label != blank %}<a class="pill outline" href="{{ section.settings.button2_url | link }}"{{ section | edit: 'button2_label' }}>{{ section.settings.button2_label }}</a>{% endif %}
+</div>
+</div>
+{%- endfor %}
+{%- if section.blocks.size > 1 %}
+<div class="hero-dots" id="heroDots">
+{%- for block in section.blocks %}<button class="dot" type="button" data-slide="{{ forloop.index0 }}" aria-current="{% if forloop.first %}true{% else %}false{% endif %}" aria-label="Slajd {{ forloop.index }}"></button>{% endfor -%}
+</div>
+{%- endif %}
+</div>
+{%- if section.settings.side_show %}
+<a class="side-hero" href="{{ section.settings.side_url | link }}">
+{%- if section.settings.side_image %}<img src="{{ section.settings.side_image | image_url: 'w1200' }}" alt="{{ section.settings.side_image_alt }}"{{ section | edit: 'side_image' }}>{% endif %}
+<div class="side-copy">
+<p class="kicker"{{ section | edit: 'side_kicker' }}>{{ section.settings.side_kicker }}</p>
+<h2{{ section | edit: 'side_title' }}>{{ section.settings.side_title | lines }}</h2>
+<span class="roundlink" aria-hidden="true">↗</span>
+</div>
+</a>
+{%- endif %}
+</section>
+
+{% schema %}
+{
+  "name": "Slider z bocznym kafelkiem",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Świadoma pielęgnacja", "max": 40 },
+    { "id": "button_label", "type": "text", "label": "Tekst przycisku", "default": "Odkryj kolekcję ↗", "max": 30 },
+    { "id": "button_url", "type": "url", "label": "Link przycisku", "default": "/produkty" },
+    { "id": "button2_label", "type": "text", "label": "Tekst drugiego przycisku", "default": "Poznaj rytuały", "max": 30 },
+    { "id": "button2_url", "type": "url", "label": "Link drugiego przycisku", "default": "/#rituals" },
+    { "id": "autoplay", "type": "number", "label": "Zmiana slajdu co (sekundy, 0 = ręcznie)", "default": 0, "min": 0, "max": 20 },
+    { "id": "label", "type": "text", "label": "Nazwa slidera dla czytników ekranu", "default": "Kolekcja", "max": 60 },
+    { "id": "side_show", "type": "checkbox", "label": "Pokaż boczny kafelek", "default": true },
+    { "id": "side_image", "type": "image", "label": "Zdjęcie kafelka", "default": "asset:drops.webp" },
+    { "id": "side_image_alt", "type": "text", "label": "Opis zdjęcia kafelka", "default": "Złociste krople serum na jasnym podłożu", "max": 160 },
+    { "id": "side_kicker", "type": "text", "label": "Nadtytuł kafelka", "default": "Twój codzienny rytuał", "max": 40 },
+    { "id": "side_title", "type": "textarea", "label": "Tytuł kafelka", "default": "Naturalny blask\nzaczyna się tutaj.", "max": 80 },
+    { "id": "side_url", "type": "url", "label": "Link kafelka", "default": "/produkty" }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slajd",
+      "settings": [
+        { "id": "image", "type": "image", "label": "Zdjęcie", "default": "asset:hero.webp" },
+        { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "", "max": 160 },
+        { "id": "title", "type": "textarea", "label": "Tytuł", "default": "Nowy slajd", "max": 80 },
+        { "id": "subtitle", "type": "textarea", "label": "Opis", "default": "", "max": 200 }
+      ]
+    }
+  ],
+  "max_blocks": 6
+}
+{% endschema %}

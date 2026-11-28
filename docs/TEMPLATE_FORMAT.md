@@ -60,6 +60,7 @@ Sklep korzysta z silnika v2, gdy kod jego szablonu (`theme.code`) odpowiada kodo
 | `url` | `/ścieżka`, `#kotwica`, `https://…`, `mailto:`, `tel:`, `legal:PRIVACY` (strona prawna sklepu) | `{{ x | link }}` |
 | `image` | `asset:plik.webp` (grafika szablonu) albo id zdjęcia z biblioteki sklepu | obiekt `{w400, w1200, width, height}`; `| image_url: 'w1200'`, `| image_srcset` |
 | `select`, `number`, `checkbox`, `color` | wartość z listy / liczba w `min..max` / tak-nie / `#rrggbb` | wartość |
+| `product` | slug produktu (pusty = brak) | produkt z `price`, `compare_at`, `url`… albo `nil` |
 | `product_list` | `{source, category?, count}`; źródła: `newest`, `bestsellers`, `sale`, `last_pieces`, `top_rated`, `back_in_stock`, `category` | `{items: [produkt…], url}` |
 | `category_list` | `{mode: 'top'}` albo `{mode: 'selected', slugs: […]}` | lista kategorii |
 | `link_list` | `[{label, url}]` | lista linków |
@@ -131,6 +132,10 @@ Skrypt szablonu (`assets/template.js`) zawiera tylko zachowania z projektu, np. 
 - `/_t/<kod>/<wersja>/styles.css` i `/_t/<kod>/<wersja>/<plik>`: pliki pakietu, cache 1 rok. Nowa wersja pakietu to nowy adres.
 - Strony: `Cache-Control: private, no-cache`, bo licznik koszyka zależy od ciasteczka.
 - Podgląd (`?podglad=`): `no-store` i `noindex`.
+- Podgląd szablonu z galerii (`?szablon=KOD`): silnik renderuje pakiet z przykładowym katalogiem (`/api/v1/storefront/demo/KOD`).
+  Wybór trwa w ciasteczku sesyjnym `shopivo_template_demo`; `?szablon=` albo `?podglad=` go kończy.
+  W tym trybie silnik nie czyta koszyka, konta, zamówień, dokumentu sklepu ani stron sklepu, a skrypt sklepu odrzuca każdą zmianę (POST).
+  Na dole strony jest pasek „Podgląd szablonu · Zamknij”; strona ma `no-store` i `noindex`.
 - SEO: `<title>`, `canonical`, `og:*`, a na stronie produktu JSON-LD `Product`.
 
 ## Zasady przenoszenia projektu 1:1

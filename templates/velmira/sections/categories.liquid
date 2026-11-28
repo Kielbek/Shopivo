@@ -1,0 +1,37 @@
+<section class="categories" id="{{ section.settings.anchor | default: 'rituals' }}">
+{%- for block in section.blocks %}
+<a class="category" href="{{ block.settings.url | link }}"{{ block | block_attrs }}>
+{%- if block.settings.image %}<img src="{{ block.settings.image | image_url: 'w1200' }}" alt="{{ block.settings.image_alt }}" loading="lazy"{{ block | edit: 'image' }}>{% endif %}
+<div class="category-content">
+<p class="kicker"{{ block | edit: 'kicker' }}>{{ block.settings.kicker }}</p>
+<h2{{ block | edit: 'title' }}>{{ block.settings.title | lines }}</h2>
+<span{{ block | edit: 'link_label' }}>{{ block.settings.link_label }}</span>
+</div>
+<span class="roundlink">↗</span>
+</a>
+{%- endfor %}
+</section>
+
+{% schema %}
+{
+  "name": "Duże kafelki kategorii",
+  "settings": [
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "rituals", "max": 30 }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "Kafelek",
+      "settings": [
+        { "id": "image", "type": "image", "label": "Zdjęcie", "default": "asset:nawilzenie.webp" },
+        { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "", "max": 160 },
+        { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Rytuał", "max": 30 },
+        { "id": "title", "type": "textarea", "label": "Tytuł", "default": "Nowa\nkolekcja", "max": 60 },
+        { "id": "link_label", "type": "text", "label": "Tekst linku", "default": "Odkryj kolekcję", "max": 30 },
+        { "id": "url", "type": "url", "label": "Link", "default": "/produkty" }
+      ]
+    }
+  ],
+  "max_blocks": 4
+}
+{% endschema %}

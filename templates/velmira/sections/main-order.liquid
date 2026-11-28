@@ -1,0 +1,52 @@
+{%- assign gold = 'pill' -%}
+<div class="vm-narrow">
+{%- if order %}
+<p class="kicker">Zamówienie przyjęte</p>
+{% render 'page-title', text: 'Dziękujemy!' %}
+<p class="text-lg font-bold">Zamówienie nr {{ order.number }}</p>
+<p class="mt-2 vm-muted">Potwierdzenie wysłaliśmy e-mailem.</p>
+{%- if order.payment_method == 'ONLINE' %}
+<section class="vm-card mt-8" aria-live="polite" data-shop-order{% if order.awaiting_online %} data-wait{% endif %}>
+<h2 class="vm-h3">Płatność online</h2>
+{%- if order.paid %}<p class="mt-2 font-bold vm-accent">Płatność otrzymana — dziękujemy!</p>
+{%- elsif order.canceled %}<p class="mt-2">Zamówienie zostało anulowane.</p>
+{%- else %}
+<p class="mt-2" data-shop-order-waiting>Czekamy na potwierdzenie płatności od operatora… To zwykle trwa kilka sekund.</p>
+<div data-shop-order-retry hidden><p class="mt-2">Zamówienie nie jest jeszcze opłacone. Jeśli płatność się nie udała albo została przerwana, możesz spróbować ponownie. Nieopłacone zamówienie zostanie anulowane po 24 godzinach.</p>
+<p class="checkout-error mt-2 text-sm font-bold" role="alert" data-shop-error></p>
+<button type="button" class="{{ gold }} mt-4" data-shop-order-pay data-busy-label="Przekierowanie…">Zapłać {{ order.total | money: order.currency }}</button></div>
+{%- endif %}
+</section>
+{%- endif %}
+{%- if order.bank_transfer %}
+<section class="vm-card mt-8">
+<h2 class="vm-h3">Dane do przelewu</h2>
+<dl class="order-transfer mt-4 grid gap-2 text-sm">
+<dt class="vm-muted">Odbiorca</dt><dd>{{ order.bank_transfer.holder }}</dd>
+<dt class="vm-muted">Numer rachunku</dt><dd class="font-bold">{{ order.bank_transfer.account }}</dd>
+{%- if order.bank_transfer.bank %}<dt class="vm-muted">Bank</dt><dd>{{ order.bank_transfer.bank }}</dd>{% endif %}
+<dt class="vm-muted">Tytuł</dt><dd>Zamówienie {{ order.number }}</dd>
+<dt class="vm-muted">Kwota</dt><dd class="vm-strong">{{ order.total | money: order.currency }}</dd>
+</dl>
+<p class="mt-4 text-xs vm-muted">Nieopłacone zamówienie zostanie anulowane po {{ order.bank_transfer.cancel_days }} dniach.</p>
+</section>
+{%- endif %}
+{%- if order.pickup_point %}<p class="mt-6 text-sm">Dostawa do paczkomatu <strong>{{ order.pickup_point.code }}</strong> — {{ order.pickup_point.address }}</p>{% endif %}
+<ul class="mt-8 grid gap-3 rule-y py-pad-4 text-sm">
+{%- for item in order.items %}<li class="flex justify-between gap-3"><span>{{ item.quantity }} × {{ item.name }}{% if item.variant_title != blank %} ({{ item.variant_title }}){% endif %}</span><span>{{ item.line_total | money: order.currency }}</span></li>{% endfor %}
+</ul>
+<dl class="mt-4 grid gap-2 text-sm">
+{%- if order.shipping_method %}<div class="flex justify-between"><dt>Dostawa: {{ order.shipping_method }}</dt><dd>{{ order.shipping | money: order.currency }}</dd></div>{% endif %}
+{%- if order.payment_fee > 0 %}<div class="flex justify-between"><dt>Opłata za pobranie</dt><dd>{{ order.payment_fee | money: order.currency }}</dd></div>{% endif %}
+<div class="flex justify-between vm-total"><dt>Razem</dt><dd>{{ order.total | money: order.currency }}</dd></div>
+</dl>
+{%- else %}
+{% render 'page-title', text: 'Dziękujemy za zamówienie' %}
+<p class="vm-muted">Szczegóły zamówienia znajdziesz w wiadomości e-mail.</p>
+{%- endif %}
+<a href="/" class="{{ gold }} mt-10 inline-block">Wróć do sklepu ↗</a>
+</div>
+
+{% schema %}
+{ "name": "Potwierdzenie zamówienia", "settings": [] }
+{% endschema %}

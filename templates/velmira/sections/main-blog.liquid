@@ -1,0 +1,24 @@
+{% render 'page-title', text: section.settings.title %}
+{%- if blog.posts.size > 0 %}
+<div class="vm-posts">
+{%- for post in blog.posts %}
+<a class="vm-post" href="{{ post.url }}"><span class="tiny">{{ post.published_at | date: '%d.%m.%Y' }}</span><h2>{{ post.title }}</h2>{% if post.excerpt != blank %}<p>{{ post.excerpt }}</p>{% endif %}<span class="text-link">Czytaj dalej ↗</span></a>
+{%- endfor %}
+</div>
+{%- if blog.total_pages > 1 %}
+<nav class="vm-pager" aria-label="Strony bloga">
+{%- if blog.prev_url %}<a class="arrow" href="{{ blog.prev_url }}" rel="prev" aria-label="Nowsze wpisy">←</a>{% endif %}
+<span class="tiny">Strona {{ blog.page }} z {{ blog.total_pages }}</span>
+{%- if blog.next_url %}<a class="arrow" href="{{ blog.next_url }}" rel="next" aria-label="Starsze wpisy">→</a>{% endif %}
+</nav>
+{%- endif %}
+{%- else %}
+{% render 'empty', text: 'Wkrótce pojawią się tu pierwsze wpisy.', link: '/', label: 'Wróć do sklepu' %}
+{%- endif %}
+
+{% schema %}
+{
+  "name": "Lista wpisów bloga",
+  "settings": [ { "id": "title", "type": "text", "label": "Tytuł", "default": "Dziennik pielęgnacji", "max": 40 } ]
+}
+{% endschema %}

@@ -1,0 +1,60 @@
+<footer class="footer" id="contact">
+<div class="footer-grid">
+<div>
+<a class="logo" href="/">{{ section.settings.logo_text | default: shop.name | upcase }}</a>
+<p{{ section | edit: 'text' }}>{{ section.settings.text | lines }}</p>
+{%- for link in section.settings.links %}<a href="{{ link.url | link }}">{{ link.label }}</a>{% endfor %}
+</div>
+{%- for block in section.blocks %}
+{%- if block.type == 'links' %}
+<div{{ block | block_attrs }}>
+<h3{{ block | edit: 'title' }}>{{ block.settings.title }}</h3>
+{%- for link in block.settings.links %}<a href="{{ link.url | link }}">{{ link.label }}</a>{% endfor %}
+</div>
+{%- else %}
+<div{{ block | block_attrs }}>
+<h3{{ block | edit: 'title' }}>{{ block.settings.title }}</h3>
+<p{{ block | edit: 'text' }}>{{ block.settings.text }}</p>
+{%- if block.settings.link_label != blank %}<a href="{{ block.settings.link_url | link }}"{{ block | edit: 'link_label' }}>{{ block.settings.link_label }}</a>{% endif %}
+</div>
+{%- endif %}
+{%- endfor %}
+</div>
+<div class="foot-bottom">
+<span>© {{ 'now' | date: '%Y' }} {{ shop.name }}{% if section.settings.copyright != blank %} · {{ section.settings.copyright }}{% endif %}</span>
+<span>Polska · {{ shop.currency }}</span>
+</div>
+</footer>
+
+{% schema %}
+{
+  "name": "Stopka",
+  "settings": [
+    { "id": "logo_text", "type": "text", "label": "Nazwa w logo", "default": "", "info": "Puste pole: nazwa sklepu (wielkimi literami)." },
+    { "id": "text", "type": "textarea", "label": "Tekst pod logo", "default": "Piękno w prostocie.\nPielęgnacja w Twoim rytmie.", "max": 200 },
+    { "id": "links", "type": "link_list", "label": "Linki pod logo", "default": [], "max": 6 },
+    { "id": "copyright", "type": "text", "label": "Dopisek przy prawach autorskich", "default": "", "max": 80 }
+  ],
+  "blocks": [
+    {
+      "type": "links",
+      "name": "Kolumna z linkami",
+      "settings": [
+        { "id": "title", "type": "text", "label": "Tytuł", "default": "Sklep", "max": 40 },
+        { "id": "links", "type": "link_list", "label": "Linki", "default": [], "max": 8 }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Kolumna z tekstem",
+      "settings": [
+        { "id": "title", "type": "text", "label": "Tytuł", "default": "Klub", "max": 40 },
+        { "id": "text", "type": "textarea", "label": "Tekst", "default": "", "max": 300 },
+        { "id": "link_label", "type": "text", "label": "Tekst linku", "default": "Dołącz do newslettera ↗", "max": 40 },
+        { "id": "link_url", "type": "url", "label": "Adres linku", "default": "/#newsletter" }
+      ]
+    }
+  ],
+  "max_blocks": 3
+}
+{% endschema %}

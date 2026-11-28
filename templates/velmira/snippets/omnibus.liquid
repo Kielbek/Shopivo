@@ -1,0 +1,3 @@
+{%- if product.on_sale and product.lowest_30d -%}
+<p class="{{ classes }}">Najniższa cena z 30 dni przed obniżką: {{ product.lowest_30d | money: product.currency }}</p>
+{%- endif -%}

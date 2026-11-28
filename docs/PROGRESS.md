@@ -101,6 +101,32 @@ Testy E2E w repozytorium (Playwright) — **jeszcze nie ma** (Faza 8).
   - pole „Wysokość” banera nie wpływa na układ „Magazyn”;
   - zdjęcia z HTML-a są z Unsplash — dobre jako start, ale sprzedawca powinien użyć własnych.
 
+## Silnik szablonów v2 — etap 4a: Velmira (2026-11-28)
+
+- **Velmira** (`templates/velmira/`, kosmetyki) przeniesiona z `velmira-sklep-premium.html` 1:1:
+  - CSS projektu bez zmian; dodatki tylko w bloku „Shopivo additions”;
+  - sekcje: nagłówek z menu mobilnym, pasek informacyjny, slider z bocznym kafelkiem (slajdy jako elementy, opcjonalna automatyczna zmiana), pasek potrzeb, karuzela produktów z zakładkami (zakładka = źródło produktów), duże kafelki rytuałów, wyróżniony zestaw (nowy typ ustawienia `product` — cena i oszczędność liczone z produktu), kroki rytuału, konsystencje, O nas, FAQ, korzyści, newsletter, stopka;
+  - wszystkie 15 typów stron w stylu szablonu (zamówienie, potwierdzenie, logowanie, konto, zwroty, opinie).
+- **Backend:**
+  - preset `VELMIRA` w galerii;
+  - przykładowe kosmetyki (serum, żel, krem, zestaw) i kategorie (Nawilżanie, Oczyszczanie, Glow, Zestawy);
+  - wycofany szablon „BEAUTY” przechodzi na Velmirę;
+  - karta produktu ma `summary` (pierwsza linia opisu), pokazywane pod nazwą.
+- **Podgląd z galerii (`?szablon=KOD`) działa w nowym silniku.** Pokazuje przykładowe produkty; koszyk, zamówienia i zapisy są wyłączone.
+- **Skrypt sklepu** ustawia `data-count` na licznikach, więc szablon może ukryć zero (jak w projekcie Velmiry).
+- **Testy:**
+  - `engine.spec.ts` (24): klasy CSS Velmiry, tryb podglądu bez danych sklepu;
+  - `ThemeRegistryTest`, `ThemeSectionsIT`, `StorefrontIT`, `TemplateDocsIT`, `RecommendationsIT`; panel 71.
+- **E2E:**
+  - podgląd demo, komputer: strona główna ma 6335 px wysokości, jak oryginał; różnice w zrzutach to brak etykiet „Nowość/Polecany” (sklep nie ma takich danych, etykieta pokazuje tylko rabat), oszczędność zestawu liczona z cen i stopka bez dopisku „Projekt demonstracyjny”;
+  - telefon: zgodny;
+  - prawdziwy sklep: 4 przykładowe produkty, dodanie z karuzeli, koszyk +/−, zamówienie z przelewem → „Dziękujemy!”, nr 1001;
+  - 0 błędów konsoli.
+- **Ograniczenia:**
+  - domyślne linki do produktów i kategorii (np. `/produkt/zestaw-codziennej-pielegnacji`) działają w sklepie z przykładowymi produktami; sprzedawca podmienia je w edytorze;
+  - zdjęcia z pliku projektu mają ok. 410 px (tyle zawiera HTML);
+  - na telefonie karuzela przesuwa się o kartę, licząc 3 widoczne (tak jak w projekcie).
+
 ## Silnik szablonów v2 — etap 3: nowy edytor (2026-11-28)
 
 - **Dokument sklepu:** zapisuje tylko zmienione strony. Walidacja w backendzie według schematów szablonu, szkic i publikacja, historia 30 publikacji z przywracaniem (V25).

@@ -1,7 +1,7 @@
 import { Liquid, type Template } from 'liquidjs';
 import { safeLink, settingsOf, type ProductListSetting } from './settings';
 import {
-  toCategory, toProduct, type ApiCard, type ApiStore, type StoreApi, type TplImage,
+  toCategory, toProduct, toProductDetail, type ApiCard, type ApiProduct, type ApiStore, type StoreApi, type TplImage,
 } from './store-data';
 import type { PageDoc, PageType, SectionDoc, TemplatePackage } from './template-package';
 
@@ -144,6 +144,10 @@ export class TemplateRenderer {
     for (const s of schemaSettings) {
       const v = values[s.id];
       if (s.type === 'image') values[s.id] = this.image(v, ctx.store);
+      else if (s.type === 'product') {
+        jobs.push((typeof v === 'string' && v ? ctx.api.optional<ApiProduct | null>(`/products/${encodeURIComponent(v)}`, null) : Promise.resolve(null))
+          .then((p) => { values[s.id] = p ? toProductDetail(p) : null; }));
+      }
       else if (s.type === 'product_list') jobs.push(this.products(ctx, v as ProductListSetting).then((r) => { values[s.id] = r; }));
       else if (s.type === 'category_list') values[s.id] = this.categories(ctx.store, v as { mode: string; slugs?: string[] });
     }

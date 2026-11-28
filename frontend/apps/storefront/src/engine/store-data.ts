@@ -13,7 +13,12 @@ export interface RequestInfo {
   customer: string | null;
   /** Token of the visitor's last order (confirmation page). */
   orderToken: string | null;
+  /** Template preview (`?szablon=CODE`): the template's example catalogue instead of the store's data. */
+  demo?: string | null;
 }
+
+/** What a template preview never reads: the store's own carts, orders, accounts, documents and redirects. */
+const NOT_IN_DEMO = /^\/(account|cart|checkout|orders|returns|template|redirect|pages|posts\/)/;
 
 export class ApiError extends Error {
   constructor(readonly status: number, path: string) {
@@ -25,6 +30,10 @@ export class StoreApi {
   constructor(private readonly origin: string, private readonly req: RequestInfo) {}
 
   async get<T>(path: string, extra: Record<string, string> = {}): Promise<T> {
+    if (this.req.demo) {
+      if (NOT_IN_DEMO.test(path)) throw new ApiError(404, path);
+      path = `/demo/${this.req.demo}${path}`;
+    }
     const headers: Record<string, string> = {
       accept: 'application/json', 'x-forwarded-host': this.req.host, 'x-forwarded-proto': this.req.proto,
       'x-forwarded-for': this.req.ip, ...extra,
@@ -51,15 +60,15 @@ export class StoreApi {
 
   /** The signed-in customer, or null for guests. */
   account(): Promise<ApiAccount | null> {
-    return this.req.customer ? this.optional<ApiAccount | null>('/account/me', null) : Promise.resolve(null);
+    return this.req.customer && !this.req.demo ? this.optional<ApiAccount | null>('/account/me', null) : Promise.resolve(null);
   }
 
   order(): Promise<ApiOrder | null> {
-    return this.req.orderToken ? this.optional<ApiOrder | null>('/orders/status', null, { 'x-order-token': this.req.orderToken }) : Promise.resolve(null);
+    return this.req.orderToken && !this.req.demo ? this.optional<ApiOrder | null>('/orders/status', null, { 'x-order-token': this.req.orderToken }) : Promise.resolve(null);
   }
 
   cart(): Promise<ApiCart | null> {
-    return this.req.cartToken ? this.optional<ApiCart | null>('/cart', null, { 'x-cart-token': this.req.cartToken }) : Promise.resolve(null);
+    return this.req.cartToken && !this.req.demo ? this.optional<ApiCart | null>('/cart', null, { 'x-cart-token': this.req.cartToken }) : Promise.resolve(null);
   }
 }
 
@@ -108,7 +117,7 @@ export interface ApiEntry {
 export interface ApiPostCard { slug: string; title: string; excerpt: string | null; publishedAt: string; }
 export interface ApiCard {
   id: string; slug: string; name: string; brand: string | null; priceMinor: number; maxPriceMinor: number; compareAtMinor: number | null;
-  lowestPrice30dMinor: number | null; currency: string; available: boolean; imageUrl: string | null; imageAlt: string | null; imageColor?: string | null;
+  lowestPrice30dMinor: number | null; currency: string; available: boolean; imageUrl: string | null; imageAlt: string | null; imageColor?: string | null; summary?: string | null;
 }
 export interface ApiPage<T> { items: T[]; page: number; size: number; totalItems: number; totalPages: number; }
 export interface ApiProduct {
@@ -131,7 +140,7 @@ export interface TplImage { w400: string; w1200: string; alt?: string; width?: n
 export interface TplProduct {
   id: string; slug: string; url: string; name: string; brand: string | null; price: number; has_range: boolean;
   compare_at: number | null; on_sale: boolean; discount: number; lowest_30d: number | null; currency: string;
-  available: boolean; image: TplImage | null; color: string | null;
+  available: boolean; image: TplImage | null; color: string | null; summary: string | null;
 }
 
 function variantUrl(url: string, from: string, to: string): string {
@@ -146,7 +155,7 @@ export function toProduct(c: ApiCard): TplProduct {
     discount: onSale ? Math.round((1 - c.priceMinor / c.compareAtMinor!) * 100) : 0, lowest_30d: onSale ? c.lowestPrice30dMinor : null,
     currency: c.currency, available: c.available,
     image: c.imageUrl ? { w400: c.imageUrl, w1200: variantUrl(c.imageUrl, 'w400', 'w1200'), alt: c.imageAlt ?? c.name } : null,
-    color: c.imageColor ?? null,
+    color: c.imageColor ?? null, summary: c.summary ?? null,
   };
 }
 

@@ -1,0 +1,40 @@
+<header class="site-header">
+<a class="logo" href="/"{{ section | edit: 'logo_text' }}>{{ section.settings.logo_text | default: shop.name | upcase }}</a>
+<nav class="nav" aria-label="Menu główne">
+{%- for block in section.blocks %}
+<a href="{{ block.settings.url | link }}"{{ block | block_attrs }}{{ block | edit: 'label' }}>{{ block.settings.label }}</a>
+{%- endfor %}
+</nav>
+<div class="tools" id="headerTools">
+<a class="iconbtn" href="/produkty" aria-label="Szukaj">{% render 'icon', name: 'search' %}</a>
+<a class="iconbtn" href="/ulubione" aria-label="Ulubione" data-shop-fav-label="Ulubione ({count})">{% render 'icon', name: 'heart' %}<span class="count" data-shop-fav-count data-count="0">0</span></a>
+<a class="iconbtn" href="/konto" aria-label="Moje konto">{% render 'icon', name: 'user' %}</a>
+<a class="iconbtn" href="/koszyk" aria-label="Koszyk ({{ cart.item_count }})" data-shop-cart-label="Koszyk ({count})">{% render 'icon', name: 'bag' %}<span class="count" data-shop-cart-count data-count="{{ cart.item_count }}">{{ cart.item_count }}</span></a>
+<button class="iconbtn mobile-menu" type="button" data-menu aria-controls="mobileLinks" aria-label="Menu" aria-expanded="false">{% render 'icon', name: 'menu' %}</button>
+</div>
+<nav class="mobile-links" id="mobileLinks" aria-label="Menu" hidden>
+{%- for block in section.blocks %}
+<a href="{{ block.settings.url | link }}">{{ block.settings.label }}</a>
+{%- endfor %}
+</nav>
+</header>
+
+{% schema %}
+{
+  "name": "Nagłówek",
+  "settings": [
+    { "id": "logo_text", "type": "text", "label": "Nazwa w logo", "default": "", "info": "Puste pole: nazwa sklepu (wielkimi literami)." }
+  ],
+  "blocks": [
+    {
+      "type": "link",
+      "name": "Link w menu",
+      "settings": [
+        { "id": "label", "type": "text", "label": "Tekst", "default": "Link", "max": 30 },
+        { "id": "url", "type": "url", "label": "Adres", "default": "/produkty" }
+      ]
+    }
+  ],
+  "max_blocks": 8
+}
+{% endschema %}

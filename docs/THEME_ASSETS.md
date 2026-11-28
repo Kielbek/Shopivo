@@ -28,6 +28,13 @@ Zdjęcia przykładowych produktów (`tpl:vera/p-*`, kadr 3:4) — to samo źród
 
 Pominięto zdjęcie koszulki z cudzą grafiką/napisem z pierwotnego HTML-a, bo był na niej nadruk innej marki.
 
+## Velmira (templates/velmira/assets/, backend/src/main/resources/themes/velmira/)
+
+Zdjęcia wyciągnięte z pliku projektu `velmira-sklep-premium.html` dostarczonego przez właściciela projektu (2026-11-28):
+- portrety do slidera, krople serum, konsystencje, zestaw Luméa;
+- w HTML mają ok. 410 px i tak zostały, bez powiększania.
+Do przykładowych produktów i kategorii zapisano je jako JPEG (warianty `w400`, `w1200` w rozmiarze oryginału).
+
 ## Bawiloo (backend/src/main/resources/themes/bawiloo/)
 
 Grafiki dostarczone przez właściciela projektu razem z szablonem (paczka „bawiloo-kompletny-sklep(-premium)”, 2026-11-27):

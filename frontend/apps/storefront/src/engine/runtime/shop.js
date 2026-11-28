@@ -75,6 +75,11 @@
   // ------------------------------------------------------------------------------------------- API
 
   async function api(method, path, body, token, extra) {
+    // Template preview: example catalogue only; nothing is bought, saved or sent
+    if (config.demo) {
+      if (method !== 'GET') throw new Error('To podgląd szablonu z przykładowymi produktami — koszyk, zamówienia i zapisy działają w Twoim sklepie.');
+      path = '/demo/' + config.demo + path;
+    }
     // X-Requested-With: the API's CSRF check for account and newsletter requests (a cross-site form cannot set it)
     const headers = { Accept: 'application/json', 'X-Requested-With': 'shopivo', ...(extra || {}) };
     if (body !== undefined) headers['Content-Type'] = 'application/json';
@@ -122,13 +127,13 @@
 
   function setCounts(cartCount) {
     if (typeof cartCount === 'number') {
-      document.querySelectorAll('[data-shop-cart-count]').forEach((el) => { el.textContent = String(cartCount); });
+      document.querySelectorAll('[data-shop-cart-count]').forEach((el) => { el.textContent = String(cartCount); el.dataset.count = String(cartCount); });
       document.querySelectorAll('[data-shop-cart-label]').forEach((el) => {
         el.setAttribute('aria-label', el.dataset.shopCartLabel.replace('{count}', String(cartCount)));
       });
     }
     const favs = favourites().length;
-    document.querySelectorAll('[data-shop-fav-count]').forEach((el) => { el.textContent = String(favs); });
+    document.querySelectorAll('[data-shop-fav-count]').forEach((el) => { el.textContent = String(favs); el.dataset.count = String(favs); });
     document.querySelectorAll('[data-shop-fav-label]').forEach((el) => {
       el.setAttribute('aria-label', el.dataset.shopFavLabel.replace('{count}', String(favs)));
     });
@@ -538,6 +543,7 @@
       const headers = { Accept: 'application/json', 'Content-Type': 'application/json', 'X-Cart-Token': token, 'X-Requested-With': 'shopivo' };
       if (captcha) headers['X-Captcha-Token'] = captcha;
       if (preview) headers['X-Store-Preview'] = preview;
+      if (config.demo) throw new Error('To podgląd szablonu — zamówienia działają w Twoim sklepie.');
       const res = await fetch(API + '/checkout', { method: 'POST', headers, body: JSON.stringify(body) });
       const data = await res.json().catch(() => null);
       if (!res.ok) throw new Error((data && data.detail) || 'Nie udało się złożyć zamówienia. Spróbuj ponownie.');

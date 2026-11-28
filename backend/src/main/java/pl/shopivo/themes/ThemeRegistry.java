@@ -30,7 +30,7 @@ public final class ThemeRegistry {
      * Templates retired on 2026-11-27 (Atelier, Róża, Volt, Bajka, Ostoja, Sprint, Tor, Kruszec): stores that used one
      * keep their texts, sections and settings and are shown with the closest current template.
      */
-    static final Map<String, String> RETIRED = Map.of("FASHION", "VERA", "BEAUTY", "VERA", "ELECTRONICS", "VERA", "TOYS", "BAWILOO",
+    static final Map<String, String> RETIRED = Map.of("FASHION", "VERA", "BEAUTY", "VELMIRA", "ELECTRONICS", "VERA", "TOYS", "BAWILOO",
             "HOME", "VERA", "SPORTS", "VERA", "AUTOMOTIVE", "VERA", "JEWELRY", "VERA");
 
     /** Current template code for a stored one (retired codes map to their successor). */
@@ -152,10 +152,25 @@ public final class ThemeRegistry {
                 Map.copyOf(d), sections);
     }
 
+    /**
+     * Velmira: calm premium cosmetics template (sage green). Its pages are defined only by the template package
+     * ({@code templates/velmira}); the legacy section list stays empty.
+     */
+    private static Preset velmira() {
+        Map<String, String> d = new LinkedHashMap<>(preset("#28372B", "#68765D", "#FFFFFF", "#F3F2ED", "#283129", "sans", "round", "editorial", "plain", null, null));
+        d.put("headerStyle", "classic");
+        d.put("mobileNav", "drawer");
+        d.put("announcement", "Twój osobisty rytuał piękna · Pielęgnacja w zgodzie z Tobą");
+        d.put("footerNote", "Piękno w prostocie. Pielęgnacja w Twoim rytmie.");
+        return new Preset("VELMIRA", "Velmira", "Spokojny sklep z kosmetykami premium: szałwiowa zieleń, duży slider, karuzela produktów z zakładkami, rytuały krok po kroku i FAQ.",
+                Map.copyOf(d), List.of());
+    }
+
     /** Button colours are chosen so white text keeps at least 4.5:1 contrast (WCAG AA). */
     public static final List<Preset> PRESETS = List.of(
             vera(),
-            bawiloo());
+            bawiloo(),
+            velmira());
 
     public static Optional<Preset> preset(String code) {
         return PRESETS.stream().filter(p -> p.code().equals(code)).findFirst();

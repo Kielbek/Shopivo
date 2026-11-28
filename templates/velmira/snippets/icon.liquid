@@ -1,0 +1,17 @@
+{%- comment -%} Line icons of the design. Params: name, px (default 21), fill (default none) {%- endcomment -%}
+{%- assign s = px | default: 21 -%}
+<svg width="{{ s }}" height="{{ s }}" viewBox="0 0 24 24" fill="{{ fill | default: 'none' }}" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{%- case name -%}
+{%- when 'search' %}<circle cx="11" cy="11" r="7"/><path d="m16 16 4 4"/>
+{%- when 'heart' %}<path d="M20.8 4.7a5.4 5.4 0 0 0-7.6 0L12 5.9l-1.2-1.2a5.4 5.4 0 0 0-7.6 7.6L12 21l8.8-8.7a5.4 5.4 0 0 0 0-7.6Z"/>
+{%- when 'user' %}<circle cx="12" cy="8" r="3.5"/><path d="M4 21v-2a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v2"/>
+{%- when 'bag' %}<path d="M5 8h14l1.5 13h-17L5 8Z"/><path d="M9 10V6a3 3 0 0 1 6 0v4"/>
+{%- when 'plus' %}<path d="M12 5v14M5 12h14"/>
+{%- when 'menu' %}<path d="M4 6h16M4 12h16M4 18h16"/>
+{%- when 'truck' %}<path d="M2 5h12v12H2zM14 9h4l4 4v4h-8"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/>
+{%- when 'shield' %}<path d="M12 3 4 6v6c0 4 3 7 8 10 5-3 8-6 8-10V6Z"/><path d="m9 12 2 2 4-4"/>
+{%- when 'return' %}<path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/>
+{%- when 'headset' %}<path d="M4 14v-3a8 8 0 0 1 16 0v3M4 14h4v6H6a2 2 0 0 1-2-2v-4ZM20 14h-4v6h2a2 2 0 0 0 2-2v-4Z"/>
+{%- when 'arrow' %}<path d="M5 12h14m-6-6 6 6-6 6"/>
+{%- endcase -%}
+</svg>

@@ -55,6 +55,8 @@ export function settingValue(schema: SettingSchema, stored: unknown): unknown {
     }
     case 'select':
       return schema.options?.some((o) => o.value === value) ? value : fallback();
+    case 'product':
+      return typeof value === 'string' && (value === '' || SLUG.test(value)) ? value : fallback();
     case 'product_list': {
       const v = (value ?? {}) as Partial<ProductListSetting>;
       if (!v || typeof v !== 'object' || !PRODUCT_SOURCES.includes(v.source as ProductSource)) return fallback();

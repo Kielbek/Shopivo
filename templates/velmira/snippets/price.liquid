@@ -1,0 +1,2 @@
+{%- comment -%} Price with the old price of reduced products. Param: product {%- endcomment -%}
+{%- if product.has_range %}od {% endif %}{{ product.price | money: product.currency }}{% if product.on_sale %}<del class="old-price">{{ product.compare_at | money: product.currency }}</del>{% endif -%}

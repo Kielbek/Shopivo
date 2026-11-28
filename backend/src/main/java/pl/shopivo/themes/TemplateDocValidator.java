@@ -226,6 +226,11 @@ final class TemplateDocValidator {
                 }
                 return o;
             }
+            case "product" -> {
+                String slug = v.isString() ? v.asString().strip() : null;
+                if (slug == null || (!slug.isEmpty() && !SLUG.matcher(slug).matches())) throw bad(label);
+                return json.getNodeFactory().stringNode(slug);
+            }
             case "category_list" -> {
                 String mode = v.path("mode").asString("top");
                 if (mode.equals("top")) return json.createObjectNode().put("mode", "top");

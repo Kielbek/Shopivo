@@ -1,0 +1,48 @@
+<section class="home-section" id="{{ section.settings.anchor | default: 'guide' }}">
+<div class="section-intro">
+<p class="kicker"{{ section | edit: 'kicker' }}>{{ section.settings.kicker }}</p>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading }}</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+</div>
+<div class="steps">
+{%- for block in section.blocks %}
+<article class="step"{{ block | block_attrs }}>
+{%- if block.settings.image %}<img src="{{ block.settings.image | image_url: 'w1200' }}" alt="{{ block.settings.image_alt }}" loading="lazy"{{ block | edit: 'image' }}>{% endif %}
+<div class="step-body">
+<span class="step-num"{{ block | edit: 'number' }}>{{ block.settings.number }}</span>
+<h3{{ block | edit: 'title' }}>{{ block.settings.title }}</h3>
+<p{{ block | edit: 'text' }}>{{ block.settings.text }}</p>
+{%- if block.settings.link_label != blank %}<a class="text-link" href="{{ block.settings.url | link }}"{{ block | edit: 'link_label' }}>{{ block.settings.link_label }}</a>{% endif %}
+</div>
+</article>
+{%- endfor %}
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Kroki rytuału",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Twój rytuał, krok po kroku", "max": 50 },
+    { "id": "heading", "type": "text", "label": "Nagłówek", "default": "Trzy chwile tylko dla Ciebie.", "max": 80 },
+    { "id": "text", "type": "textarea", "label": "Opis", "default": "", "max": 240 },
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "guide", "max": 30 }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Krok",
+      "settings": [
+        { "id": "image", "type": "image", "label": "Zdjęcie", "default": "asset:oczyszczanie.webp" },
+        { "id": "image_alt", "type": "text", "label": "Opis zdjęcia", "default": "", "max": 160 },
+        { "id": "number", "type": "text", "label": "Numer i nazwa kroku", "default": "01 / KROK", "max": 40 },
+        { "id": "title", "type": "text", "label": "Tytuł", "default": "Nowy krok.", "max": 60 },
+        { "id": "text", "type": "textarea", "label": "Opis", "default": "", "max": 240 },
+        { "id": "link_label", "type": "text", "label": "Tekst linku", "default": "Zobacz produkt ↗", "max": 30 },
+        { "id": "url", "type": "url", "label": "Link", "default": "/produkty" }
+      ]
+    }
+  ],
+  "max_blocks": 4
+}
+{% endschema %}

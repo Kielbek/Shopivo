@@ -1,0 +1,32 @@
+<nav class="need-strip" aria-label="{{ section.settings.label }}">
+{%- for block in section.blocks %}
+<a href="{{ block.settings.url | link }}"{{ block | block_attrs }}>
+<div>
+<strong{{ block | edit: 'title' }}>{{ block.settings.title }}</strong>
+<span{{ block | edit: 'text' }}>{{ block.settings.text }}</span>
+</div>
+<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+</a>
+{%- endfor %}
+</nav>
+
+{% schema %}
+{
+  "name": "Pasek potrzeb",
+  "settings": [
+    { "id": "label", "type": "text", "label": "Nazwa dla czytników ekranu", "default": "Zakupy według potrzeb", "max": 60 }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Kafelek",
+      "settings": [
+        { "id": "title", "type": "text", "label": "Tytuł", "default": "Kategoria", "max": 30 },
+        { "id": "text", "type": "text", "label": "Podpis", "default": "", "max": 40 },
+        { "id": "url", "type": "url", "label": "Link", "default": "/produkty" }
+      ]
+    }
+  ],
+  "max_blocks": 4
+}
+{% endschema %}

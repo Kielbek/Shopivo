@@ -1,12 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { imageSize } from './image-size';
 import { TemplateRenderer, formatMoney, resolveLink } from './renderer';
 import { routeOf } from './routes';
 import { safeLink, settingValue, settingsOf } from './settings';
 import type { ApiCard, ApiStore, StoreApi } from './store-data';
-import { groupAccount, toCart, toProduct } from './store-data';
+import { ApiError, StoreApi as Api, groupAccount, toCart, toProduct } from './store-data';
 import { PAGE_TYPES, loadAll, templatesDir, type TemplatePackage } from './template-package';
 
 const packages = loadAll(templatesDir());
@@ -176,5 +176,23 @@ describe('helpers', () => {
     const p = toProduct(card(1));
     expect(p).toMatchObject({ on_sale: true, discount: 22, url: '/produkt/zabawka-1', color: '#963bb0' });
     expect(p.image?.w1200).toBe('/api/v1/media/t/i1/w1200.png');
+  });
+});
+
+describe('template preview', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  const info = { host: 'sklep.example', proto: 'https', ip: '', preview: null, cartToken: 'c'.repeat(20), customer: 'k'.repeat(20), orderToken: null, demo: 'VELMIRA' };
+
+  it('reads the example catalogue and never the store\'s carts, accounts or documents', async () => {
+    const urls: string[] = [];
+    vi.stubGlobal('fetch', async (url: string) => { urls.push(url); return new Response('{}', { status: 200 }); });
+    const api = new Api('http://api', info);
+    await api.get('/products?size=4');
+    expect(urls).toEqual(['http://api/api/v1/storefront/demo/VELMIRA/products?size=4']);
+    await expect(api.get('/account/me')).rejects.toBeInstanceOf(ApiError);
+    await expect(api.get('/template')).rejects.toBeInstanceOf(ApiError);
+    expect(await api.cart()).toBeNull();
+    expect(await api.account()).toBeNull();
+    expect(urls).toHaveLength(1);
   });
 });

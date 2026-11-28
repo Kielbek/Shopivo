@@ -8,7 +8,7 @@ import { imageSize } from './image-size';
  */
 export interface SettingSchema {
   id: string;
-  type: 'text' | 'textarea' | 'url' | 'image' | 'select' | 'number' | 'checkbox' | 'color' | 'product_list' | 'category_list' | 'link_list';
+  type: 'text' | 'textarea' | 'url' | 'image' | 'select' | 'number' | 'checkbox' | 'color' | 'product' | 'product_list' | 'category_list' | 'link_list';
   label: string;
   default?: unknown;
   info?: string;

@@ -18,6 +18,8 @@ export const CART_COOKIE = 'shopivo_cart';
 export const FAV_COOKIE = 'shopivo_fav';
 export const ORDER_COOKIE = 'shopivo_order';
 const CUSTOMER_COOKIE = 'shopivo_customer';
+/** Template preview kept for the browser session while the visitor moves between pages. */
+const DEMO_COOKIE = 'shopivo_template_demo';
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SORTS = new Set(['PRICE_ASC', 'PRICE_DESC', 'NAME']);
@@ -126,7 +128,24 @@ export function templateEngine(apiOrigin: string) {
     const customer = cookie(req.headers.cookie, CUSTOMER_COOKIE);
     const order = cookie(req.headers.cookie, ORDER_COOKIE);
     const token = (v: string | null) => (v && /^[A-Za-z0-9_-]{16,200}$/.test(v) ? v : null);
-    return { host: req.hostname, proto: req.protocol, ip: req.ip ?? '', preview, cartToken: token(cart), customer: token(customer), orderToken: token(order) };
+    return { host: req.hostname, proto: req.protocol, ip: req.ip ?? '', preview, cartToken: token(cart), customer: token(customer), orderToken: token(order),
+      demo: preview ? null : demoOf(req, t) };
+  }
+
+  /** `?szablon=CODE` (or the session cookie it set) of a template this engine has; `?szablon=` or a store preview ends it. */
+  function demoOf(req: express.Request, t: Target): string | null {
+    const asked = typeof t.query['szablon'] === 'string' ? t.query['szablon'] : null;
+    const code = (asked ?? cookie(req.headers.cookie, DEMO_COOKIE) ?? '').toUpperCase();
+    return /^[A-Z]{2,20}$/.test(code) && renderers.has(code) ? code : null;
+  }
+
+  /** Remembers or ends the template preview for the following pages. */
+  function keepDemo(req: express.Request, res: express.Response, info: { demo?: string | null; preview: string | null }) {
+    const asked = req.query['szablon'];
+    if (typeof asked === 'string' || info.preview) {
+      if (info.demo) res.cookie(DEMO_COOKIE, info.demo, { httpOnly: true, sameSite: 'lax', secure: req.secure, path: '/' });
+      else if (cookie(req.headers.cookie, DEMO_COOKIE)) res.clearCookie(DEMO_COOKIE, { path: '/' });
+    }
   }
 
   /** The store's template, when it is a package this engine has. */
@@ -334,11 +353,14 @@ export function templateEngine(apiOrigin: string) {
     ].filter(Boolean).join('\n');
   }
 
-  function footer(pkg: TemplatePackage, store: ApiStore, editing = false): string {
+  function footer(pkg: TemplatePackage, store: ApiStore, editing = false, demo: string | null = null): string {
     const base = `/_t/${pkg.code.toLowerCase()}/${pkg.version}`;
-    const config = JSON.stringify({ currency: store.currency, cartCookie: CART_COOKIE, favCookie: FAV_COOKIE, orderCookie: ORDER_COOKIE })
+    const config = JSON.stringify({ currency: store.currency, cartCookie: CART_COOKIE, favCookie: FAV_COOKIE, orderCookie: ORDER_COOKIE, demo })
       .replace(/</g, '\\u003c');
     return [
+      ...(demo ? ['<div role="note" style="position:fixed;left:50%;bottom:12px;z-index:2147483000;transform:translateX(-50%);max-width:calc(100vw - 24px);'
+        + 'border-radius:999px;background:#111;color:#fff;padding:6px 14px;font:600 11px/1.4 system-ui,sans-serif;white-space:nowrap;box-shadow:0 6px 24px #0004">'
+        + 'Podgląd szablonu · <a href="/?szablon=" style="color:#fff;text-decoration:underline">Zamknij</a></div>'] : []),
       `<script type="application/json" id="shop-config">${config}</script>`,
       '<script src="/_shop/runtime.js" defer></script>',
       // The merchant edits in the panel's preview: the editor overlay, talking only to the panel's origin
@@ -399,7 +421,7 @@ export function templateEngine(apiOrigin: string) {
           const desc = (p.seo_description || p.description || p.name).slice(0, 300);
           ld += `\n<meta name="description" content="${escapeHtml(desc)}">`;
         }
-        const noindex = !!info.preview || page.status === 404 || (page.type === 'catalog' && !!req.query['q'])
+        const noindex = !!info.preview || !!info.demo || page.status === 404 || (page.type === 'catalog' && !!req.query['q'])
           || ['checkout', 'order', 'cart', 'favorites', 'auth', 'account', 'account_order', 'newsletter', 'review'].includes(page.type);
         if (page.type === 'page') {
           const e = page.data['entry'] as { seo_description: string | null; excerpt: string | null };
@@ -407,11 +429,12 @@ export function templateEngine(apiOrigin: string) {
           if (desc) ld += `\n<meta name="description" content="${escapeHtml(desc.slice(0, 300))}">`;
         }
         ctx.head = head(renderer.pkg, ctx.store, page.title, req, noindex, ld);
-        ctx.footer = footer(renderer.pkg, ctx.store, ctx.editing);
+        ctx.footer = footer(renderer.pkg, ctx.store, ctx.editing, info.demo ?? null);
         const html = await renderer.renderPage(ctx);
+        keepDemo(req, res, info);
         res.status(page.status);
         res.setHeader('Content-Type', 'text/html; charset=utf-8');
-        res.setHeader('Cache-Control', info.preview ? 'private, no-store' : 'private, no-cache');
+        res.setHeader('Cache-Control', info.preview || info.demo ? 'private, no-store' : 'private, no-cache');
         if (info.preview) res.setHeader('X-Robots-Tag', 'noindex, nofollow');
         res.send(html);
       } catch (e) {

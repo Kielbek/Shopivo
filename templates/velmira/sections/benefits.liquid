@@ -1,0 +1,28 @@
+<div class="benefits" id="{{ section.settings.anchor | default: 'benefits' }}">
+{%- for block in section.blocks %}
+<div{{ block | block_attrs }}>{% render 'icon', name: block.settings.icon, px: 27 %}<strong{{ block | edit: 'title' }}>{{ block.settings.title }}</strong><small{{ block | edit: 'text' }}>{{ block.settings.text }}</small></div>
+{%- endfor %}
+</div>
+
+{% schema %}
+{
+  "name": "Korzyści",
+  "settings": [
+    { "id": "anchor", "type": "text", "label": "Kotwica (do linków w menu)", "default": "benefits", "max": 30 }
+  ],
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "Korzyść",
+      "settings": [
+        { "id": "icon", "type": "select", "label": "Ikona", "default": "truck", "options": [
+          { "value": "truck", "label": "Dostawa" }, { "value": "return", "label": "Zwroty" },
+          { "value": "shield", "label": "Bezpieczeństwo" }, { "value": "headset", "label": "Pomoc" }, { "value": "heart", "label": "Serce" } ] },
+        { "id": "title", "type": "text", "label": "Tytuł", "default": "Korzyść", "max": 40 },
+        { "id": "text", "type": "text", "label": "Podpis", "default": "", "max": 60 }
+      ]
+    }
+  ],
+  "max_blocks": 4
+}
+{% endschema %}

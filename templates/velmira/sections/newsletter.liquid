@@ -1,0 +1,33 @@
+<section class="home-news" id="newsletter">
+<div>
+<p class="kicker"{{ section | edit: 'kicker' }}>{{ section.settings.kicker }}</p>
+<h2{{ section | edit: 'heading' }}>{{ section.settings.heading | lines }}</h2>
+<p{{ section | edit: 'text' }}>{{ section.settings.text }}</p>
+</div>
+<div>
+<form data-shop-newsletter novalidate>
+<div class="subscribe">
+<input type="email" name="email" aria-label="Adres e-mail" placeholder="Twój adres e-mail" autocomplete="email" required maxlength="254">
+<button class="pill" type="submit"{{ section | edit: 'button' }}>{{ section.settings.button }}</button>
+</div>
+<label class="consent">
+<input type="checkbox" name="consent" required>
+<span>Chcę otrzymywać newsletter {{ shop.name }}. Zapoznałem się z <a href="{{ 'legal:PRIVACY' | link }}">polityką prywatności</a>.</span>
+</label>
+{%- if shop.captcha_site_key %}<div class="vm-captcha" data-shop-captcha="{{ shop.captcha_site_key }}"></div>{% endif %}
+<p role="status" aria-live="polite" class="vm-status" data-shop-status></p>
+</form>
+</div>
+</section>
+
+{% schema %}
+{
+  "name": "Newsletter",
+  "settings": [
+    { "id": "kicker", "type": "text", "label": "Nadtytuł", "default": "Listy od nas", "max": 40 },
+    { "id": "heading", "type": "textarea", "label": "Nagłówek", "default": "Twoja chwila piękna.\nProsto do skrzynki.", "max": 80 },
+    { "id": "text", "type": "textarea", "label": "Opis", "default": "Nowości, inspiracje pielęgnacyjne i specjalne oferty.", "max": 240 },
+    { "id": "button", "type": "text", "label": "Tekst przycisku", "default": "Dołącz do nas ↗", "max": 30 }
+  ]
+}
+{% endschema %}

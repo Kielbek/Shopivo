@@ -1,0 +1,38 @@
+{%- assign field = 'field' -%}
+{%- assign gold = 'pill' -%}
+{%- assign card = 'vm-card' -%}
+{%- assign o = account_order -%}
+<div class="vm-narrow">
+<a href="/konto" class="text-sm underline">← Moje konto</a>
+{%- assign heading = 'Zamówienie nr ' | append: o.number -%}
+{% render 'page-title', text: heading %}
+<p class="pull-up vm-muted">{{ o.date }} · {{ o.status }} · {{ o.payment }}</p>
+{%- if o.awaiting_online %}<form class="{{ card }} mt-6 grid gap-3" data-shop-form="order-pay"><input type="hidden" name="orderNumber" value="{{ o.number }}"><p>Zamówienie czeka na płatność online.</p><p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p><button type="submit" class="{{ gold }} self-start-x" data-busy-label="Przekierowanie…">Zapłać {{ o.total | money: o.currency }}</button></form>{% endif %}
+{%- if o.tracking %}<p class="mt-4">Numer przesyłki: <strong>{{ o.tracking }}</strong></p>{% endif %}
+<ul class="{{ card }} mt-6 grid gap-3 text-sm">{% for i in o.items %}<li class="flex justify-between gap-4"><span>{{ i.quantity }} × {{ i.name }}{% if i.variant_title != blank %} ({{ i.variant_title }}){% endif %}</span><span>{{ i.line_total | money: o.currency }}</span></li>{% endfor %}</ul>
+<dl class="mt-4 grid gap-2 text-sm">
+<div class="flex justify-between"><dt class="vm-muted">Produkty</dt><dd>{{ o.subtotal | money: o.currency }}</dd></div>
+{%- if o.shipping_method %}<div class="flex justify-between"><dt class="vm-muted">Dostawa: {{ o.shipping_method }}</dt><dd>{{ o.shipping | money: o.currency }}</dd></div>{% endif %}
+{%- if o.payment_fee > 0 %}<div class="flex justify-between"><dt class="vm-muted">Opłata za pobranie</dt><dd>{{ o.payment_fee | money: o.currency }}</dd></div>{% endif %}
+<div class="flex justify-between vm-rule pt-pad-3 vm-total"><dt>Razem</dt><dd>{{ o.total | money: o.currency }}</dd></div>
+</dl>
+{%- if o.address %}<h2 class="mt-8 vm-h3">Adres dostawy</h2><address class="mt-2 leading-relaxed">{{ o.address.name }}<br>{{ o.address.line1 }}{% if o.address.line2 %}<br>{{ o.address.line2 }}{% endif %}<br>{{ o.address.postal_code }} {{ o.address.city }}</address>{% endif %}
+{%- if o.can_return %}
+<details class="{{ card }} mt-8"><summary class="cursor-pointer font-bold">Zwrot lub reklamacja</summary>
+<p class="mt-2 text-sm vm-muted">{% if o.withdrawal %}Masz 14 dni od otrzymania przesyłki na zwrot bez podania przyczyny.{% else %}Termin na zwrot minął — możesz zgłosić reklamację wadliwego produktu.{% endif %}</p>
+<form class="mt-4 grid gap-5" data-shop-form="return"><input type="hidden" name="orderNumber" value="{{ o.number }}">
+<fieldset class="grid gap-2"><legend class="mb-2 text-sm font-bold">Czego dotyczy zgłoszenie?</legend>{% for k in o.return_kinds %}<label class="checkout-choice"><input type="radio" name="kind" value="{{ k }}"{% if forloop.first %} checked{% endif %}><span class="checkout-choice-text"><strong>{% if k == 'WITHDRAWAL' %}Zwrot (odstąpienie od umowy){% else %}Reklamacja{% endif %}</strong><span class="checkout-muted">{% if k == 'WITHDRAWAL' %}Bez podania przyczyny, w ciągu 14 dni od otrzymania.{% else %}Produkt jest wadliwy lub niezgodny z opisem.{% endif %}</span></span></label>{% endfor %}</fieldset>
+<fieldset class="grid gap-2"><legend class="mb-2 text-sm font-bold">Produkty</legend>{% for i in o.items %}<div class="flex items-center justify-between gap-3 text-sm"><span>{{ i.name }}{% if i.returnable == 0 %} <span class="vm-muted">(już zgłoszony)</span>{% endif %}</span>{% if i.returnable > 0 %}<select class="{{ field }} account-qty" data-return-item="{{ i.id }}" aria-label="Ile sztuk: {{ i.name }}">{% for n in i.choices %}<option value="{{ n }}">{% if n == 0 %}—{% else %}{{ n }} szt.{% endif %}</option>{% endfor %}</select>{% endif %}</div>{% endfor %}</fieldset>
+<label class="grid gap-2 text-sm">Powód (przy reklamacji opisz wadę)<textarea name="reason" maxlength="2000" rows="3" class="{{ field }}"></textarea></label>
+<label class="grid gap-2 text-sm">Numer rachunku do zwrotu pieniędzy (opcjonalnie)<input name="refundAccount" inputmode="numeric" autocomplete="off" maxlength="40" placeholder="26 cyfr" class="{{ field }}"><span class="text-xs vm-muted">Podaj, jeśli płaciłeś(-aś) przy odbiorze. Przy płatności online zwrócimy pieniądze tą samą metodą.</span></label>
+<p class="checkout-error text-sm font-bold" role="alert" data-shop-error></p>
+<button type="submit" class="{{ gold }} self-start-x" data-busy-label="Wysyłanie…">Wyślij zgłoszenie</button></form>
+<p class="mt-4" role="status" tabindex="-1" hidden data-shop-done>Dziękujemy — zgłoszenie nr <strong data-shop-done-number></strong> zostało wysłane. Potwierdzenie wysłaliśmy e-mailem. <a class="font-bold underline" href="/konto?zakladka=zwroty">Zobacz zgłoszenia</a></p>
+</details>
+{%- endif %}
+{%- if o.status_code == 'COMPLETED' %}<a href="/konto?zakladka=opinie" class="{{ gold }} mt-8 inline-block">Oceń produkty</a>{% endif %}
+</div>
+
+{% schema %}
+{ "name": "Zamówienie w koncie", "settings": [] }
+{% endschema %}
